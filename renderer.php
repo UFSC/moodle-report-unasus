@@ -61,14 +61,33 @@ class report_atividadevsnota_renderer extends plugin_renderer_base {
     protected function filter_bar() {
         $output = '<form method="post" class="mform"><fieldset class="clearfix" id="newfilter">
                 <legend class="ftoggler">Novo Filtro:</legend>
-                    Situação: <input type="radio" class="radiofilter" name="situacao" value="Aberto" />Aberto
-                              <input type="radio" class="radiofilter" name="situacao" value="Em dia" />Em Dia
-                              <input type="radio" class="radiofilter" name="situacao" value="Expirado" />Expirado
-                              <input type="radio" class="radiofilter" name="situacao" value="Fora do prazo" />Fora do prazo<br />
-                    Tutor: <input type="text" size="30" style="margin-bottom: 10px"/><br />
-                    <input type="submit" value="Filtrar">
+                    Situação: <select style="margin-bottom: 10px;">
+                                <option> Aberto </option>
+                                <option>Em Dia</option>
+                                <option>Expirado</option>
+                                <option>Fora do Prazo</option>
+                              </select><br>
+                    Filtrar Estudantes: 
+                        <input type="radio" class="radiofilter" name="filtroestudante" value="tutor">por Tutor
+                        <input type="radio" class="radiofilter" name="filtroestudante" value="polo">por Polo
+                        <br>';
+        $output .= $this->multiplebox_tutor();
+        $output .= '<input type="submit" value="Filtrar">
                 </fieldset></form>';
         return $output;
+    }
+    
+    protected function multiplebox_tutor(){
+        $output = '<select multiple="multiple" name="tutormultiple" class="tutor_multiple">
+                        <option value="tut1"> Tutor 1 - alfa </option>
+                        <option value="tut2"> Tutor 2 - beta </option>
+                        <option value="tut3"> Tutor 3 - gama </option>
+                   </select><br>';
+        return $output;
+    }
+    
+    protected function javascript_tutor_polo_filter(){
+        
     }
 
 }
