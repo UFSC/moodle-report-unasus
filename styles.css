@@ -1,0 +1,26 @@
+.generaltable .trabalho_nao_entregue { 
+    background-color: #F25F0F;
+}
+
+.generaltable .no_prazo{
+    background-color: #8a8a8a;
+}
+
+.generaltable .baixo_atraso{
+    background-color: #5BB83E;
+}
+
+.generaltable .alto_atraso{
+    background-color: #FF0;
+}
+
+.radiofilter{
+   margin-left: 15px;
+   margin-bottom: 10px;
+}
+
+.tutor_tabela{
+    font-size: 15px;
+    text-align: center;
+    margin-bottom: 10px;
+}
