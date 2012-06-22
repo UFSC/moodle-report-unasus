@@ -2,6 +2,7 @@
 
 // chamada da biblioteca local
 require_once($CFG->dirroot . '/report/atividadevsnota/locallib.php');
+require_once($CFG->dirroot . '/report/atividadevsnota/filter.php');
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -11,8 +12,10 @@ class report_atividadevsnota_renderer extends plugin_renderer_base {
         $OUTPUT = $this->header();
         $OUTPUT .= $this->heading('Relatório Atividade vs Nota');
 
-        //filter bar
-        $OUTPUT .= $this->filter_bar();
+        $filter_form = new filter_tutor_polo();
+        $filter_form->display();
+
+        //$OUTPUT .= $this->filter_bar();
         
         $OUTPUT .= "<div class='tutor_tabela'>".get_dados_tutor()->to_string()."</div>";
         
@@ -56,6 +59,10 @@ class report_atividadevsnota_renderer extends plugin_renderer_base {
         }
 
         return $table;
+    }
+    
+    protected function filter_bar_api(){
+        
     }
 
     protected function filter_bar() {

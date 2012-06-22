@@ -21,6 +21,14 @@ function get_dados_tutor(){
     return new Tutor("Tutor 1");
 }
 
+function get_nomes_tutores(){
+    return array("joao","maria","ana");
+}
+
+function get_nomes_polos(){
+    return array("xoinville","plumenau","xapecó");
+}
+
 class Avaliacao{
 
     const NAO_ENTREGUE = 0;
