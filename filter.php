@@ -10,18 +10,18 @@ class filter_tutor_polo extends moodleform {
         global $CFG;
 
         $mform = & $this->_form;
-
+        //javascrip para ocultar as divs tutor/polo
         $mform->addElement('html',
                 '<script type="text/javascript">
                     function toggleDivs(val){
                         if(val == "tutor" || val === true)
                         {
-                            document.getElementById("fitem_id_multiple_tutor").style.display = "none";
-                            document.getElementById("fitem_id_multiple_polo").style.display = "block";
+                            document.getElementById("div_tutor").style.display = "none";
+                            document.getElementById("div_polo").style.display = "block";
                         }
                         else if(val == "polo" || val === false){
-                            document.getElementById("fitem_id_multiple_polo").style.display = "none";
-                            document.getElementById("fitem_id_multiple_tutor").style.display = "block";
+                            document.getElementById("div_polo").style.display = "none";
+                            document.getElementById("div_tutor").style.display = "block";
                         }
                     }
                  </script>');
@@ -46,13 +46,13 @@ class filter_tutor_polo extends moodleform {
     
         
         //div dos nomes dos tutores
-        $mform->addElement('html','<div class="div_tutor"  >');
+        $mform->addElement('html','<div class="div_tutor" id="div_tutor" >');
         $multiple_tutor = & $mform->addElement('select', 'multiple_tutor',"Tutores",get_nomes_tutores()); 
         $multiple_tutor->setMultiple(true);
         $mform->addElement('html','</div>');
         
         //div dos nomes dos polos
-        $mform->addElement('html','<div class="div_polo" >');
+        $mform->addElement('html','<div class="div_polo" id="div_polo">');
         $multiple_tutor = & $mform->addElement('select', 'multiple_polo',"Polos", get_nomes_polos()); 
         $multiple_tutor->setMultiple(true);
         $mform->addElement('html','</div>');

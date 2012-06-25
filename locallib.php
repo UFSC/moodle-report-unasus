@@ -18,7 +18,7 @@ function get_dados_dos_alunos() {
 }
 
 function get_dados_tutor(){
-    return new Tutor("Tutor 1");
+    return new Tutor("joao");
 }
 
 function get_nomes_tutores(){

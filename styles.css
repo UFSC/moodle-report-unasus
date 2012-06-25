@@ -25,7 +25,13 @@
     margin-bottom: 10px;
 }
 
-.tutor_multiple{
-    width: 260px;
-    margin-bottom: 10px;
+.div_tutor{
+    display: none;
 }
+
+.div_polo{
+    display: none;
+}
+
+
+
