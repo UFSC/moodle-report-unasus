@@ -1,17 +1,22 @@
-.generaltable .trabalho_nao_entregue { 
-    background-color: #F25F0F;
+.relatorio-unasus.atividades .trabalho_nao_entregue { 
+    background-color: #ff7777;
 }
 
-.generaltable .no_prazo{
-    background-color: #8a8a8a;
+.relatorio-unasus.atividades .no_prazo{
+    background-color: #ccc;
 }
 
-.generaltable .baixo_atraso{
-    background-color: #5BB83E;
+.relatorio-unasus.atividades .baixo_atraso{
+    background-color: #CCFFCC;
 }
 
-.generaltable .alto_atraso{
-    background-color: #FF0;
+.relatorio-unasus.atividades .alto_atraso{
+    background-color: #FEFF7F;
+}
+
+.relatorio-unasus.atividades .nome_tutor{
+    background-color: #9cf;
+    text-align: center;
 }
 
 .radiofilter{

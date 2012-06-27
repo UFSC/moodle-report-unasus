@@ -42,7 +42,7 @@ class filter_tutor_polo extends moodleform {
                             array('onclick'=> 'toggleDivs(!this.checked)'));
         $radioarray[] = &MoodleQuickForm::createElement('radio', 'tutor_polo', 'polo', 'por Polo', "polo", 
                             array('onclick'=> 'toggleDivs(this.checked)'));
-        $mform->addGroup($radioarray, 'radio_tutor_polo', 'Filtrar Estudantes: ', array('    '), false);
+        $mform->addGroup($radioarray, 'radio_tutor_polo', 'Filtrar Estudantes: ');
     
         
         //div dos nomes dos tutores

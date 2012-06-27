@@ -12,17 +12,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         $OUTPUT = $this->header();
         $OUTPUT .= $this->heading('Relatório Atividade vs Nota');
 
+        
+        //barra de filtro
         $filter_form = new filter_tutor_polo();
-        $filter_form->display();
+        $OUTPUT .= get_form_display($filter_form);
 
-        //$OUTPUT .= $this->filter_bar();
-        
-        $OUTPUT .= "<div class='tutor_tabela'>".get_dados_tutor()->to_string()."</div>";
-        
         //Criação da tabela
         $tabela1 = $this->tabela_at_vs_nota();
-
-
         $OUTPUT .= html_writer::table($tabela1);
 
         //footer é o footer + a barra de navegação lateral
@@ -33,68 +29,45 @@ class report_unasus_renderer extends plugin_renderer_base {
     protected function tabela_at_vs_nota() {
         //criacao da tabela
         $table = new html_table();
-
+        $table->attributes["class"] = "relatorio-unasus atividades generaltable";
+        $table->tablealign = 'center';
+        
         //cabecalho
         $table->head = array("Estudante", "Atividade 1", "Atividade 2", "Atividade 3");
         $table->data = array();
-        
-        $table->tablealign = 'center';
 
         //Chamada dos valores que populam a tabela
-        $dadostabela1 = get_dados_dos_alunos();
-        foreach ($dadostabela1 as $aluno) {
-            $row = new html_table_row();
-            foreach ($aluno as $valor) {
-                $cell;
-                if (is_a($valor, 'Avaliacao')) {
-                    $cell = new html_table_cell($valor->to_string());
-                    $cell->attributes = array("class" => $valor->get_css_class());
-                } else {
-                    $cell = new html_table_cell($valor);
-                }
+        $dadostabela = get_dados_dos_alunos();
+        foreach ($dadostabela as $tutor => $alunos) {
 
-                $row->cells[] = $cell;
+            //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
+            //alunos vao sendo populado na tabela
+            $cel_tutor = new html_table_cell($tutor);
+            $cel_tutor->attributes = array("class" => "nome_tutor");
+            $cel_tutor->colspan = 4;
+            $row_tutor = new html_table_row();
+            $row_tutor->cells[] = $cel_tutor;
+            $table->data[] = $row_tutor;
+
+            //atividades de cada aluno daquele dado tutor
+            foreach ($alunos as $aluno) {
+                $row = new html_table_row();
+                foreach ($aluno as $valor) {
+                    $cell;
+                    if (is_a($valor, 'Avaliacao')) {
+                        $cell = new html_table_cell($valor->to_string());
+                        $cell->attributes = array("class" => $valor->get_css_class());
+                    } else {
+                        $cell = new html_table_cell($valor);
+                    }
+
+                    $row->cells[] = $cell;
+                }
+                $table->data[] = $row;
             }
-            $table->data[] = $row;
         }
 
         return $table;
-    }
-    
-    protected function filter_bar_api(){
-        
-    }
-
-    protected function filter_bar() {
-        $output = '<form method="post" class="mform"><fieldset class="clearfix" id="newfilter">
-                <legend class="ftoggler">Novo Filtro:</legend>
-                    Situação: <select style="margin-bottom: 10px;">
-                                <option> Aberto </option>
-                                <option>Em Dia</option>
-                                <option>Expirado</option>
-                                <option>Fora do Prazo</option>
-                              </select><br>
-                    Filtrar Estudantes: 
-                        <input type="radio" class="radiofilter" name="filtroestudante" value="tutor">por Tutor
-                        <input type="radio" class="radiofilter" name="filtroestudante" value="polo">por Polo
-                        <br>';
-        $output .= $this->multiplebox_tutor();
-        $output .= '<input type="submit" value="Filtrar">
-                </fieldset></form>';
-        return $output;
-    }
-    
-    protected function multiplebox_tutor(){
-        $output = '<select multiple="multiple" name="tutormultiple" class="tutor_multiple">
-                        <option value="tut1"> Tutor 1 - alfa </option>
-                        <option value="tut2"> Tutor 2 - beta </option>
-                        <option value="tut3"> Tutor 3 - gama </option>
-                   </select><br>';
-        return $output;
-    }
-    
-    protected function javascript_tutor_polo_filter(){
-        
     }
 
 }
