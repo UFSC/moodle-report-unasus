@@ -24,8 +24,7 @@ switch ($relatorio) {
         echo $renderer->index_page();
         break;
     default:
-        admin_externalpage_setup('report_unasus_atividade_notas', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->index_page();
+        print_error('unknow_report', 'report_unasus');
         break;
 }
 
