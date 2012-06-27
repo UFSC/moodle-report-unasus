@@ -3,9 +3,12 @@
 // Bibiotecas minimas necessarias para ser um plugin da area administrativa
 require('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-
 // chamada da biblioteca local
 require_once($CFG->dirroot . '/report/unasus/locallib.php');
+
+//carrega arquivo module.js dentro deste modulo
+$PAGE->requires->js_init_call("M.report_unasus.init");
+
 
 require_login(SITEID);
 
