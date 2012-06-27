@@ -1,12 +1,12 @@
 <?php
 
 // chamada da biblioteca local
-require_once($CFG->dirroot . '/report/atividadevsnota/locallib.php');
-require_once($CFG->dirroot . '/report/atividadevsnota/filter.php');
+require_once($CFG->dirroot . '/report/unasus/locallib.php');
+require_once($CFG->dirroot . '/report/unasus/filter.php');
 
 defined('MOODLE_INTERNAL') || die();
 
-class report_atividadevsnota_renderer extends plugin_renderer_base {
+class report_unasus_renderer extends plugin_renderer_base {
 
     public function index_page() {
         $OUTPUT = $this->header();
