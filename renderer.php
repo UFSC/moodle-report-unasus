@@ -1,7 +1,6 @@
 <?php
 
-// chamada da biblioteca local
-require_once($CFG->dirroot . '/report/unasus/locallib.php');
+// chamada do arquivo de filtro
 require_once($CFG->dirroot . '/report/unasus/filter.php');
 
 defined('MOODLE_INTERNAL') || die();

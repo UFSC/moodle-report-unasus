@@ -6,11 +6,11 @@ require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
 
 require_login(SITEID);
+
+// carrega arquivo module.js dentro deste módulo
+$PAGE->requires->js_init_call("M.report_unasus.init");
+
 $renderer = $PAGE->get_renderer('report_unasus');
-
-// "Orientação a objetos" chamando a pagina desejada no renderer.php, report_exemplo refere-se ao
-// caminho de pastas para encontrar o arquivo renderer.php
-
 
 // Renderiza os relatórios
 $relatorio = filter_input(INPUT_GET, 'relatorio', FILTER_SANITIZE_STRING);
