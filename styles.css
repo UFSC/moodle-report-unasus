@@ -1,27 +1,45 @@
-.relatorio-unasus.atividades .trabalho_nao_entregue { 
-    background-color: #ff7777;
+.relatorio-unasus.atividades .nao_entregue {
+    color: #fff;
+    background: #ff7777;
 }
 
-.relatorio-unasus.atividades .no_prazo{
-    background-color: #ccc;
+.relatorio-unasus.atividades .no_prazo {
+    color: #fff;
+    background: #ccc;
+
 }
 
-.relatorio-unasus.atividades .baixo_atraso{
-    background-color: #CCFFCC;
+.relatorio-unasus.atividades .baixo_atraso {
+    background: #CCFFCC;
 }
 
-.relatorio-unasus.atividades .alto_atraso{
-    background-color: #FEFF7F;
+.relatorio-unasus.atividades .alto_atraso {
+    background: #FEFF7F;
 }
 
-.relatorio-unasus.atividades .nome_tutor{
-    background-color: #9cf;
+.relatorio-unasus.atividades .avaliada {
+    background: #fff;
+}
+
+.relatorio-unasus.atividades td {
     text-align: center;
 }
 
+.relatorio-unasus.atividades td.tutor {
+    background: #9cf;
+}
+
+/* TODO: mover para o tema ufsc: th.cell */
+.relatorio-unasus.atividades th.estudante {
+    padding-right: 1em;
+    text-align: left;
+    font-weight: normal;
+    background: #FEF9EC;
+}
+
 .radiofilter{
-   margin-left: 15px;
-   margin-bottom: 10px;
+    margin-left: 15px;
+    margin-bottom: 10px;
 }
 
 .tutor_tabela{
@@ -30,13 +48,10 @@
     margin-bottom: 10px;
 }
 
-.div_tutor{
+.div_tutor {
     display: none;
 }
 
-.div_polo{
+.div_polo {
     display: none;
 }
-
-
-

@@ -1,33 +1,42 @@
 <?php
 
 /**
- *  Geração de dados dos tutores e seus respectivos alunos.
- *  Array[tutores][aluno][avaliacao]
- * 
- * @return array() 
+ * Geração de dados dos tutores e seus respectivos alunos.
+ *
+ * @return array Array[tutores][aluno][avaliacao]
  */
 function get_dados_dos_alunos() {
-    $tutor1 = "tutor 1 - joao";
+    $dados = array();
 
-    $alunos1 = array();
-    $alunos1[] = array("Joaozinho",
-        new Avaliacao(Avaliacao::AVALIADA, "6"),
-        new Avaliacao(Avaliacao::NAO_ENTREGUE),
-        new Avaliacao(Avaliacao::AVALIADA, "8"));
-    $alunos1[] = array("Maria",
-        new Avaliacao(Avaliacao::AVALIADA, "10"),
-        new Avaliacao(Avaliacao::NO_PRAZO),
-        new Avaliacao(Avaliacao::NO_PRAZO));
+    for ($x = 1; $x <= 5; $x++) {
+        $tutor = "Tutor Beltrano de Tal {$x}";
+        $alunos = array();
+        for ($i = 1; $i <= 30; $i++) {
+            $alunos[] = array("Fulano de Tal {$i}",
+                avaliacao_aleatoria(),
+                avaliacao_aleatoria(),
+                avaliacao_aleatoria(true));
+        }
+        $dados[$tutor] = $alunos;
+    }
 
-    $tutor2 = "tutor 2 - ana";
-    $alunos2 = array();
+    return $dados;
+}
 
+/**
+ * Utilizado para gerar uma avalização aleatórioa para finalidade de testes.
+ * @return Avaliacao avaliacao aleatória para os relatórios
+ */
+function avaliacao_aleatoria($no_prazo = false) {
+    $random = rand(0, 100);
 
-    $alunos2[] = array("Joana",
-        new Avaliacao(Avaliacao::ATRASADA, 0, 1),
-        new Avaliacao(Avaliacao::ATRASADA, 0, 10),
-        new Avaliacao(Avaliacao::NO_PRAZO));
-    return array($tutor1 => $alunos1, $tutor2 => $alunos2);
+    if ($random <= 65) { // Avaliada
+        return new Avaliacao(Avaliacao::AVALIADA, rand(0, 10));
+    } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
+        return new Avaliacao(Avaliacao::ATRASADA, null, rand(0, 20));
+    } elseif ($random > 85) { // Não entregue
+        return $no_prazo ? new Avaliacao(Avaliacao::NO_PRAZO) : new Avaliacao(Avaliacao::NAO_ENTREGUE);
+    }
 }
 
 function get_dados_tutor() {
@@ -66,7 +75,7 @@ class Avaliacao {
                 return "Atividade não Entregue";
                 break;
             case Avaliacao::ATRASADA:
-                return $this->atraso . " Dias";
+                return $this->atraso . " dias";
                 break;
             case Avaliacao::AVALIADA:
                 return $this->nota;
@@ -80,20 +89,21 @@ class Avaliacao {
     public function get_css_class() {
         switch ($this->tipo) {
             case Avaliacao::NAO_ENTREGUE:
-                return "trabalho_nao_entregue";
+                return 'nao_entregue';
             case Avaliacao::ATRASADA:
                 return ($this->atraso > 2) ? "alto_atraso" : "baixo_atraso";
             case Avaliacao::NO_PRAZO:
-                return "no_prazo";
+                return 'no_prazo';
+            case Avaliacao::AVALIADA:
+                return 'avaliada';
             default:
-                return"";
+                return '';
         }
     }
 
 }
 
 class Tutor {
-
     var $nome;
 
     function __construct($nome) {
@@ -106,15 +116,13 @@ class Tutor {
 
 }
 
-
 /**
- *
  * Função para capturar um formulario do moodle e pegar sua string geradora
  * já que a unica função para um moodleform é o display que printa automaticamente
- * o form, sem possuir um metodo tostring() 
- * 
+ * o form, sem possuir um metodo tostring()
+ *
  * @param moodleform $mform Formulario do Moodle
- * @return string 
+ * @return string
  */
 function get_form_display(&$mform) {
     ob_start();
