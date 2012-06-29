@@ -37,21 +37,21 @@
     background: #FEF9EC;
 }
 
-.radiofilter{
+.relatorio-unasus.filter .radiobutton{
     margin-left: 15px;
     margin-bottom: 10px;
 }
 
-.tutor_tabela{
+.relatorio-unasus.filter .tutor_tabela{
     font-size: 15px;
     text-align: center;
     margin-bottom: 10px;
 }
 
-.div_tutor {
-    display: none;
+.relatorio-unasus.filter .div_list_show{
+    display: block;
 }
 
-.div_polo {
+.relatorio-unasus.filter .div_list_hide{
     display: none;
 }
