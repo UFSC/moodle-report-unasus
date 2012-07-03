@@ -7,35 +7,63 @@ defined('MOODLE_INTERNAL') || die();
 
 class report_unasus_renderer extends plugin_renderer_base {
 
-    public function page_atividades_vs_notas_atribuidas() {
+    const RELATORIO_ATIVIDADE_VS_NOTA = 0;
+    const RELATORIO_ENTREGA_ATIVIDADE = 1;
+    const RELATORIO_ACOMPANHAMENTO_DE_AVALIACAO = 2;
+
+    /**
+     *  Cria o cabeçalho padrão para os relatórios
+     * 
+     * @param [$title] titulo para a página
+     * @return Form cabeçalho, título da página e barra de filtragem
+     */
+    public function default_header($title = null) {
         $output = $this->header();
-        $output .= $this->heading('Relatório de Atividades vs Notas Atribuídas');
+        $output .= $this->heading($title);
 
         //barra de filtro
         $filter_form = new filter_tutor_polo();
         $output .= get_form_display($filter_form);
-
-        //Criação da tabela
-        $table = $this->table_atividade_vs_nota_atribuidas();
-        $output .= html_writer::table($table);
-
-        //footer é o footer + a barra de navegação lateral
-        $output .= $this->footer();
         return $output;
     }
 
-    protected function table_atividade_vs_nota_atribuidas() {
+    /**
+     * @return Form barra lateral de navegação e footer 
+     */
+    public function default_footer() {
+        return $this->footer();
+    }
+
+    /**
+     * Cria a tabela dos relatorios, a aplicacao do css irá depender de qual foi 
+     * o relatório que invocou esta funcao
+     *  
+     * @param int $tipo_relatorio deve ser uma das constantes $RELATORIO_ATIVIDADE_VS_NOTA,
+     * $RELATORIO_ENTREGA_ATIVIDADE ou $RELATORIO_ACOMPANHAMENTO_DE_AVALIACAO;
+     * @param array() $dadostabela dados para alimentar a tabela
+     * 
+     * 
+     * @return html_table
+     */
+    public function default_table($tipo_relatorio, $dadostabela) {
         //criacao da tabela
         $table = new html_table();
-        $table->attributes['class'] = "relatorio-unasus atividades generaltable";
+        $table->attributes['class'] = $this->get_css_table_class($tipo_relatorio);
         $table->tablealign = 'center';
 
-        //cabecalho
-        $table->head = array("Estudante", "Atividade 1", "Atividade 2", "Atividade 3");
-        $table->data = array();
+        
+        //Com a api default de criacao de tabelas é impossivel ter uma header
+        //com duas linhas, no caso de uma linha a criação seria a seguinte:
+        //$table->head = array('Estudante', 'Atividade 1', 'Atividade 2', 'Atividade 3');
 
-        //Chamada dos valores que populam a tabela
-        $dadostabela = get_dados_dos_alunos();
+        $table->data = array();
+        $mod1 = new html_table_cell("Modulo 1");
+        $mod1->header = true;
+        $mod2 = new html_table_cell("Modulo 2");
+        $mod2->header = true;
+        $heading1 = new html_table_row(array(null,$mod1,null,$mod2));
+        $table->data[] = $heading1;
+
         foreach ($dadostabela as $tutor => $alunos) {
 
             //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
@@ -53,7 +81,8 @@ class report_unasus_renderer extends plugin_renderer_base {
                 foreach ($aluno as $valor) {
                     if (is_a($valor, 'Avaliacao')) {
                         $cell = new html_table_cell($valor->to_string());
-                        $cell->attributes = array('class' => $valor->get_css_class());
+                        $cell->attributes = array(
+                            'class' => $this->get_css_cell_class($tipo_relatorio, $valor));
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
@@ -69,4 +98,48 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $table;
     }
 
+    /**
+     * @param local_const $tipo_relatorio
+     * @return string
+     */
+    private function get_css_table_class($tipo_relatorio) {
+        switch ($tipo_relatorio) {
+            case report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA:
+                return "relatorio-unasus atividades generaltable";
+            default:
+                break;
+        }
+    }
+
+    /**
+     * @param type $tipo_relatorio
+     * @param Avaliacao $avaliacao
+     * @return string 
+     */
+    private function get_css_cell_class($tipo_relatorio, $avaliacao) {
+        switch ($tipo_relatorio) {
+            case report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA:
+                return $avaliacao->get_css_class();
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Cria a página referente ao relatorio atividade vs notas atribuidas
+     * 
+     * @return Form 
+     */
+    public function page_atividades_vs_notas_atribuidas() {
+        $output = $this->default_header('Relatório de Atividades vs Notas Atribuídas');
+
+        //Criação da tabela
+        $table = $this->default_table(report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA, get_dados_dos_alunos());
+        $output .= html_writer::table($table);
+
+        $output .= $this->default_footer();
+        return $output;
+    }
+
 }
+

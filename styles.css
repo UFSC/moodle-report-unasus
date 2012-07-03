@@ -47,11 +47,3 @@
     text-align: center;
     margin-bottom: 10px;
 }
-
-.relatorio-unasus.filter .div_list_show{
-    display: block;
-}
-
-.relatorio-unasus.filter .div_list_hide{
-    display: none;
-}

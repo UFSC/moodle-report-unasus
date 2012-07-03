@@ -3,7 +3,13 @@
 //moodleform is defined in formslib.php
 require_once("$CFG->libdir/formslib.php");
 
-
+/**
+ *
+ * Classe para cricação da barra de filtragem tutor/polo para o
+ * relatório de atividades vs notas atribuidas
+ * 
+ *  
+ */
 class filter_tutor_polo extends moodleform {
 
     // adicao de elementos para a form

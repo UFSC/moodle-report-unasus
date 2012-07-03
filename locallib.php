@@ -48,7 +48,7 @@ function get_nomes_tutores() {
 }
 
 function get_nomes_polos() {
-    return array("xoinville", "plumenau", "xapecó");
+    return array("joinville", "blumenau", "xapecó");
 }
 
 class Avaliacao {
