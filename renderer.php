@@ -137,6 +137,17 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->default_footer();
         return $output;
     }
+    
+    public function page_entrega_de_atividades(){
+        $output = $this->default_header('Relatório de Acompanhamento de Entrega de Atividades');
+
+        //Criação da tabela
+        $table = $this->default_table(report_unasus_renderer::RELATORIO_ENTREGA_ATIVIDADE, get_dados_entrega_atividades());
+        $output .= html_writer::table($table);
+
+        $output .= $this->default_footer();
+        return $output;
+    }
 
 }
 
