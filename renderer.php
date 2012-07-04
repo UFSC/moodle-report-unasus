@@ -47,7 +47,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      */
     public function default_table($tipo_relatorio, $dadostabela) {
         //criacao da tabela
-        $table = new html_table();
+        $table = new report_unasus_table();
         $table->attributes['class'] = $this->get_css_table_class($tipo_relatorio);
         $table->tablealign = 'center';
 
@@ -56,30 +56,11 @@ class report_unasus_renderer extends plugin_renderer_base {
         //com duas linhas, no caso de uma linha a criação seria a seguinte:
         //$table->head = array('Estudante', 'Atividade 1', 'Atividade 2', 'Atividade 3');
 
-        $table->data = array();
+        $header = array();
+        $header['Módulo 1'] = array('Atividade 1', 'Atividade 2');
+        $header['Módulo 2'] = array('Atividade 1');
+        $table->build_double_header($header);
         
-        $heading1 = array(
-            new html_table_cell(),
-            new html_table_cell('Modulo 1'),
-            new html_table_cell(),
-            new html_table_cell('Modulo 2'));
-        
-        $heading2 = array(
-            new html_table_cell('Estudante'), 
-            new html_table_cell('Atividade 1'), 
-            new html_table_cell('Atividade 2'), 
-            new html_table_cell('Atividade 1'));
-        
-        for ($index = 0; $index < 4; $index++) {
-            $heading1[$index]->text ? $heading1[$index]->header = true : 
-                                      $heading1[$index]->attributes = array('class'=>'blank');
-            $heading2[$index]->header = true;
-        }
-        $table->data[] = new html_table_row($heading1);
-        $table->data[] = new html_table_row($heading2);
-        
-        
-
         foreach ($dadostabela as $tutor => $alunos) {
 
             //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
