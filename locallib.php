@@ -39,8 +39,35 @@ function avaliacao_aleatoria($no_prazo = false) {
     }
 }
 
-function get_dados_tutor() {
-    return new Tutor("joao");
+
+function get_dados_entrega_atividades(){
+    $dados = array();
+
+    for ($x = 1; $x <= 5; $x++) {
+        $tutor = "Tutor Beltrano de Tal {$x}";
+        $alunos = array();
+        for ($i = 1; $i <= 30; $i++) {
+            $alunos[] = array("Fulano de Tal {$i}",
+                atividade_aleatoria(),
+                atividade_aleatoria(),
+                atividade_aleatoria(true));
+        }
+        $dados[$tutor] = $alunos;
+    }
+
+    return $dados;
+}
+
+function atividade_aleatoria($no_prazo = false) {
+    $random = rand(0, 100);
+
+    if ($random <= 65) { // Avaliada
+        return new Avaliacao(Avaliacao::AVALIADA);
+    } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
+        return new Avaliacao(Avaliacao::ATRASADA, null, rand(0, 20));
+    } elseif ($random > 85) { // Não entregue
+        return $no_prazo ? new Avaliacao(Avaliacao::NO_PRAZO) : new Avaliacao(Avaliacao::NAO_ENTREGUE);
+    }
 }
 
 function get_nomes_tutores() {
