@@ -39,8 +39,7 @@ function avaliacao_aleatoria($no_prazo = false) {
     }
 }
 
-
-function get_dados_entrega_atividades(){
+function get_dados_entrega_atividades() {
     $dados = array();
 
     for ($x = 1; $x <= 5; $x++) {
@@ -50,7 +49,7 @@ function get_dados_entrega_atividades(){
             $alunos[] = array("Fulano de Tal {$i}",
                 atividade_aleatoria(),
                 atividade_aleatoria(),
-                atividade_aleatoria(true));
+                atividade_aleatoria());
         }
         $dados[$tutor] = $alunos;
     }
@@ -58,15 +57,15 @@ function get_dados_entrega_atividades(){
     return $dados;
 }
 
-function atividade_aleatoria($no_prazo = false) {
+function atividade_aleatoria() {
     $random = rand(0, 100);
 
     if ($random <= 65) { // Avaliada
-        return new Avaliacao(Avaliacao::AVALIADA);
+        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO);
     } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new Avaliacao(Avaliacao::ATRASADA, null, rand(0, 20));
+        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO, rand(0, 20));
     } elseif ($random > 85) { // Não entregue
-        return $no_prazo ? new Avaliacao(Avaliacao::NO_PRAZO) : new Avaliacao(Avaliacao::NAO_ENTREGUE);
+        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE);
     }
 }
 
@@ -131,6 +130,7 @@ class Avaliacao {
 }
 
 class Tutor {
+
     var $nome;
 
     function __construct($nome) {
@@ -157,4 +157,106 @@ function get_form_display(&$mform) {
     $output = ob_get_contents();
     ob_end_clean();
     return $output;
+}
+
+
+abstract class unasus_data {
+    public abstract function to_string();
+    public abstract function get_css_class();
+}
+
+class dado_atividade_vs_nota extends unasus_data {
+
+    const ATIVIDADE_NAO_ENTREGUE = 0;
+    const CORRECAO_ATRASADA = 1;
+    const ATIVIDADE_AVALIADA = 2;
+    const ATIVIDADE_NO_PRAZO_ENTREGA = 3;
+
+    var $tipo;
+    var $nota;
+    var $atraso;
+
+    function __construct($tipo, $nota = 0, $atraso = 0) {
+
+        $this->tipo = $tipo;
+        $this->nota = $nota;
+        $this->atraso = $atraso;
+    }
+
+    public function to_string() {
+        switch ($this->tipo) {
+            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
+                return 'Atividade não Entregue';
+                break;
+            case Avaliacao::CORRECAO_ATRASADA:
+                return "$this->atraso dias";
+                break;
+            case Avaliacao::ATIVIDADE_AVALIADA:
+                return $this->nota;
+                break;
+            case Avaliacao::ATIVIDADE_NO_PRAZO_ENTREGA:
+                return 'No prazo';
+                break;
+        }
+    }
+
+    public function get_css_class() {
+        switch ($this->tipo) {
+            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
+                return 'nao_entregue';
+            case Avaliacao::CORRECAO_ATRASADA:
+                return ($this->atraso > 2) ? 'alto_atraso' : 'baixo_atraso';
+            case Avaliacao::ATIVIDADE_AVALIADA:
+                return 'avaliada';
+            case Avaliacao::ATIVIDADE_NO_PRAZO_ENTREGA:
+                return 'no_prazo';
+            default:
+                return '';
+        }
+    }
+
+}
+
+class dado_entrega_atividade extends unasus_data {
+    const ATIVIDADE_NAO_ENTREGUE = 0;
+    const ATIVIDADE_ENTREGUE_NO_PRAZO = 1;
+    const ATIVIDADE_ENTREGUE_FORA_DO_PRAZO = 2;
+    
+    var $tipo;
+    var $atraso;
+    
+    function __construct($tipo, $atraso = 0) {
+        $this->tipo = $tipo;
+        $this->atraso = $atraso;
+    }
+    
+    public function to_string() {
+        switch ($this->tipo) {
+            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
+                return '';
+                break;
+            case Avaliacao::ATIVIDADE_ENTREGUE_NO_PRAZO:
+                return '';
+                break;
+            case Avaliacao::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+                return "$this->atraso dias";
+                break;
+            
+        }
+    }
+    
+    public function get_css_class() {
+        switch ($this->tipo) {
+            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
+                return '';
+                break;
+            case Avaliacao::ATIVIDADE_ENTREGUE_NO_PRAZO:
+                return 'baixo_atraso';
+                break;
+            case Avaliacao::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+                return ($this->atraso > 2) ? 'nao_entregue' : 'alto_atraso';
+                break;
+            
+        }
+    }
 }
