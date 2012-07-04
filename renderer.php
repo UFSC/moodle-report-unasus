@@ -104,7 +104,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             case report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA:
                 return "relatorio-unasus atividades generaltable";
             default:
-                break;
+                return "relatorio-unasus atividades generaltable";
         }
     }
 
@@ -116,6 +116,8 @@ class report_unasus_renderer extends plugin_renderer_base {
     private function get_css_cell_class($tipo_relatorio, $avaliacao) {
         switch ($tipo_relatorio) {
             case report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA:
+                return $avaliacao->get_css_class();
+            case report_unasus_renderer::RELATORIO_ENTREGA_ATIVIDADE:
                 return $avaliacao->get_css_class();
             default:
                 break;
