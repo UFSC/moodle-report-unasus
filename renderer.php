@@ -57,12 +57,28 @@ class report_unasus_renderer extends plugin_renderer_base {
         //$table->head = array('Estudante', 'Atividade 1', 'Atividade 2', 'Atividade 3');
 
         $table->data = array();
-        $mod1 = new html_table_cell("Modulo 1");
-        $mod1->header = true;
-        $mod2 = new html_table_cell("Modulo 2");
-        $mod2->header = true;
-        $heading1 = new html_table_row(array(null,$mod1,null,$mod2));
-        $table->data[] = $heading1;
+        
+        $heading1 = array(
+            new html_table_cell(),
+            new html_table_cell('Modulo 1'),
+            new html_table_cell(),
+            new html_table_cell('Modulo 2'));
+        
+        $heading2 = array(
+            new html_table_cell('Estudante'), 
+            new html_table_cell('Atividade 1'), 
+            new html_table_cell('Atividade 2'), 
+            new html_table_cell('Atividade 1'));
+        
+        for ($index = 0; $index < 4; $index++) {
+            $heading1[$index]->text ? $heading1[$index]->header = true : 
+                                      $heading1[$index]->attributes = array('class'=>'blank');
+            $heading2[$index]->header = true;
+        }
+        $table->data[] = new html_table_row($heading1);
+        $table->data[] = new html_table_row($heading2);
+        
+        
 
         foreach ($dadostabela as $tutor => $alunos) {
 

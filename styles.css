@@ -37,6 +37,10 @@
     background: #FEF9EC;
 }
 
+.relatorio-unasus.atividades td.blank{
+    background: #fff;
+    border: 0px solid #fff !important;
+}
 .relatorio-unasus.filter .radiobutton{
     margin-left: 15px;
     margin-bottom: 10px;
