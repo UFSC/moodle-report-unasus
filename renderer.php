@@ -13,7 +13,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      *  Cria o cabeçalho padrão para os relatórios
-     * 
+     *
      * @param [$title] titulo para a página
      * @return Form cabeçalho, título da página e barra de filtragem
      */
@@ -22,27 +22,29 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->heading($title);
 
         //barra de filtro
-        $filter_form = new filter_tutor_polo();
+        $form_attributes = array('class' => 'filter_form');
+        $filter_form = new filter_tutor_polo(null, null, 'post', '', $form_attributes);
+       
         $output .= get_form_display($filter_form);
         return $output;
     }
 
     /**
-     * @return Form barra lateral de navegação e footer 
+     * @return Form barra lateral de navegação e footer
      */
     public function default_footer() {
         return $this->footer();
     }
 
     /**
-     * Cria a tabela dos relatorios, a aplicacao do css irá depender de qual foi 
+     * Cria a tabela dos relatorios, a aplicacao do css irá depender de qual foi
      * o relatório que invocou esta funcao
-     *  
+     *
      * @param int $tipo_relatorio deve ser uma das constantes $RELATORIO_ATIVIDADE_VS_NOTA,
      * $RELATORIO_ENTREGA_ATIVIDADE ou $RELATORIO_ACOMPANHAMENTO_DE_AVALIACAO;
      * @param array() $dadostabela dados para alimentar a tabela
-     * 
-     * 
+     *
+     *
      * @return html_table
      */
     public function default_table($tipo_relatorio, $dadostabela) {
@@ -51,7 +53,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $table->attributes['class'] = $this->get_css_table_class($tipo_relatorio);
         $table->tablealign = 'center';
 
-        
+
         //Com a api default de criacao de tabelas é impossivel ter uma header
         //com duas linhas, no caso de uma linha a criação seria a seguinte:
         //$table->head = array('Estudante', 'Atividade 1', 'Atividade 2', 'Atividade 3');
@@ -60,7 +62,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $header['Módulo 1'] = array('Atividade 1', 'Atividade 2');
         $header['Módulo 2'] = array('Atividade 1');
         $table->build_double_header($header);
-        
+
         foreach ($dadostabela as $tutor => $alunos) {
 
             //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
@@ -111,7 +113,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     /**
      * @param type $tipo_relatorio
      * @param Avaliacao $avaliacao
-     * @return string 
+     * @return string
      */
     private function get_css_cell_class($tipo_relatorio, $avaliacao) {
         switch ($tipo_relatorio) {
@@ -126,8 +128,8 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao relatorio atividade vs notas atribuidas
-     * 
-     * @return Form 
+     *
+     * @return Form
      */
     public function page_atividades_vs_notas_atribuidas() {
         $output = $this->default_header('Relatório de Atividades vs Notas Atribuídas');
@@ -139,7 +141,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->default_footer();
         return $output;
     }
-    
+
     public function page_entrega_de_atividades(){
         $output = $this->default_header('Relatório de Acompanhamento de Entrega de Atividades');
 
