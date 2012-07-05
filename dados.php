@@ -15,6 +15,10 @@ function get_dados_dos_alunos() {
             $alunos[] = array("Fulano de Tal {$i}",
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
+                avaliacao_aleatoria(),
+                avaliacao_aleatoria(),
+                avaliacao_aleatoria(),
+                avaliacao_aleatoria(true),
                 avaliacao_aleatoria(true));
         }
         $dados[$tutor] = $alunos;
@@ -53,6 +57,10 @@ function get_dados_entrega_atividades() {
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
             $alunos[] = array("Fulano de Tal {$i}",
+                atividade_aleatoria(),
+                atividade_aleatoria(),
+                atividade_aleatoria(),
+                atividade_aleatoria(),
                 atividade_aleatoria(),
                 atividade_aleatoria(),
                 atividade_aleatoria());

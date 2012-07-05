@@ -46,8 +46,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         $table->tablealign = 'center';
 
         $header = array();
-        $header['Módulo 1'] = array('Atividade 1', 'Atividade 2');
-        $header['Módulo 2'] = array('Atividade 1');
+        $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+        $header['Módulo 2'] = array('Atividade 1','Atividade 2','Atividade 3','Atividade 4');
         $table->build_double_header($header);
 
         foreach ($dadostabela as $tutor => $alunos) {
@@ -56,7 +56,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             //alunos vao sendo populado na tabela
             $cel_tutor = new html_table_cell($tutor);
             $cel_tutor->attributes = array('class' => 'tutor');
-            $cel_tutor->colspan = 4;
+            $cel_tutor->colspan = count($alunos[0]); // expande a célula com nome dos tutores
             $row_tutor = new html_table_row();
             $row_tutor->cells[] = $cel_tutor;
             $table->data[] = $row_tutor;
