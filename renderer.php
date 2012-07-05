@@ -7,10 +7,6 @@ defined('MOODLE_INTERNAL') || die();
 
 class report_unasus_renderer extends plugin_renderer_base {
 
-    const RELATORIO_ATIVIDADE_VS_NOTA = 0;
-    const RELATORIO_ENTREGA_ATIVIDADE = 1;
-    const RELATORIO_ACOMPANHAMENTO_DE_AVALIACAO = 2;
-
     /**
      *  Cria o cabeçalho padrão para os relatórios
      *
@@ -47,16 +43,11 @@ class report_unasus_renderer extends plugin_renderer_base {
      *
      * @return html_table
      */
-    public function default_table($tipo_relatorio, $dadostabela) {
+    public function default_table($dadostabela) {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = $this->get_css_table_class($tipo_relatorio);
+        $table->attributes['class'] = "relatorio-unasus atividades generaltable";
         $table->tablealign = 'center';
-
-
-        //Com a api default de criacao de tabelas é impossivel ter uma header
-        //com duas linhas, no caso de uma linha a criação seria a seguinte:
-        //$table->head = array('Estudante', 'Atividade 1', 'Atividade 2', 'Atividade 3');
 
         $header = array();
         $header['Módulo 1'] = array('Atividade 1', 'Atividade 2');
@@ -78,10 +69,10 @@ class report_unasus_renderer extends plugin_renderer_base {
             foreach ($alunos as $aluno) {
                 $row = new html_table_row();
                 foreach ($aluno as $valor) {
-                    if (is_a($valor, 'Avaliacao')) {
+                    if (is_a($valor, 'unasus_data')) {
                         $cell = new html_table_cell($valor->to_string());
                         $cell->attributes = array(
-                            'class' => $this->get_css_cell_class($tipo_relatorio, $valor));
+                            'class' => $valor->get_css_class());
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
@@ -98,35 +89,6 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
-     * @param local_const $tipo_relatorio
-     * @return string
-     */
-    private function get_css_table_class($tipo_relatorio) {
-        switch ($tipo_relatorio) {
-            case report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA:
-                return "relatorio-unasus atividades generaltable";
-            default:
-                return "relatorio-unasus atividades generaltable";
-        }
-    }
-
-    /**
-     * @param type $tipo_relatorio
-     * @param Avaliacao $avaliacao
-     * @return string
-     */
-    private function get_css_cell_class($tipo_relatorio, $avaliacao) {
-        switch ($tipo_relatorio) {
-            case report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA:
-                return $avaliacao->get_css_class();
-            case report_unasus_renderer::RELATORIO_ENTREGA_ATIVIDADE:
-                return $avaliacao->get_css_class();
-            default:
-                break;
-        }
-    }
-
-    /**
      * Cria a página referente ao relatorio atividade vs notas atribuidas
      *
      * @return Form
@@ -135,7 +97,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header('Relatório de Atividades vs Notas Atribuídas');
 
         //Criação da tabela
-        $table = $this->default_table(report_unasus_renderer::RELATORIO_ATIVIDADE_VS_NOTA, get_dados_dos_alunos());
+        $table = $this->default_table(get_dados_dos_alunos());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -146,7 +108,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header('Relatório de Acompanhamento de Entrega de Atividades');
 
         //Criação da tabela
-        $table = $this->default_table(report_unasus_renderer::RELATORIO_ENTREGA_ATIVIDADE, get_dados_entrega_atividades());
+        $table = $this->default_table(get_dados_entrega_atividades());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();

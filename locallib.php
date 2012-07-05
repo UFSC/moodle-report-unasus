@@ -1,81 +1,5 @@
 <?php
-
-/**
- * Geração de dados dos tutores e seus respectivos alunos.
- *
- * @return array Array[tutores][aluno][avaliacao]
- */
-function get_dados_dos_alunos() {
-    $dados = array();
-
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
-        $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array("Fulano de Tal {$i}",
-                avaliacao_aleatoria(),
-                avaliacao_aleatoria(),
-                avaliacao_aleatoria(true));
-        }
-        $dados[$tutor] = $alunos;
-    }
-
-    return $dados;
-}
-
-/**
- * Utilizado para gerar uma avalização aleatórioa para finalidade de testes.
- * @return Avaliacao avaliacao aleatória para os relatórios
- */
-function avaliacao_aleatoria($no_prazo = false) {
-    $random = rand(0, 100);
-
-    if ($random <= 65) { // Avaliada
-        return new Avaliacao(Avaliacao::AVALIADA, rand(0, 10));
-    } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new Avaliacao(Avaliacao::ATRASADA, null, rand(0, 20));
-    } elseif ($random > 85) { // Não entregue
-        return $no_prazo ? new Avaliacao(Avaliacao::NO_PRAZO) : new Avaliacao(Avaliacao::NAO_ENTREGUE);
-    }
-}
-
-function get_dados_entrega_atividades() {
-    $dados = array();
-
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
-        $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array("Fulano de Tal {$i}",
-                atividade_aleatoria(),
-                atividade_aleatoria(),
-                atividade_aleatoria());
-        }
-        $dados[$tutor] = $alunos;
-    }
-
-    return $dados;
-}
-
-function atividade_aleatoria() {
-    $random = rand(0, 100);
-
-    if ($random <= 65) { // Avaliada
-        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO);
-    } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO, rand(0, 20));
-    } elseif ($random > 85) { // Não entregue
-        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE);
-    }
-}
-
-function get_nomes_tutores() {
-    return array("joao", "maria", "ana");
-}
-
-function get_nomes_polos() {
-    return array("joinville", "blumenau", "xapecó");
-}
+require_once($CFG->dirroot . '/report/unasus/dados.php');
 
 /**
  * Função para capturar um formulario do moodle e pegar sua string geradora
@@ -93,56 +17,17 @@ function get_form_display(&$mform) {
     return $output;
 }
 
-class Avaliacao {
+/**
+ *Dado que alimenta a lista do filtro
+ * 
+ * @return array(Strings) 
+ */
+function get_nomes_tutores() {
+    return array("joao", "maria", "ana");
+}
 
-    const NAO_ENTREGUE = 0;
-    const ATRASADA = 1;
-    const AVALIADA = 2;
-    const NO_PRAZO = 3;
-
-    var $tipo;
-    var $nota;
-    var $atraso;
-
-    function __construct($tipo, $nota = 0, $atraso = 0) {
-
-        $this->tipo = $tipo;
-        $this->nota = $nota;
-        $this->atraso = $atraso;
-    }
-
-    public function to_string() {
-        switch ($this->tipo) {
-            case Avaliacao::NAO_ENTREGUE:
-                return "Atividade não Entregue";
-                break;
-            case Avaliacao::ATRASADA:
-                return $this->atraso . " dias";
-                break;
-            case Avaliacao::AVALIADA:
-                return $this->nota;
-                break;
-            case Avaliacao::NO_PRAZO:
-                return "No prazo";
-                break;
-        }
-    }
-
-    public function get_css_class() {
-        switch ($this->tipo) {
-            case Avaliacao::NAO_ENTREGUE:
-                return 'nao_entregue';
-            case Avaliacao::ATRASADA:
-                return ($this->atraso > 2) ? "alto_atraso" : "baixo_atraso";
-            case Avaliacao::NO_PRAZO:
-                return 'no_prazo';
-            case Avaliacao::AVALIADA:
-                return 'avaliada';
-            default:
-                return '';
-        }
-    }
-
+function get_nomes_polos() {
+    return array("joinville", "blumenau", "xapecó");
 }
 
 class Tutor {
@@ -223,16 +108,16 @@ class dado_atividade_vs_nota extends unasus_data {
 
     public function to_string() {
         switch ($this->tipo) {
-            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE:
                 return 'Atividade não Entregue';
                 break;
-            case Avaliacao::CORRECAO_ATRASADA:
+            case dado_atividade_vs_nota::CORRECAO_ATRASADA:
                 return "$this->atraso dias";
                 break;
-            case Avaliacao::ATIVIDADE_AVALIADA:
+            case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
                 return $this->nota;
                 break;
-            case Avaliacao::ATIVIDADE_NO_PRAZO_ENTREGA:
+            case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'No prazo';
                 break;
         }
@@ -240,13 +125,13 @@ class dado_atividade_vs_nota extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
-            case Avaliacao::CORRECAO_ATRASADA:
+            case dado_atividade_vs_nota::CORRECAO_ATRASADA:
                 return ($this->atraso > 2) ? 'alto_atraso' : 'baixo_atraso';
-            case Avaliacao::ATIVIDADE_AVALIADA:
+            case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
                 return 'avaliada';
-            case Avaliacao::ATIVIDADE_NO_PRAZO_ENTREGA:
+            case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'no_prazo';
             default:
                 return '';
@@ -270,13 +155,13 @@ class dado_entrega_atividade extends unasus_data {
     
     public function to_string() {
         switch ($this->tipo) {
-            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE:
                 return '';
                 break;
-            case Avaliacao::ATIVIDADE_ENTREGUE_NO_PRAZO:
+            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO:
                 return '';
                 break;
-            case Avaliacao::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return "$this->atraso dias";
                 break;
             
@@ -285,13 +170,13 @@ class dado_entrega_atividade extends unasus_data {
     
     public function get_css_class() {
         switch ($this->tipo) {
-            case Avaliacao::ATIVIDADE_NAO_ENTREGUE:
-                return '';
+            case dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE:
+                return 'avaliada';
                 break;
-            case Avaliacao::ATIVIDADE_ENTREGUE_NO_PRAZO:
+            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO:
                 return 'baixo_atraso';
                 break;
-            case Avaliacao::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return ($this->atraso > 2) ? 'nao_entregue' : 'alto_atraso';
                 break;
             

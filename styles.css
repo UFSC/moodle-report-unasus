@@ -38,8 +38,8 @@
 }
 
 .relatorio-unasus.atividades td.blank{
-    background: #fff;
-    border: 0px solid #fff !important;
+    background: #FAFAFA;
+    border: 0px solid transparent !important;
 }
 
 .filter_form div.fsubmit {
