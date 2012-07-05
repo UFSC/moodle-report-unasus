@@ -8,10 +8,10 @@ defined('MOODLE_INTERNAL') || die();
 class report_unasus_renderer extends plugin_renderer_base {
 
     /**
-     *  Cria o cabeçalho padrão para os relatórios
+     * Cria o cabeçalho padrão para os relatórios
      *
-     * @param [$title] titulo para a página
-     * @return Form cabeçalho, título da página e barra de filtragem
+     * @param String $title titulo para a página
+     * @return String cabeçalho, título da página e barra de filtragem
      */
     public function default_header($title = null) {
         $output = $this->header();
@@ -36,11 +36,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a tabela dos relatorios, a aplicacao do css irá depender de qual foi
      * o relatório que invocou esta funcao
      *
-     * @param int $tipo_relatorio deve ser uma das constantes $RELATORIO_ATIVIDADE_VS_NOTA,
-     * $RELATORIO_ENTREGA_ATIVIDADE ou $RELATORIO_ACOMPANHAMENTO_DE_AVALIACAO;
-     * @param array() $dadostabela dados para alimentar a tabela
-     *
-     *
+     * @param Array $dadostabela dados para alimentar a tabela
      * @return html_table
      */
     public function default_table($dadostabela) {
@@ -91,7 +87,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     /**
      * Cria a página referente ao relatorio atividade vs notas atribuidas
      *
-     * @return Form
+     * @return String
      */
     public function page_atividades_vs_notas_atribuidas() {
         $output = $this->default_header('Relatório de Atividades vs Notas Atribuídas');
