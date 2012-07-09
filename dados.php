@@ -12,7 +12,7 @@ function get_dados_dos_alunos() {
         $tutor = "Tutor Beltrano de Tal {$x}";
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array("Fulano de Tal {$i}",
+            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
@@ -39,7 +39,7 @@ function avaliacao_aleatoria($no_prazo = false) {
     } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
         return new dado_atividade_vs_nota(dado_atividade_vs_nota::CORRECAO_ATRASADA, null, rand(0, 20));
     } elseif ($random > 85) { // Não entregue
-        return $no_prazo ? new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA) : 
+        return $no_prazo ? new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA) :
                             new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE);
     }
 }
@@ -56,7 +56,7 @@ function get_dados_entrega_atividades() {
         $tutor = "Tutor Beltrano de Tal {$x}";
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array("Fulano de Tal {$i}",
+            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
                 atividade_aleatoria(),
                 atividade_aleatoria(),
                 atividade_aleatoria(),

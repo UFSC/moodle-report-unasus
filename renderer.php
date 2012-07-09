@@ -66,7 +66,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $row = new html_table_row();
                 foreach ($aluno as $valor) {
                     if (is_a($valor, 'unasus_data')) {
-                        $cell = new html_table_cell($valor->to_string());
+                        $cell = new html_table_cell($valor);
                         $cell->attributes = array(
                             'class' => $valor->get_css_class());
                     } else { // Aluno

@@ -1,4 +1,5 @@
 <?php
+require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/dados.php');
 
 /**
@@ -28,20 +29,6 @@ function get_nomes_tutores() {
 
 function get_nomes_polos() {
     return array("joinville", "blumenau", "xapecó");
-}
-
-class Tutor {
-
-    var $nome;
-
-    function __construct($nome) {
-        $this->nome = $nome;
-    }
-
-    function to_string() {
-        return $this->nome;
-    }
-
 }
 
 class report_unasus_table extends html_table {
@@ -84,7 +71,6 @@ class report_unasus_table extends html_table {
 
 
 abstract class unasus_data {
-    public abstract function to_string();
     public abstract function get_css_class();
 }
 
@@ -106,7 +92,7 @@ class dado_atividade_vs_nota extends unasus_data {
         $this->atraso = $atraso;
     }
 
-    public function to_string() {
+    public function __toString() {
         switch ($this->tipo) {
             case dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE:
                 return 'Atividade não Entregue';
@@ -115,7 +101,7 @@ class dado_atividade_vs_nota extends unasus_data {
                 return "$this->atraso dias";
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
-                return $this->nota;
+                return (String)$this->nota;
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'No prazo';
@@ -152,8 +138,8 @@ class dado_entrega_atividade extends unasus_data {
         $this->tipo = $tipo;
         $this->atraso = $atraso;
     }
-    
-    public function to_string() {
+
+    public function __toString() {
         switch ($this->tipo) {
             case dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE:
                 return '';
