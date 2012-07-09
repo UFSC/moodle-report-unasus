@@ -1,31 +1,44 @@
-.relatorio-unasus.atividades .nao_entregue {
-    color: #fff;
-    background: #ff7777;
-}
-
-.relatorio-unasus.atividades .no_prazo {
+/* Cinza */
+.relatorio-unasus.atividades_vs_notas .nao_realizada{
     color: #fff;
     background: #ccc;
 
 }
 
-.relatorio-unasus.atividades .baixo_atraso {
+/* Verde */
+.relatorio-unasus.atividades_vs_notas .pouco_atraso,
+.relatorio-unasus.entrega_de_atividades .no_prazo,
+.relatorio-unasus.acompanhamento_de_avaliacao .no_prazo{
     background: #CCFFCC;
 }
 
-.relatorio-unasus.atividades .alto_atraso {
+/* Vermelho */
+.relatorio-unasus.atividades_vs_notas .nao_entregue,
+.relatorio-unasus.entrega_de_atividades .muito_atraso,
+.relatorio-unasus.acompanhamento_de_avaliacao .muito_atraso{
+    color: #fff;
+    background: #ff7777;
+}
+
+/* Amarelo */
+.relatorio-unasus.atividades_vs_notas .muito_atraso,
+.relatorio-unasus.entrega_de_atividades .pouco_atraso,
+.relatorio-unasus.acompanhamento_de_avaliacao .pouco_atraso{
     background: #FEFF7F;
 }
 
-.relatorio-unasus.atividades .avaliada {
+/* Branco */
+.relatorio-unasus.atividades_vs_notas .nota_atribuida,
+.relatorio-unasus.entrega_de_atividades .nao_entregue,
+.relatorio-unasus.acompanhamento_de_avaliacao .nao_entregue{
     background: #fff;
 }
 
-.relatorio-unasus.atividades td {
+.relatorio-unasus td{
     text-align: center;
 }
 
-.relatorio-unasus.atividades td.tutor {
+.relatorio-unasus td.tutor{
     background: #9cf;
 }
 

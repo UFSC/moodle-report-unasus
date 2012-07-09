@@ -37,12 +37,13 @@ class report_unasus_renderer extends plugin_renderer_base {
      * o relatório que invocou esta funcao
      *
      * @param Array $dadostabela dados para alimentar a tabela
+     * @param String $css_class classe css para aplicar a tabela
      * @return html_table
      */
-    public function default_table($dadostabela) {
+    public function default_table($dadostabela, $css_class) {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus atividades generaltable";
+        $table->attributes['class'] = "relatorio-unasus $css_class generaltable";
         $table->tablealign = 'center';
 
         $header = array();
@@ -86,25 +87,62 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao relatorio atividade vs notas atribuidas
-     *
+     * @param string $css_class classe css para aplicar na tabela
      * @return String
      */
-    public function page_atividades_vs_notas_atribuidas() {
+    public function page_atividades_vs_notas_atribuidas($css_class) {
         $output = $this->default_header('Relatório de Atividades vs Notas Atribuídas');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_dos_alunos());
+        $table = $this->default_table(get_dados_dos_alunos(), $css_class);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
         return $output;
     }
-
-    public function page_entrega_de_atividades(){
+    
+    /**
+     * Cria a página referente ao relatorio de entrega de atividades
+     * @param string $css_class classe css para aplicar na tabela
+     * @return String
+     */
+    public function page_entrega_de_atividades($css_class){
         $output = $this->default_header('Relatório de Acompanhamento de Entrega de Atividades');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_entrega_atividades());
+        $table = $this->default_table(get_dados_entrega_atividades(), $css_class);
+        $output .= html_writer::table($table);
+
+        $output .= $this->default_footer();
+        return $output;
+    }
+    
+    /**
+     * Cria a página referente ao relatorio de acompanhamento de avaliacao de atividades
+     * @param string $css_class classe css para aplicar na tabela
+     * @return String
+     */
+    public function page_acompanhamento_de_avaliacao($css_class){
+        $output = $this->default_header('Relatório de Acompanhamento de Avaliação de Atividades');
+
+        //Criação da tabela
+        $table = $this->default_table(get_dados_avaliacao_atividades(),$css_class);
+        $output .= html_writer::table($table);
+
+        $output .= $this->default_footer();
+        return $output;
+    }
+    
+    /**
+     * Cria a página referente ao relatorio de Atividades Postadas e não Avaliadas
+     * @param string $css_class classe css para aplicar na tabela
+     * @return String
+     */
+    public function page_atividades_nao_avaliadas($css_class){
+        $output = $this->default_header('Relatório de Atividades Postadas e Não Avaliadas');
+
+        //Criação da tabela
+        $table = $this->default_table(get_dados_avaliacao_atividades(),$css_class);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
