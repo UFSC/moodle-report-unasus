@@ -19,7 +19,7 @@ function get_form_display(&$mform) {
 }
 
 /**
- *Dado que alimenta a lista do filtro
+ * Dado que alimenta a lista do filtro tutores
  * 
  * @return array(Strings) 
  */
@@ -27,48 +27,58 @@ function get_nomes_tutores() {
     return array("joao", "maria", "ana");
 }
 
+/**
+ * Dado que alimenta a lista do filtro polos
+ * 
+ * @return array(Strings) 
+ */
 function get_nomes_polos() {
     return array("joinville", "blumenau", "xapecó");
 }
 
+/**
+ * Classe que constroi a tabela para os relatorios, extende a html_table 
+ * da MoodleAPI.
+ *  
+ */
 class report_unasus_table extends html_table {
-    
+
     function build_single_header($coluns) {
         $this->head = $coluns;
     }
-    
+
     function build_double_header($grouped_coluns) {
-        
+
         $this->data = array();
         $blank = new html_table_cell();
         $blank->attributes = array('class' => 'blank');
         $student = new html_table_cell('Estudante');
         $student->header = true;
-        
+
         $heading1 = array(); // Primeira linha
         $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha
-        
+
         $heading2 = array(); // Segunda linha
         $heading2[] = $student;
-        
+
         foreach ($grouped_coluns as $module_name => $activities) {
             $module_cell = new html_table_cell($module_name);
             $module_cell->header = true;
             $module_cell->colspan = count($activities);
-            
-            $heading1[] = $module_cell; 
+
+            $heading1[] = $module_cell;
             foreach ($activities as $activity) {
                 $activity_cell = new html_table_cell($activity);
                 $activity_cell->header = true;
                 $heading2[] = $activity_cell;
             }
         }
-        
+
         $this->data[] = new html_table_row($heading1);
         $this->data[] = new html_table_row($heading2);
     }
-}
 
+}
 
 abstract class unasus_data {
     public abstract function get_css_class();
@@ -114,11 +124,11 @@ class dado_atividade_vs_nota extends unasus_data {
             case dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
             case dado_atividade_vs_nota::CORRECAO_ATRASADA:
-                return ($this->atraso > 2) ? 'alto_atraso' : 'baixo_atraso';
+                return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
             case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
-                return 'avaliada';
+                return 'nota_atribuida';
             case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
-                return 'no_prazo';
+                return 'nao_realizada';
             default:
                 return '';
         }
@@ -130,10 +140,10 @@ class dado_entrega_atividade extends unasus_data {
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const ATIVIDADE_ENTREGUE_NO_PRAZO = 1;
     const ATIVIDADE_ENTREGUE_FORA_DO_PRAZO = 2;
-    
+
     var $tipo;
     var $atraso;
-    
+
     function __construct($tipo, $atraso = 0) {
         $this->tipo = $tipo;
         $this->atraso = $atraso;
@@ -150,22 +160,61 @@ class dado_entrega_atividade extends unasus_data {
             case dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return "$this->atraso dias";
                 break;
-            
         }
     }
-    
+
     public function get_css_class() {
         switch ($this->tipo) {
             case dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE:
-                return 'avaliada';
+                return 'nao_entregue';
                 break;
             case dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO:
-                return 'baixo_atraso';
+                return 'no_prazo';
                 break;
             case dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
-                return ($this->atraso > 2) ? 'nao_entregue' : 'alto_atraso';
+                return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
                 break;
-            
         }
     }
+
+}
+
+class dado_acompanhamento_avaliacao extends unasus_data {
+
+    const ATIVIDADE_NAO_ENTREGUE = 0;
+    const CORRECAO_NO_PRAZO = 1;
+    const CORRECAO_ATRASADA = 2;
+
+    var $tipo;
+    var $atraso;
+
+    function __construct($tipo, $atraso = 0) {
+        $this->tipo = $tipo;
+        $this->atraso = $atraso;
+    }
+
+    public function to_string() {
+        switch ($this->tipo) {
+            case dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+                return '';
+                break;
+            default: 
+                return "$this->atraso dias";
+        }
+    }
+
+    public function get_css_class() {
+        switch ($this->tipo) {
+            case dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+                return 'nao_entregue';
+                break;
+            case dado_acompanhamento_avaliacao::CORRECAO_NO_PRAZO:
+                return 'no_prazo';
+                break;
+            case dado_acompanhamento_avaliacao::CORRECAO_ATRASADA:
+                return ($this->atraso > 7) ? 'muito_atraso' : 'pouco_atraso';
+                break;
+        }
+    }
+
 }
