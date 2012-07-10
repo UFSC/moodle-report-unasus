@@ -40,7 +40,7 @@ function avaliacao_aleatoria($no_prazo = false) {
         return new dado_atividade_vs_nota(dado_atividade_vs_nota::CORRECAO_ATRASADA, null, rand(0, 20));
     } elseif ($random > 85) { // Não entregue
         return $no_prazo ? new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA) :
-                            new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE);
+                new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE);
     }
 }
 
@@ -113,8 +113,8 @@ function avaliacao_atividade_aleatoria() {
         return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_NO_PRAZO, rand(0, 3));
     } elseif ($random > 65 && $random <= 85) {
         return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE);
-    } elseif ($random > 85) { 
-        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_ATRASADA, rand(4,20));
+    } elseif ($random > 85) {
+        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_ATRASADA, rand(4, 20));
     }
 }
 
@@ -131,26 +131,16 @@ function get_dados_atividades_nao_avaliadas() {
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
             $alunos[] = array("Fulano de Tal {$i}",
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria());
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_media(rand(0, 100)));
         }
         $dados[$tutor] = $alunos;
     }
 
     return $dados;
 }
-
-function atividade_nao_avaliada() {
-    $random = rand(0, 100);
-
-    if ($random <= 65) {
-        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_NO_PRAZO, rand(0, 3));
-    } elseif ($random > 65 && $random <= 85) {
-        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE);
-    } elseif ($random > 85) { 
-        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_ATRASADA, rand(4,20));
-    }
-}
-
-

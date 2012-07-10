@@ -8,7 +8,8 @@
 /* Verde */
 .relatorio-unasus.atividades_vs_notas .pouco_atraso,
 .relatorio-unasus.entrega_de_atividades .no_prazo,
-.relatorio-unasus.acompanhamento_de_avaliacao .no_prazo{
+.relatorio-unasus.acompanhamento_de_avaliacao .no_prazo,
+.relatorio-unasus .media{
     background: #CCFFCC;
 }
 

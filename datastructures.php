@@ -55,8 +55,13 @@ class tutor extends pessoa {
  * Estrutura para auxiliar a renderização dos dados dos relatórios
  */
 abstract class unasus_data {
+    protected $header = false;
 
     public abstract function get_css_class();
+
+    public function is_header(){
+        return $header;
+    }
 }
 
 class dado_atividade_vs_nota extends unasus_data {
@@ -195,10 +200,8 @@ class dado_acompanhamento_avaliacao extends unasus_data {
 
 }
 
-class dado_atividades_nao_avaliadas extends unasus_data {
-
+class dado_atividades_nao_avaliadas extends unasus_data {   
     private $taxa;
-    private $tipo;
 
     function __construct($taxa) {
         $this->taxa = $taxa;
@@ -209,7 +212,27 @@ class dado_atividades_nao_avaliadas extends unasus_data {
     }
 
     public function get_css_class() {
-        return "";
+        return '';
     }
 
+}
+
+/**
+ *  @TODO media deve se auto-calcular.
+ */
+class dado_media extends unasus_data{
+    private $media;
+    
+    function __construct($media) {
+        $this->media = $media;
+    }
+
+    public function __toString() {
+        return "{$this->media}%";
+    }
+
+    public function get_css_class() {
+        return 'media';
+    }
+    
 }
