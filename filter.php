@@ -25,8 +25,8 @@ class filter_tutor_polo extends moodleform {
 
         //radio button da filtragem do tipo de estudante, por tutor ou polo
         $radioarray = array();
-        $radioarray[] = &MoodleQuickForm::createElement('radio', 'radiofilter', 'tutor', 'por Tutor', 'tutor');
-        $radioarray[] = &MoodleQuickForm::createElement('radio', 'radiofilter', 'polo', 'por Polo', 'polo');
+        $radioarray[] =& $mform->createElement('radio', 'radiofilter', 'tutor', 'por Tutor', 'tutor');
+        $radioarray[] =& $mform->createElement('radio', 'radiofilter', 'polo', 'por Polo', 'polo');
         $mform->addGroup($radioarray, '', 'Filtrar Estudantes: ', null);
 
 
