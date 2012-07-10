@@ -148,6 +148,39 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->default_footer();
         return $output;
     }
+    
+    /**
+     * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
+     * @param string $css_class classe css para aplicar na tabela
+     * @return String
+     */
+    public function page_estudante_sem_atividade_postada($css_class){
+        $output = $this->default_header('Relatório de Estudantes sem Atividades Postadas (fora do prazo)');
+
+        //Criação da tabela
+        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(),$css_class);
+        $output .= html_writer::table($table);
+
+        $output .= $this->default_footer();
+        return $output;
+    }
+    
+    /**
+     * Cria a página referente ao Relatório de Atividades com Avaliação em Atraso por Tutor
+     * @param string $css_class classe css para aplicar na tabela
+     * @return String
+     */
+    public function page_atividades_em_atraso_tutor($css_class){
+        $output = $this->default_header('Relatório de Atividades com Avaliação em Atraso por Tutor');
+
+        //Criação da tabela
+        $table = $this->default_table(get_dados_avaliacao_em_atraso_tutor(),$css_class);
+        $output .= html_writer::table($table);
+
+        $output .= $this->default_footer();
+        return $output;
+    }
+
 
 }
 

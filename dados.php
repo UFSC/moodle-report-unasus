@@ -144,3 +144,29 @@ function get_dados_atividades_nao_avaliadas() {
 
     return $dados;
 }
+
+function get_dados_estudante_sem_atividade_postada(){
+    $dados = array();
+
+    for ($x = 1; $x <= 5; $x++) {
+        $tutor = "Tutor Beltrano de Tal {$x}";
+        $alunos = array();
+        for ($i = 1; $i <= 30; $i++) {
+            $alunos[] = array("Fulano de Tal {$i}",
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_atividades_nao_avaliadas(rand(0, 100)),
+                new dado_media(rand(0, 100)));
+        }
+        $dados[$tutor] = $alunos;
+    }
+
+    return $dados;
+}
+
+function get_dados_avaliacao_em_atraso_tutor(){
+    return get_dados_atividades_nao_avaliadas();
+}

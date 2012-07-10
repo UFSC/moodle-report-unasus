@@ -32,6 +32,15 @@ switch ($relatorio) {
         admin_externalpage_setup('report_unasus_atividades_avaliadas', '', null, '', array('pagelayout' => 'report'));
         echo $renderer->page_atividades_nao_avaliadas($relatorio);
         break;
+    // TODO: fazer este relatorio
+    case 'estudante_sem_atividade_postada':
+        admin_externalpage_setup('report_unasus_estudante_sem_atividade_postada', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_estudante_sem_atividade_postada($relatorio);
+        break;
+    case 'atividades_em_atraso_tutor' :
+        admin_externalpage_setup('report_unasus_atividades_em_atraso_tutor', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_atividades_em_atraso_tutor($relatorio);
+        break;
     default:
         print_error('unknow_report', 'report_unasus');
         break;
