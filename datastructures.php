@@ -10,9 +10,11 @@
  */
 abstract class pessoa {
     protected $name;
+    protected $id;
 
     function __construct($name) {
         $this->name = $name;
+        $this->id = 1; // mock id - visitante
     }
 }
 
@@ -23,8 +25,12 @@ abstract class pessoa {
 class estudante extends pessoa {
 
     function __toString() {
-        $link = new moodle_url('/user/profile.php', array('id' => 1)); // mock id - visitante
-        return html_writer::link($link, $this->name);
+        global $OUTPUT;
+        $email_icon = $OUTPUT->pix_icon('t/email', 'Enviar mensagem');
+        $profile_link = html_writer::link(new moodle_url('/user/profile.php', array('id' => $this->id)), $this->name);
+        $message_link = html_writer::link(new moodle_url('/message/index.php', array('id' => $this->id)), $email_icon);
+
+        return "{$profile_link} {$message_link}";
     }
 }
 
