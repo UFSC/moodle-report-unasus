@@ -9,6 +9,7 @@
  * Auxilia renderização nos relatórios.
  */
 abstract class pessoa {
+
     protected $name;
     protected $id;
 
@@ -16,8 +17,8 @@ abstract class pessoa {
         $this->name = $name;
         $this->id = 1; // mock id - visitante
     }
-}
 
+}
 
 /**
  * Representa um estudante nos relatórios
@@ -32,15 +33,18 @@ class estudante extends pessoa {
 
         return "{$profile_link} {$message_link}";
     }
+
 }
 
 /**
  * Representa um tutor nos relatórios
  */
 class tutor extends pessoa {
+
     function __toString() {
         return $this->name;
     }
+
 }
 
 //
@@ -51,6 +55,7 @@ class tutor extends pessoa {
  * Estrutura para auxiliar a renderização dos dados dos relatórios
  */
 abstract class unasus_data {
+
     public abstract function get_css_class();
 }
 
@@ -61,9 +66,9 @@ class dado_atividade_vs_nota extends unasus_data {
     const ATIVIDADE_AVALIADA = 2;
     const ATIVIDADE_NO_PRAZO_ENTREGA = 3;
 
-    var $tipo;
-    var $nota;
-    var $atraso;
+    private $tipo;
+    private $nota;
+    private $atraso;
 
     function __construct($tipo, $nota = 0, $atraso = 0) {
 
@@ -81,7 +86,7 @@ class dado_atividade_vs_nota extends unasus_data {
                 return "$this->atraso dias";
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
-                return (String)$this->nota;
+                return (String) $this->nota;
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'No prazo';
@@ -107,12 +112,13 @@ class dado_atividade_vs_nota extends unasus_data {
 }
 
 class dado_entrega_atividade extends unasus_data {
+
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const ATIVIDADE_ENTREGUE_NO_PRAZO = 1;
     const ATIVIDADE_ENTREGUE_FORA_DO_PRAZO = 2;
 
-    var $tipo;
-    var $atraso;
+    private $tipo;
+    private $atraso;
 
     function __construct($tipo, $atraso = 0) {
         $this->tipo = $tipo;
@@ -155,8 +161,8 @@ class dado_acompanhamento_avaliacao extends unasus_data {
     const CORRECAO_NO_PRAZO = 1;
     const CORRECAO_ATRASADA = 2;
 
-    var $tipo;
-    var $atraso;
+    private $tipo;
+    private $atraso;
 
     function __construct($tipo, $atraso = 0) {
         $this->tipo = $tipo;
@@ -189,4 +195,21 @@ class dado_acompanhamento_avaliacao extends unasus_data {
 
 }
 
-?>
+class dado_atividades_nao_avaliadas extends unasus_data {
+
+    private $taxa;
+    private $tipo;
+
+    function __construct($taxa) {
+        $this->taxa = $taxa;
+    }
+
+    public function __toString() {
+        return "{$this->taxa}%";
+    }
+
+    public function get_css_class() {
+        return "";
+    }
+
+}

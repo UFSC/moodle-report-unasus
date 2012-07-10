@@ -88,7 +88,7 @@ function atividade_aleatoria() {
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_avaliacao_atividades() {
+function get_dados_acompanhamento_de_avaliacao() {
     $dados = array();
 
     for ($x = 1; $x <= 5; $x++) {
@@ -118,5 +118,39 @@ function avaliacao_atividade_aleatoria() {
     }
 }
 
+/**
+ * Geração de dados dos tutores e seus respectivos alunos.
+ *
+ * @return array Array[tutores][aluno][unasus_data]
+ */
+function get_dados_atividades_nao_avaliadas() {
+    $dados = array();
+
+    for ($x = 1; $x <= 5; $x++) {
+        $tutor = "Tutor Beltrano de Tal {$x}";
+        $alunos = array();
+        for ($i = 1; $i <= 30; $i++) {
+            $alunos[] = array("Fulano de Tal {$i}",
+                avaliacao_atividade_aleatoria(),
+                avaliacao_atividade_aleatoria(),
+                avaliacao_atividade_aleatoria());
+        }
+        $dados[$tutor] = $alunos;
+    }
+
+    return $dados;
+}
+
+function atividade_nao_avaliada() {
+    $random = rand(0, 100);
+
+    if ($random <= 65) {
+        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_NO_PRAZO, rand(0, 3));
+    } elseif ($random > 65 && $random <= 85) {
+        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE);
+    } elseif ($random > 85) { 
+        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_ATRASADA, rand(4,20));
+    }
+}
 
 

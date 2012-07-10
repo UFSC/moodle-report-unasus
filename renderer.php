@@ -126,7 +126,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header('Relatório de Acompanhamento de Avaliação de Atividades');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_avaliacao_atividades(),$css_class);
+        $table = $this->default_table(get_dados_acompanhamento_de_avaliacao(),$css_class);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
