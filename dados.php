@@ -199,11 +199,10 @@ function get_dados_acesso_tutor() {
     return $dados;
 }
 
-
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor(){
+function get_dados_uso_sistema_tutor() {
     $dados = array();
 
     $tutores = array();
@@ -218,7 +217,7 @@ function get_dados_uso_sistema_tutor(){
             new dado_tempo_acesso(rand(0, 20)),
             new dado_tempo_acesso(rand(0, 20)),
             $media->value(),
-            new dado_somatorio(rand(0, 20)+rand(0, 20)+rand(0, 20)+rand(0, 20)+rand(0, 20)+rand(0, 20)));
+            new dado_somatorio(rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20)));
     }
     $dados["Tutores"] = $tutores;
 
@@ -226,7 +225,7 @@ function get_dados_uso_sistema_tutor(){
     return $dados;
 }
 
-function get_dados_potenciais_evasoes(){
+function get_dados_potenciais_evasoes() {
     $dados = array();
 
     $tutores = array();
@@ -255,10 +254,10 @@ function get_header_modulo_atividade() {
     return $header;
 }
 
-function get_header_acesso_tutor(){
-    return array('Tutor','15/06','16/06','17/06','18/06','19/06','20/06','21/06');
+function get_header_acesso_tutor() {
+    return array('Tutor', '15/06', '16/06', '17/06', '18/06', '19/06', '20/06', '21/06');
 }
 
-function get_header_uso_sistema_tutor(){
-    return array('Tutor','Semana 1','Semana 2','Semana 3','Semana 4','Semana 5','Semana 6','Media','Total');
+function get_header_uso_sistema_tutor() {
+    return array('Tutor', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6', 'Media', 'Total');
 }

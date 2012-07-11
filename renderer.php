@@ -117,7 +117,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página referente ao relatorio de entrega de atividades
      * @return String
      */
-    public function page_entrega_de_atividades(){
+    public function page_entrega_de_atividades() {
         $output = $this->default_header('Relatório de Acompanhamento de Entrega de Atividades');
 
         //Criação da tabela
@@ -132,7 +132,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página referente ao relatorio de acompanhamento de avaliacao de atividades
      * @return String
      */
-    public function page_acompanhamento_de_avaliacao(){
+    public function page_acompanhamento_de_avaliacao() {
         $output = $this->default_header('Relatório de Acompanhamento de Avaliação de Atividades');
 
         //Criação da tabela
@@ -147,7 +147,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página referente ao relatorio de Atividades Postadas e não Avaliadas
      * @return String
      */
-    public function page_atividades_nao_avaliadas(){
+    public function page_atividades_nao_avaliadas() {
         $output = $this->default_header('Relatório de Atividades Postadas e Não Avaliadas');
 
         //Criação da tabela
@@ -162,11 +162,11 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
      * @return String
      */
-    public function page_estudante_sem_atividade_postada(){
+    public function page_estudante_sem_atividade_postada() {
         $output = $this->default_header('Relatório de Estudantes sem Atividades Postadas (fora do prazo)');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(),get_header_modulo_atividade());
+        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(), get_header_modulo_atividade());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -177,11 +177,11 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página referente ao Relatório de Atividades com Avaliação em Atraso por Tutor
      * @return String
      */
-    public function page_atividades_em_atraso_tutor(){
+    public function page_atividades_em_atraso_tutor() {
         $output = $this->default_header('Relatório de Atividades com Avaliação em Atraso por Tutor');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_avaliacao_em_atraso_tutor(),get_header_modulo_atividade());
+        $table = $this->default_table(get_dados_avaliacao_em_atraso_tutor(), get_header_modulo_atividade());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();

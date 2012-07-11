@@ -93,7 +93,7 @@ class dado_atividade_vs_nota extends unasus_data {
                 return "$this->atraso dias";
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
-                return (String) $this->nota;
+                return (String)$this->nota;
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'No prazo';
