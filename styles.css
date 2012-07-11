@@ -56,6 +56,11 @@
     border: 0px solid transparent !important;
 }
 
+.filter_form #id_multiple_polo, .filter_form #id_multiple_tutor {
+    width: 250px;
+    height: 250px;
+}
+
 .filter_form div.fsubmit {
     text-align: left;
 }
