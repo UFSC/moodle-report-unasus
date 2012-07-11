@@ -7,6 +7,13 @@ defined('MOODLE_INTERNAL') || die();
 
 class report_unasus_renderer extends plugin_renderer_base {
 
+    private $report;
+
+    public function __construct(moodle_page $page, $target) {
+        parent::__construct($page, $target);
+        $this->report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+    }
+
     /**
      * Cria o cabeçalho padrão para os relatórios
      *
@@ -19,8 +26,8 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         //barra de filtro
         $form_attributes = array('class' => 'filter_form');
-        $filter_form = new filter_tutor_polo(null, null, 'post', '', $form_attributes);
-       
+        $filter_form = new filter_tutor_polo(null, array('relatorio' => $this->report), 'post', '', $form_attributes);
+
         $output .= get_form_display($filter_form);
         return $output;
     }
@@ -37,18 +44,17 @@ class report_unasus_renderer extends plugin_renderer_base {
      * o relatório que invocou esta funcao
      *
      * @param Array $dadostabela dados para alimentar a tabela
-     * @param String $css_class classe css para aplicar a tabela
      * @return html_table
      */
-    public function default_table($dadostabela, $css_class) {
+    public function default_table($dadostabela) {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $css_class generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
         $table->tablealign = 'center';
 
         $header = array();
         $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-        $header['Módulo 2'] = array('Atividade 1','Atividade 2','Atividade 3','Atividade 4');
+        $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Atividade 4');
         $table->build_double_header($header);
 
         foreach ($dadostabela as $tutor => $alunos) {
@@ -87,100 +93,93 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao relatorio atividade vs notas atribuidas
-     * @param string $css_class classe css para aplicar na tabela
      * @return String
      */
-    public function page_atividades_vs_notas_atribuidas($css_class) {
+    public function page_atividades_vs_notas_atribuidas() {
         $output = $this->default_header('Relatório de Atividades vs Notas Atribuídas');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_dos_alunos(), $css_class);
+        $table = $this->default_table(get_dados_dos_alunos(), $this->report);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
         return $output;
     }
-    
+
     /**
      * Cria a página referente ao relatorio de entrega de atividades
-     * @param string $css_class classe css para aplicar na tabela
      * @return String
      */
-    public function page_entrega_de_atividades($css_class){
+    public function page_entrega_de_atividades() {
         $output = $this->default_header('Relatório de Acompanhamento de Entrega de Atividades');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_entrega_atividades(), $css_class);
+        $table = $this->default_table(get_dados_entrega_atividades(), $this->report);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
         return $output;
     }
-    
+
     /**
      * Cria a página referente ao relatorio de acompanhamento de avaliacao de atividades
-     * @param string $css_class classe css para aplicar na tabela
      * @return String
      */
-    public function page_acompanhamento_de_avaliacao($css_class){
+    public function page_acompanhamento_de_avaliacao() {
         $output = $this->default_header('Relatório de Acompanhamento de Avaliação de Atividades');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_acompanhamento_de_avaliacao(),$css_class);
+        $table = $this->default_table(get_dados_acompanhamento_de_avaliacao(), $this->report);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
         return $output;
     }
-    
+
     /**
      * Cria a página referente ao relatorio de Atividades Postadas e não Avaliadas
-     * @param string $css_class classe css para aplicar na tabela
      * @return String
      */
-    public function page_atividades_nao_avaliadas($css_class){
+    public function page_atividades_nao_avaliadas() {
         $output = $this->default_header('Relatório de Atividades Postadas e Não Avaliadas');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_atividades_nao_avaliadas(),$css_class);
+        $table = $this->default_table(get_dados_atividades_nao_avaliadas(), $this->report);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
         return $output;
     }
-    
+
     /**
      * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
-     * @param string $css_class classe css para aplicar na tabela
      * @return String
      */
-    public function page_estudante_sem_atividade_postada($css_class){
+    public function page_estudante_sem_atividade_postada() {
         $output = $this->default_header('Relatório de Estudantes sem Atividades Postadas (fora do prazo)');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(),$css_class);
+        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(), $this->report);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
         return $output;
     }
-    
+
     /**
      * Cria a página referente ao Relatório de Atividades com Avaliação em Atraso por Tutor
-     * @param string $css_class classe css para aplicar na tabela
      * @return String
      */
-    public function page_atividades_em_atraso_tutor($css_class){
+    public function page_atividades_em_atraso_tutor() {
         $output = $this->default_header('Relatório de Atividades com Avaliação em Atraso por Tutor');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_avaliacao_em_atraso_tutor(),$css_class);
+        $table = $this->default_table(get_dados_avaliacao_em_atraso_tutor(), $this->report);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
         return $output;
     }
-
 
 }
 
