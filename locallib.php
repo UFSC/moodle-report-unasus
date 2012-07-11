@@ -1,4 +1,5 @@
 <?php
+
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/dados.php');
 
@@ -20,26 +21,35 @@ function get_form_display(&$mform) {
 
 /**
  * Dado que alimenta a lista do filtro tutores
- * 
- * @return array(Strings) 
+ *
+ * @return array(Strings)
  */
 function get_nomes_tutores() {
-    return array("joao", "maria", "ana");
+    $tutores = array();
+    for ($i = 1; $i <= 50; $i++) {
+        $tutores[] = "Tutor João da Silva {$i}";
+    }
+
+    return $tutores;
 }
 
 /**
  * Dado que alimenta a lista do filtro polos
- * 
- * @return array(Strings) 
+ *
+ * @return array(Strings)
  */
 function get_nomes_polos() {
-    return array("joinville", "blumenau", "xapecó");
+    $polos = array();
+    for ($i = 1; $i <= 40; $i++) {
+        $polos[] = "Polo Nome da Cidade-UN {$i}";
+    }
+    return $polos;
 }
 
 /**
- * Classe que constroi a tabela para os relatorios, extende a html_table 
+ * Classe que constroi a tabela para os relatorios, extende a html_table
  * da MoodleAPI.
- *  
+ *
  */
 class report_unasus_table extends html_table {
 
