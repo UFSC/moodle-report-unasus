@@ -55,13 +55,15 @@ class tutor extends pessoa {
  * Estrutura para auxiliar a renderização dos dados dos relatórios
  */
 abstract class unasus_data {
+
     protected $header = false;
 
     public abstract function get_css_class();
 
-    public function is_header(){
+    public function is_header() {
         return $header;
     }
+
 }
 
 class dado_atividade_vs_nota extends unasus_data {
@@ -200,7 +202,8 @@ class dado_acompanhamento_avaliacao extends unasus_data {
 
 }
 
-class dado_atividades_nao_avaliadas extends unasus_data {   
+class dado_atividades_nao_avaliadas extends unasus_data {
+
     private $taxa;
 
     function __construct($taxa) {
@@ -220,9 +223,10 @@ class dado_atividades_nao_avaliadas extends unasus_data {
 /**
  *  @TODO media deve se auto-calcular.
  */
-class dado_media extends unasus_data{
+class dado_media extends unasus_data {
+
     private $media;
-    
+
     function __construct($media) {
         $this->media = $media;
     }
@@ -231,8 +235,109 @@ class dado_media extends unasus_data{
         return "{$this->media}%";
     }
 
+    public function value() {
+        return "{$this->media}";
+    }
+
     public function get_css_class() {
         return 'media';
     }
-    
+
+}
+
+/**
+ * @TODO somatorio deve se auto-calcular
+ *
+ */
+class dado_somatorio extends unasus_data {
+
+    private $sum;
+
+    function __construct($sum) {
+        $this->sum = $sum;
+    }
+
+    public function __toString() {
+        return "{$this->sum}";
+    }
+
+    public function get_css_class() {
+        return 'somatorio';
+    }
+
+}
+
+/**
+ * @TODO unir o dado_acesso com dado_tempo_acesso??
+ */
+class dado_acesso extends unasus_data {
+
+    private $acesso;
+
+    function __construct($acesso = true) {
+        $this->acesso = $acesso;
+    }
+
+    public function __toString() {
+        return ($this->acesso) ? 'Sim' : 'Não';
+    }
+
+    public function get_css_class() {
+        return ($this->acesso) ? 'acessou' : 'nao_acessou';
+    }
+
+}
+
+class dado_tempo_acesso extends unasus_data {
+
+    private $acesso;
+
+    function __construct($acesso) {
+        $this->acesso = $acesso;
+    }
+
+    public function __toString() {
+        return "{$this->acesso}";
+    }
+
+    public function get_css_class() {
+        return ($this->acesso) ? 'acessou' : 'nao_acessou';
+    }
+
+}
+
+class dado_potencial_evasao extends unasus_data {
+
+    const MODULO_NAO_CONCLUIDO = 0;
+    const MODULO_CONCLUIDO = 1;
+    const MODULO_PARCIALMENTE_CONCLUIDO = 2;
+
+    private $estado;
+
+    function __construct($estado) {
+        $this->estado = $estado;
+    }
+
+    public function __toString() {
+        switch ($this->estado) {
+            case 0:
+                return "NÃO";
+            case 1:
+                return "SIM";
+            case 2:
+                return "PARCIAL";
+        }
+    }
+
+    public function get_css_class() {
+        switch ($this->estado) {
+            case 0:
+                return "nao_concluido";
+            case 1:
+                return "concluido";
+            case 2:
+                return "parcial";
+        }
+    }
+
 }

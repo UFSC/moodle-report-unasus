@@ -98,6 +98,10 @@ function get_dados_acompanhamento_de_avaliacao() {
             $alunos[] = array("Fulano de Tal {$i}",
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria(),
+                avaliacao_atividade_aleatoria(),
+                avaliacao_atividade_aleatoria(),
+                avaliacao_atividade_aleatoria(),
+                avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria());
         }
         $dados[$tutor] = $alunos;
@@ -145,7 +149,7 @@ function get_dados_atividades_nao_avaliadas() {
     return $dados;
 }
 
-function get_dados_estudante_sem_atividade_postada(){
+function get_dados_estudante_sem_atividade_postada() {
     $dados = array();
 
     for ($x = 1; $x <= 5; $x++) {
@@ -167,6 +171,94 @@ function get_dados_estudante_sem_atividade_postada(){
     return $dados;
 }
 
-function get_dados_avaliacao_em_atraso_tutor(){
+function get_dados_avaliacao_em_atraso_tutor() {
     return get_dados_atividades_nao_avaliadas();
+}
+
+function get_dados_atividades_nota_atribuida_tutor() {
+    return get_dados_atividades_nao_avaliadas();
+}
+
+function get_dados_acesso_tutor() {
+    $dados = array();
+
+    $tutores = array();
+    for ($i = 1; $i <= 30; $i++) {
+        $tutores[] = array("Tutor Fulano de Tal {$i}",
+            new dado_acesso(rand(0, 3) ? true : false),
+            new dado_acesso(rand(0, 3) ? true : false),
+            new dado_acesso(rand(0, 3) ? true : false),
+            new dado_acesso(rand(0, 3) ? true : false),
+            new dado_acesso(rand(0, 3) ? true : false),
+            new dado_acesso(rand(0, 3) ? true : false),
+            new dado_acesso(rand(0, 3) ? true : false));
+    }
+    $dados["Tutores"] = $tutores;
+
+
+    return $dados;
+}
+
+
+/**
+ * @TODO arrumar media
+ */
+function get_dados_uso_sistema_tutor(){
+    $dados = array();
+
+    $tutores = array();
+    for ($i = 1; $i <= 30; $i++) {
+        $media = new dado_media(rand(0, 20));
+
+        $tutores[] = array("Tutor Fulano de Tal {$i}",
+            new dado_tempo_acesso(rand(0, 20)),
+            new dado_tempo_acesso(rand(0, 20)),
+            new dado_tempo_acesso(rand(0, 20)),
+            new dado_tempo_acesso(rand(0, 20)),
+            new dado_tempo_acesso(rand(0, 20)),
+            new dado_tempo_acesso(rand(0, 20)),
+            $media->value(),
+            new dado_somatorio(rand(0, 20)+rand(0, 20)+rand(0, 20)+rand(0, 20)+rand(0, 20)+rand(0, 20)));
+    }
+    $dados["Tutores"] = $tutores;
+
+
+    return $dados;
+}
+
+function get_dados_potenciais_evasoes(){
+    $dados = array();
+
+    $tutores = array();
+    for ($i = 1; $i <= 30; $i++) {
+        $media = new dado_media(rand(0, 20));
+
+        $tutores[] = array("Aluno Fulano de Tal {$i}",
+            new dado_potencial_evasao(rand(0, 2)),
+            new dado_potencial_evasao(rand(0, 2)),
+            new dado_potencial_evasao(rand(0, 2)),
+            new dado_potencial_evasao(rand(0, 2)),
+            new dado_potencial_evasao(rand(0, 2)),
+            new dado_potencial_evasao(rand(0, 2)),
+            new dado_potencial_evasao(rand(0, 2)));
+    }
+    $dados["Tutores"] = $tutores;
+
+
+    return $dados;
+}
+
+function get_header_modulo_atividade() {
+    $header = array();
+    $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Atividade 4');
+    return $header;
+}
+
+function get_header_acesso_tutor(){
+    return array('Tutor','15/06','16/06','17/06','18/06','19/06','20/06','21/06');
+}
+
+function get_header_uso_sistema_tutor(){
+    return array('Tutor','Semana 1','Semana 2','Semana 3','Semana 4','Semana 5','Semana 6','Media','Total');
 }

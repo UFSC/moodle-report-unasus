@@ -16,7 +16,9 @@
 /* Vermelho */
 .relatorio-unasus.atividades_vs_notas .nao_entregue,
 .relatorio-unasus.entrega_de_atividades .muito_atraso,
-.relatorio-unasus.acompanhamento_de_avaliacao .muito_atraso{
+.relatorio-unasus.acompanhamento_de_avaliacao .muito_atraso,
+.relatorio-unasus.uso_sistema_tutor .nao_acessou,
+.relatorio-unasus.potenciais_evasoes .nao_concluido{
     color: #fff;
     background: #ff7777;
 }
@@ -24,14 +26,19 @@
 /* Amarelo */
 .relatorio-unasus.atividades_vs_notas .muito_atraso,
 .relatorio-unasus.entrega_de_atividades .pouco_atraso,
-.relatorio-unasus.acompanhamento_de_avaliacao .pouco_atraso{
+.relatorio-unasus.acompanhamento_de_avaliacao .pouco_atraso,
+.relatorio-unasus.acesso_tutor .nao_acessou,
+.relatorio-unasus.potenciais_evasoes .parcial{
     background: #FEFF7F;
 }
 
 /* Branco */
 .relatorio-unasus.atividades_vs_notas .nota_atribuida,
 .relatorio-unasus.entrega_de_atividades .nao_entregue,
-.relatorio-unasus.acompanhamento_de_avaliacao .nao_entregue{
+.relatorio-unasus.acompanhamento_de_avaliacao .nao_entregue,
+.relatorio-unasus.acesso_tutor .acessou,
+.relatorio-unasus.uso_sistema_tutor .acessou,
+.relatorio-unasus.potenciais_evasoes .concluido{
     background: #fff;
 }
 

@@ -37,9 +37,25 @@ switch ($relatorio) {
         admin_externalpage_setup('report_unasus_estudante_sem_atividade_postada', '', null, '', array('pagelayout' => 'report'));
         echo $renderer->page_estudante_sem_atividade_postada($relatorio);
         break;
-    case 'atividades_em_atraso_tutor' :
-        admin_externalpage_setup('report_unasus_atividades_em_atraso_tutor', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_atividades_em_atraso_tutor($relatorio);
+    case 'avaliacao_em_atraso_tutor' :
+        admin_externalpage_setup('report_unasus_avaliacao_em_atraso_tutor', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_avaliacao_em_atraso_tutor($relatorio);
+        break;
+    case 'atividades_nota_atribuida_tutor' :
+        admin_externalpage_setup('report_unasus_atividades_nota_atribuida_tutor', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_atividades_nota_atribuida_tutor($relatorio);
+        break;
+    case 'acesso_tutor' :
+        admin_externalpage_setup('report_unasus_acesso_tutor', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_acesso_tutor($relatorio);
+        break;
+    case 'uso_sistema_tutor' :
+        admin_externalpage_setup('report_unasus_uso_sistema_tutor', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_uso_sistema_tutor($relatorio);
+        break;
+    case 'potenciais_evasoes' :
+        admin_externalpage_setup('report_unasus_potenciais_evasoes', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_potenciais_evasoes($relatorio);
         break;
     default:
         print_error('unknow_report', 'report_unasus');
