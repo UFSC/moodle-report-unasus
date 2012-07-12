@@ -1,5 +1,5 @@
 /* Cinza */
-.relatorio-unasus.atividades_vs_notas .nao_realizada{
+.relatorio-unasus.atividades_vs_notas .nao_realizada {
     color: #fff;
     background: #ccc;
 
@@ -9,7 +9,7 @@
 .relatorio-unasus.atividades_vs_notas .pouco_atraso,
 .relatorio-unasus.entrega_de_atividades .no_prazo,
 .relatorio-unasus.acompanhamento_de_avaliacao .no_prazo,
-.relatorio-unasus .media{
+.relatorio-unasus .media {
     background: #CCFFCC;
 }
 
@@ -18,7 +18,7 @@
 .relatorio-unasus.entrega_de_atividades .muito_atraso,
 .relatorio-unasus.acompanhamento_de_avaliacao .muito_atraso,
 .relatorio-unasus.uso_sistema_tutor .nao_acessou,
-.relatorio-unasus.potenciais_evasoes .nao_concluido{
+.relatorio-unasus.potenciais_evasoes .nao_concluido {
     color: #fff;
     background: #ff7777;
 }
@@ -28,7 +28,7 @@
 .relatorio-unasus.entrega_de_atividades .pouco_atraso,
 .relatorio-unasus.acompanhamento_de_avaliacao .pouco_atraso,
 .relatorio-unasus.acesso_tutor .nao_acessou,
-.relatorio-unasus.potenciais_evasoes .parcial{
+.relatorio-unasus.potenciais_evasoes .parcial {
     background: #FEFF7F;
 }
 
@@ -38,27 +38,27 @@
 .relatorio-unasus.acompanhamento_de_avaliacao .nao_entregue,
 .relatorio-unasus.acesso_tutor .acessou,
 .relatorio-unasus.uso_sistema_tutor .acessou,
-.relatorio-unasus.potenciais_evasoes .concluido{
+.relatorio-unasus.potenciais_evasoes .concluido {
     background: #fff;
 }
 
-.relatorio-unasus td{
+.relatorio-unasus td {
     text-align: center;
 }
 
-.relatorio-unasus td.tutor{
+.relatorio-unasus td.tutor {
     background: #9cf;
 }
 
 /* TODO: mover para o tema ufsc: th.cell */
-.relatorio-unasus.atividades th.estudante {
+.relatorio-unasus th.estudante {
     padding-right: 1em;
     text-align: left;
     font-weight: normal;
     background: #FEF9EC;
 }
 
-.relatorio-unasus.atividades td.blank{
+.relatorio-unasus td.blank {
     background: #FAFAFA;
     border: 0px solid transparent !important;
 }
