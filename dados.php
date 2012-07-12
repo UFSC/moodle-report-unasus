@@ -95,7 +95,7 @@ function get_dados_acompanhamento_de_avaliacao() {
         $tutor = "Tutor Beltrano de Tal {$x}";
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array("Fulano de Tal {$i}",
+            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria(),
@@ -134,7 +134,7 @@ function get_dados_atividades_nao_avaliadas() {
         $tutor = "Tutor Beltrano de Tal {$x}";
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array("Fulano de Tal {$i}",
+            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
                 new dado_atividades_nao_avaliadas(rand(0, 100)),
                 new dado_atividades_nao_avaliadas(rand(0, 100)),
                 new dado_atividades_nao_avaliadas(rand(0, 100)),
@@ -168,18 +168,18 @@ function atividade_nao_postada($i){
     switch(rand(1, 3)){
         case 1:
             return array(
-                "Fulano de tal {$i}",
+                new estudante("Fulano de tal {$i}"),
                 new dado_modulo("Modulo ".  rand(0, 3)),
                 new dado_atividade("Atividade ".rand(0, 4)));
         case 2:
             return array(
-                "Fulano de tal {$i}",
+                new estudante("Fulano de tal {$i}"),
                 new dado_modulo("Modulo ".  rand(0, 3)),
                 new dado_atividade("Atividade ".rand(0, 2)),
                 new dado_atividade("Atividade ".rand(3, 5)));
         case 3:
             return array(
-                "Fulano de tal {$i}",
+                new estudante("Fulano de tal {$i}"),
                 new dado_modulo("Modulo ".  rand(0, 1)),
                 new dado_atividade("Atividade ".rand(0, 2)),
                 new dado_atividade("Atividade ".rand(3, 5)),
@@ -201,7 +201,7 @@ function get_dados_acesso_tutor() {
 
     $tutores = array();
     for ($i = 1; $i <= 30; $i++) {
-        $tutores[] = array("Tutor Fulano de Tal {$i}",
+        $tutores[] = array(new estudante("Tutor Fulano de Tal {$i}"),
             new dado_acesso(rand(0, 3) ? true : false),
             new dado_acesso(rand(0, 3) ? true : false),
             new dado_acesso(rand(0, 3) ? true : false),
@@ -226,7 +226,7 @@ function get_dados_uso_sistema_tutor() {
     for ($i = 1; $i <= 30; $i++) {
         $media = new dado_media(rand(0, 20));
 
-        $tutores[] = array("Tutor Fulano de Tal {$i}",
+        $tutores[] = array(new estudante("Tutor Fulano de Tal {$i}"),
             new dado_tempo_acesso(rand(0, 20)),
             new dado_tempo_acesso(rand(0, 20)),
             new dado_tempo_acesso(rand(0, 20)),
@@ -249,7 +249,7 @@ function get_dados_potenciais_evasoes() {
     for ($i = 1; $i <= 30; $i++) {
         $media = new dado_media(rand(0, 20));
 
-        $tutores[] = array("Aluno Fulano de Tal {$i}",
+        $tutores[] = array(new estudante("Aluno Fulano de Tal {$i}"),
             new dado_potencial_evasao(rand(0, 2)),
             new dado_potencial_evasao(rand(0, 2)),
             new dado_potencial_evasao(rand(0, 2)),
