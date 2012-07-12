@@ -1,11 +1,15 @@
 <?php
 
+//
+// Relatório de Atividades vs Notas Atribuídas
+//
+
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_dos_alunos() {
+function get_dados_atividades_vs_notas() {
     $dados = array();
 
     for ($x = 1; $x <= 5; $x++) {
@@ -17,7 +21,7 @@ function get_dados_dos_alunos() {
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
-                avaliacao_aleatoria(),
+                avaliacao_aleatoria(true),
                 avaliacao_aleatoria(true),
                 avaliacao_aleatoria(true));
         }
@@ -43,6 +47,10 @@ function avaliacao_aleatoria($no_prazo = false) {
                 new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE);
     }
 }
+
+//
+// Relatório de Acompanhamento de Entrega de Atividades
+//
 
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
@@ -268,6 +276,13 @@ function get_header_modulo_atividade() {
     $header = array();
     $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
     $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Atividade 4');
+    return $header;
+}
+
+function get_header_modulo_atividade_media() {
+    $header = array();
+    $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Geral');
     return $header;
 }
 

@@ -106,7 +106,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_dos_alunos(), get_header_modulo_atividade());
+        $table = $this->default_table(get_dados_atividades_vs_notas(), get_header_modulo_atividade());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -151,7 +151,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header('Relatório de Atividades Postadas e Não Avaliadas');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_atividades_nao_avaliadas(), get_header_modulo_atividade());
+        $table = $this->default_table(get_dados_atividades_nao_avaliadas(), get_header_modulo_atividade_media());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
