@@ -156,19 +156,36 @@ function get_dados_estudante_sem_atividade_postada() {
         $tutor = "Tutor Beltrano de Tal {$x}";
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array("Fulano de Tal {$i}",
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_media(rand(0, 100)));
+            $alunos[] = atividade_nao_postada($i);
         }
         $dados[$tutor] = $alunos;
     }
 
     return $dados;
+}
+
+function atividade_nao_postada($i){
+    switch(rand(1, 3)){
+        case 1:
+            return array(
+                "Fulano de tal {$i}",
+                new dado_modulo("Modulo ".  rand(0, 3)),
+                new dado_atividade("Atividade ".rand(0, 4)));
+        case 2:
+            return array(
+                "Fulano de tal {$i}",
+                new dado_modulo("Modulo ".  rand(0, 3)),
+                new dado_atividade("Atividade ".rand(0, 2)),
+                new dado_atividade("Atividade ".rand(3, 5)));
+        case 3:
+            return array(
+                "Fulano de tal {$i}",
+                new dado_modulo("Modulo ".  rand(0, 1)),
+                new dado_atividade("Atividade ".rand(0, 2)),
+                new dado_atividade("Atividade ".rand(3, 5)),
+                new dado_modulo("Modulo ".  rand(2, 3)),
+                new dado_atividade("Atividade ".rand(0, 2)));
+    }
 }
 
 function get_dados_avaliacao_em_atraso_tutor() {
@@ -260,4 +277,10 @@ function get_header_acesso_tutor() {
 
 function get_header_uso_sistema_tutor() {
     return array('Tutor', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6', 'Media', 'Total');
+}
+
+function get_header_estudante_sem_atividade_postada(){
+    $header = array();
+    $header['Atividades não resolvidas'] = array('','','');
+    return $header;
 }

@@ -166,7 +166,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header('Relatório de Estudantes sem Atividades Postadas (fora do prazo)');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(), get_header_modulo_atividade());
+        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(), get_header_estudante_sem_atividade_postada());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();

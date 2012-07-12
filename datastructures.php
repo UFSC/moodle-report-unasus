@@ -93,7 +93,7 @@ class dado_atividade_vs_nota extends unasus_data {
                 return "$this->atraso dias";
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
-                return (String)$this->nota;
+                return (String) $this->nota;
                 break;
             case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'No prazo';
@@ -338,6 +338,42 @@ class dado_potencial_evasao extends unasus_data {
             case 2:
                 return "parcial";
         }
+    }
+
+}
+
+class dado_modulo extends unasus_data {
+
+    private $modulo;
+
+    function __construct($modulo) {
+        $this->modulo = $modulo;
+    }
+
+    public function __toString() {
+        return $this->modulo;
+    }
+
+    public function get_css_class() {
+        return 'bold';
+    }
+
+}
+
+class dado_atividade extends unasus_data {
+
+    private $atividade;
+
+    function __construct($atividade) {
+        $this->atividade = $atividade;
+    }
+
+    public function __toString() {
+        return $this->atividade;
+    }
+
+    public function get_css_class() {
+        return '';
     }
 
 }

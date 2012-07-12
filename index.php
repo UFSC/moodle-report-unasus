@@ -32,7 +32,6 @@ switch ($relatorio) {
         admin_externalpage_setup('report_unasus_atividades_avaliadas', '', null, '', array('pagelayout' => 'report'));
         echo $renderer->page_atividades_nao_avaliadas();
         break;
-    // TODO: fazer este relatorio
     case 'estudante_sem_atividade_postada':
         admin_externalpage_setup('report_unasus_estudante_sem_atividade_postada', '', null, '', array('pagelayout' => 'report'));
         echo $renderer->page_estudante_sem_atividade_postada();

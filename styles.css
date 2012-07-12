@@ -42,6 +42,10 @@
     background: #fff;
 }
 
+/* Bold */
+.relatorio-unasus.estudante_sem_atividade_postada .modulo{
+    font-weight: bold;
+}
 .relatorio-unasus td{
     text-align: center;
 }
