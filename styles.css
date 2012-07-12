@@ -77,6 +77,11 @@ table.relatorio-unasus.estudante_sem_atividade_postada {
     height: 250px;
 }
 
+.filter_form #id_multiple_modulos {
+    width: 100px;
+    height: 80px;
+}
+
 .filter_form div.fsubmit {
     text-align: left;
 }

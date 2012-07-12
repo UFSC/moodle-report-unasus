@@ -19,6 +19,14 @@ function get_form_display(&$mform) {
     return $output;
 }
 
+function get_nomes_modulos() {
+    $modulos = array();
+    for ($i =1; $i <= 20; $i++) {
+        $modulos[] = "Módulo {$i}";
+    }
+    return $modulos;
+}
+
 /**
  * Dado que alimenta a lista do filtro tutores
  *

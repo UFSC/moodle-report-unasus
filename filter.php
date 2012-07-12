@@ -21,6 +21,9 @@ class filter_tutor_polo extends moodleform {
         //select box do estado da avaliacao
         $mform->addElement('select', 'situacao', "Situação:", array("Em Aberto", "Em Dia", "Expirado", "Fora do Prazo"));
 
+        //multi-select dos módulos
+        $multiple_modulos = &$mform->addElement('select', 'multiple_modulos', "Módulos", get_nomes_modulos());
+        $multiple_modulos->setMultiple(true);
 
         //radio button da filtragem do tipo de estudante, por tutor ou polo
         $radioarray = array();
