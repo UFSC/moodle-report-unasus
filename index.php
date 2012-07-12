@@ -36,12 +36,12 @@ switch ($relatorio) {
         admin_externalpage_setup('report_unasus_estudante_sem_atividade_postada', '', null, '', array('pagelayout' => 'report'));
         echo $renderer->page_estudante_sem_atividade_postada();
         break;
-    case 'avaliacao_em_atraso_tutor' :
-        admin_externalpage_setup('report_unasus_avaliacao_em_atraso_tutor', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_atividades_em_atraso_tutor();
+    case 'avaliacao_em_atraso' :
+        admin_externalpage_setup('report_unasus_avaliacao_em_atraso', '', null, '', array('pagelayout' => 'report'));
+        echo $renderer->page_atividades_em_atraso();
         break;
-    case 'atividades_nota_atribuida_tutor' :
-        admin_externalpage_setup('report_unasus_atividades_nota_atribuida_tutor', '', null, '', array('pagelayout' => 'report'));
+    case 'atividades_nota_atribuida' :
+        admin_externalpage_setup('report_unasus_atividades_nota_atribuida', '', null, '', array('pagelayout' => 'report'));
         echo $renderer->page_atividades_nota_atribuida_tutor();
         break;
     case 'acesso_tutor' :

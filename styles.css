@@ -56,7 +56,8 @@
 }
 
 /* TODO: mover para o tema ufsc: th.cell */
-.relatorio-unasus th.estudante {
+.relatorio-unasus th.estudante,
+.relatorio-unasus td.somatorio {
     padding-right: 1em;
     text-align: left;
     font-weight: normal;

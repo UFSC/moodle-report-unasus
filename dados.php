@@ -172,27 +172,27 @@ function get_dados_estudante_sem_atividade_postada() {
     return $dados;
 }
 
-function atividade_nao_postada($i){
-    switch(rand(1, 3)){
+function atividade_nao_postada($i) {
+    switch (rand(1, 3)) {
         case 1:
             return array(
                 new estudante("Fulano de tal {$i}"),
-                new dado_modulo("Modulo ".  rand(0, 3)),
-                new dado_atividade("Atividade ".rand(0, 4)));
+                new dado_modulo("Modulo " . rand(0, 3)),
+                new dado_atividade("Atividade " . rand(0, 4)));
         case 2:
             return array(
                 new estudante("Fulano de tal {$i}"),
-                new dado_modulo("Modulo ".  rand(0, 3)),
-                new dado_atividade("Atividade ".rand(0, 2)),
-                new dado_atividade("Atividade ".rand(3, 5)));
+                new dado_modulo("Modulo " . rand(0, 3)),
+                new dado_atividade("Atividade " . rand(0, 2)),
+                new dado_atividade("Atividade " . rand(3, 5)));
         case 3:
             return array(
                 new estudante("Fulano de tal {$i}"),
-                new dado_modulo("Modulo ".  rand(0, 1)),
-                new dado_atividade("Atividade ".rand(0, 2)),
-                new dado_atividade("Atividade ".rand(3, 5)),
-                new dado_modulo("Modulo ".  rand(2, 3)),
-                new dado_atividade("Atividade ".rand(0, 2)));
+                new dado_modulo("Modulo " . rand(0, 1)),
+                new dado_atividade("Atividade " . rand(0, 2)),
+                new dado_atividade("Atividade " . rand(3, 5)),
+                new dado_modulo("Modulo " . rand(2, 3)),
+                new dado_atividade("Atividade " . rand(0, 2)));
     }
 }
 
@@ -253,21 +253,25 @@ function get_dados_uso_sistema_tutor() {
 function get_dados_potenciais_evasoes() {
     $dados = array();
 
-    $tutores = array();
-    for ($i = 1; $i <= 30; $i++) {
-        $media = new dado_media(rand(0, 20));
+    for ($x = 1; $x <= 5; $x++) {
+        $tutor = "Tutor Beltrano de Tal {$x}";
 
-        $tutores[] = array(new estudante("Aluno Fulano de Tal {$i}"),
-            new dado_potencial_evasao(rand(0, 2)),
-            new dado_potencial_evasao(rand(0, 2)),
-            new dado_potencial_evasao(rand(0, 2)),
-            new dado_potencial_evasao(rand(0, 2)),
-            new dado_potencial_evasao(rand(0, 2)),
-            new dado_potencial_evasao(rand(0, 2)),
-            new dado_potencial_evasao(rand(0, 2)));
+        $estudantes = array();
+        for ($i = 1; $i <= 30; $i++) {
+            $media = new dado_media(rand(0, 20));
+
+            $estudantes[] = array(new estudante("Fulano de Tal {$i}"),
+                new dado_potencial_evasao(rand(0, 2)),
+                new dado_potencial_evasao(rand(0, 2)),
+                new dado_potencial_evasao(rand(0, 2)),
+                new dado_potencial_evasao(rand(0, 2)),
+                new dado_potencial_evasao(rand(0, 2)),
+                new dado_potencial_evasao(rand(0, 2)),
+                new dado_potencial_evasao(rand(0, 2)));
+        }
+
+        $dados[$tutor] = $estudantes;
     }
-    $dados["Tutores"] = $tutores;
-
 
     return $dados;
 }
@@ -279,10 +283,27 @@ function get_header_modulo_atividade() {
     return $header;
 }
 
-function get_header_modulo_atividade_media() {
+function get_header_modulo_atividade_geral() {
     $header = array();
     $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Geral');
+    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header[''] = array('Geral');
+    return $header;
+}
+
+function get_header_modulo_evasoes() {
+    $modulos = array('Estudantes');
+    for ($i = 1; $i <= 7; $i++) {
+        $modulos[] = "Módulo ${i}";
+    }
+    return $modulos;
+}
+
+function get_header_modulo_atividade_consolidado() {
+    $header = array();
+    $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header[''] = array('Consolidado');
     return $header;
 }
 
@@ -294,8 +315,8 @@ function get_header_uso_sistema_tutor() {
     return array('Tutor', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6', 'Media', 'Total');
 }
 
-function get_header_estudante_sem_atividade_postada(){
+function get_header_estudante_sem_atividade_postada() {
     $header = array();
-    $header['Atividades não resolvidas'] = array('','','');
+    $header['Atividades não resolvidas'] = array('', '', '');
     return $header;
 }
