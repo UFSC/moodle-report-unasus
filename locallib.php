@@ -65,12 +65,12 @@ class report_unasus_table extends html_table {
         $this->head = $coluns;
     }
 
-    function build_double_header($grouped_coluns) {
+    function build_double_header($grouped_coluns, $person_name='Estudantes') {
 
         $this->data = array();
         $blank = new html_table_cell();
         $blank->attributes = array('class' => 'blank');
-        $student = new html_table_cell('Estudante');
+        $student = new html_table_cell($person_name);
         $student->header = true;
 
         $heading1 = array(); // Primeira linha

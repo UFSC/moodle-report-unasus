@@ -18,18 +18,11 @@ abstract class pessoa {
         $this->id = 1; // mock id - visitante
     }
 
-}
-
-/**
- * Representa um estudante nos relatórios
- */
-class estudante extends pessoa {
-
     function __toString() {
         global $OUTPUT;
         $email_icon = $OUTPUT->pix_icon('t/email', 'Enviar mensagem');
-        $profile_link = html_writer::link(new moodle_url('/user/profile.php', array('id' => $this->id)), $this->name);
-        $message_link = html_writer::link(new moodle_url('/message/index.php', array('id' => $this->id)), $email_icon);
+        $profile_link = html_writer::link(new moodle_url('/user/profile.php', array('id' => $this->id)), $this->name, array('target' => '_blank'));
+        $message_link = html_writer::link(new moodle_url('/message/index.php', array('id' => $this->id)), $email_icon, array('target' => '_blank'));
 
         return "{$profile_link} {$message_link}";
     }
@@ -37,13 +30,16 @@ class estudante extends pessoa {
 }
 
 /**
+ * Representa um estudante nos relatórios
+ */
+class estudante extends pessoa {
+
+}
+
+/**
  * Representa um tutor nos relatórios
  */
 class tutor extends pessoa {
-
-    function __toString() {
-        return $this->name;
-    }
 
 }
 
@@ -182,7 +178,13 @@ class dado_acompanhamento_avaliacao extends unasus_data {
                 return '';
                 break;
             default:
-                return "$this->atraso dias";
+                if ($this->atraso == 0) {
+                    return 'mesmo dia';
+                } elseif ($this->atraso == 1) {
+                    return '1 dia';
+                } else {
+                    return "{$this->atraso} dias";
+                }
         }
     }
 

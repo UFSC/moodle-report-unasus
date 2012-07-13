@@ -41,7 +41,7 @@ function avaliacao_aleatoria($no_prazo = false) {
     if ($random <= 65) { // Avaliada
         return new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_AVALIADA, rand(0, 10));
     } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new dado_atividade_vs_nota(dado_atividade_vs_nota::CORRECAO_ATRASADA, null, rand(0, 20));
+        return new dado_atividade_vs_nota(dado_atividade_vs_nota::CORRECAO_ATRASADA, null, rand(1, 20));
     } elseif ($random > 85) { // Não entregue
         return $no_prazo ? new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA) :
                 new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE);
@@ -85,7 +85,7 @@ function atividade_aleatoria() {
     if ($random <= 65) { // Avaliada
         return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO);
     } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO, rand(0, 20));
+        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO, rand(1, 20));
     } elseif ($random > 85) { // Não entregue
         return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE);
     }
@@ -138,21 +138,18 @@ function avaliacao_atividade_aleatoria() {
 function get_dados_atividades_nao_avaliadas() {
     $dados = array();
 
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
-        $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_atividades_nao_avaliadas(rand(0, 100)),
-                new dado_media(rand(0, 100)));
-        }
-        $dados[$tutor] = $alunos;
+    $tutores = array();
+    for ($i = 1; $i <= 30; $i++) {
+        $tutores[] = array(new tutor("Tutor Beltrano de Tal {$i}"),
+            new dado_atividades_nao_avaliadas(rand(0, 100)),
+            new dado_atividades_nao_avaliadas(rand(0, 100)),
+            new dado_atividades_nao_avaliadas(rand(0, 100)),
+            new dado_atividades_nao_avaliadas(rand(0, 100)),
+            new dado_atividades_nao_avaliadas(rand(0, 100)),
+            new dado_atividades_nao_avaliadas(rand(0, 100)),
+            new dado_media(rand(0, 100)));
     }
+    $dados = $tutores;
 
     return $dados;
 }

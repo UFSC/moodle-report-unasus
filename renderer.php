@@ -97,6 +97,49 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
+     *
+     * @TODO REFATORAR com default_table
+     * @param type $dadostabela
+     * @param type $header
+     * @return report_unasus_table
+     */
+    public function table_tutores($dadostabela, $header) {
+        //criacao da tabela
+        $table = new report_unasus_table();
+        $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
+        $table->tablealign = 'center';
+
+        $header_keys = array_keys($header);
+        if (is_array($header[$header_keys[0]])) { // Double Header
+            $table->build_double_header($header, 'Tutores');
+        } else {
+            $table->build_single_header($header);
+        }
+
+        //atividades de cada aluno daquele dado tutor
+        foreach ($dadostabela as $aluno) {
+            $row = new html_table_row();
+            foreach ($aluno as $valor) {
+                if (is_a($valor, 'unasus_data')) {
+                    $cell = new html_table_cell($valor);
+                    $cell->attributes = array(
+                        'class' => $valor->get_css_class());
+                } else { // Aluno
+                    $cell = new html_table_cell($valor);
+                    $cell->header = true;
+                    $cell->attributes = array('class' => 'estudante');
+                }
+
+                $row->cells[] = $cell;
+            }
+            $table->data[] = $row;
+        }
+
+
+        return $table;
+    }
+
+    /**
      * Cria a página referente ao relatorio atividade vs notas atribuidas
      * @return String
      */
@@ -151,7 +194,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header('Relatório de atividades postadas e não avaliadas');
 
         //Criação da tabela
-        $table = $this->default_table(get_dados_atividades_nao_avaliadas(), get_header_modulo_atividade_geral());
+        $table = $this->table_tutores(get_dados_atividades_nao_avaliadas(), get_header_modulo_atividade_geral());
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
