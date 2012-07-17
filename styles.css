@@ -1,3 +1,26 @@
+/* Legenda */
+
+.relatorio-unasus.legend {
+    margin-bottom: 2em;
+}
+
+.relatorio-unasus.legend dl {
+    margin: 0;
+}
+.relatorio-unasus.legend dl dt {
+    width: 2em;
+    height: 15px;
+    float: left;
+    display: inline-block;
+    margin-right: 1em;
+    border: 1px solid gray;
+}
+.relatorio-unasus.legend dl dd {
+    margin-bottom: 5px;
+}
+
+/* Tabelas com os dados do relatório */
+
 /* Cinza */
 .relatorio-unasus.atividades_vs_notas .nao_realizada {
     color: #fff;
@@ -73,6 +96,8 @@
 table.relatorio-unasus.estudante_sem_atividade_postada {
     background: #FAFAFA !important;
 }
+
+/* Filtros */
 
 .filter_form #id_multiple_polo, .filter_form #id_multiple_tutor {
     width: 250px;

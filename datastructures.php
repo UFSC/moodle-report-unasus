@@ -56,6 +56,8 @@ abstract class unasus_data {
 
     public abstract function get_css_class();
 
+    //public static abstract function get_legend();
+
     public function is_header() {
         return $header;
     }
@@ -110,6 +112,17 @@ class dado_atividade_vs_nota extends unasus_data {
             default:
                 return '';
         }
+    }
+
+    public static function get_legend() {
+        $legend = array();
+        $legend['nota_atribuida'] = 'Nota atribuída';
+        $legend['pouco_atraso'] = 'Sem nota atribuída, dentro do prazo (até X dias após data de entrega)';
+        $legend['muito_atraso'] = 'Sem nota atribuída, fora do prazo (após X dias da data de entrega)';
+        $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
+        $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
+
+        return $legend;
     }
 
 }

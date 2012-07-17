@@ -14,6 +14,17 @@ class report_unasus_renderer extends plugin_renderer_base {
         $this->report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
     }
 
+    public function build_legend($legend) {
+        global $OUTPUT;
+
+        $definitions = '<dl>';
+        foreach($legend as $class => $description) {
+            $definitions .= "<dt class=\"{$class}\"></dt><dd>{$description}</dd>";
+        }
+        $definitions .= '</dl>';
+        return $OUTPUT->box($definitions, "generalbox legend relatorio-unasus {$this->report}");
+    }
+
     /**
      * Cria o cabeçalho padrão para os relatórios
      *
@@ -146,9 +157,9 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function page_atividades_vs_notas_atribuidas() {
         $output = $this->default_header('Relatório de atividades vs notas atribuídas');
 
-
-
         //Criação da tabela
+        $output .= $this->build_legend(dado_atividade_vs_nota::get_legend());
+
         $table = $this->default_table(get_dados_atividades_vs_notas(), get_header_modulo_atividade());
         $output .= html_writer::table($table);
 
