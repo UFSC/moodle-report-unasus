@@ -15,14 +15,15 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     public function build_legend($legend) {
-        global $OUTPUT;
-
-        $definitions = '<dl>';
+        $output = html_writer::start_tag('fieldset', array('class'=>"generalbox fieldset relatorio-unasus {$this->report}"));
+        $output .= html_writer::tag('legend','Legenda', array('class'=>'legend'));
+        $output .= html_writer::start_tag('dl');
         foreach($legend as $class => $description) {
-            $definitions .= "<dt class=\"{$class}\"></dt><dd>{$description}</dd>";
+            $output .= "<dt class=\"{$class}\"></dt><dd>{$description}</dd>";
         }
-        $definitions .= '</dl>';
-        return $OUTPUT->box($definitions, "generalbox legend relatorio-unasus {$this->report}");
+        $output .= html_writer::end_tag('dl');
+        $output .= html_writer::end_tag('fieldset');
+        return $output;
     }
 
     /**

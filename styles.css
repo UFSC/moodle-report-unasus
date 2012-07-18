@@ -1,13 +1,40 @@
+/* Filtros */
+
+.filter_form.mform{
+    display: inline-block;
+    width: 44%;
+    margin-right: 1em;
+}
+
+.filter_form #id_multiple_polo, .filter_form #id_multiple_tutor {
+    width: 250px;
+    height: 250px;
+}
+
+.filter_form #id_multiple_modulos {
+    width: 100px;
+    height: 80px;
+}
+
+.filter_form div.fsubmit {
+    text-align: left;
+}
+
 /* Legenda */
 
-.relatorio-unasus.legend {
+.relatorio-unasus.fieldset {
     margin-bottom: 2em;
+    display: inline-block;
+    width: 44%;
+    vertical-align: top;
+    margin-left: 1em;
+
 }
 
-.relatorio-unasus.legend dl {
+.relatorio-unasus.fieldset dl {
     margin: 0;
 }
-.relatorio-unasus.legend dl dt {
+.relatorio-unasus.fieldset dl dt {
     width: 2em;
     height: 15px;
     float: left;
@@ -15,8 +42,16 @@
     margin-right: 1em;
     border: 1px solid gray;
 }
-.relatorio-unasus.legend dl dd {
+.relatorio-unasus.fieldset dl dd {
     margin-bottom: 5px;
+}
+
+.relatorio-unasus.fieldset legend{
+    color: #004E95;
+    font-size: 16pt;
+    font-weight: normal;
+    border: none;
+    background: none;
 }
 
 /* Tabelas com os dados do relatório */
@@ -95,20 +130,4 @@
 
 table.relatorio-unasus.estudante_sem_atividade_postada {
     background: #FAFAFA !important;
-}
-
-/* Filtros */
-
-.filter_form #id_multiple_polo, .filter_form #id_multiple_tutor {
-    width: 250px;
-    height: 250px;
-}
-
-.filter_form #id_multiple_modulos {
-    width: 100px;
-    height: 80px;
-}
-
-.filter_form div.fsubmit {
-    text-align: left;
 }
