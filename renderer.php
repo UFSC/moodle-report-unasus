@@ -19,7 +19,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::tag('legend','Legenda', array('class'=>'legend'));
         $output .= html_writer::start_tag('dl');
         foreach($legend as $class => $description) {
-            $output .= "<dt class=\"{$class}\"></dt><dd>{$description}</dd>";
+            $output .= html_writer::tag('dt','',array('class'=>"{$class}"));
+            $output .= html_writer::tag('dd',"{$description}");
         }
         $output .= html_writer::end_tag('dl');
         $output .= html_writer::end_tag('fieldset');
