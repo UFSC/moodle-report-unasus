@@ -169,6 +169,16 @@ class dado_entrega_atividade extends unasus_data {
         }
     }
 
+    public static function get_legend() {
+        $legend = array();
+        $legend['nao_entregue'] = 'Em aberto (não entregue)';
+        $legend['no_prazo'] = 'Atividade entregue em dia';
+        $legend['pouco_atraso'] = 'Atividade entregue, com atraso de até X dias';
+        $legend['muito_atraso'] = 'Atividade entregue, com atraso de mais de X dias';
+
+        return $legend;
+    }
+
 }
 
 class dado_acompanhamento_avaliacao extends unasus_data {
@@ -215,6 +225,16 @@ class dado_acompanhamento_avaliacao extends unasus_data {
         }
     }
 
+    public static function get_legend() {
+        $legend = array();
+        $legend['nao_entregue'] = 'Em aberto (atividade não entregue pelo estudante)';
+        $legend['no_prazo'] = 'Avaliadas dentro do prazo';
+        $legend['pouco_atraso'] = 'Avaliadas fora do prazo, em até X dias';
+        $legend['muito_atraso'] = 'Avaliadas for a do prazo, após X dias';
+
+        return $legend;
+    }
+
 }
 
 class dado_atividades_nao_avaliadas extends unasus_data {
@@ -231,6 +251,10 @@ class dado_atividades_nao_avaliadas extends unasus_data {
 
     public function get_css_class() {
         return '';
+    }
+
+    public static function get_legend(){
+        return false;
     }
 
 }
@@ -301,6 +325,14 @@ class dado_acesso extends unasus_data {
         return ($this->acesso) ? 'acessou' : 'nao_acessou';
     }
 
+    public static function get_legend(){
+        $legend = array();
+        $legend['acessou'] = 'Tutor acessou o sistema nesta data';
+        $legend['nao_acessou'] = 'Tutor não acessou o sistema nesta data';
+
+        return $legend;
+    }
+
 }
 
 class dado_tempo_acesso extends unasus_data {
@@ -317,6 +349,14 @@ class dado_tempo_acesso extends unasus_data {
 
     public function get_css_class() {
         return ($this->acesso) ? 'acessou' : 'nao_acessou';
+    }
+
+    public static function get_legend(){
+        $legend = array();
+        $legend['acessou'] = 'Tutor acessou o sistema nesta data por X horas';
+        $legend['nao_acessou'] = 'Tutor não acessou o sistema nesta data';
+
+        return $legend;
     }
 
 }
@@ -353,6 +393,15 @@ class dado_potencial_evasao extends unasus_data {
             case 2:
                 return "parcial";
         }
+    }
+
+    public static function get_legend(){
+        $legend = array();
+        $legend['nao_concluido'] = 'Módulo não concluído, nenhuma atividade realizada.';
+        $legend['parcial'] = 'Módulo não concluído, atividades realizadas parcialmente';
+        $legend['concluido'] = 'Módulo concluído';
+
+        return $legend;
     }
 
 }
