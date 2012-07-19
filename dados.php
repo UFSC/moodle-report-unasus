@@ -348,8 +348,11 @@ function get_header_uso_sistema_tutor() {
     return array('Tutor', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6', 'Media', 'Total');
 }
 
-function get_header_estudante_sem_atividade_postada() {
-    $header = array();
-    $header['Atividades não resolvidas'] = array('', '', '');
+function get_header_estudante_sem_atividade_postada($size) {
+    $content = array();
+    for ($index = 0; $index < $size-1; $index++) {
+        $content[] = '';
+    }
+    $header['Atividades não resolvidas'] = $content;
     return $header;
 }

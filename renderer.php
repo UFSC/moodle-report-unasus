@@ -15,12 +15,12 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     public function build_legend($legend) {
-        $output = html_writer::start_tag('fieldset', array('class'=>"generalbox fieldset relatorio-unasus {$this->report}"));
-        $output .= html_writer::tag('legend','Legenda', array('class'=>'legend'));
+        $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus {$this->report}"));
+        $output .= html_writer::tag('legend', 'Legenda', array('class' => 'legend'));
         $output .= html_writer::start_tag('dl');
-        foreach($legend as $class => $description) {
-            $output .= html_writer::tag('dt','',array('class'=>"{$class}"));
-            $output .= html_writer::tag('dd',"{$description}");
+        foreach ($legend as $class => $description) {
+            $output .= html_writer::tag('dt', '', array('class' => "{$class}"));
+            $output .= html_writer::tag('dd', "{$description}");
         }
         $output .= html_writer::end_tag('dl');
         $output .= html_writer::end_tag('fieldset');
@@ -220,7 +220,17 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function page_estudante_sem_atividade_postada() {
         $output = $this->default_header('Relatório de estudantes sem atividades postadas (fora do prazo)');
 
-        $table = $this->default_table(get_dados_estudante_sem_atividade_postada(), get_header_estudante_sem_atividade_postada());
+
+        $dados_atividades = get_dados_estudante_sem_atividade_postada();
+        $max_size = 0;
+        foreach ($dados_atividades as $tutor) {
+            foreach ($tutor as $atividades) {
+                if ($max_size < count($atividades))
+                    $max_size = count($atividades);
+            }
+        }
+
+        $table = $this->default_table($dados_atividades, get_header_estudante_sem_atividade_postada($max_size));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
