@@ -64,7 +64,7 @@ abstract class unasus_data {
 
 }
 
-class dado_atividade_vs_nota extends unasus_data {
+class dado_atividades_vs_notas extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_ATRASADA = 1;
@@ -84,16 +84,16 @@ class dado_atividade_vs_nota extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE:
+            case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
                 return 'Atividade não Entregue';
                 break;
-            case dado_atividade_vs_nota::CORRECAO_ATRASADA:
+            case dado_atividades_vs_notas::CORRECAO_ATRASADA:
                 return "$this->atraso dias";
                 break;
-            case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
+            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
                 return (String) $this->nota;
                 break;
-            case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
+            case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'No prazo';
                 break;
         }
@@ -101,13 +101,13 @@ class dado_atividade_vs_nota extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE:
+            case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
-            case dado_atividade_vs_nota::CORRECAO_ATRASADA:
+            case dado_atividades_vs_notas::CORRECAO_ATRASADA:
                 return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
-            case dado_atividade_vs_nota::ATIVIDADE_AVALIADA:
+            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
                 return 'nota_atribuida';
-            case dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA:
+            case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'nao_realizada';
             default:
                 return '';
@@ -127,7 +127,7 @@ class dado_atividade_vs_nota extends unasus_data {
 
 }
 
-class dado_entrega_atividade extends unasus_data {
+class dado_entrega_de_atividades extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const ATIVIDADE_ENTREGUE_NO_PRAZO = 1;
@@ -143,13 +143,13 @@ class dado_entrega_atividade extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE:
+            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE:
                 return '';
                 break;
-            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO:
+            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO:
                 return '';
                 break;
-            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return "$this->atraso dias";
                 break;
         }
@@ -157,13 +157,13 @@ class dado_entrega_atividade extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE:
+            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
                 break;
-            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO:
+            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO:
                 return 'no_prazo';
                 break;
-            case dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
                 break;
         }
@@ -181,7 +181,7 @@ class dado_entrega_atividade extends unasus_data {
 
 }
 
-class dado_acompanhamento_avaliacao extends unasus_data {
+class dado_acompanhamento_de_avaliacao extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_NO_PRAZO = 1;
@@ -197,7 +197,7 @@ class dado_acompanhamento_avaliacao extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_acompanhamento_de_avaliacao::ATIVIDADE_NAO_ENTREGUE:
                 return '';
                 break;
             default:
@@ -213,13 +213,13 @@ class dado_acompanhamento_avaliacao extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_acompanhamento_de_avaliacao::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
                 break;
-            case dado_acompanhamento_avaliacao::CORRECAO_NO_PRAZO:
+            case dado_acompanhamento_de_avaliacao::CORRECAO_NO_PRAZO:
                 return 'no_prazo';
                 break;
-            case dado_acompanhamento_avaliacao::CORRECAO_ATRASADA:
+            case dado_acompanhamento_de_avaliacao::CORRECAO_ATRASADA:
                 return ($this->atraso > 7) ? 'muito_atraso' : 'pouco_atraso';
                 break;
         }
@@ -237,7 +237,7 @@ class dado_acompanhamento_avaliacao extends unasus_data {
 
 }
 
-class dado_atividades_nao_avaliadas extends unasus_data {
+class dado_avaliacao_em_atraso extends unasus_data {
 
     private $taxa;
 
@@ -256,6 +256,10 @@ class dado_atividades_nao_avaliadas extends unasus_data {
     public static function get_legend(){
         return false;
     }
+
+}
+
+class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso{
 
 }
 
@@ -309,7 +313,7 @@ class dado_somatorio extends unasus_data {
 /**
  * @TODO unir o dado_acesso com dado_tempo_acesso??
  */
-class dado_acesso extends unasus_data {
+class dado_acesso_tutor extends unasus_data {
 
     private $acesso;
 
@@ -335,7 +339,7 @@ class dado_acesso extends unasus_data {
 
 }
 
-class dado_tempo_acesso extends unasus_data {
+class dado_uso_sistema_tutor extends unasus_data {
 
     private $acesso;
 
@@ -361,7 +365,7 @@ class dado_tempo_acesso extends unasus_data {
 
 }
 
-class dado_potencial_evasao extends unasus_data {
+class dado_potenciais_evasoes extends unasus_data {
 
     const MODULO_NAO_CONCLUIDO = 0;
     const MODULO_CONCLUIDO = 1;

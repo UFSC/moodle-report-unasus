@@ -18,15 +18,15 @@ switch ($relatorio) {
 
     case 'atividades_vs_notas':
         admin_externalpage_setup('report_unasus_atividade_notas', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_atividades_vs_notas_atribuidas();
+        echo $renderer->build_report();
         break;
     case 'entrega_de_atividades':
         admin_externalpage_setup('report_unasus_entrega_atividades', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_entrega_de_atividades();
+        echo $renderer->build_report();
         break;
     case 'acompanhamento_de_avaliacao':
         admin_externalpage_setup('report_unasus_acompanhamento_avaliacao', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_acompanhamento_de_avaliacao();
+        echo $renderer->build_report();
         break;
     case 'atividades_nao_avaliadas':
         admin_externalpage_setup('report_unasus_atividades_avaliadas', '', null, '', array('pagelayout' => 'report'));
@@ -38,23 +38,23 @@ switch ($relatorio) {
         break;
     case 'avaliacao_em_atraso' :
         admin_externalpage_setup('report_unasus_avaliacao_em_atraso', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_atividades_em_atraso();
+        echo $renderer->build_report();
         break;
     case 'atividades_nota_atribuida' :
         admin_externalpage_setup('report_unasus_atividades_nota_atribuida', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_atividades_nota_atribuida_tutor();
+        echo $renderer->build_report();
         break;
     case 'acesso_tutor' :
         admin_externalpage_setup('report_unasus_acesso_tutor', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_acesso_tutor();
+        echo $renderer->build_report();
         break;
     case 'uso_sistema_tutor' :
         admin_externalpage_setup('report_unasus_uso_sistema_tutor', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_uso_sistema_tutor();
+        echo $renderer->build_report();
         break;
     case 'potenciais_evasoes' :
         admin_externalpage_setup('report_unasus_potenciais_evasoes', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->page_potenciais_evasoes();
+        echo $renderer->build_report();
         break;
     default:
         print_error('unknow_report', 'report_unasus');

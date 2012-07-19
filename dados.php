@@ -39,12 +39,12 @@ function avaliacao_aleatoria($no_prazo = false) {
     $random = rand(0, 100);
 
     if ($random <= 65) { // Avaliada
-        return new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_AVALIADA, rand(0, 10));
+        return new dado_atividades_vs_notas(dado_atividades_vs_notas::ATIVIDADE_AVALIADA, rand(0, 10));
     } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new dado_atividade_vs_nota(dado_atividade_vs_nota::CORRECAO_ATRASADA, null, rand(1, 20));
+        return new dado_atividades_vs_notas(dado_atividades_vs_notas::CORRECAO_ATRASADA, null, rand(1, 20));
     } elseif ($random > 85) { // Não entregue
-        return $no_prazo ? new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NO_PRAZO_ENTREGA) :
-                new dado_atividade_vs_nota(dado_atividade_vs_nota::ATIVIDADE_NAO_ENTREGUE);
+        return $no_prazo ? new dado_atividades_vs_notas(dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA) :
+              new dado_atividades_vs_notas(dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE);
     }
 }
 
@@ -57,7 +57,7 @@ function avaliacao_aleatoria($no_prazo = false) {
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_entrega_atividades() {
+function get_dados_entrega_de_atividades() {
     $dados = array();
 
     for ($x = 1; $x <= 5; $x++) {
@@ -83,11 +83,11 @@ function atividade_aleatoria() {
     $random = rand(0, 100);
 
     if ($random <= 65) { // Avaliada
-        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_NO_PRAZO);
+        return new dado_entrega_de_atividades(dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO);
     } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO, rand(1, 20));
+        return new dado_entrega_de_atividades(dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO, rand(1, 20));
     } elseif ($random > 85) { // Não entregue
-        return new dado_entrega_atividade(dado_entrega_atividade::ATIVIDADE_NAO_ENTREGUE);
+        return new dado_entrega_de_atividades(dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE);
     }
 }
 
@@ -122,11 +122,11 @@ function avaliacao_atividade_aleatoria() {
     $random = rand(0, 100);
 
     if ($random <= 65) {
-        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_NO_PRAZO, rand(0, 3));
+        return new dado_acompanhamento_de_avaliacao(dado_acompanhamento_de_avaliacao::CORRECAO_NO_PRAZO, rand(0, 3));
     } elseif ($random > 65 && $random <= 85) {
-        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::ATIVIDADE_NAO_ENTREGUE);
+        return new dado_acompanhamento_de_avaliacao(dado_acompanhamento_de_avaliacao::ATIVIDADE_NAO_ENTREGUE);
     } elseif ($random > 85) {
-        return new dado_acompanhamento_avaliacao(dado_acompanhamento_avaliacao::CORRECAO_ATRASADA, rand(4, 20));
+        return new dado_acompanhamento_de_avaliacao(dado_acompanhamento_de_avaliacao::CORRECAO_ATRASADA, rand(4, 20));
     }
 }
 
@@ -141,12 +141,12 @@ function get_dados_atividades_nao_avaliadas() {
     $tutores = array();
     for ($i = 1; $i <= 30; $i++) {
         $tutores[] = array(new tutor("Tutor Beltrano de Tal {$i}"),
-            new dado_atividades_nao_avaliadas(rand(0, 100)),
-            new dado_atividades_nao_avaliadas(rand(0, 100)),
-            new dado_atividades_nao_avaliadas(rand(0, 100)),
-            new dado_atividades_nao_avaliadas(rand(0, 100)),
-            new dado_atividades_nao_avaliadas(rand(0, 100)),
-            new dado_atividades_nao_avaliadas(rand(0, 100)),
+            new dado_avaliacao_em_atraso(rand(0, 100)),
+            new dado_avaliacao_em_atraso(rand(0, 100)),
+            new dado_avaliacao_em_atraso(rand(0, 100)),
+            new dado_avaliacao_em_atraso(rand(0, 100)),
+            new dado_avaliacao_em_atraso(rand(0, 100)),
+            new dado_avaliacao_em_atraso(rand(0, 100)),
             new dado_media(rand(0, 100)));
     }
     $dados = $tutores;
@@ -181,6 +181,8 @@ function atividade_nao_postada($i) {
                 new estudante("Fulano de tal {$i}"),
                 new dado_modulo("Modulo " . rand(0, 3)),
                 new dado_atividade("Atividade " . rand(0, 2)),
+                new dado_atividade("Atividade " . rand(3, 5)),
+                new dado_atividade("Atividade " . rand(3, 5)),
                 new dado_atividade("Atividade " . rand(3, 5)));
         case 3:
             return array(
@@ -188,12 +190,14 @@ function atividade_nao_postada($i) {
                 new dado_modulo("Modulo " . rand(0, 1)),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
+                new dado_atividade("Atividade " . rand(3, 5)),
                 new dado_modulo("Modulo " . rand(2, 3)),
-                new dado_atividade("Atividade " . rand(0, 2)));
+                new dado_atividade("Atividade " . rand(0, 2)),
+                new dado_atividade("Atividade " . rand(3, 5)));
     }
 }
 
-function get_dados_avaliacao_em_atraso_tutor() {
+function get_dados_avaliacao_em_atraso() {
     $dados = array();
 
     for ($x = 1; $x <= 5; $x++) {
@@ -201,12 +205,12 @@ function get_dados_avaliacao_em_atraso_tutor() {
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
             $alunos[] = array(new estudante("Fulano de Tal {$i}"),
-                new dado_atividades_nao_avaliadas(rand(0, 25)),
-                new dado_atividades_nao_avaliadas(rand(0, 25)),
-                new dado_atividades_nao_avaliadas(rand(0, 25)),
-                new dado_atividades_nao_avaliadas(rand(0, 25)),
-                new dado_atividades_nao_avaliadas(rand(0, 25)),
-                new dado_atividades_nao_avaliadas(rand(0, 25)),
+                new dado_avaliacao_em_atraso(rand(0, 25)),
+                new dado_avaliacao_em_atraso(rand(0, 25)),
+                new dado_avaliacao_em_atraso(rand(0, 25)),
+                new dado_avaliacao_em_atraso(rand(0, 25)),
+                new dado_avaliacao_em_atraso(rand(0, 25)),
+                new dado_avaliacao_em_atraso(rand(0, 25)),
                 new dado_media(rand(0, 100)));
         }
         $dados[$tutor] = $alunos;
@@ -215,7 +219,7 @@ function get_dados_avaliacao_em_atraso_tutor() {
     return $dados;
 }
 
-function get_dados_atividades_nota_atribuida_tutor() {
+function get_dados_atividades_nota_atribuida() {
     $dados = array();
 
     for ($x = 1; $x <= 5; $x++) {
@@ -223,12 +227,12 @@ function get_dados_atividades_nota_atribuida_tutor() {
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
             $alunos[] = array(new estudante("Fulano de Tal {$i}"),
-                new dado_atividades_nao_avaliadas(rand(75, 100)),
-                new dado_atividades_nao_avaliadas(rand(75, 100)),
-                new dado_atividades_nao_avaliadas(rand(75, 100)),
-                new dado_atividades_nao_avaliadas(rand(75, 100)),
-                new dado_atividades_nao_avaliadas(rand(75, 100)),
-                new dado_atividades_nao_avaliadas(rand(75, 100)),
+                new dado_avaliacao_em_atraso(rand(75, 100)),
+                new dado_avaliacao_em_atraso(rand(75, 100)),
+                new dado_avaliacao_em_atraso(rand(75, 100)),
+                new dado_avaliacao_em_atraso(rand(75, 100)),
+                new dado_avaliacao_em_atraso(rand(75, 100)),
+                new dado_avaliacao_em_atraso(rand(75, 100)),
                 new dado_media(rand(0, 100)));
         }
         $dados[$tutor] = $alunos;
@@ -243,13 +247,13 @@ function get_dados_acesso_tutor() {
     $tutores = array();
     for ($i = 1; $i <= 30; $i++) {
         $tutores[] = array(new estudante("Tutor Fulano de Tal {$i}"),
-            new dado_acesso(rand(0, 3) ? true : false),
-            new dado_acesso(rand(0, 3) ? true : false),
-            new dado_acesso(rand(0, 3) ? true : false),
-            new dado_acesso(rand(0, 3) ? true : false),
-            new dado_acesso(rand(0, 3) ? true : false),
-            new dado_acesso(rand(0, 3) ? true : false),
-            new dado_acesso(rand(0, 3) ? true : false));
+            new dado_acesso_tutor(rand(0, 3) ? true : false),
+            new dado_acesso_tutor(rand(0, 3) ? true : false),
+            new dado_acesso_tutor(rand(0, 3) ? true : false),
+            new dado_acesso_tutor(rand(0, 3) ? true : false),
+            new dado_acesso_tutor(rand(0, 3) ? true : false),
+            new dado_acesso_tutor(rand(0, 3) ? true : false),
+            new dado_acesso_tutor(rand(0, 3) ? true : false));
     }
     $dados["Tutores"] = $tutores;
 
@@ -268,12 +272,12 @@ function get_dados_uso_sistema_tutor() {
         $media = new dado_media(rand(0, 20));
 
         $tutores[] = array(new estudante("Tutor Fulano de Tal {$i}"),
-            new dado_tempo_acesso(rand(0, 20)),
-            new dado_tempo_acesso(rand(0, 20)),
-            new dado_tempo_acesso(rand(0, 20)),
-            new dado_tempo_acesso(rand(0, 20)),
-            new dado_tempo_acesso(rand(0, 20)),
-            new dado_tempo_acesso(rand(0, 20)),
+            new dado_uso_sistema_tutor(rand(0, 20)),
+            new dado_uso_sistema_tutor(rand(0, 20)),
+            new dado_uso_sistema_tutor(rand(0, 20)),
+            new dado_uso_sistema_tutor(rand(0, 20)),
+            new dado_uso_sistema_tutor(rand(0, 20)),
+            new dado_uso_sistema_tutor(rand(0, 20)),
             $media->value(),
             new dado_somatorio(rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20)));
     }
@@ -294,13 +298,13 @@ function get_dados_potenciais_evasoes() {
             $media = new dado_media(rand(0, 20));
 
             $estudantes[] = array(new estudante("Fulano de Tal {$i}"),
-                new dado_potencial_evasao(rand(0, 2)),
-                new dado_potencial_evasao(rand(0, 2)),
-                new dado_potencial_evasao(rand(0, 2)),
-                new dado_potencial_evasao(rand(0, 2)),
-                new dado_potencial_evasao(rand(0, 2)),
-                new dado_potencial_evasao(rand(0, 2)),
-                new dado_potencial_evasao(rand(0, 2)));
+                new dado_potenciais_evasoes(rand(0, 2)),
+                new dado_potenciais_evasoes(rand(0, 2)),
+                new dado_potenciais_evasoes(rand(0, 2)),
+                new dado_potenciais_evasoes(rand(0, 2)),
+                new dado_potenciais_evasoes(rand(0, 2)),
+                new dado_potenciais_evasoes(rand(0, 2)),
+                new dado_potenciais_evasoes(rand(0, 2)));
         }
 
         $dados[$tutor] = $estudantes;
@@ -309,11 +313,19 @@ function get_dados_potenciais_evasoes() {
     return $dados;
 }
 
-function get_header_modulo_atividade() {
+function get_table_header_atividades_vs_notas() {
     $header = array();
     $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
     $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Atividade 4');
     return $header;
+}
+
+function get_table_header_entrega_de_atividades(){
+    return get_table_header_atividades_vs_notas();
+}
+
+function get_table_header_acompanhamento_de_avaliacao(){
+    return get_table_header_atividades_vs_notas();
 }
 
 function get_header_modulo_atividade_geral() {
@@ -324,7 +336,7 @@ function get_header_modulo_atividade_geral() {
     return $header;
 }
 
-function get_header_modulo_evasoes() {
+function get_table_header_potenciais_evasoes() {
     $modulos = array('Estudantes');
     for ($i = 1; $i <= 7; $i++) {
         $modulos[] = "Módulo ${i}";
@@ -332,7 +344,7 @@ function get_header_modulo_evasoes() {
     return $modulos;
 }
 
-function get_header_modulo_atividade_consolidado() {
+function get_table_header_avaliacao_em_atraso(){
     $header = array();
     $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
     $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
@@ -340,17 +352,21 @@ function get_header_modulo_atividade_consolidado() {
     return $header;
 }
 
-function get_header_acesso_tutor() {
+function get_table_header_atividades_nota_atribuida() {
+    return get_table_header_avaliacao_em_atraso();
+}
+
+function get_table_header_acesso_tutor() {
     return array('Tutor', '15/06', '16/06', '17/06', '18/06', '19/06', '20/06', '21/06');
 }
 
-function get_header_uso_sistema_tutor() {
+function get_table_header_uso_sistema_tutor() {
     return array('Tutor', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6', 'Media', 'Total');
 }
 
 function get_header_estudante_sem_atividade_postada($size) {
     $content = array();
-    for ($index = 0; $index < $size-1; $index++) {
+    for ($index = 0; $index < $size - 1; $index++) {
         $content[] = '';
     }
     $header['Atividades não resolvidas'] = $content;
