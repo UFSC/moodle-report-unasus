@@ -372,3 +372,11 @@ function get_header_estudante_sem_atividade_postada($size) {
     $header['Atividades não resolvidas'] = $content;
     return $header;
 }
+
+function get_dados_graph_atividades_vs_notas(){
+    return array(
+        'Tutor 1' => array(12,5,4,2,5),
+        'Tutor 2' => array(7,2,2,3,0),
+        'Tutor 3' => array(5,6,8,0,12)
+    );
+}

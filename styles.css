@@ -24,11 +24,14 @@
 
 .relatorio-unasus.fieldset {
     margin-bottom: 2em;
+}
+
+.relatorio-unasus.right_legend{
+    margin-bottom: 2em;
     display: inline-block;
     width: 44%;
     vertical-align: top;
     margin-left: 1em;
-
 }
 
 .relatorio-unasus.fieldset dl {

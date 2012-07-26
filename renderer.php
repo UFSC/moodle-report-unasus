@@ -3,6 +3,7 @@
 // chamada do arquivo de filtro
 require_once($CFG->dirroot . '/report/unasus/filter.php');
 
+
 defined('MOODLE_INTERNAL') || die();
 
 class report_unasus_renderer extends plugin_renderer_base {
@@ -11,7 +12,11 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     public function __construct(moodle_page $page, $target) {
         parent::__construct($page, $target);
-        $this->report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+        if (optional_param('relatorio', null, PARAM_ALPHANUMEXT) !== null) {
+            $this->report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+        } else {
+            $this->report = optional_param('grafico', null, PARAM_ALPHANUMEXT);
+        }
     }
 
     /*
@@ -29,12 +34,24 @@ class report_unasus_renderer extends plugin_renderer_base {
      *
      * @return String $output
      */
+
     public function build_report() {
         $output = $this->default_header(get_string("{$this->report}_title", 'report_unasus'));
         $output .= $this->build_filter();
 
         $data_class = "dado_{$this->report}";
+
+        $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus right_legend'));
+
         $output .= $this->build_legend(call_user_func("{$data_class}::get_legend"));
+
+        //graph-link
+        global $CFG;
+        $output .= html_writer::start_tag('a', array('href' => $CFG->wwwroot . "/report/unasus/index.php?grafico={$this->report}"));
+        $output .= 'Visualizar Gráfico';
+        $output .= html_writer::end_tag('a');
+        $output .= html_writer::end_tag('div');
+        //end link
 
         $dados_method = "get_dados_{$this->report}";
         $header_method = "get_table_header_{$this->report}";
@@ -52,7 +69,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function build_legend($legend) {
-        if($legend === false){
+        if ($legend === false) {
             return null;
         }
         $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus {$this->report}"));
@@ -83,7 +100,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a barra de Filtros
      * @return filter_tutor_polo $output
      */
-    public function build_filter(){
+    public function build_filter() {
         $form_attributes = array('class' => 'filter_form');
         $filter_form = new filter_tutor_polo(null, array('relatorio' => $this->report), 'post', '', $form_attributes);
         $output = get_form_display($filter_form);
@@ -291,4 +308,38 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    public function build_graph() {
+        global $PAGE;
+        $output = $this->default_header();
+
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
+        //$PAGE->requires->js(new moodle_url("/report/unasus/graph.js"));
+
+        $output .= $this->build_filter();
+
+        $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus right_legend'));
+
+        //graph-link
+        global $CFG;
+        $output .= html_writer::start_tag('a', array('href' => $CFG->wwwroot . "/report/unasus/index.php?relatorio={$this->report}"));
+        $output .= 'Visualizar Dados';
+        $output .= html_writer::end_tag('a');
+        $output .= html_writer::end_tag('div');
+
+
+
+        $dados_method = "get_dados_graph_{$this->report}";
+        $dados_class = "dado_{$this->report}";
+        $legend = call_user_func("$dados_class::get_legend");
+
+        $PAGE->requires->js_init_call('M.report_unasus.init_graph', array($dados_method(), array_values($legend)));
+
+        $output .= '<div id="container" class="container"></div>';
+        $output .= $this->default_footer();
+
+        return $output;
+    }
+
 }
+
