@@ -309,25 +309,21 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     public function build_graph() {
-        global $PAGE;
+        global $PAGE, $CFG;
         $output = $this->default_header();
 
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
-        //$PAGE->requires->js(new moodle_url("/report/unasus/graph.js"));
 
         $output .= $this->build_filter();
 
         $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus right_legend'));
 
         //graph-link
-        global $CFG;
         $output .= html_writer::start_tag('a', array('href' => $CFG->wwwroot . "/report/unasus/index.php?relatorio={$this->report}"));
         $output .= 'Visualizar Dados';
         $output .= html_writer::end_tag('a');
         $output .= html_writer::end_tag('div');
-
-
 
         $dados_method = "get_dados_grafico_{$this->report}";
         $dados_class = "dado_{$this->report}";

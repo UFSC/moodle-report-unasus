@@ -380,11 +380,11 @@ class dado_potenciais_evasoes extends unasus_data {
     public function __toString() {
         switch ($this->estado) {
             case 0:
-                return "NÃO";
+                return "Não";
             case 1:
-                return "SIM";
+                return "Sim";
             case 2:
-                return "PARCIAL";
+                return "Parcial";
         }
     }
 

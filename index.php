@@ -11,9 +11,10 @@ require_login(SITEID);
 $PAGE->requires->js_init_call('M.report_unasus.init');
 
 $renderer = $PAGE->get_renderer('report_unasus');
+$relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+$grafico = optional_param('grafico', null, PARAM_ALPHANUMEXT);
 
 // Renderiza os relatórios
-$relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
 if ($relatorio != null) {
     switch ($relatorio) {
 
@@ -61,10 +62,7 @@ if ($relatorio != null) {
             print_error('unknow_report', 'report_unasus');
             break;
     }
-}
-
-$grafico = optional_param('grafico', null, PARAM_ALPHANUMEXT);
-if ($grafico != null) {
+} elseif ($grafico != null) {
     switch ($grafico) {
 
         case 'atividades_vs_notas':
