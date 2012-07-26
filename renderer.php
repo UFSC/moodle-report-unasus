@@ -36,6 +36,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      */
 
     public function build_report() {
+        global $CFG;
         $output = $this->default_header(get_string("{$this->report}_title", 'report_unasus'));
         $output .= $this->build_filter();
 
@@ -46,7 +47,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_legend(call_user_func("{$data_class}::get_legend"));
 
         //graph-link
-        global $CFG;
         $output .= html_writer::start_tag('a', array('href' => $CFG->wwwroot . "/report/unasus/index.php?grafico={$this->report}"));
         $output .= 'Visualizar Gráfico';
         $output .= html_writer::end_tag('a');
