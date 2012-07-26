@@ -329,11 +329,14 @@ class report_unasus_renderer extends plugin_renderer_base {
 
 
 
-        $dados_method = "get_dados_graph_{$this->report}";
+        $dados_method = "get_dados_grafico_{$this->report}";
         $dados_class = "dado_{$this->report}";
         $legend = call_user_func("$dados_class::get_legend");
 
-        $PAGE->requires->js_init_call('M.report_unasus.init_graph', array($dados_method(), array_values($legend)));
+        $PAGE->requires->js_init_call('M.report_unasus.init_graph',
+              array($dados_method(),
+              array_values($legend),
+              get_string("{$this->report}_title", 'report_unasus')));
 
         $output .= '<div id="container" class="container"></div>';
         $output .= $this->default_footer();

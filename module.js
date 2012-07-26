@@ -22,7 +22,7 @@ M.report_unasus.init = function(Y) {
 
 
 var chart1;
-M.report_unasus.init_graph = function(Y, param1, tipos) {
+M.report_unasus.init_graph = function(Y, param1, tipos, title) {
 
     var options = {
         chart: {
@@ -30,7 +30,7 @@ M.report_unasus.init_graph = function(Y, param1, tipos) {
             type: 'bar'
         },
         title: {
-            text: 'Atividade vs Notas'
+            text: title
         },
         xAxis: {
             categories: []

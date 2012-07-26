@@ -53,11 +53,6 @@ $ADMIN->add('unasus',
                                'Potenciais evasões',
                                "{$CFG->wwwroot}/report/unasus/index.php?relatorio=potenciais_evasoes",
                                'report/unasus:view'));
-$ADMIN->add('unasus',
-        new admin_externalpage('report_unasus_grafico',
-                               'Grafico',
-                               "{$CFG->wwwroot}/report/unasus/index.php?relatorio=grafico",
-                               'report/unasus:view'));
 
 // no report settings
 $settings = null;

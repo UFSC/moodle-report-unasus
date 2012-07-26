@@ -373,10 +373,29 @@ function get_header_estudante_sem_atividade_postada($size) {
     return $header;
 }
 
-function get_dados_graph_atividades_vs_notas(){
+function get_dados_grafico_atividades_vs_notas(){
     return array(
         'Tutor 1' => array(12,5,4,2,5),
         'Tutor 2' => array(7,2,2,3,0),
-        'Tutor 3' => array(5,6,8,0,12)
+        'Tutor 3' => array(5,6,8,0,12),
+        'Tutorindo' => array(12,12,5,0,20)
+    );
+}
+
+function get_dados_grafico_entrega_de_atividades(){
+    return array(
+        'Tutor 1' => array(12,5,4,2),
+        'Tutor 2' => array(7,2,2,3),
+        'Tutor 3' => array(5,6,8,0),
+        'Tutorindo' => array(12,12,5,0)
+    );
+}
+
+function get_dados_grafico_acompanhamento_de_avaliacao(){
+    return array(
+        'Tutor 1' => array(5,23,4,2),
+        'Tutor 2' => array(2,30,2,2,3),
+        'Tutor 3' => array(12,6,8,0),
+        'Tutorindo' => array(5,12,5,0)
     );
 }

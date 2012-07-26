@@ -57,10 +57,6 @@ if ($relatorio !== null) {
             admin_externalpage_setup('report_unasus_potenciais_evasoes', '', null, '', array('pagelayout' => 'report'));
             echo $renderer->build_report();
             break;
-        case 'grafico' :
-            admin_externalpage_setup('report_unasus_grafico', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->page_grafico();
-            break;
         default:
             print_error('unknow_report', 'report_unasus');
             break;
@@ -108,10 +104,6 @@ switch ($grafico) {
         break;
     case 'potenciais_evasoes' :
         admin_externalpage_setup('report_unasus_potenciais_evasoes', '', null, '', array('pagelayout' => 'report'));
-        echo $renderer->build_graph();
-        break;
-    case 'grafico' :
-        admin_externalpage_setup('report_unasus_grafico', '', null, '', array('pagelayout' => 'report'));
         echo $renderer->build_graph();
         break;
     default:
