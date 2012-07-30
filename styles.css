@@ -1,25 +1,35 @@
 /* Filtros */
 
 .filter_form.mform{
-    display: inline-block;
-    width: 44%;
-    margin-right: 1em;
+    vertical-align: top;
 }
 
-.filter_form #id_multiple_polo, .filter_form #id_multiple_tutor {
-    width: 250px;
-    height: 250px;
+.filter_form.mform select{
+    margin-left: 1em;
+    width: 200px;
+    height: 230px;
 }
 
-.filter_form #id_multiple_modulos {
-    width: 100px;
-    height: 80px;
+.mform .fitem .fitemtitle{
+    width: 10% !important;
 }
 
 .filter_form div.fsubmit {
     text-align: left;
 }
 
+.felement{
+    vertical-align: top;
+    margin-left: 5% !important;
+}
+
+.fgroup{
+    margin:0px;
+}
+
+.relatorio-unasus.multiple_list{
+    display: inline-block;
+}
 /* Legenda */
 
 .relatorio-unasus.fieldset {
@@ -28,9 +38,6 @@
 
 .relatorio-unasus.right_legend{
     margin-bottom: 2em;
-    display: inline-block;
-    width: 44%;
-    vertical-align: top;
     margin-left: 1em;
 }
 

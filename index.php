@@ -8,7 +8,7 @@ require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
 require_login(SITEID);
 
 // carrega arquivo module.js dentro deste módulo
-$PAGE->requires->js_init_call('M.report_unasus.init');
+//$PAGE->requires->js_init_call('M.report_unasus.init');
 
 $renderer = $PAGE->get_renderer('report_unasus');
 $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);

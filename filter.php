@@ -22,27 +22,24 @@ class filter_tutor_polo extends moodleform {
         $mform->addElement('select', 'situacao', "Situação:", array("Em Aberto", "Em Dia", "Expirado", "Fora do Prazo"));
 
         //multi-select dos módulos
-        $multiple_modulos = &$mform->addElement('select', 'multiple_modulos', "Módulos", get_nomes_modulos());
+        $multiple_modulos = &$mform->createElement('select', 'multiple_modulos', "Módulos", get_nomes_modulos());
         $multiple_modulos->setMultiple(true);
 
-        //radio button da filtragem do tipo de estudante, por tutor ou polo
-        $radioarray = array();
-        $radioarray[] = &$mform->createElement('radio', 'radiofilter', 'tutor', 'por Tutor', 'tutor');
-        $radioarray[] = &$mform->createElement('radio', 'radiofilter', 'polo', 'por Polo', 'polo');
-        $mform->addGroup($radioarray, '', 'Filtrar Estudantes: ', null);
-
-
-        //div dos nomes dos tutores
-        $mform->addElement('html', '<div class="relatorio-unasus filter div_list_show" id="div_tutor" >');
-        $multiple_tutor = &$mform->addElement('select', 'multiple_tutor', "Tutores", get_nomes_tutores());
+        //multi-select dos tutores
+        $multiple_tutor = &$mform->createElement('select', 'multiple_tutor', "Tutores", get_nomes_tutores());
         $multiple_tutor->setMultiple(true);
-        $mform->addElement('html', '</div>');
 
-        //div dos nomes dos polos
-        $mform->addElement('html', '<div class="relatorio-unasus filter div_list_show" id="div_polo">');
-        $multiple_polo = &$mform->addElement('select', 'multiple_polo', "Polos", get_nomes_polos());
+        //multi-select dos polos
+        $multiple_polo = &$mform->createElement('select', 'multiple_polo', "Polos", get_nomes_polos());
         $multiple_polo->setMultiple(true);
-        $mform->addElement('html', '</div>');
+
+        //group para os multi-selects
+        $lists_array = array();
+        $lists_array[] = $multiple_modulos;
+        $lists_array[] = $multiple_tutor;
+        $lists_array[] = $multiple_polo;
+        $mform->addGroup($lists_array, '', 'Filtrar por Módulo: ',
+                                            array('Filtrar por Tutor: ','Filtrar por Polo: '));
 
         //submit button, ainda falta alinhar ele
         $mform->addElement('submit', 'button_filtrar', 'Filtrar', array('class' => 'filter'));
