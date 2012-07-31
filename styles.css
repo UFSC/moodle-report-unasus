@@ -1,45 +1,34 @@
 /* Filtros */
 
-.filter_form.mform{
-    vertical-align: top;
-}
-
-.filter_form.mform select{
-    margin-left: 1em;
-    width: 200px;
-    height: 230px;
-}
-
-.mform .fitem .fitemtitle{
-    width: 10% !important;
-}
-
-.filter_form div.fsubmit {
-    text-align: left;
-}
-
-.felement{
-    vertical-align: top;
-    margin-left: 5% !important;
-}
-
-.fgroup{
-    margin:0px;
-}
-
-.relatorio-unasus.multiple_list{
+.relatorio-unasus.fieldset .multiple_list{
     display: inline-block;
+    width: 32%;
+    margin-left: 1%;
+    margin-bottom: 1em;
+    margin-top: 1em;
 }
+
+.relatorio-unasus.fieldset .multiple_list select{
+    width: 100%;
+    height: 200px;
+}
+
+.relatorio-unasus.fieldset .radio{
+    margin-right: 3%;
+}
+
+.relatorio-unasus.fieldset .radio img{
+    height: 16px;
+    width: 16px;
+    margin-right: 3px;
+    margin-bottom: -3px;
+}
+
+.relatorio-unasus.fieldset p{
+    margin-bottom: 0;
+}
+
 /* Legenda */
-
-.relatorio-unasus.fieldset {
-    margin-bottom: 2em;
-}
-
-.relatorio-unasus.right_legend{
-    margin-bottom: 2em;
-    margin-left: 1em;
-}
 
 .relatorio-unasus.fieldset dl {
     margin: 0;
@@ -54,6 +43,16 @@
 }
 .relatorio-unasus.fieldset dl dd {
     margin-bottom: 5px;
+}
+
+.relatorio-unasus.fieldset{
+    color: #004E95;
+    border-color: #87C7E2;
+    background-color: #FEF9EC;
+    border-width: 1px 0;
+    border-style: dotted;
+    padding: 0.5em 1em;
+    margin-bottom: 2em;
 }
 
 .relatorio-unasus.fieldset legend{
