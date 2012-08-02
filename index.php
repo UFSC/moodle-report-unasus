@@ -12,10 +12,11 @@ require_login(SITEID);
 
 $renderer = $PAGE->get_renderer('report_unasus');
 $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
-$grafico = optional_param('grafico', null, PARAM_ALPHANUMEXT);
+$modo_exibicao = optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT);
 
 // Renderiza os relatórios
-if ($relatorio != null) {
+if ($relatorio != null && ($modo_exibicao === 'tabela' || $modo_exibicao == null)) {
+    echo('WOAHOAHO');
     switch ($relatorio) {
 
         case 'atividades_vs_notas':
@@ -62,8 +63,9 @@ if ($relatorio != null) {
             print_error('unknow_report', 'report_unasus');
             break;
     }
-} elseif ($grafico != null) {
-    switch ($grafico) {
+} elseif ($modo_exibicao === 'grafico_valores') {
+    echo('MAROWAK');
+    switch ($relatorio) {
 
         case 'atividades_vs_notas':
             admin_externalpage_setup('report_unasus_atividade_notas', '', null, '', array('pagelayout' => 'report'));

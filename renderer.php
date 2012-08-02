@@ -46,10 +46,6 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= $this->build_legend(call_user_func("{$data_class}::get_legend"));
 
-        //graph-link
-        $output .= html_writer::start_tag('a', array('href' => $CFG->wwwroot . "/report/unasus/index.php?grafico={$this->report}"));
-        $output .= 'Visualizar Gráfico';
-        $output .= html_writer::end_tag('a');
         $output .= html_writer::end_tag('div');
         //end link
 
@@ -149,7 +145,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::empty_tag('input', array('type'=>'radio','name'=>'modo_exibicao','value'=>'tabela','id'=>'radio_tabela'));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela',true,array('class'=>'radio'));
-        $output .= html_writer::empty_tag('input', array('type'=>'radio','name'=>'modo_exibicao','value'=>'grafico_valor','id'=>'radio_valores'));
+        $output .= html_writer::empty_tag('input', array('type'=>'radio','name'=>'modo_exibicao','value'=>'grafico_valores','id'=>'radio_valores'));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores',true,array('class'=>'radio'));
         $output .= html_writer::empty_tag('input', array('type'=>'radio','name'=>'modo_exibicao','value'=>'grafico_porcentagens','id'=>'radio_porcentagem'));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem',true,array('class'=>'radio'));
@@ -370,14 +366,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
 
         $output .= $this->build_filter();
-
-        $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus right_legend'));
-
-        //graph-link
-        $output .= html_writer::start_tag('a', array('href' => $CFG->wwwroot . "/report/unasus/index.php?relatorio={$this->report}"));
-        $output .= 'Visualizar Dados';
-        $output .= html_writer::end_tag('a');
-        $output .= html_writer::end_tag('div');
 
         $dados_method = "get_dados_grafico_{$this->report}";
         $dados_class = "dado_{$this->report}";
