@@ -37,7 +37,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     public function build_report() {
         global $CFG;
-        $output = $this->default_header(get_string($this->report, 'report_unasus'));
+        $output = $this->default_header();
         $output .= $this->build_filter();
 
         $data_class = "dado_{$this->report}";
@@ -57,6 +57,15 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= $this->default_footer();
         return $output;
+    }
+
+    public function build_page(){
+        global $CFG;
+        $output = $this->default_header();
+        $output .= $this->build_filter();
+        $output .= $this->default_footer();
+        return $output;
+
     }
 
     /**
