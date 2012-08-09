@@ -22,7 +22,10 @@ M.report_unasus.init = function(Y) {
 
 
 var chart1;
-M.report_unasus.init_graph = function(Y, param1, tipos, title) {
+M.report_unasus.init_graph = function(Y, param1, tipos, title, porcentagem) {
+    var stack_option = 'normal';
+    if(porcentagem)
+        stack_option = 'percent';
 
     var options = {
         chart: {
@@ -46,7 +49,9 @@ M.report_unasus.init_graph = function(Y, param1, tipos, title) {
         },
         plotOptions: {
             series: {
-                stacking: 'normal'
+
+                stacking: stack_option
+
             }
         },
 

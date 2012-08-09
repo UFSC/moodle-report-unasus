@@ -378,7 +378,7 @@ function get_dados_grafico_atividades_vs_notas(){
         'Tutor 1' => array(12,5,4,2,5),
         'Tutor 2' => array(7,2,2,3,0),
         'Tutor 3' => array(5,6,8,0,12),
-        'MEDIA DOS TUTORES' => array(12,12,5,0,20)
+        'MEDIA DOS TUTORES' => array(8,4,5,1.5,8)
     );
 }
 
@@ -387,7 +387,7 @@ function get_dados_grafico_entrega_de_atividades(){
         'Tutor 1' => array(12,5,4,2),
         'Tutor 2' => array(7,2,2,3),
         'Tutor 3' => array(5,6,8,0),
-        'MEDIA DOS TUTORES' => array(12,12,5,0)
+        'MEDIA DOS TUTORES' => array(12,12,5,1)
     );
 }
 

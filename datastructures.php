@@ -85,9 +85,11 @@ class dado_atividades_vs_notas extends unasus_data {
     public function __toString() {
         switch ($this->tipo) {
             case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
-                return 'Atividade não Entregue';
+                return 'Não Entregue';
                 break;
             case dado_atividades_vs_notas::CORRECAO_ATRASADA:
+                if($this->atraso == 1)
+                    return '1 dia';
                 return "$this->atraso dias";
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
@@ -150,6 +152,8 @@ class dado_entrega_de_atividades extends unasus_data {
                 return '';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+                if($this->atraso == 1)
+                    return '1 dia';
                 return "$this->atraso dias";
                 break;
         }
