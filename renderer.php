@@ -133,28 +133,25 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
         $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
 
-        $output .= html_writer::start_tag('div');
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
 
         $output .= html_writer::label('Estado da Atividade: ', 'select_estado');
         $output .= html_writer::select(array('Em Aberto', 'Em Dia', 'Expirado', 'Fora do Prazo'), 'prazo_select', '', false, array('id' => 'select_estado'));
 
+
         $output .= html_writer::start_tag('div');
 
-        $output .= html_writer::start_tag('div', array('class' => 'multiple_list'));
-        $output .= html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-        $output .= html_writer::select(get_nomes_modulos(), 'multiple_modulo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
-        $output .= html_writer::end_tag('div');
+        $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
+        $filter_modulos .= html_writer::select(get_nomes_modulos(), 'multiple_modulo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
+        $output .= html_writer::tag('div', $filter_modulos, array('class' => 'multiple_list'));
 
-        $output .= html_writer::start_tag('div', array('class' => 'multiple_list'));
-        $output .= html_writer::label('Filtrar Polos:', 'multiple_polo');
-        $output .= html_writer::select(get_nomes_polos(), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
-        $output .= html_writer::end_tag('div');
+        $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
+        $filter_polos .= html_writer::select(get_nomes_polos(), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+        $output .= html_writer::tag('div', $filter_polos, array('class' => 'multiple_list'));
 
-        $output .= html_writer::start_tag('div', array('class' => 'multiple_list'));
-        $output .= html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-        $output .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-        $output .= html_writer::end_tag('div');
+        $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
+        $filter_tutores .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+        $output .= html_writer::tag('div', $filter_tutores, array('class' => 'multiple_list'));
 
         $output .= html_writer::end_tag('div');
 
@@ -166,8 +163,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_porcentagens', 'id' => 'radio_porcentagem'));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'radio'));
 
-        $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Filtrar'));
-        $output .= html_writer::end_tag('div');
+        $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
+
         $output .= html_writer::end_tag('fieldset');
         $output .= html_writer::end_tag('form');
         return $output;
