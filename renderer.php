@@ -382,6 +382,14 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $dados_method = "get_dados_grafico_{$this->report}";
         $dados_class = "dado_{$this->report}";
+
+        // verifica se o gráfico foi implementado
+        if (!function_exists($dados_method)) {
+            $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
+            $output .= $this->default_footer();
+            return $output;
+        }
+
         $legend = call_user_func("$dados_class::get_legend");
 
         $PAGE->requires->js_init_call('M.report_unasus.init_graph', array($dados_method(),

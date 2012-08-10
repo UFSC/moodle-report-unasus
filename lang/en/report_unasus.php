@@ -29,5 +29,7 @@ $string['acesso_tutor_help'] = 'Objetivo: Visualizar se o tutor acessou o moodle
 $string['uso_sistema_tutor'] = 'Uso do sistema pelo tutor (horas)';
 $string['uso_sistema_tutor_help'] = 'Objetivo: Visualizar quantas horas o tutor acessou o moodle';
 
+$string['unimplemented_graph_error'] = 'Gráfico não implementado';
+
 $string['potenciais_evasoes'] = 'Relatório de potenciais evasões';
 $string['potenciais_evasoes_help'] = 'OBJETIVO: estimar se um aluno pode possivelmente desistir do curso de acordo com as suas atividades não realizadas e atrasos de entrega.';
