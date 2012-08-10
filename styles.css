@@ -140,3 +140,8 @@
 table.relatorio-unasus.estudante_sem_atividade_postada {
     background: #FAFAFA !important;
 }
+
+.relatorio-unasus td.cell.ultima_atividade,
+.relatorio-unasus th.cell.ultima_atividade{
+    border-right: 2px solid black !important;
+}

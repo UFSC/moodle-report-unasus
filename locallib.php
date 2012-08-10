@@ -84,6 +84,7 @@ class report_unasus_table extends html_table {
             $module_cell = new html_table_cell($module_name);
             $module_cell->header = true;
             $module_cell->colspan = count($activities);
+            $module_cell->attributes = array('class' => 'ultima_atividade');
 
             $heading1[] = $module_cell;
             foreach ($activities as $activity) {

@@ -59,13 +59,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
-    public function build_page(){
+    public function build_page() {
         global $CFG;
         $output = $this->default_header();
         $output .= $this->build_filter();
         $output .= $this->default_footer();
         return $output;
-
     }
 
     /**
@@ -100,9 +99,9 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $title = get_string($this->report, 'report_unasus');
 
-        if( $title != "[[$this->report]]" ){
+        if ($title != "[[$this->report]]") {
             $output .= $this->heading_with_help($title, $this->report, 'report_unasus');
-        }else{
+        } else {
             $output .= $this->heading($title);
         }
 
@@ -193,6 +192,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
         $table->tablealign = 'center';
 
+        $ultima_atividade_modulo = array();
+        $ultimo_alvo = 0;
+        foreach ($header as $activities) {
+            $ultimo_alvo += count($activities);
+            $ultima_atividade_modulo[] = $ultimo_alvo;
+        }
+
         $header_keys = array_keys($header);
         if (is_array($header[$header_keys[0]])) { // Double Header
             $table->build_double_header($header);
@@ -212,13 +218,19 @@ class report_unasus_renderer extends plugin_renderer_base {
             $table->data[] = $row_tutor;
 
             //atividades de cada aluno daquele dado tutor
+            $count = 0;
             foreach ($alunos as $aluno) {
                 $row = new html_table_row();
                 foreach ($aluno as $valor) {
                     if (is_a($valor, 'unasus_data')) {
                         $cell = new html_table_cell($valor);
-                        $cell->attributes = array(
-                            'class' => $valor->get_css_class());
+                        if (in_array($count, $ultima_atividade_modulo)) {
+                            $cell->attributes = array(
+                                'class' => $valor->get_css_class()." ultima_atividade");
+                        } else {
+                            $cell->attributes = array(
+                                'class' => $valor->get_css_class());
+                        }
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
@@ -226,8 +238,10 @@ class report_unasus_renderer extends plugin_renderer_base {
                     }
 
                     $row->cells[] = $cell;
+                    $count++;
                 }
                 $table->data[] = $row;
+                $count = 0;
             }
         }
 
