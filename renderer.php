@@ -1,9 +1,4 @@
 <?php
-
-// chamada do arquivo de filtro
-require_once($CFG->dirroot . '/report/unasus/filter.php');
-
-
 defined('MOODLE_INTERNAL') || die();
 
 class report_unasus_renderer extends plugin_renderer_base {
@@ -132,6 +127,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
         $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
 
+        $output .= html_writer::start_tag('div', array('class'=>'conteudo-filtro'));
+
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
 
         $output .= html_writer::label('Estado da Atividade: ', 'select_estado');
@@ -164,6 +161,8 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
 
+        $output .= html_writer::end_tag('div');
+
         $output .= html_writer::end_tag('fieldset');
         $output .= html_writer::end_tag('form');
         return $output;
@@ -194,6 +193,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $ultima_atividade_modulo = array();
         $ultimo_alvo = 0;
+        $ultima_atividade_modulo[] = $ultimo_alvo;
         foreach ($header as $activities) {
             $ultimo_alvo += count($activities);
             $ultima_atividade_modulo[] = $ultimo_alvo;
@@ -202,6 +202,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $header_keys = array_keys($header);
         if (is_array($header[$header_keys[0]])) { // Double Header
             $table->build_double_header($header);
+            $table->attributes['class'] .= " divisao-por-modulos";
         } else {
             $table->build_single_header($header);
         }
@@ -234,7 +235,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
-                        $cell->attributes = array('class' => 'estudante');
+                        $cell->attributes = array('class' => 'estudante ultima_atividade');
                     }
 
                     $row->cells[] = $cell;

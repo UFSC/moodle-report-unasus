@@ -73,6 +73,7 @@ class report_unasus_table extends html_table {
         $blank->attributes = array('class' => 'blank');
         $student = new html_table_cell($person_name);
         $student->header = true;
+        $student->attributes = array('class'=>'ultima_atividade');
 
         $heading1 = array(); // Primeira linha
         $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha
@@ -80,17 +81,34 @@ class report_unasus_table extends html_table {
         $heading2 = array(); // Segunda linha
         $heading2[] = $student;
 
+        /* box */
+
+        $ultima_atividade_modulo = array();
+        $ultimo_alvo = 0;
+        $ultima_atividade_modulo[] = $ultimo_alvo;
+        foreach ($grouped_coluns as $module_name => $activities) {
+            $ultimo_alvo += count($activities);
+            $ultima_atividade_modulo[] = $ultimo_alvo;
+        }
+
+        $count = 1;
         foreach ($grouped_coluns as $module_name => $activities) {
             $module_cell = new html_table_cell($module_name);
             $module_cell->header = true;
             $module_cell->colspan = count($activities);
-            $module_cell->attributes = array('class' => 'ultima_atividade');
-
+            $module_cell->attributes = array('class' => 'modulo_header');
             $heading1[] = $module_cell;
+
+
             foreach ($activities as $activity) {
                 $activity_cell = new html_table_cell($activity);
                 $activity_cell->header = true;
+                /*box*/
+                if (in_array($count, $ultima_atividade_modulo)) {
+                   $activity_cell->attributes = array('class'=>'ultima_atividade');
+                }
                 $heading2[] = $activity_cell;
+                $count++;
             }
         }
 
