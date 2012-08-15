@@ -33,7 +33,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function build_report() {
         global $CFG;
         $output = $this->default_header();
-        $output .= $this->build_filter();
+        $output .= $this->build_filter(true);
 
         $data_class = "dado_{$this->report}";
 
@@ -107,19 +107,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a barra de Filtros
      * @return filter_tutor_polo $output
      */
-    public function build_filter() {
-        //$form_attributes = array('class' => 'filter_form');
-        //$filter_form = new filter_tutor_polo(null, array('relatorio' => $this->report), 'post', '', $form_attributes);
-        //$output = get_form_display($filter_form);
-
-        return $this->filter_modulo_tutor_polo();
-    }
-
-    /**
-     * Barra de filtro que não extende a moodle form
-     *
-     */
-    public function filter_modulo_tutor_polo() {
+    public function build_filter($hide_filter = false) {
         global $CFG;
         $output = html_writer::start_tag('form', array('action' => "{$CFG->wwwroot}/report/unasus/index.php?relatorio={$this->report}",
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
@@ -127,15 +115,18 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
         $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
 
-        $output .= html_writer::start_tag('div', array('class'=>'conteudo-filtro'));
+        $css_class = ($hide_filter == true) ?'visible hidden':'hidden';
+        $output .= html_writer::nonempty_tag('button','Mostrar Filtros',
+              array('id'=>'button-mostrar-filtro', 'type'=>'button', 'class'=>"relatorio-unasus botao-ocultar {$css_class}"));
+
+        $output .= html_writer::start_tag('div', array('class'=>"relatorio-unasus conteudo-filtro", 'id' => 'div_filtro'));
 
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
 
         $output .= html_writer::label('Estado da Atividade: ', 'select_estado');
         $output .= html_writer::select(array('Em Aberto', 'Em Dia', 'Expirado', 'Fora do Prazo'), 'prazo_select', '', false, array('id' => 'select_estado'));
 
-
-        $output .= html_writer::start_tag('div');
+        $output .= html_writer::start_tag('div', array('id'=>'div-multiple'));
 
         $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
         $filter_modulos .= html_writer::select(get_nomes_modulos(), 'multiple_modulo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
@@ -394,7 +385,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
 
-        $output .= $this->build_filter();
+        $output .= $this->build_filter(true);
 
         $dados_method = "get_dados_grafico_{$this->report}";
         $dados_class = "dado_{$this->report}";

@@ -1,23 +1,29 @@
 M.report_unasus = {};
 
 M.report_unasus.init = function(Y) {
-    node_tutor = Y.one('#div_tutor');
-    node_polo = Y.one('#div_polo');
-    if(!node_tutor || !node_polo)
-        return;
-    node_tutor.hide();
-    node_polo.hide();
+    if(YAHOO.util.Dom.hasClass('button-mostrar-filtro', 'visible')){
+        YAHOO.util.Dom.removeClass('button-mostrar-filtro','hidden');
+        YAHOO.util.Dom.addClass('div_filtro','hidden');
+    }else{
+        YAHOO.util.Dom.addClass('div_filtro','visible');
+    }
 
-    Y.on('click', function(e) {
-        node_tutor.show();
-        node_polo.hide();
-    },'#id_radiofilter_tutor' );
+    Y.delegate('click', function(e) {
+        var buttonID = e.currentTarget.get('id');
+        if (buttonID === 'button-mostrar-filtro') {
 
-    Y.on('click', function(e) {
-        node_tutor.hide();
-        node_polo.show();
-    },'#id_radiofilter_polo' );
+            if(YAHOO.util.Dom.hasClass('div_filtro', 'visible')){
+                YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Mostrar Filtro';
+                YAHOO.util.Dom.addClass('div_filtro','hidden');
+                YAHOO.util.Dom.removeClass('div_filtro','visible');
+            }else{
+                YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Ocultar Filtro';
+                YAHOO.util.Dom.addClass('div_filtro','visible');
+                YAHOO.util.Dom.removeClass('div_filtro','hidden');
+            }
+        }
 
+    }, document, 'button');
 };
 
 
