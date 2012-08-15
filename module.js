@@ -36,7 +36,8 @@ M.report_unasus.init_graph = function(Y, param1, tipos, title, porcentagem) {
     var options = {
         chart: {
             renderTo: 'container',
-            type: 'bar'
+            type: 'bar',
+            backgroundColor: 'transparent'
         },
         title: {
             text: title
@@ -60,11 +61,16 @@ M.report_unasus.init_graph = function(Y, param1, tipos, title, porcentagem) {
 
             }
         },
-
         series: []
-
-
     };
+
+    if(porcentagem){
+        options['tooltip'] = {
+            formatter:  function(){
+                return '<b>'+this.x+'</b>'  +'<br><span style="color:'+ this.series.color + '">' + this.series.name +'</span>: ' + Math.round(this.percentage*100)/100 +' % (quantidade: '+this.y + ' de ' + this.total+ ')';
+            }
+        }
+    }
 
     var data = [];
     for(tipo in tipos){
