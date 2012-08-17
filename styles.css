@@ -145,7 +145,7 @@ table.relatorio-unasus.estudante_sem_atividade_postada {
 
 .relatorio-unasus.divisao-por-modulos td.cell.ultima_atividade,
 .relatorio-unasus.divisao-por-modulos th.cell.ultima_atividade,
-.relatorio-unasus.divisao-por-modulos td.tutor{
+.relatorio-unasus.divisao-por-modulos td.tutor {
     border-right: 1px solid #004E95 !important;
 
     /*
@@ -157,26 +157,30 @@ table.relatorio-unasus.estudante_sem_atividade_postada {
     */
 }
 
-.relatorio-unasus.divisao-por-modulos th.cell.modulo_header{
+.relatorio-unasus.divisao-por-modulos th.cell.modulo_header {
     border-top: 1px solid #004E95 !important;
     border-left: 1px solid #004E95 !important;
     border-right: 1px solid #004E95 !important;
 }
 
-.relatorio-unasus.botao-ocultar{
+.relatorio-unasus.botao-ocultar {
     float: right;
 }
 
 .relatorio-unasus.botao-ocultar.visible,
-.relatorio-unasus.conteudo-filtro.visible{
+.relatorio-unasus.conteudo-filtro.visible {
     display: block;
 }
 
 .relatorio-unasus.botao-ocultar.hidden,
-.relatorio-unasus.conteudo-filtro.hidden{
+.relatorio-unasus.conteudo-filtro.hidden {
     display: none;
 }
 
 #div-multiple{
     clear: both;
+}
+
+.highcharts-container svg > rect {
+    fill: transparent;
 }

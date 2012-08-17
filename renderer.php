@@ -380,10 +380,12 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     public function build_graph($porcentagem = false) {
         global $PAGE, $CFG;
+
         $output = $this->default_header();
 
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/modules/exporting.js"));
 
         $output .= $this->build_filter(true);
 

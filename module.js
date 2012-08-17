@@ -36,8 +36,7 @@ M.report_unasus.init_graph = function(Y, param1, tipos, title, porcentagem) {
     var options = {
         chart: {
             renderTo: 'container',
-            type: 'bar',
-            backgroundColor: 'transparent'
+            type: 'bar'
         },
         title: {
             text: title
