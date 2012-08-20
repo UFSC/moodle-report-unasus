@@ -152,7 +152,7 @@ if($relatorio != null && $modo_exibicao == null){
             break;
         case 'uso_sistema_tutor' :
             admin_externalpage_setup('report_unasus_uso_sistema_tutor', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->build_graph();
+            echo $renderer->build_dot_graph();
             break;
         case 'potenciais_evasoes' :
             admin_externalpage_setup('report_unasus_potenciais_evasoes', '', null, '', array('pagelayout' => 'report'));

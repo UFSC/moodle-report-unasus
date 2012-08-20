@@ -411,5 +411,27 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    public function build_dot_graph() {
+        global $PAGE, $CFG;
+
+        $output = $this->default_header();
+
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/raphael-min.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.raphael-min.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.dot-min.js"));
+
+        $output .= $this->build_filter(true);
+
+        $dados_method = "get_dados_grafico_{$this->report}";
+
+        $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph',array($dados_method()));
+
+        $output .= '<div id="container" class="container"></div>';
+        $output .= $this->default_footer();
+
+        return $output;
+    }
+
 }
 

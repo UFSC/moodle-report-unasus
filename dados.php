@@ -320,11 +320,11 @@ function get_table_header_atividades_vs_notas() {
     return $header;
 }
 
-function get_table_header_entrega_de_atividades(){
+function get_table_header_entrega_de_atividades() {
     return get_table_header_atividades_vs_notas();
 }
 
-function get_table_header_acompanhamento_de_avaliacao(){
+function get_table_header_acompanhamento_de_avaliacao() {
     return get_table_header_atividades_vs_notas();
 }
 
@@ -344,7 +344,7 @@ function get_table_header_potenciais_evasoes() {
     return $modulos;
 }
 
-function get_table_header_avaliacao_em_atraso(){
+function get_table_header_avaliacao_em_atraso() {
     $header = array();
     $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
     $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
@@ -373,29 +373,39 @@ function get_header_estudante_sem_atividade_postada($size) {
     return $header;
 }
 
-function get_dados_grafico_atividades_vs_notas(){
+function get_dados_grafico_atividades_vs_notas() {
     return array(
-        'Tutor 1' => array(12,5,4,2,5),
-        'Tutor 2' => array(7,2,2,3,0),
-        'Tutor 3' => array(5,6,8,0,12),
-        'MEDIA DOS TUTORES' => array(8,4,5,1.5,8)
+        'Tutor 1' => array(12, 5, 4, 2, 5),
+        'Tutor 2' => array(7, 2, 2, 3, 0),
+        'Tutor 3' => array(5, 6, 8, 0, 12),
+        'MEDIA DOS TUTORES' => array(8, 4, 5, 1.5, 8)
     );
 }
 
-function get_dados_grafico_entrega_de_atividades(){
+function get_dados_grafico_entrega_de_atividades() {
     return array(
-        'Tutor 1' => array(12,5,4,2),
-        'Tutor 2' => array(7,2,2,3),
-        'Tutor 3' => array(5,6,8,0),
-        'MEDIA DOS TUTORES' => array(12,12,5,1)
+        'Tutor 1' => array(12, 5, 4, 2),
+        'Tutor 2' => array(7, 2, 2, 3),
+        'Tutor 3' => array(5, 6, 8, 0),
+        'MEDIA DOS TUTORES' => array(12, 12, 5, 1)
     );
 }
 
-function get_dados_grafico_acompanhamento_de_avaliacao(){
+function get_dados_grafico_acompanhamento_de_avaliacao() {
     return array(
-        'Tutor 1' => array(5,23,4,2),
-        'Tutor 2' => array(2,30,2,2,3),
-        'Tutor 3' => array(12,6,8,0),
-        'MEDIA DOS TUTORES' => array(9.5,19.6,4.6,1.6)
+        'Tutor 1' => array(5, 23, 4, 2),
+        'Tutor 2' => array(2, 30, 2, 2, 3),
+        'Tutor 3' => array(12, 6, 8, 0),
+        'MEDIA DOS TUTORES' => array(9.5, 19.6, 4.6, 1.6)
+    );
+}
+
+function get_dados_grafico_uso_sistema_tutor() {
+    return array(
+        'Tutor 1' => array('semana 1' => 5, 'semana 2' => 23, 'semana 3' => 4, 'semana 4' => 2),
+        'Tutor 9' => array('semana 1' => 12, 'semana 2' => 6, 'semana 3' => 8, 'semana 4' => 0),
+        'Tutor 10' => array('semana 1' => 2, 'semana 2' => 30, 'semana 3' => 2, 'semana 4' => 2),
+        'Amanda' => array('semana 1' => 2, 'semana 2' => 30, 'semana 3' => 2, 'semana 4' => 2),
+        'MEDIA D' => array('semana 1' => 9, 'semana 2' => 19, 'semana 3' => 4, 'semana 4' => 1)
     );
 }
