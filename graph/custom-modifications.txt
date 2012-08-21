@@ -1,0 +1,13 @@
+Para a construção do dot chart para os relatorios foi utilizada a bibliotaca g.raphael e seu gráfico g.dot
+
+https://github.com/DmitryBaranovskiy/g.raphael
+http://g.raphaeljs.com/
+
+O Gráfico originalmente apresentava as cores indo do espectro vermelho ao verde.
+Vermelho representava grandes valores e o verde seria para pequenos valores.
+Assim a ideia era vermelho => muito => grave
+                  verde => pouco => bom
+
+Para o nosso gráfico a ideia era a contraria
+
+
