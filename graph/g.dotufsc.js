@@ -7,7 +7,7 @@
 
 (function () {
         var colorValue = function (value, total, s, b) {
-            return 'hsb(' + [Math.min((1 - value / total) * .4, 1), s || .75, b || .75] + ')';
+            return 'hsb(' + [Math.min((value / total) * .25, 1), s || .75, b || .75] + ')';
         };
  
     function Dotchart(paper, x, y, width, height, valuesx, valuesy, size, opts) {
