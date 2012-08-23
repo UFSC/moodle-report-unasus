@@ -402,10 +402,12 @@ function get_dados_grafico_acompanhamento_de_avaliacao() {
 
 function get_dados_grafico_uso_sistema_tutor() {
     return array(
-        'Tutor 1' => array('semana 1' => 5, 'semana 2' => 23, 'semana 3' => 4, 'semana 4' => 2),
-        'Tutor 9' => array('semana 1' => 12, 'semana 2' => 6, 'semana 3' => 8, 'semana 4' => 0),
-        'Tutor 10' => array('semana 1' => 2, 'semana 2' => 30, 'semana 3' => 2, 'semana 4' => 2),
-        'Amanda' => array('semana 1' => 2, 'semana 2' => 30, 'semana 3' => 2, 'semana 4' => 2),
-        'MEDIA D' => array('semana 1' => 9, 'semana 2' => 19, 'semana 3' => 4, 'semana 4' => 1)
+        'Tutor 1 asd fa sdfa sdf as df as df asdf  asdf ' => array('semana 1' => 23, 'semana 2' => 23, 'semana 3' => 4),
+        'Tutor 2' => array('semana 1' => 6, 'semana 2' => 12, 'semana 3' => 19),
+        'Tutor 3' => array('semana 1' => 9, 'semana 2' => 1, 'semana 3' => 7)
+//          'Tutor 1' => array('semana 1' => 5, 'semana 2' => 23, 'semana 3' => 4, 'semana 4' => 2, 'semana 5' => 50, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2),
+//          'Tutor 9' => array('semana 1' => 12, 'semana 2' => 6, 'semana 3' => 8, 'semana 4' => 0, 'semana 5' => 50, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2),
+//          'Tutor 10' => array('semana 1' => 2, 'semana 2' => 30, 'semana 3' => 2, 'semana 4' => 2, 'semana 5' => 4, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2),
+//          'Amanda' => array('semana 1' => 2, 'semana 2' => 31, 'semana 3' => 2, 'semana 4' => 2, 'semana 5' => 4, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2)
     );
 }

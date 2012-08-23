@@ -80,7 +80,7 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
         options.xAxis.categories.push(tutor);
 
         for(d in data){
-            data[d].push(dados[tutor][d]);
+            data[d].push(dados_grafico[tutor][d]);
         }
 
     }

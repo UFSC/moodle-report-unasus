@@ -8,6 +8,20 @@ Vermelho representava grandes valores e o verde seria para pequenos valores.
 Assim a ideia era vermelho => muito => grave
                   verde => pouco => bom
 
-Para o nosso gráfico a ideia era a contraria
+Para o nosso gráfico a ideia era a contraria, quanto mais acesso melhor. Para isso foi modificada esta parte
+do codigo:
+
+        ATUAL
+
+        var colorValue = function (value, total, s, b) {
+            return 'hsb(' + [Math.min((value / total) * .25, 1), s || .75, b || .75] + ')';
+        };
+
+        ANTERIOR
+
+         var colorValue = function (value, total, s, b) {
+            return 'hsb(' + [Math.min((1 - value / total) * .4, 1), s || .75, b || .75] + ')';
+        };
+
 
 
