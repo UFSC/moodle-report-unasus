@@ -129,33 +129,9 @@ if($relatorio != null && $modo_exibicao == null){
             admin_externalpage_setup('report_unasus_acompanhamento_avaliacao', '', null, '', array('pagelayout' => 'report'));
             echo $renderer->build_graph($porcentagem);
             break;
-        case 'atividades_nao_avaliadas':
-            admin_externalpage_setup('report_unasus_atividades_avaliadas', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->page_atividades_nao_avaliadas();
-            break;
-        case 'estudante_sem_atividade_postada':
-            admin_externalpage_setup('report_unasus_estudante_sem_atividade_postada', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->page_todo_list();
-            break;
-        case 'estudante_sem_atividade_avaliada':
-            admin_externalpage_setup('report_unasus_estudante_sem_atividade_avaliada', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->page_todo_list();
-            break;
-        case 'atividades_nota_atribuida' :
-            admin_externalpage_setup('report_unasus_atividades_nota_atribuida', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->build_graph();
-            break;
-        case 'acesso_tutor' :
-            admin_externalpage_setup('report_unasus_acesso_tutor', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->build_graph();
-            break;
         case 'uso_sistema_tutor' :
             admin_externalpage_setup('report_unasus_uso_sistema_tutor', '', null, '', array('pagelayout' => 'report'));
             echo $renderer->build_dot_graph();
-            break;
-        case 'potenciais_evasoes' :
-            admin_externalpage_setup('report_unasus_potenciais_evasoes', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->build_graph();
             break;
         default:
             print_error('unknow_report', 'report_unasus');
