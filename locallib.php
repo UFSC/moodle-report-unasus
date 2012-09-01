@@ -21,7 +21,6 @@ function get_form_display(&$mform) {
 
 function get_nomes_modulos() {
     $modulos = array();
-    $modulos[] = 'TODOS';
     for ($i =1; $i <= 20; $i++) {
         $modulos[] = "Módulo {$i}";
     }
