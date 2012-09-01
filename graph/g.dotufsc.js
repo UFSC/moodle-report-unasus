@@ -73,14 +73,14 @@
                 b[i] = bb;
             }
 
+
             //gutter = Math.max.apply(Math, g.concat(gutter));
             gutter = Math.max.apply(Math, [g[0], g[2]].concat(gutter));
             paddingbottom = Math.max.apply(Math, [g[2], gutter]);
             paddingleft = Math.max.apply(Math, [g[3], gutter]);
 
-
             height = paddingbottom + gutter*maxy*1.5 +y;
-            width = paddingleft + gutter*(maxx+1)*1.5 +x;
+            width = paddingleft + gutter*(maxx+1)*2 +x;
 
             for (var i = 0, ii = ax.length; i < ii; i++) if (ax[i].all) {
                 ax[i].remove();
@@ -104,7 +104,7 @@
                 X = x + paddingleft + gutter + (valuesx[i] - minx) * kx,
                 Y = y + height - paddingbottom - gutter - (valuesy[i] - miny) * ky;
 
-            sym && R[i] && series.push(paper[sym](X, Y, R[i]).attr({ fill: opts.heat ? colorValue(R[i], maxR) : chartinst.colors[0], "fill-opacity": opts.opacity ? R[i] / max : 1, stroke: "none" }));
+            sym && R[i] && series.push(paper[sym](X, Y, R[i]).attr({fill: opts.heat ? colorValue(R[i], maxR) : chartinst.colors[0], "fill-opacity": opts.opacity ? R[i] / max : 1, stroke: "none"}));
         }
 
         var covers = paper.set();

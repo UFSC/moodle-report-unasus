@@ -19,19 +19,19 @@ $ADMIN->add('unasus',
                                "{$CFG->wwwroot}/report/unasus/index.php?relatorio=acompanhamento_de_avaliacao",
                                'report/unasus:view'));
 $ADMIN->add('unasus',
-        new admin_externalpage('report_unasus_atividades_avaliadas',
-                               'Atividades postadas e não avaliadas',
-                               "{$CFG->wwwroot}/report/unasus/index.php?relatorio=atividades_nao_avaliadas",
-                               'report/unasus:view'));
-$ADMIN->add('unasus',
         new admin_externalpage('report_unasus_estudante_sem_atividade_postada',
                                'Lista: atividades não postadas',
                                "{$CFG->wwwroot}/report/unasus/index.php?relatorio=estudante_sem_atividade_postada",
                                'report/unasus:view'));
 $ADMIN->add('unasus',
-        new admin_externalpage('report_unasus_avaliacao_em_atraso',
+        new admin_externalpage('report_unasus_estudante_sem_atividade_avaliada',
+                               'Lista: atividades não avaliadas',
+                               "{$CFG->wwwroot}/report/unasus/index.php?relatorio=estudante_sem_atividade_avaliada",
+                               'report/unasus:view'));
+$ADMIN->add('unasus',
+        new admin_externalpage('report_unasus_atividades_avaliadas',
                                'Síntese: avaliações em atraso',
-                               "{$CFG->wwwroot}/report/unasus/index.php?relatorio=avaliacao_em_atraso",
+                               "{$CFG->wwwroot}/report/unasus/index.php?relatorio=atividades_nao_avaliadas",
                                'report/unasus:view'));
 $ADMIN->add('unasus',
         new admin_externalpage('report_unasus_atividades_nota_atribuida',

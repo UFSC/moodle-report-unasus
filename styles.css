@@ -139,7 +139,8 @@
     border: 0px solid transparent !important;
 }
 
-table.relatorio-unasus.estudante_sem_atividade_postada {
+table.relatorio-unasus.estudante_sem_atividade_postada,
+table.relatorio-unasus.estudante_sem_atividade_avaliada{
     background: #FAFAFA !important;
 }
 

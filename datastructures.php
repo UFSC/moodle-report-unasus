@@ -62,6 +62,10 @@ abstract class unasus_data {
         return $header;
     }
 
+    public function dia_toString($data){
+        //@TODO asdf;
+    }
+
 }
 
 class dado_atividades_vs_notas extends unasus_data {

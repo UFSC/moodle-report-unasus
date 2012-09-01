@@ -8,17 +8,19 @@ $string['atividades_vs_notas_help'] = 'OBJETIVO: Acompanhar a situação atual d
 $string['entrega_de_atividades'] = 'Acompanhamento: entrega de atividades';
 $string['entrega_de_atividades_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes e instrumentar os tutores com uma visão sobre a situação das atividades (com histórico), de todos os estudantes sob sua responsabilidade.';
 
-$string['atividades_nao_avaliadas'] = 'Relatório de atividades postadas e não avaliadas';
-$string['atividades_nao_avaliadas_help'] = 'Relatório de atividades postadas e não avaliadas';
-
 $string['estudante_sem_atividade_postada'] = 'Lista: atividades não postadas';
-$string['estudante_sem_atividade_postada_help'] = 'Lista: atividades não postadas';
+$string['estudante_sem_atividade_postada_help'] = 'Listagem de estudantes que não entregaram uma certa atividade';
+$string['estudante_sem_atividade_postada_table_header'] = 'Atividades não Postadas';
+
+$string['estudante_sem_atividade_avaliada'] = 'Lista: atividades não avaliadas';
+$string['estudante_sem_atividade_avaliada_help'] = 'Listagem de estudantes que entregaram suas atividades mas ainda não foram corrigidas';
+$string['estudante_sem_atividade_avaliada_table_header'] = 'Atividades não Avaliadas';
 
 $string['acompanhamento_de_avaliacao'] = 'Histórico: atribuição de notas';
 $string['acompanhamento_de_avaliacao_help'] = 'OBJETIVO: Acompanhar realização da avaliação das atividades dos estudantes, pelos tutores e servir como histórico sobre o desempenho do tutor na realização das suas atribuições.';
 
-$string['avaliacao_em_atraso'] = 'Síntese: avaliações em atraso';
-$string['avaliacao_em_atraso_help'] = 'OBJETIVO: Acompanhar o estado das avalições que foram ou não corrigidas por um tutor';
+$string['atividades_nao_avaliadas'] = 'Síntese: avaliações em atraso';
+$string['atividades_nao_avaliadas_help'] = 'OBJETIVO: Acompanhar o estado das avalições que foram ou não corrigidas por um tutor';
 
 $string['atividades_nota_atribuida'] = 'Síntese: atividades concluídas';
 $string['atividades_nota_atribuida_help'] = 'OBJETIVO: Acompanhar o estado das avalições que tiveram ou não notas atribuidas por um tutor';

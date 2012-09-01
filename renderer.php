@@ -30,10 +30,10 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String $output
      */
 
-    public function build_report() {
+    public function build_report($graficos = true, $dot_chart = false) {
         global $CFG;
         $output = $this->default_header();
-        $output .= $this->build_filter(true);
+        $output .= $this->build_filter(true, $graficos, $dot_chart);
 
         $data_class = "dado_{$this->report}";
 
@@ -54,10 +54,10 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
-    public function build_page() {
+    public function build_page($graficos = true, $dot_chart = false) {
         global $CFG;
         $output = $this->default_header();
-        $output .= $this->build_filter();
+        $output .= $this->build_filter(false, $graficos, $dot_chart);
         $output .= $this->default_footer();
         return $output;
     }
@@ -107,7 +107,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a barra de Filtros
      * @return filter_tutor_polo $output
      */
-    public function build_filter($hide_filter = false) {
+    public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false) {
         global $CFG;
         $output = html_writer::start_tag('form', array('action' => "{$CFG->wwwroot}/report/unasus/index.php?relatorio={$this->report}",
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
@@ -143,12 +143,20 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::end_tag('div');
 
 
-        $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'tabela', 'id' => 'radio_tabela'));
+        $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'tabela', 'id' => 'radio_tabela','checked' => true));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela', true, array('class' => 'radio'));
-        $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_valores', 'id' => 'radio_valores'));
-        $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores', true, array('class' => 'radio'));
-        $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_porcentagens', 'id' => 'radio_porcentagem'));
-        $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'radio'));
+
+        if($grafico){
+            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_valores', 'id' => 'radio_valores'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores', true, array('class' => 'radio'));
+            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_porcentagens', 'id' => 'radio_porcentagem'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'radio'));
+        }
+
+        if($dot_chart){
+            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_pontos', 'id' => 'radio_dot'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'radio'));
+        }
 
         $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
 
@@ -293,14 +301,16 @@ class report_unasus_renderer extends plugin_renderer_base {
      *              array('modulo'=> array('value1','value2'))
      * @return html_table
      */
-    public function table_atividade_nao_postada($dadostabela, $header_size) {
+    public function table_todo_list($dadostabela, $header_size) {
         //criacao da tabela
         $table = new report_unasus_table();
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
         $table->tablealign = 'center';
 
+
+        $table_title = get_string($this->report."_table_header", 'report_unasus');
         $table->headspan = array(1, $header_size);
-        $table->head = array('Estudante', 'Atividades não Postadas');
+        $table->head = array('Estudante', $table_title);
 
 
         foreach ($dadostabela as $tutor => $alunos) {
@@ -358,11 +368,12 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @TODO esse metodo não usa uma estrutura de dados definida pois é totalmente adverso ao resto.
      * @return String
      */
-    public function page_estudante_sem_atividade_postada() {
+    public function page_todo_list() {
         $output = $this->default_header();
-        $output .= $this->build_filter();
+        $output .= $this->build_filter(false, false);
 
-        $dados_atividades = get_dados_estudante_sem_atividade_postada();
+        $dados_method = "get_dados_{$this->report}";
+        $dados_atividades = $dados_method();
         $max_size = 0;
         foreach ($dados_atividades as $tutor) {
             foreach ($tutor as $atividades) {
@@ -371,7 +382,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             }
         }
 
-        $table = $this->table_atividade_nao_postada($dados_atividades, $max_size);
+        $table = $this->table_todo_list($dados_atividades, $max_size);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -420,7 +431,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.raphael-min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.dotufsc.js"));
 
-        $output .= $this->build_filter(true);
+        $output .= $this->build_filter(true,false,true);
 
         $dados_method = "get_dados_grafico_{$this->report}";
 
