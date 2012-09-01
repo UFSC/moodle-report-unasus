@@ -43,7 +43,7 @@ if($relatorio != null && $modo_exibicao == null){
             break;
         case 'atividades_nota_atribuida' :
             admin_externalpage_setup('report_unasus_atividades_nota_atribuida', '', null, '', array('pagelayout' => 'report'));
-            echo $renderer->build_page();
+            echo $renderer->build_page(false);
             break;
         case 'acesso_tutor' :
             admin_externalpage_setup('report_unasus_acesso_tutor', '', null, '', array('pagelayout' => 'report'));
