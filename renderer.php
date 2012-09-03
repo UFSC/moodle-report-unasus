@@ -130,15 +130,21 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
         $filter_modulos .= html_writer::select(get_nomes_modulos(), 'multiple_modulo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
-        $output .= html_writer::tag('div', $filter_modulos, array('class' => 'multiple_list'));
+        $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_modulo','href'=>'#'));
+        $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_modulo','href'=>'#'));
+        $output .= html_writer::tag('div', $filter_modulos.$modulos_all.' / '.$modulos_none, array('class' => 'multiple_list'));
 
         $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
         $filter_polos .= html_writer::select(get_nomes_polos(), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
-        $output .= html_writer::tag('div', $filter_polos, array('class' => 'multiple_list'));
+        $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
+        $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
+        $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
 
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
         $filter_tutores .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-        $output .= html_writer::tag('div', $filter_tutores, array('class' => 'multiple_list'));
+        $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_tutor','href'=>'#'));
+        $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_tutor','href'=>'#'));
+        $output .= html_writer::tag('div', $filter_tutores.$tutores_all.' / '.$tutores_none, array('class' => 'multiple_list'));
 
         $output .= html_writer::end_tag('div');
 
@@ -396,6 +402,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
+        //$PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/themes/gray.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/modules/exporting.js"));
 
         $output .= $this->build_filter(true);

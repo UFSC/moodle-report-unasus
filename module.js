@@ -1,6 +1,7 @@
 M.report_unasus = {};
 
 M.report_unasus.init = function(Y) {
+
     if(YAHOO.util.Dom.hasClass('button-mostrar-filtro', 'visible')){
         YAHOO.util.Dom.removeClass('button-mostrar-filtro','hidden');
         YAHOO.util.Dom.addClass('div_filtro','hidden');
@@ -9,22 +10,49 @@ M.report_unasus.init = function(Y) {
     }
 
     Y.delegate('click', function(e) {
-        var buttonID = e.currentTarget.get('id');
-        if (buttonID === 'button-mostrar-filtro') {
-
-            if(YAHOO.util.Dom.hasClass('div_filtro', 'visible')){
-                YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Mostrar Filtro';
-                YAHOO.util.Dom.addClass('div_filtro','hidden');
-                YAHOO.util.Dom.removeClass('div_filtro','visible');
-            }else{
-                YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Ocultar Filtro';
-                YAHOO.util.Dom.addClass('div_filtro','visible');
-                YAHOO.util.Dom.removeClass('div_filtro','hidden');
-            }
+        if(YAHOO.util.Dom.hasClass('div_filtro', 'visible')){
+            YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Mostrar Filtro';
+            YAHOO.util.Dom.addClass('div_filtro','hidden');
+            YAHOO.util.Dom.removeClass('div_filtro','visible');
+        }else{
+            YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Ocultar Filtro';
+            YAHOO.util.Dom.addClass('div_filtro','visible');
+            YAHOO.util.Dom.removeClass('div_filtro','hidden');
         }
+    }, document, '#button-mostrar-filtro');
 
-    }, document, 'button');
+    Y.delegate('click', function(e) {
+        select_all('multiple_modulo',true);
+    }, document, '#select_all_modulo');
+
+    Y.delegate('click', function(e) {
+        select_all('multiple_modulo',false);
+    }, document, '#select_none_modulo');
+
+    Y.delegate('click', function(e) {
+        select_all('multiple_polo',true);
+    }, document, '#select_all_polo');
+
+    Y.delegate('click', function(e) {
+        select_all('multiple_polo',false);
+    }, document, '#select_none_polo');
+
+    Y.delegate('click', function(e) {
+        select_all('multiple_tutor',true);
+    }, document, '#select_all_tutor');
+
+    Y.delegate('click', function(e) {
+        select_all('multiple_tutor',false);
+    }, document, '#select_none_tutor');
+
 };
+
+function select_all(target, select){
+    var multiple = YAHOO.util.Dom.get(target);
+    for(item in multiple){
+        multiple[item].selected = select;
+    }
+}
 
 
 var chart1;
@@ -146,12 +174,12 @@ M.report_unasus.init_dot_graph = function (Y, dados){
 };
 
 function objectLength(obj) {
-  var result = 0;
-  for(var prop in obj) {
-    if (obj.hasOwnProperty(prop)) {
-    // or Object.prototype.hasOwnProperty.call(obj, prop)
-      result++;
+    var result = 0;
+    for(var prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            // or Object.prototype.hasOwnProperty.call(obj, prop)
+            result++;
+        }
     }
-  }
-  return result;
+    return result;
 }
