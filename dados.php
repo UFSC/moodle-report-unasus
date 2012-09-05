@@ -178,6 +178,7 @@ function get_dados_estudante_sem_atividade_postada() {
 
     $tutores = get_nomes_tutores();
     $estudantes = get_nomes_estudantes();
+    $modulos = get_nomes_modulos();
 
     for ($x = 0; $x <= 3; $x++) {
         $tutor = $tutores[$x];
@@ -185,7 +186,7 @@ function get_dados_estudante_sem_atividade_postada() {
         for ($i = 0; $i < 40; $i++) {
             $estudante = $estudantes->current();
             $estudantes->next();
-            $alunos[] = atividade_nao_postada(new estudante($estudante->fullname, $estudante->id));
+            $alunos[] = atividade_nao_postada(new estudante($estudante->fullname, $estudante->id), $modulos);
         }
         $dados[$tutor] = $alunos;
 
@@ -195,17 +196,17 @@ function get_dados_estudante_sem_atividade_postada() {
     return $dados;
 }
 
-function atividade_nao_postada($estudante) {
+function atividade_nao_postada($estudante, $modulos) {
     switch (rand(1, 3)) {
         case 1:
             return array(
                 $estudante,
-                new dado_modulo("Modulo " . rand(0, 3)),
+                new dado_modulo($modulos[rand(0, 3)]),
                 new dado_atividade("Atividade " . rand(0, 4)));
         case 2:
             return array(
                 $estudante,
-                new dado_modulo("Modulo " . rand(0, 3)),
+                new dado_modulo($modulos[rand(0, 3)]),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
                 new dado_atividade("Atividade " . rand(3, 5)),
@@ -213,11 +214,11 @@ function atividade_nao_postada($estudante) {
         case 3:
             return array(
                 $estudante,
-                new dado_modulo("Modulo " . rand(0, 1)),
+                new dado_modulo($modulos[rand(0, 1)]),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
                 new dado_atividade("Atividade " . rand(3, 5)),
-                new dado_modulo("Modulo " . rand(2, 3)),
+                new dado_modulo($modulos[rand(2, 3)]),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)));
     }
