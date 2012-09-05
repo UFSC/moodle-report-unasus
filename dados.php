@@ -14,12 +14,14 @@ function get_dados_atividades_vs_notas() {
     $dados = array();
     $tutores = get_nomes_tutores();
     $estudantes = get_nomes_estudantes();
-    $first_i = 100;
+
     for ($x = 1; $x <= 5; $x++) {
         $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = $first_i; $i <= $first_i+30; $i++) {
-            $alunos[] = array(new estudante($estudantes[$i]),
+        for ($i = 0; $i < 30; $i++) {
+            $estudante = $estudantes->current();
+            $estudantes->next();
+            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
@@ -27,11 +29,12 @@ function get_dados_atividades_vs_notas() {
                 avaliacao_aleatoria(true),
                 avaliacao_aleatoria(true),
                 avaliacao_aleatoria(true));
+
         }
-        $first_i = $i;
         $dados[$tutor] = $alunos;
     }
 
+    $estudantes->close();
     return $dados;
 }
 
@@ -65,12 +68,14 @@ function get_dados_entrega_de_atividades() {
     $dados = array();
     $tutores = get_nomes_tutores();
     $estudantes = get_nomes_estudantes();
-    $first_i = 100;
+
     for ($x = 0; $x <= 5; $x++) {
         $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = $first_i; $i <= $first_i+30; $i++) {
-            $alunos[] = array(new estudante($estudantes[$i]),
+        for ($i = 0; $i < 30; $i++) {
+            $estudante = $estudantes->current();
+            $estudantes->next();
+            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
                 atividade_aleatoria(),
                 atividade_aleatoria(),
                 atividade_aleatoria(),
@@ -80,9 +85,9 @@ function get_dados_entrega_de_atividades() {
                 atividade_aleatoria());
         }
         $dados[$tutor] = $alunos;
-        $first_i = $i;
     }
 
+    $estudantes->close();
     return $dados;
 }
 
@@ -107,12 +112,14 @@ function get_dados_acompanhamento_de_avaliacao() {
     $dados = array();
     $tutores = get_nomes_tutores();
     $estudantes = get_nomes_estudantes();
-    $first_i = 100;
+
     for ($x = 0; $x <= 5; $x++) {
         $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = $first_i; $i <= $first_i+30; $i++) {
-            $alunos[] = array(new estudante($estudantes[$i]),
+        for ($i = 0; $i < 30; $i++) {
+            $estudante = $estudantes->current();
+            $estudantes->next();
+            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria(),
@@ -121,10 +128,10 @@ function get_dados_acompanhamento_de_avaliacao() {
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria());
         }
-        $first_i = $i;
         $dados[$tutor] = $alunos;
     }
 
+    $estudantes->close();
     return $dados;
 }
 
@@ -147,10 +154,9 @@ function avaliacao_atividade_aleatoria() {
  */
 function get_dados_atividades_nao_avaliadas() {
     $dados = array();
-    $list_tutores = get_nomes_tutores();
-    $tutores = array();
-    for ($i = 0; $i < count($list_tutores); $i++) {
-        $tutores[] = array(new tutor($list_tutores[$i]),
+    $list_tutores = get_tutores();
+    foreach($list_tutores as $tutor) {
+        $dados[] = array(new tutor($tutor->fullname, $tutor->id),
             new dado_avaliacao_em_atraso(rand(0, 100)),
             new dado_avaliacao_em_atraso(rand(0, 100)),
             new dado_avaliacao_em_atraso(rand(0, 100)),
@@ -159,7 +165,6 @@ function get_dados_atividades_nao_avaliadas() {
             new dado_avaliacao_em_atraso(rand(0, 100)),
             new dado_media(rand(0, 100)));
     }
-    $dados = $tutores;
 
     return $dados;
 }
@@ -173,30 +178,33 @@ function get_dados_estudante_sem_atividade_postada() {
 
     $tutores = get_nomes_tutores();
     $estudantes = get_nomes_estudantes();
-    $first_i = 50;
+
     for ($x = 0; $x <= 3; $x++) {
         $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = $first_i; $i <= 130+$first_i; $i++) {
-            $alunos[] = atividade_nao_postada($i,$estudantes[$i]);
+        for ($i = 0; $i < 40; $i++) {
+            $estudante = $estudantes->current();
+            $estudantes->next();
+            $alunos[] = atividade_nao_postada(new estudante($estudante->fullname, $estudante->id));
         }
         $dados[$tutor] = $alunos;
-        $first_i = $i;
+
     }
 
+    $estudantes->close();
     return $dados;
 }
 
-function atividade_nao_postada($i,$estudante) {
+function atividade_nao_postada($estudante) {
     switch (rand(1, 3)) {
         case 1:
             return array(
-                new estudante($estudante),
+                $estudante,
                 new dado_modulo("Modulo " . rand(0, 3)),
                 new dado_atividade("Atividade " . rand(0, 4)));
         case 2:
             return array(
-                new estudante($estudante),
+                $estudante,
                 new dado_modulo("Modulo " . rand(0, 3)),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
@@ -204,7 +212,7 @@ function atividade_nao_postada($i,$estudante) {
                 new dado_atividade("Atividade " . rand(3, 5)));
         case 3:
             return array(
-                new estudante($estudante),
+                $estudante,
                 new dado_modulo("Modulo " . rand(0, 1)),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
@@ -219,11 +227,14 @@ function get_dados_avaliacao_em_atraso() {
     $dados = array();
     $tutores = get_nomes_tutores();
     $estudantes = get_nomes_estudantes();
+
     for ($x = 0; $x <= 5; $x++) {
         $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = 100; $i <= 130; $i++) {
-            $alunos[] = array(new estudante($estudantes[$i]),
+        for ($i = 0; $i < 30; $i++) {
+            $estudante = $estudantes->current();
+            $estudantes->next();
+            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
                 new dado_avaliacao_em_atraso(rand(0, 25)),
                 new dado_avaliacao_em_atraso(rand(0, 25)),
                 new dado_avaliacao_em_atraso(rand(0, 25)),
@@ -235,6 +246,7 @@ function get_dados_avaliacao_em_atraso() {
         $dados[$tutor] = $alunos;
     }
 
+    $estudantes->close();
     return $dados;
 }
 
@@ -242,11 +254,14 @@ function get_dados_atividades_nota_atribuida() {
     $dados = array();
     $estudantes = get_nomes_estudantes();
     $tutores = get_nomes_tutores();
+
     for ($x = 0; $x <= 5; $x++) {
         $tutor = $tutores[$x];
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array(new estudante($estudantes[$i]),
+            $estudante = $estudantes->current();
+            $estudantes->next();
+            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
                 new dado_avaliacao_em_atraso(rand(75, 100)),
                 new dado_avaliacao_em_atraso(rand(75, 100)),
                 new dado_avaliacao_em_atraso(rand(75, 100)),
@@ -258,16 +273,17 @@ function get_dados_atividades_nota_atribuida() {
         $dados[$tutor] = $alunos;
     }
 
+    $estudantes->close();
     return $dados;
 }
 
 function get_dados_acesso_tutor() {
     $dados = array();
-    $nome_tutores = get_nomes_tutores();
+    $lista_tutores = get_tutores();
 
     $tutores = array();
-    for ($i = 0; $i < count($nome_tutores); $i++) {
-        $tutores[] = array(new estudante($nome_tutores[$i]),
+    foreach($lista_tutores as $tutor) {
+        $tutores[] = array(new tutor($tutor->fullname, $tutor->id),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
@@ -286,13 +302,13 @@ function get_dados_acesso_tutor() {
  * @TODO arrumar media
  */
 function get_dados_uso_sistema_tutor() {
-    $nome_tutores = get_nomes_tutores();
+    $lista_tutores = get_tutores();
     $dados = array();
     $tutores = array();
-    for ($i = 0; $i < count($nome_tutores); $i++) {
+    foreach($lista_tutores as $tutor) {
         $media = new dado_media(rand(0, 20));
 
-        $tutores[] = array(new estudante($nome_tutores[$i]),
+        $tutores[] = array(new tutor($tutor->fullname, $tutor->id),
             new dado_uso_sistema_tutor(rand(0, 20)),
             new dado_uso_sistema_tutor(rand(0, 20)),
             new dado_uso_sistema_tutor(rand(0, 20)),
@@ -304,22 +320,22 @@ function get_dados_uso_sistema_tutor() {
     }
     $dados["Tutores"] = $tutores;
 
-
+    $lista_tutores->close();
     return $dados;
 }
 
 function get_dados_potenciais_evasoes() {
     $dados = array();
     $nome_tutores = get_nomes_tutores();
-    $nome_estudantes = get_nomes_estudantes();
+    $lista_estudantes = get_nomes_estudantes();
     for ($x = 0; $x <= 5; $x++) {
         $tutor = $nome_tutores[$x];
 
         $estudantes = array();
-        for ($i = 100; $i <= 130; $i++) {
-            $media = new dado_media(rand(0, 20));
-
-            $estudantes[] = array(new estudante($nome_estudantes[$i]),
+        for ($i = 0; $i < 30; $i++) {
+            $estudante = $lista_estudantes->current();
+            $lista_estudantes->next();
+            $estudantes[] = array(new estudante($estudante->fullname, $estudante->id),
                 new dado_potenciais_evasoes(rand(0, 2)),
                 new dado_potenciais_evasoes(rand(0, 2)),
                 new dado_potenciais_evasoes(rand(0, 2)),

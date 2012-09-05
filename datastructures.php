@@ -13,9 +13,9 @@ abstract class pessoa {
     protected $name;
     protected $id;
 
-    function __construct($name) {
+    function __construct($name, $id) {
         $this->name = $name;
-        $this->id = 1; // mock id - visitante
+        $this->id = $id; // mock id - visitante
     }
 
     function __toString() {

@@ -1,5 +1,6 @@
 <?php
 
+require_once("{$CFG->dirroot}/{$CFG->admin}/tool/tutores/middlewarelib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/dados.php');
 
@@ -22,7 +23,7 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB;
     $query = $DB->get_records_sql(
-          "SELECT fullname FROM moodle_unasus2.course");
+          "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname FROM {course} WHERE course.id != 1");
     return array_keys($query);
 }
 
@@ -34,34 +35,68 @@ function get_nomes_modulos() {
 function get_nomes_tutores() {
     global $DB;
     $tutores = $DB->get_records_sql(
-          "SELECT distinct CONCAT(firstname,' ',lastname) as fullname FROM moodle_unasus2.role_assignments as ra
-            JOIN moodle_unasus2.role as r
-            on (r.id=ra.roleid)
-            JOIN moodle_unasus2.context c on(c.id=ra.contextid)
-            JOIN moodle_unasus2.user u on (u.id=ra.userid)
+          "SELECT distinct CONCAT(firstname,' ',lastname) as fullname
+             FROM {role_assignments} as ra
+             JOIN {role} as r
+               ON (r.id=ra.roleid)
+             JOIN {context} c
+               ON (c.id=ra.contextid)
+             JOIN {user} u
+               ON (u.id=ra.userid)
             WHERE c.contextlevel=40;");
     return array_keys($tutores);
 }
 
+/**
+ * Dado que alimenta a lista do filtro tutores
+ *
+ * @return array(Strings)
+ */
+function get_tutores() {
+    global $DB;
+    $tutores = $DB->get_recordset_sql(
+        "SELECT distinct u.id, CONCAT(firstname,' ',lastname) as fullname
+             FROM {role_assignments} as ra
+             JOIN {role} as r
+               ON (r.id=ra.roleid)
+             JOIN {context} c
+               ON (c.id=ra.contextid)
+             JOIN {user} u
+               ON (u.id=ra.userid)
+            WHERE c.contextlevel=40;");
+    return $tutores;
+}
+
 function get_nomes_estudantes(){
     global $DB;
-    $estudantes = $DB->get_records_sql("
-        SELECT distinct CONCAT(u.firstname,' ',u.lastname) as fullname
-        FROM moodle_unasus2.user as u
-    JOIN moodle_unasus2.user_enrolments as ue ON (u.id = ue.userid)");
-    return array_keys($estudantes);
+
+    $estudantes = $DB->get_recordset_sql("
+          SELECT distinct u.id, CONCAT(firstname,' ', REPLACE(lastname, CONCAT('(', username, ')'), '')) as fullname
+            FROM {role_assignments} as ra
+            JOIN {role} as r
+              ON (r.id=ra.roleid)
+            JOIN {context} c
+              ON (c.id=ra.contextid)
+            JOIN {user} u
+              ON (u.id=ra.userid)
+           WHERE c.contextlevel=50;");
+    return $estudantes;
 }
+
 /**
  * Dado que alimenta a lista do filtro polos
  *
  * @return array(Strings)
  */
 function get_nomes_polos() {
-    $polos = array();
-    for ($i = 1; $i <= 40; $i++) {
-        $polos[] = "Polo Nome da Cidade-UN {$i}";
-    }
-    return $polos;
+    $academico = Academico::singleton();
+    $polos = $academico->db->get_records_sql_menu("
+          SELECT DISTINCT(nomepolo)
+            FROM {$academico->view_usuarios_dados_adicionais}
+           WHERE nomepolo != ''
+        ORDER BY nomepolo");
+
+    return array_keys($polos);
 }
 
 /**
