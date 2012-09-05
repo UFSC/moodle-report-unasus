@@ -201,12 +201,12 @@ function atividade_nao_postada($estudante, $modulos) {
         case 1:
             return array(
                 $estudante,
-                new dado_modulo($modulos[rand(0, 3)]),
+                new dado_modulo($modulos[rand(5, 8)]),
                 new dado_atividade("Atividade " . rand(0, 4)));
         case 2:
             return array(
                 $estudante,
-                new dado_modulo($modulos[rand(0, 3)]),
+                new dado_modulo($modulos[rand(5, 8)]),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
                 new dado_atividade("Atividade " . rand(3, 5)),
@@ -214,11 +214,11 @@ function atividade_nao_postada($estudante, $modulos) {
         case 3:
             return array(
                 $estudante,
-                new dado_modulo($modulos[rand(0, 1)]),
+                new dado_modulo($modulos[rand(5, 6)]),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
                 new dado_atividade("Atividade " . rand(3, 5)),
-                new dado_modulo($modulos[rand(2, 3)]),
+                new dado_modulo($modulos[rand(7, 8)]),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)));
     }
