@@ -377,10 +377,15 @@ function get_header_modulo_atividade_geral() {
 }
 
 function get_table_header_potenciais_evasoes() {
+    $lista_modulos = get_nomes_modulos();
     $modulos = array('Estudantes');
-    for ($i = 1; $i <= 7; $i++) {
-        $modulos[] = "Módulo ${i}";
-    }
+    $modulos[] = $lista_modulos[4];
+    $modulos[] = $lista_modulos[5];
+    $modulos[] = $lista_modulos[6];
+    $modulos[] = $lista_modulos[7];
+    $modulos[] = $lista_modulos[8];
+    $modulos[] = $lista_modulos[9];
+    $modulos[] = $lista_modulos[10];
     return $modulos;
 }
 
