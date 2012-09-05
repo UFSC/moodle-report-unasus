@@ -31,7 +31,6 @@ class report_unasus_renderer extends plugin_renderer_base {
      */
 
     public function build_report($graficos = true, $dot_chart = false) {
-        global $CFG;
         $output = $this->default_header();
         $output .= $this->build_filter(true, $graficos, $dot_chart);
 
@@ -55,7 +54,6 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     public function build_page($graficos = true, $dot_chart = false) {
-        global $CFG;
         $output = $this->default_header();
         $output .= $this->build_filter(false, $graficos, $dot_chart);
         $output .= $this->default_footer();
@@ -399,13 +397,12 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     public function build_graph($porcentagem = false) {
-        global $PAGE, $CFG;
+        global $PAGE;
 
         $output = $this->default_header();
 
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
-        //$PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/themes/gray.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/modules/exporting.js"));
 
         $output .= $this->build_filter(true);
