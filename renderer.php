@@ -109,6 +109,8 @@ class report_unasus_renderer extends plugin_renderer_base {
      */
     public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false) {
         global $CFG;
+
+
         $output = html_writer::start_tag('form', array('action' => "{$CFG->wwwroot}/report/unasus/index.php?relatorio={$this->report}",
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
@@ -140,6 +142,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
         $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
 
+        
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
         $filter_tutores .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
         $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_tutor','href'=>'#'));

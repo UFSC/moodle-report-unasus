@@ -4,6 +4,7 @@
 // Relatório de Atividades vs Notas Atribuídas
 //
 
+
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
  *
@@ -11,12 +12,14 @@
  */
 function get_dados_atividades_vs_notas() {
     $dados = array();
-
+    $tutores = get_nomes_tutores();
+    $estudantes = get_nomes_estudantes();
+    $first_i = 100;
     for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
+        $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
+        for ($i = $first_i; $i <= $first_i+30; $i++) {
+            $alunos[] = array(new estudante($estudantes[$i]),
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
                 avaliacao_aleatoria(),
@@ -25,6 +28,7 @@ function get_dados_atividades_vs_notas() {
                 avaliacao_aleatoria(true),
                 avaliacao_aleatoria(true));
         }
+        $first_i = $i;
         $dados[$tutor] = $alunos;
     }
 
@@ -59,12 +63,14 @@ function avaliacao_aleatoria($no_prazo = false) {
  */
 function get_dados_entrega_de_atividades() {
     $dados = array();
-
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
+    $tutores = get_nomes_tutores();
+    $estudantes = get_nomes_estudantes();
+    $first_i = 100;
+    for ($x = 0; $x <= 5; $x++) {
+        $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
+        for ($i = $first_i; $i <= $first_i+30; $i++) {
+            $alunos[] = array(new estudante($estudantes[$i]),
                 atividade_aleatoria(),
                 atividade_aleatoria(),
                 atividade_aleatoria(),
@@ -74,6 +80,7 @@ function get_dados_entrega_de_atividades() {
                 atividade_aleatoria());
         }
         $dados[$tutor] = $alunos;
+        $first_i = $i;
     }
 
     return $dados;
@@ -98,12 +105,14 @@ function atividade_aleatoria() {
  */
 function get_dados_acompanhamento_de_avaliacao() {
     $dados = array();
-
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
+    $tutores = get_nomes_tutores();
+    $estudantes = get_nomes_estudantes();
+    $first_i = 100;
+    for ($x = 0; $x <= 5; $x++) {
+        $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
+        for ($i = $first_i; $i <= $first_i+30; $i++) {
+            $alunos[] = array(new estudante($estudantes[$i]),
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria(),
@@ -112,6 +121,7 @@ function get_dados_acompanhamento_de_avaliacao() {
                 avaliacao_atividade_aleatoria(),
                 avaliacao_atividade_aleatoria());
         }
+        $first_i = $i;
         $dados[$tutor] = $alunos;
     }
 
@@ -137,10 +147,10 @@ function avaliacao_atividade_aleatoria() {
  */
 function get_dados_atividades_nao_avaliadas() {
     $dados = array();
-
+    $list_tutores = get_nomes_tutores();
     $tutores = array();
-    for ($i = 1; $i <= 30; $i++) {
-        $tutores[] = array(new tutor("Tutor Beltrano de Tal {$i}"),
+    for ($i = 0; $i < count($list_tutores); $i++) {
+        $tutores[] = array(new tutor($list_tutores[$i]),
             new dado_avaliacao_em_atraso(rand(0, 100)),
             new dado_avaliacao_em_atraso(rand(0, 100)),
             new dado_avaliacao_em_atraso(rand(0, 100)),
@@ -161,28 +171,32 @@ function get_dados_estudante_sem_atividade_avaliada() {
 function get_dados_estudante_sem_atividade_postada() {
     $dados = array();
 
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
+    $tutores = get_nomes_tutores();
+    $estudantes = get_nomes_estudantes();
+    $first_i = 50;
+    for ($x = 0; $x <= 3; $x++) {
+        $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = atividade_nao_postada($i);
+        for ($i = $first_i; $i <= 130+$first_i; $i++) {
+            $alunos[] = atividade_nao_postada($i,$estudantes[$i]);
         }
         $dados[$tutor] = $alunos;
+        $first_i = $i;
     }
 
     return $dados;
 }
 
-function atividade_nao_postada($i) {
+function atividade_nao_postada($i,$estudante) {
     switch (rand(1, 3)) {
         case 1:
             return array(
-                new estudante("Fulano de tal {$i}"),
+                new estudante($estudante),
                 new dado_modulo("Modulo " . rand(0, 3)),
                 new dado_atividade("Atividade " . rand(0, 4)));
         case 2:
             return array(
-                new estudante("Fulano de tal {$i}"),
+                new estudante($estudante),
                 new dado_modulo("Modulo " . rand(0, 3)),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
@@ -190,7 +204,7 @@ function atividade_nao_postada($i) {
                 new dado_atividade("Atividade " . rand(3, 5)));
         case 3:
             return array(
-                new estudante("Fulano de tal {$i}"),
+                new estudante($estudante),
                 new dado_modulo("Modulo " . rand(0, 1)),
                 new dado_atividade("Atividade " . rand(0, 2)),
                 new dado_atividade("Atividade " . rand(3, 5)),
@@ -203,12 +217,13 @@ function atividade_nao_postada($i) {
 
 function get_dados_avaliacao_em_atraso() {
     $dados = array();
-
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
+    $tutores = get_nomes_tutores();
+    $estudantes = get_nomes_estudantes();
+    for ($x = 0; $x <= 5; $x++) {
+        $tutor = $tutores[$x];
         $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
+        for ($i = 100; $i <= 130; $i++) {
+            $alunos[] = array(new estudante($estudantes[$i]),
                 new dado_avaliacao_em_atraso(rand(0, 25)),
                 new dado_avaliacao_em_atraso(rand(0, 25)),
                 new dado_avaliacao_em_atraso(rand(0, 25)),
@@ -225,12 +240,13 @@ function get_dados_avaliacao_em_atraso() {
 
 function get_dados_atividades_nota_atribuida() {
     $dados = array();
-
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
+    $estudantes = get_nomes_estudantes();
+    $tutores = get_nomes_tutores();
+    for ($x = 0; $x <= 5; $x++) {
+        $tutor = $tutores[$x];
         $alunos = array();
         for ($i = 1; $i <= 30; $i++) {
-            $alunos[] = array(new estudante("Fulano de Tal {$i}"),
+            $alunos[] = array(new estudante($estudantes[$i]),
                 new dado_avaliacao_em_atraso(rand(75, 100)),
                 new dado_avaliacao_em_atraso(rand(75, 100)),
                 new dado_avaliacao_em_atraso(rand(75, 100)),
@@ -247,10 +263,11 @@ function get_dados_atividades_nota_atribuida() {
 
 function get_dados_acesso_tutor() {
     $dados = array();
+    $nome_tutores = get_nomes_tutores();
 
     $tutores = array();
-    for ($i = 1; $i <= 30; $i++) {
-        $tutores[] = array(new estudante("Tutor Fulano de Tal {$i}"),
+    for ($i = 0; $i < count($nome_tutores); $i++) {
+        $tutores[] = array(new estudante($nome_tutores[$i]),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
@@ -269,13 +286,13 @@ function get_dados_acesso_tutor() {
  * @TODO arrumar media
  */
 function get_dados_uso_sistema_tutor() {
+    $nome_tutores = get_nomes_tutores();
     $dados = array();
-
     $tutores = array();
-    for ($i = 1; $i <= 30; $i++) {
+    for ($i = 0; $i < count($nome_tutores); $i++) {
         $media = new dado_media(rand(0, 20));
 
-        $tutores[] = array(new estudante("Tutor Fulano de Tal {$i}"),
+        $tutores[] = array(new estudante($nome_tutores[$i]),
             new dado_uso_sistema_tutor(rand(0, 20)),
             new dado_uso_sistema_tutor(rand(0, 20)),
             new dado_uso_sistema_tutor(rand(0, 20)),
@@ -293,15 +310,16 @@ function get_dados_uso_sistema_tutor() {
 
 function get_dados_potenciais_evasoes() {
     $dados = array();
-
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = "Tutor Beltrano de Tal {$x}";
+    $nome_tutores = get_nomes_tutores();
+    $nome_estudantes = get_nomes_estudantes();
+    for ($x = 0; $x <= 5; $x++) {
+        $tutor = $nome_tutores[$x];
 
         $estudantes = array();
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 100; $i <= 130; $i++) {
             $media = new dado_media(rand(0, 20));
 
-            $estudantes[] = array(new estudante("Fulano de Tal {$i}"),
+            $estudantes[] = array(new estudante($nome_estudantes[$i]),
                 new dado_potenciais_evasoes(rand(0, 2)),
                 new dado_potenciais_evasoes(rand(0, 2)),
                 new dado_potenciais_evasoes(rand(0, 2)),
@@ -319,8 +337,9 @@ function get_dados_potenciais_evasoes() {
 
 function get_table_header_atividades_vs_notas() {
     $header = array();
-    $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Atividade 4');
+    $modulos = get_nomes_modulos();
+    $header[$modulos[6]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header[$modulos[7]] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Atividade 4');
     return $header;
 }
 
@@ -334,8 +353,9 @@ function get_table_header_acompanhamento_de_avaliacao() {
 
 function get_header_modulo_atividade_geral() {
     $header = array();
-    $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $modulos = get_nomes_modulos();
+    $header[$modulos[6]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header[$modulos[7]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
     $header[''] = array('Geral');
     return $header;
 }
@@ -350,8 +370,9 @@ function get_table_header_potenciais_evasoes() {
 
 function get_table_header_avaliacao_em_atraso() {
     $header = array();
-    $header['Módulo 1'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header['Módulo 2'] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $modulos = get_nomes_modulos();
+    $header[$modulos[6]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
+    $header[$modulos[7]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
     $header[''] = array('Consolidado');
     return $header;
 }
@@ -365,7 +386,7 @@ function get_table_header_acesso_tutor() {
 }
 
 function get_table_header_uso_sistema_tutor() {
-    return array('Tutor', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6', 'Media', 'Total');
+    return array('Tutor', 'Jun/Q4', 'Jul/Q1', 'Jul/Q2', 'Jul/Q3', 'Jul/Q4', 'Ago/Q1', 'Media', 'Total');
 }
 
 function get_header_estudante_sem_atividade_postada($size) {
@@ -378,41 +399,45 @@ function get_header_estudante_sem_atividade_postada($size) {
 }
 
 function get_dados_grafico_atividades_vs_notas() {
+    $tutores = get_nomes_tutores();
     return array(
-        'Tutor 1' => array(12, 5, 4, 2, 5),
-        'Tutor 2' => array(7, 2, 2, 3, 0),
-        'Tutor 3' => array(5, 6, 8, 0, 12),
+        $tutores[0] => array(12, 5, 4, 2, 5),
+        $tutores[1] => array(7, 2, 2, 3, 0),
+        $tutores[2] => array(5, 6, 8, 0, 12),
         'MEDIA DOS TUTORES' => array(8, 4, 5, 1.5, 8)
     );
 }
 
 function get_dados_grafico_entrega_de_atividades() {
+    $tutores = get_nomes_tutores();
     return array(
-        'Tutor 1' => array(12, 5, 4, 2),
-        'Tutor 2' => array(7, 2, 2, 3),
-        'Tutor 3' => array(5, 6, 8, 0),
+        $tutores[0] => array(12, 5, 4, 2),
+        $tutores[1] => array(7, 2, 2, 3),
+        $tutores[2] => array(5, 6, 8, 0),
         'MEDIA DOS TUTORES' => array(12, 12, 5, 1)
     );
 }
 
 function get_dados_grafico_acompanhamento_de_avaliacao() {
+    $tutores = get_nomes_tutores();
     return array(
-        'Tutor 1' => array(5, 23, 4, 2),
-        'Tutor 2' => array(2, 30, 2, 2, 3),
-        'Tutor 3' => array(12, 6, 8, 0),
+        $tutores[0] => array(5, 23, 4, 2),
+        $tutores[1] => array(2, 30, 2, 2, 3),
+        $tutores[2] => array(12, 6, 8, 0),
         'MEDIA DOS TUTORES' => array(9.5, 19.6, 4.6, 1.6)
     );
 }
 
 function get_dados_grafico_uso_sistema_tutor() {
+    $tutores = get_nomes_tutores();
     return array(
-        'Tutor 1' => array('semana 1 a s' => 23, 'semana 2' => 23, 'semana 3' => 4, 'semana 4' => 8, 'semana 5' => 9, 'semana 6' => 9),
-        'Tutor 2' => array('semana 1' => 6, 'semana 2' => 12, 'semana 3' => 19, 'semana 4' => 8, 'semana 5' => 9, 'semana 6' => 9),
-        'Tutor 3' => array('semana 1' => 9, 'semana 2' => 1, 'semana 3' => 7, 'semana 4' => 8, 'semana 5' => 9, 'semana 6' => 9),
-        'Tutor 4' => array('semana 1' => 12, 'semana 2' => 1, 'semana 3' => 7, 'semana 4' => 8, 'semana 5' => 9, 'semana 6' => 9)
-//          'Tutor 1' => array('semana 1' => 5, '15/08 - 12/12' => 23, 'semana 3' => 4, 'semana 4' => 2, 'semana 5' => 50, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2),
-//          'Tutor 9' => array('semana 1' => 12, 'semana 2' => 6, 'semana 3' => 8, 'semana 4' => 0, 'semana 5' => 50, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2),
-//          'Tutor 10' => array('semana 1' => 2, 'semana 2' => 30, 'semana 3' => 2, 'semana 4' => 2, 'semana 5' => 4, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2),
-//          'Amanda sdf g sdf g sdf' => array('semana 1' => 2, 'semana 2' => 31, 'semana 3' => 2, 'semana 4' => 2, 'semana 5' => 4, 'semana 6' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2)
+        $tutores[0] => array('Jun/Q4' => 23, 'Jul/Q1' => 23, 'Jul/Q2' => 4, 'Jul/Q3' => 8, 'Jul/Q4' => 12, 'Ago/Q1' => 12),
+        $tutores[1] => array('Jun/Q4' => 6, 'Jul/Q1' => 12, 'Jul/Q2' => 19, 'Jul/Q3' => 15, 'Jul/Q4' => 1, 'Ago/Q1' => 1),
+        $tutores[2] => array('Jun/Q4' => 9, 'Jul/Q1' => 1, 'Jul/Q2' => 7, 'Jul/Q3' => 22, 'Jul/Q4' => 5, 'Ago/Q1' => 20),
+        $tutores[3] => array('Jun/Q4' => 12, 'Jul/Q1' => 1, 'Jul/Q2' => 7, 'Jul/Q3' => 1, 'Jul/Q4' => 8, 'Ago/Q1' => 6)
+//          'Tutor 1' => array('Jun/Q4' => 5, '15/08 - 12/12' => 23, 'Jul/Q2' => 4, 'Jul/Q3' => 2, 'Jul/Q4' => 50, 'Ago/Q1' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2),
+//          'Tutor 9' => array('Jun/Q4' => 12, 'Jul/Q1' => 6, 'Jul/Q2' => 8, 'Jul/Q3' => 0, 'Jul/Q4' => 50, 'Ago/Q1' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2),
+//          'Tutor 10' => array('Jun/Q4' => 2, 'Jul/Q1' => 30, 'Jul/Q2' => 2, 'Jul/Q3' => 2, 'Jul/Q4' => 4, 'Ago/Q1' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2),
+//          'Amanda sdf g sdf g sdf' => array('Jun/Q4' => 2, 'Jul/Q1' => 31, 'Jul/Q2' => 2, 'Jul/Q3' => 2, 'Jul/Q4' => 4, 'Ago/Q1' => 2, 'semana 7' => 50, 'semana 8' => 2, 'semana 9' => 50, 'semana 10' => 2, 'semana 11' => 5, 'semana 12' => 23, 'semana 13' => 4, 'semana 14' => 2, 'semana 15' => 50, 'semana 16' => 2, 'semana 17' => 50, 'semana 18' => 2, 'semana 19' => 50, 'semana 110' => 2, 'semana 21' => 5, 'semana 22' => 23, 'semana 23' => 4, 'semana 24' => 2, 'semana 25' => 50, 'semana 26' => 2, 'semana 27' => 50, 'semana 28' => 2, 'semana 29' => 50, 'semana 210' => 2)
     );
 }

@@ -20,11 +20,10 @@ function get_form_display(&$mform) {
 }
 
 function get_nomes_modulos() {
-    $modulos = array();
-    for ($i =1; $i <= 20; $i++) {
-        $modulos[] = "Módulo {$i}";
-    }
-    return $modulos;
+    global $DB;
+    $query = $DB->get_records_sql(
+          "SELECT fullname FROM moodle_unasus2.course");
+    return array_keys($query);
 }
 
 /**
@@ -33,14 +32,25 @@ function get_nomes_modulos() {
  * @return array(Strings)
  */
 function get_nomes_tutores() {
-    $tutores = array();
-    for ($i = 1; $i <= 50; $i++) {
-        $tutores[] = "Tutor João da Silva {$i}";
-    }
-
-    return $tutores;
+    global $DB;
+    $tutores = $DB->get_records_sql(
+          "SELECT distinct CONCAT(firstname,' ',lastname) as fullname FROM moodle_unasus2.role_assignments as ra
+            JOIN moodle_unasus2.role as r
+            on (r.id=ra.roleid)
+            JOIN moodle_unasus2.context c on(c.id=ra.contextid)
+            JOIN moodle_unasus2.user u on (u.id=ra.userid)
+            WHERE c.contextlevel=40;");
+    return array_keys($tutores);
 }
 
+function get_nomes_estudantes(){
+    global $DB;
+    $estudantes = $DB->get_records_sql("
+        SELECT distinct CONCAT(u.firstname,' ',u.lastname) as fullname
+        FROM moodle_unasus2.user as u
+    JOIN moodle_unasus2.user_enrolments as ue ON (u.id = ue.userid)");
+    return array_keys($estudantes);
+}
 /**
  * Dado que alimenta a lista do filtro polos
  *
@@ -65,14 +75,14 @@ class report_unasus_table extends html_table {
         $this->head = $coluns;
     }
 
-    function build_double_header($grouped_coluns, $person_name='Estudantes') {
+    function build_double_header($grouped_coluns, $person_name = 'Estudantes') {
 
         $this->data = array();
         $blank = new html_table_cell();
         $blank->attributes = array('class' => 'blank');
         $student = new html_table_cell($person_name);
         $student->header = true;
-        $student->attributes = array('class'=>'ultima_atividade');
+        $student->attributes = array('class' => 'ultima_atividade');
 
         $heading1 = array(); // Primeira linha
         $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha
@@ -102,9 +112,9 @@ class report_unasus_table extends html_table {
             foreach ($activities as $activity) {
                 $activity_cell = new html_table_cell($activity);
                 $activity_cell->header = true;
-                /*box*/
+                /* box */
                 if (in_array($count, $ultima_atividade_modulo)) {
-                   $activity_cell->attributes = array('class'=>'ultima_atividade');
+                    $activity_cell->attributes = array('class' => 'ultima_atividade');
                 }
                 $heading2[] = $activity_cell;
                 $count++;
