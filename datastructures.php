@@ -24,7 +24,7 @@ abstract class pessoa {
         $profile_link = html_writer::link(new moodle_url('/user/profile.php', array('id' => $this->id)), $this->name, array('target' => '_blank'));
         $message_link = html_writer::link(new moodle_url('/message/index.php', array('id' => $this->id)), $email_icon, array('target' => '_blank'));
 
-        return "{$profile_link} {$message_link}";
+        return "{$message_link} {$profile_link}";
     }
 
 }
