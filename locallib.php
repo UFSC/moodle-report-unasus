@@ -106,10 +106,19 @@ function get_nomes_polos() {
  */
 class report_unasus_table extends html_table {
 
+    // Para o caso que a tabela tenha um cabeçalho de uma única linha.
+    // Head 1  |  Head 2  |  Head 3
+    //
+    // Data 1  |  Data 2  |  Data 3
+    // Data 4  |  Date 5  |  Data 6
     function build_single_header($coluns) {
         $this->head = $coluns;
     }
 
+    // Para o caso de um cabeçalho duplo, que a MoodleAPI não cobre
+    //         |  Group 1              |    Group 2
+    // Types   |  Head 1   |  Head 2   |    Head 3   |  Head 4
+    // Type 1  |  Data     |  Data     |    Data     |  Data
     function build_double_header($grouped_coluns, $person_name = 'Estudantes') {
 
         $this->data = array();

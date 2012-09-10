@@ -53,6 +53,15 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
+
+    /**
+     * Cria a página sem os gráficos, para que o usuário possa filtrar sua busca antes de
+     * gerar a tabela
+     *
+     * @param boolean $graficos
+     * @param boolean $dot_chart
+     * @return String
+     */
     public function build_page($graficos = true, $dot_chart = false) {
         $output = $this->default_header();
         $output .= $this->build_filter(false, $graficos, $dot_chart);
@@ -62,7 +71,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a barra de legenda para os relatórios
-     * @param array $legend itens da legenda, é do tipo ["classe_css"]=>["Descricao da legenda]
+     * @param array $legend itens da legenda, é do tipo ["classe_css"]=>["Descricao da legenda"]
      * @return String
      */
     public function build_legend($legend) {
@@ -73,6 +82,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::tag('legend', 'Legenda', array('class' => 'legend'));
         $output .= html_writer::start_tag('dl');
         foreach ($legend as $class => $description) {
+            //$class é a mesma classe definida no styles.css
             $output .= html_writer::tag('dt', '', array('class' => "{$class}"));
             $output .= html_writer::tag('dd', "{$description}");
         }
@@ -140,7 +150,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
         $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
 
-        
+
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
         $filter_tutores .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
         $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_tutor','href'=>'#'));

@@ -56,14 +56,23 @@ abstract class unasus_data {
 
     public abstract function get_css_class();
 
-    //public static abstract function get_legend();
-
     public function is_header() {
         return $header;
     }
 
-    public function dia_toString($data){
-        //@TODO asdf;
+    /**
+     * Função para auxiliar na renderização dos relatórios, concordância para o caso de "um dia" e "mesmo dia"
+     * @param int $num_dias
+     * @return string
+     */
+    public function dia_toString($num_dias) {
+        if ($num_dias == 0) {
+            return 'mesmo dia';
+        } elseif ($num_dias == 1) {
+            return '1 dia';
+        } else {
+            return "{$num_dias} dias";
+        }
     }
 
 }
@@ -92,9 +101,7 @@ class dado_atividades_vs_notas extends unasus_data {
                 return 'Não Entregue';
                 break;
             case dado_atividades_vs_notas::CORRECAO_ATRASADA:
-                if($this->atraso == 1)
-                    return '1 dia';
-                return "$this->atraso dias";
+                return $this->dia_toString($this->atraso);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
                 return (String) $this->nota;
@@ -156,9 +163,7 @@ class dado_entrega_de_atividades extends unasus_data {
                 return '';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
-                if($this->atraso == 1)
-                    return '1 dia';
-                return "$this->atraso dias";
+                return $this->dia_toString($this->atraso);
                 break;
         }
     }
@@ -209,13 +214,7 @@ class dado_acompanhamento_de_avaliacao extends unasus_data {
                 return '';
                 break;
             default:
-                if ($this->atraso == 0) {
-                    return 'mesmo dia';
-                } elseif ($this->atraso == 1) {
-                    return '1 dia';
-                } else {
-                    return "{$this->atraso} dias";
-                }
+                return $this->dia_toString($this->atraso);
         }
     }
 
@@ -261,13 +260,13 @@ class dado_avaliacao_em_atraso extends unasus_data {
         return '';
     }
 
-    public static function get_legend(){
+    public static function get_legend() {
         return false;
     }
 
 }
 
-class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso{
+class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
 
 }
 
@@ -337,7 +336,7 @@ class dado_acesso_tutor extends unasus_data {
         return ($this->acesso) ? 'acessou' : 'nao_acessou';
     }
 
-    public static function get_legend(){
+    public static function get_legend() {
         $legend = array();
         $legend['acessou'] = 'Tutor acessou o sistema nesta data';
         $legend['nao_acessou'] = 'Tutor não acessou o sistema nesta data';
@@ -363,7 +362,7 @@ class dado_uso_sistema_tutor extends unasus_data {
         return ($this->acesso) ? 'acessou' : 'nao_acessou';
     }
 
-    public static function get_legend(){
+    public static function get_legend() {
         $legend = array();
         $legend['acessou'] = 'Tutor acessou o sistema nesta data por X horas';
         $legend['nao_acessou'] = 'Tutor não acessou o sistema nesta data';
@@ -407,7 +406,7 @@ class dado_potenciais_evasoes extends unasus_data {
         }
     }
 
-    public static function get_legend(){
+    public static function get_legend() {
         $legend = array();
         $legend['nao_concluido'] = 'Módulo não concluído, nenhuma atividade realizada.';
         $legend['parcial'] = 'Módulo não concluído, atividades realizadas parcialmente';
