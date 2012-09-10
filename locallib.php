@@ -23,7 +23,7 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB;
     $query = $DB->get_records_sql(
-          "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname FROM {course} WHERE course.id != 1");
+          "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname FROM {course} c WHERE c.id != 1");
     return array_keys($query);
 }
 
@@ -39,9 +39,9 @@ function get_nomes_tutores() {
              FROM {role_assignments} as ra
              JOIN {role} as r
                ON (r.id=ra.roleid)
-             JOIN {context} c
+             JOIN {context} as c
                ON (c.id=ra.contextid)
-             JOIN {user} u
+             JOIN {user} as u
                ON (u.id=ra.userid)
             WHERE c.contextlevel=40;");
     return array_keys($tutores);
@@ -59,9 +59,9 @@ function get_tutores() {
              FROM {role_assignments} as ra
              JOIN {role} as r
                ON (r.id=ra.roleid)
-             JOIN {context} c
+             JOIN {context} as c
                ON (c.id=ra.contextid)
-             JOIN {user} u
+             JOIN {user} as u
                ON (u.id=ra.userid)
             WHERE c.contextlevel=40;");
     return $tutores;
@@ -75,9 +75,9 @@ function get_nomes_estudantes(){
             FROM {role_assignments} as ra
             JOIN {role} as r
               ON (r.id=ra.roleid)
-            JOIN {context} c
+            JOIN {context} as c
               ON (c.id=ra.contextid)
-            JOIN {user} u
+            JOIN {user} as u
               ON (u.id=ra.userid)
            WHERE c.contextlevel=50;");
     return $estudantes;
