@@ -214,6 +214,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
         $table->tablealign = 'center';
 
+
+        // varre o header em busca da ultima atividade de cada módulo
+        // utilizada na iteraçao das ativides para aplicar classe CSS que desenha a borda em torno dos módulos
         $ultima_atividade_modulo = array();
         $ultimo_alvo = 0;
         $ultima_atividade_modulo[] = $ultimo_alvo;
@@ -222,6 +225,8 @@ class report_unasus_renderer extends plugin_renderer_base {
             $ultima_atividade_modulo[] = $ultimo_alvo;
         }
 
+        // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
+        // que não existe no moodle API
         $header_keys = array_keys($header);
         if (is_array($header[$header_keys[0]])) { // Double Header
             $table->build_double_header($header);
@@ -249,6 +254,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                     if (is_a($valor, 'unasus_data')) {
                         $cell = new html_table_cell($valor);
                         if (in_array($count, $ultima_atividade_modulo)) {
+                            // Aplica a classe CSS para criar o contorno dos modulos na tabela
                             $cell->attributes = array(
                                 'class' => $valor->get_css_class()." ultima_atividade");
                         } else {
@@ -397,6 +403,9 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $dados_method = "get_dados_{$this->report}";
         $dados_atividades = $dados_method();
+
+        // Varre os dados em busca do estudante com maior numero de atividades não feitas
+        // Isso é utilizado para definir o tamanho do cabeçalho e da divisao por tutor.
         $max_size = 0;
         foreach ($dados_atividades as $tutor) {
             foreach ($tutor as $atividades) {
