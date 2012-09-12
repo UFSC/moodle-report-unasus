@@ -118,39 +118,46 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false) {
         global $CFG;
 
-
+        // Inicio do Form
         $output = html_writer::start_tag('form', array('action' => "{$CFG->wwwroot}/report/unasus/index.php?relatorio={$this->report}",
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
+        // Fieldset
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
         $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
 
+        // Botao de ocultar/mostrar filtros, só aparece com javascript carregado
         $css_class = ($hide_filter == true) ?'visible hidden':'hidden';
         $output .= html_writer::nonempty_tag('button','Mostrar Filtros',
               array('id'=>'button-mostrar-filtro', 'type'=>'button', 'class'=>"relatorio-unasus botao-ocultar {$css_class}"));
 
+        // Filtros
         $output .= html_writer::start_tag('div', array('class'=>"relatorio-unasus conteudo-filtro", 'id' => 'div_filtro'));
 
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
 
+        // Dropdown list
         $output .= html_writer::label('Estado da Atividade: ', 'select_estado');
         $output .= html_writer::select(array('Em Aberto', 'Em Dia', 'Expirado', 'Fora do Prazo'), 'prazo_select', '', false, array('id' => 'select_estado'));
 
+        // Div para os 3 filtros
         $output .= html_writer::start_tag('div', array('id'=>'div-multiple'));
 
+        // Filtro de modulo
         $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
         $filter_modulos .= html_writer::select(get_nomes_modulos(), 'multiple_modulo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
         $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_modulo','href'=>'#'));
         $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_modulo','href'=>'#'));
         $output .= html_writer::tag('div', $filter_modulos.$modulos_all.' / '.$modulos_none, array('class' => 'multiple_list'));
 
+        // Filtro de Polo
         $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
         $filter_polos .= html_writer::select(get_nomes_polos(), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
         $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
         $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
         $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
 
-
+        // Filtro de Tutores
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
         $filter_tutores .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
         $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_tutor','href'=>'#'));
@@ -159,7 +166,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::end_tag('div');
 
-
+        // Radio para selecao do modo de busca, tabela e/ou gráficos
         $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'tabela', 'id' => 'radio_tabela','checked' => true));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela', true, array('class' => 'radio'));
 
@@ -382,7 +389,6 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
-     * @TODO esse metodo não usa uma estrutura de dados definida pois é totalmente adverso ao resto.
      * @return String
      */
     public function page_todo_list() {
@@ -406,6 +412,15 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    /**
+     * Cria o gráfico de stacked bars. Se porcentagem for true o gráfico é setado para o
+     * modo porcentagem onde todos os valores sao mostrados em termos de porcentagens,
+     * barras de 100%.
+     *
+     * @global type $PAGE
+     * @param boolean $porcentagem
+     * @return String
+     */
     public function build_graph($porcentagem = false) {
         global $PAGE;
 
@@ -439,6 +454,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    /**
+     * Cria o gráfico de pontos para o relatório de acesso do tutor(horas)
+     *
+     * @global type $PAGE
+     * @return String
+     */
     public function build_dot_graph() {
         global $PAGE;
 
