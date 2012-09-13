@@ -2,6 +2,7 @@ M.report_unasus = {};
 
 M.report_unasus.init = function(Y) {
 
+    // Se javascript for executado ele mostra o botão ocultar/mostrar filtros
     if(YAHOO.util.Dom.hasClass('button-mostrar-filtro', 'visible')){
         YAHOO.util.Dom.removeClass('button-mostrar-filtro','hidden');
         YAHOO.util.Dom.addClass('div_filtro','hidden');
@@ -9,6 +10,7 @@ M.report_unasus.init = function(Y) {
         YAHOO.util.Dom.addClass('div_filtro','visible');
     }
 
+    // Ao clicar no botao mostrar/ocultar filtros ele esconde/mostra a barra e troca o seu texto
     Y.delegate('click', function(e) {
         if(YAHOO.util.Dom.hasClass('div_filtro', 'visible')){
             YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Mostrar Filtro';
@@ -21,6 +23,7 @@ M.report_unasus.init = function(Y) {
         }
     }, document, '#button-mostrar-filtro');
 
+    //Botoes de selecionar todos e limpar seleção
     Y.delegate('click', function(e) {
         select_all('multiple_modulo',true);
     }, document, '#select_all_modulo');
@@ -47,6 +50,12 @@ M.report_unasus.init = function(Y) {
 
 };
 
+/**
+ * Função que seleciona/desceleciona todos os itens
+ * @param target id do select box
+ * @param select boolean -- true para selecionar todos, false para descelecionar
+ *
+ */
 function select_all(target, select){
     var multiple = YAHOO.util.Dom.get(target);
     for(item in multiple){
@@ -56,6 +65,15 @@ function select_all(target, select){
 
 
 var chart1;
+/**
+ * Gráfico de Stacked Bars
+ *
+ * @param Y objeto da YAHOO javascript
+ * @param dados_grafico array -- dados que alimentarão o gráfico array([item]=>(int1, int2, int3))
+ * @param tipos array -- tipos de dados para legenda/cores do gráfico
+ * @param title String -- titulo do gráfico
+ * @param porcentagem boolean -- se o gráfico é do tipo porcentagem ou não
+ */
 M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentagem) {
     var stack_option = 'normal';
     if(porcentagem)
@@ -63,6 +81,7 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
 
     var options = {
         chart: {
+            // ID da div para colocar o gráfico
             renderTo: 'container',
             type: 'bar'
         },
@@ -91,6 +110,7 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
         series: []
     };
 
+    // se for um gráfico de porcentagem cria uma legenda específica
     if(porcentagem){
         options['tooltip'] = {
             formatter:  function(){
@@ -99,14 +119,19 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
         }
     }
 
+    // Cria um item no array data para cada tipo de informação
     var data = [];
     for(tipo in tipos){
         data[tipo] = [];
     }
 
     for(tutor in dados_grafico){
+        //Plota uma nova linha no gráfico para cada tutor
         options.xAxis.categories.push(tutor);
 
+        //Para cada informacao de um tutor ele adiciona um novo item no array data
+        //data = [tipo1] => [dado_tipo1_tutor1, dado_tipo1_tutor2, dado_tipo1_tutor3],
+        //       [tipo2] => [dado_tipo2_tutor1, dado_tipo2_tutor2, dado_tipo2_tutor3]
         for(d in data){
             data[d].push(dados_grafico[tutor][d]);
         }
@@ -124,15 +149,28 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
 }
 
 M.report_unasus.init_dot_graph = function (Y, dados){
+    // Contadores de dados
+    // xs = vai de 0 a numero de semanas, repetindo isto para cada tutor
+    // EX: 3 tutores, 4 semanas xs = [0,1,2,3,0,1,2,3,0,1,2,3]
     var xs = [];
+    // ys = vai de numero de semanas até 1, repete cada numero até acabarem todos os tutores daquela data
+    // EX: 3 tutores, 4 semanas xy = [3,3,3,3,2,2,2,2,1,1,1,1]
     var ys = [];
+
+    // Dados de cada tutor por semana
+    // EX: 3 tutores, 4 semanas xy = [12 ,5 ,7 ,3 ,15 ,8 ,10 ,2 ,10 ,10 ,20 ,12]
+    //                                Tutor 1     | Tutor 2     | Tutor 3
+    //                                s1,s2,s3,s4 | s1,s2,s3,s4 | s1,s2,s3,s4
     var data = [];
+    //Legendas axisX = Semanas, axisY = Nome dos Tutores
     var axisy = [];
     var axisx = [];
+
 
     var count_tutor = objectLength(dados);
     var ysize = count_tutor-1;
     var count_semana;
+    // A legenda do eixo X é pega com os dados correspondentes do promeiro tutor iterado
     var primeira_vez = true;
 
     for(tutor in dados){
@@ -177,7 +215,6 @@ function objectLength(obj) {
     var result = 0;
     for(var prop in obj) {
         if (obj.hasOwnProperty(prop)) {
-            // or Object.prototype.hasOwnProperty.call(obj, prop)
             result++;
         }
     }
