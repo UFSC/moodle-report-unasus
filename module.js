@@ -148,13 +148,20 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
     chart1 = new Highcharts.Chart(options)
 }
 
+/**
+ * @param Y objeto da Yahoo javascript
+ * @param dados dados para popular o gráfico, no formato
+ *        array ('tutor 1'=> ('sem1'=> 5,'sem2'=> 12, 'sem3'=> 5 )
+ *               'tutor 2'=> ('sem1'=> 12,'sem2'=>8, 'sem3'=>20 ))
+ *
+ */
 M.report_unasus.init_dot_graph = function (Y, dados){
     // Contadores de dados
     // xs = vai de 0 a numero de semanas, repetindo isto para cada tutor
     // EX: 3 tutores, 4 semanas xs = [0,1,2,3,0,1,2,3,0,1,2,3]
     var xs = [];
     // ys = vai de numero de semanas até 1, repete cada numero até acabarem todos os tutores daquela data
-    // EX: 3 tutores, 4 semanas xy = [3,3,3,3,2,2,2,2,1,1,1,1]
+    // EX: 3 tutores, 4 semanas ys = [3,3,3,3,2,2,2,2,1,1,1,1]
     var ys = [];
 
     // Dados de cada tutor por semana
@@ -162,6 +169,7 @@ M.report_unasus.init_dot_graph = function (Y, dados){
     //                                Tutor 1     | Tutor 2     | Tutor 3
     //                                s1,s2,s3,s4 | s1,s2,s3,s4 | s1,s2,s3,s4
     var data = [];
+
     //Legendas axisX = Semanas, axisY = Nome dos Tutores
     var axisy = [];
     var axisx = [];
@@ -193,13 +201,18 @@ M.report_unasus.init_dot_graph = function (Y, dados){
 
     var r = Raphael("container"), xs, ys, data, axisy , axisx;
     r.dotchart(10, 10, 620, 260, xs, ys, data, {
+        //desenho no gráfico, uma bola - só existe essa opcao no GRafael
         symbol: "o",
+        //Tamanho máximo da bola
         max: 15,
+        //colorida
         heat: true,
+        //aonde serao renderizados os eixos, cima, direita, baixo, esquerda
         axis: "0 0 1 1",
         axisxstep: count_semana-1,
         axisystep: ysize,
         axisxlabels: axisx,
+        //Modo como serão renderizados a ligação entre legenda - linha divisória, neste caso um "+"
         axisxtype: "+",
         axisytype: "+",
         axisylabels: axisy
@@ -211,6 +224,10 @@ M.report_unasus.init_dot_graph = function (Y, dados){
     });
 };
 
+/**
+* @param obj array(array())
+* @return int quantidade de itens pai no array, utilizado para saber quantos tutores foram enviados
+ **/
 function objectLength(obj) {
     var result = 0;
     for(var prop in obj) {
@@ -220,3 +237,4 @@ function objectLength(obj) {
     }
     return result;
 }
+
