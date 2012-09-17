@@ -154,7 +154,7 @@ function avaliacao_atividade_aleatoria() {
  */
 function get_dados_atividades_nao_avaliadas() {
     $dados = array();
-    $list_tutores = get_tutores();
+    $list_tutores = get_nomes_tutores();
     foreach($list_tutores as $tutor) {
         $dados[] = array(new tutor($tutor->fullname, $tutor->id),
             new dado_avaliacao_em_atraso(rand(0, 100)),
@@ -280,7 +280,7 @@ function get_dados_atividades_nota_atribuida() {
 
 function get_dados_acesso_tutor() {
     $dados = array();
-    $lista_tutores = get_tutores();
+    $lista_tutores = get_nomes_tutores();
 
     $tutores = array();
     foreach($lista_tutores as $tutor) {
@@ -303,7 +303,7 @@ function get_dados_acesso_tutor() {
  * @TODO arrumar media
  */
 function get_dados_uso_sistema_tutor() {
-    $lista_tutores = get_tutores();
+    $lista_tutores = get_nomes_tutores();
     $dados = array();
     $tutores = array();
     foreach($lista_tutores as $tutor) {

@@ -47,26 +47,6 @@ function get_nomes_tutores() {
     return array_keys($tutores);
 }
 
-/**
- * Dado que alimenta a lista do filtro tutores
- *
- * @return array(Strings)
- */
-function get_tutores() {
-    global $DB;
-    $tutores = $DB->get_recordset_sql(
-        "SELECT distinct u.id, CONCAT(firstname,' ',lastname) as fullname
-             FROM {role_assignments} as ra
-             JOIN {role} as r
-               ON (r.id=ra.roleid)
-             JOIN {context} as c
-               ON (c.id=ra.contextid)
-             JOIN {user} as u
-               ON (u.id=ra.userid)
-            WHERE c.contextlevel=40;");
-    return $tutores;
-}
-
 function get_nomes_estudantes(){
     global $DB;
 
