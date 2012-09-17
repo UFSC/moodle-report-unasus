@@ -47,7 +47,7 @@ function get_nomes_tutores() {
     return array_keys($tutores);
 }
 
-function get_nomes_estudantes(){
+function get_nomes_estudantes() {
     global $DB;
 
     $estudantes = $DB->get_recordset_sql("
@@ -77,6 +77,28 @@ function get_nomes_polos() {
         ORDER BY nomepolo");
 
     return array_keys($polos);
+}
+
+/**
+ *
+ * @param array $modulos array de ids dos modulos
+ */
+function get_atividades_modulos($modulos) {
+    $string_modulos = int_array_to_sql($modulos);
+
+    $atividades_modulos = $DB->get_recordset_sql(
+          "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
+             FROM {course} as c
+             JOIN {assign} as a
+               ON (c.id = a.course)
+            WHERE c.id IN ({$string_modulos})
+            ORDER BY c.id");
+
+    $group_array = new GroupArray();
+    for ($index = 0; $index < count($atividades_modulos); $index++) {
+        $group_array->add($key, $value);
+    }
+
 }
 
 /**
@@ -150,3 +172,46 @@ class report_unasus_table extends html_table {
     }
 
 }
+
+
+
+/**
+ * Estrutura de dados semelhante ao Array() do php, que permite armazenar mais
+ * de um dado em uma mesma chave
+ *
+ * @author Gabriel Mazetto
+ */
+class GroupArray {
+
+    private $data = array();
+
+    function add($key, $value) {
+        if (!array_key_exists($key, $this->data)) {
+            $this->data[$key] = array();
+        }
+
+        array_push($this->data[$key], $value);
+    }
+
+    function get($key) {
+        return $this->data[$key];
+    }
+
+    function get_assoc() {
+        return $this->data;
+    }
+}
+
+
+/**
+ * Transforma um array de inteiros numa string unica
+ * EX: array(32,33,45)  para  "32,33,45
+ * @param array $array
+ * @return String
+ */
+function int_array_to_sql($array){
+    return implode(',', $array);
+}
+
+
+
