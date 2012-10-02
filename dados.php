@@ -4,38 +4,70 @@
 // Relatório de Atividades vs Notas Atribuídas
 //
 
-
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_atividades_vs_notas() {
-    $dados = array();
-    $tutores = get_nomes_tutores();
-    $estudantes = get_nomes_estudantes();
+    global $DB;
+    $query = "SELECT u.id as user_id,
+                     gg.finalgrade,
+                     gi.courseid,
+                     a.id as assign_id
+                FROM {grade_grades} gg
+                JOIN {grade_items} gi ON gi.id=gg.itemid
+                JOIN {user} u ON u.id=gg.userid
+                JOIN {assign} a ON a.course = gi.courseid
+                JOIN {course} c ON a.course = c.id
+               WHERE gi.itemtype = 'course' AND c.id = 50
+            ORDER BY u.firstname
+               LIMIT 500";
+    $atividades_alunos = $DB->get_recordset_sql($query);
 
-    for ($x = 1; $x <= 5; $x++) {
-        $tutor = $tutores[$x];
-        $alunos = array();
-        for ($i = 0; $i < 30; $i++) {
-            $estudante = $estudantes->current();
-            $estudantes->next();
-            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
-                avaliacao_aleatoria(),
-                avaliacao_aleatoria(),
-                avaliacao_aleatoria(),
-                avaliacao_aleatoria(),
-                avaliacao_aleatoria(true),
-                avaliacao_aleatoria(true),
-                avaliacao_aleatoria(true));
-
-        }
-        $dados[$tutor] = $alunos;
+    $group_array = new GroupArray();
+    foreach ($atividades_alunos as $atividade) {
+        $group_array->add($atividade->user_id,
+              array('finalgrade'=>$atividade->finalgrade,
+                    'courseid'=>$atividade->courseid,
+                    'assign_id'=>$atividade->assign_id,));
     }
+    $array_dados = $group_array->get_assoc();
 
-    $estudantes->close();
-    return $dados;
+
+    $estudantes = array();
+
+    foreach ($array_dados as $id_aluno => $aluno) {
+        $lista_atividades = array();
+        foreach($aluno as $atividade){
+            $lista_atividades[] = new dado_atividades_vs_notas(
+                  dado_atividades_vs_notas::ATIVIDADE_AVALIADA, $atividade['assign_id'], $atividade['finalgrade']);
+        }
+        $estudantes[] = array(new estudante($id_aluno, $id_aluno),$lista_atividades);
+    }
+    return(array('Joao'=>$estudantes));
+}
+
+function get_table_header_atividades_vs_notas($modulos = array()) {
+    global $DB;
+    $query =     "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
+                    FROM {course} as c
+                    JOIN {assign} as a
+                      ON (c.id = a.course)";
+    if(!empty($modulos)){
+        $string_modulos = int_array_to_sql($modulos);
+        $query .= "WHERE c.id IN ({$string_modulos})";
+    }
+    $query .=     "ORDER BY c.id";
+
+    $atividades_modulos = $DB->get_recordset_sql($query);
+
+    $group = new GroupArray();
+    foreach($atividades_modulos as $atividade){
+        $group->add($atividade->course_name, $atividade->assign_name);
+    }
+    return $group->get_assoc();
+
 }
 
 /**
@@ -155,7 +187,7 @@ function avaliacao_atividade_aleatoria() {
 function get_dados_atividades_nao_avaliadas() {
     $dados = array();
     $list_tutores = get_nomes_tutores();
-    foreach($list_tutores as $tutor) {
+    foreach ($list_tutores as $tutor) {
         $dados[] = array(new tutor($tutor->fullname, $tutor->id),
             new dado_avaliacao_em_atraso(rand(0, 100)),
             new dado_avaliacao_em_atraso(rand(0, 100)),
@@ -189,7 +221,6 @@ function get_dados_estudante_sem_atividade_postada() {
             $alunos[] = atividade_nao_postada(new estudante($estudante->fullname, $estudante->id), $modulos);
         }
         $dados[$tutor] = $alunos;
-
     }
 
     $estudantes->close();
@@ -283,7 +314,7 @@ function get_dados_acesso_tutor() {
     $lista_tutores = get_nomes_tutores();
 
     $tutores = array();
-    foreach($lista_tutores as $tutor) {
+    foreach ($lista_tutores as $tutor) {
         $tutores[] = array(new tutor($tutor->fullname, $tutor->id),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
             new dado_acesso_tutor(rand(0, 3) ? true : false),
@@ -306,7 +337,7 @@ function get_dados_uso_sistema_tutor() {
     $lista_tutores = get_nomes_tutores();
     $dados = array();
     $tutores = array();
-    foreach($lista_tutores as $tutor) {
+    foreach ($lista_tutores as $tutor) {
         $media = new dado_media(rand(0, 20));
 
         $tutores[] = array(new tutor($tutor->fullname, $tutor->id),
@@ -350,14 +381,6 @@ function get_dados_potenciais_evasoes() {
     }
 
     return $dados;
-}
-
-function get_table_header_atividades_vs_notas() {
-    $header = array();
-    $modulos = get_nomes_modulos();
-    $header[$modulos[6]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header[$modulos[7]] = array('Atividade 1', 'Atividade 2', 'Atividade 3', 'Atividade 4');
-    return $header;
 }
 
 function get_table_header_entrega_de_atividades() {

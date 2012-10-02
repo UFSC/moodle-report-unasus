@@ -80,25 +80,32 @@ function get_nomes_polos() {
 }
 
 /**
+ * Função que busca todas as atividades (assign) dentro de um modulo (course)
  *
- * @param array $modulos array de ids dos modulos
+ * @param array $modulos array de ids dos modulos, padrão null, retornando todos os modulos
+ * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_modulos($modulos) {
-    $string_modulos = int_array_to_sql($modulos);
+function get_atividades_modulos($modulos = null) {
+    global $DB;
+    $query =     "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
+                    FROM {course} as c
+                    JOIN {assign} as a
+                      ON (c.id = a.course)";
+    if($modulos){
+        $string_modulos = int_array_to_sql($modulos);
+        $query .= "WHERE c.id IN ({$string_modulos})";
+    }
+    $query .=     "ORDER BY c.id";
 
-    $atividades_modulos = $DB->get_recordset_sql(
-          "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
-             FROM {course} as c
-             JOIN {assign} as a
-               ON (c.id = a.course)
-            WHERE c.id IN ({$string_modulos})
-            ORDER BY c.id");
+    $atividades_modulos = $DB->get_recordset_sql($query);
+
+
 
     $group_array = new GroupArray();
-    for ($index = 0; $index < count($atividades_modulos); $index++) {
-        $group_array->add($key, $value);
+    foreach ($atividades_modulos as $atividade){
+        $group_array->add($atividade->course_id, new stdClass($atividade->assign_name, $atividade->assign_id));
     }
-
+    return $group_array;
 }
 
 /**
@@ -210,6 +217,9 @@ class GroupArray {
  * @return String
  */
 function int_array_to_sql($array){
+    if(!is_array($array)){
+        return $array;
+    }
     return implode(',', $array);
 }
 

@@ -92,12 +92,14 @@ class dado_atividades_vs_notas extends unasus_data {
     private $tipo;
     private $nota;
     private $atraso;
+    private $atividade_id;
 
-    function __construct($tipo, $nota = 0, $atraso = 0) {
+    function __construct($tipo, $atividade_id, $nota = 0, $atraso = 0) {
 
         $this->tipo = $tipo;
         $this->nota = $nota;
         $this->atraso = $atraso;
+        $this->atividade_id = $atividade_id;
     }
 
     public function __toString() {
@@ -141,6 +143,10 @@ class dado_atividades_vs_notas extends unasus_data {
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
 
         return $legend;
+    }
+
+    public function get_atividade_id(){
+        return $this->atividade_id;
     }
 
 }
