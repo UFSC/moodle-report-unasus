@@ -31,6 +31,8 @@ class report_unasus_renderer extends plugin_renderer_base {
      */
 
     public function build_report($graficos = true, $dot_chart = false) {
+        raise_memory_limit(MEMORY_EXTRA);
+        
         $output = $this->default_header();
         $output .= $this->build_filter(true, $graficos, $dot_chart);
 
@@ -241,7 +243,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             //alunos vao sendo populado na tabela
             $cel_tutor = new html_table_cell($tutor);
             $cel_tutor->attributes = array('class' => 'tutor');
-            $cel_tutor->colspan = count($alunos[0]); // expande a célula com nome dos tutores
+            $cel_tutor->colspan = count($alunos); // expande a célula com nome dos tutores
             $row_tutor = new html_table_row();
             $row_tutor->cells[] = $cel_tutor;
             $table->data[] = $row_tutor;

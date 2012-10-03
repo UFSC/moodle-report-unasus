@@ -9,9 +9,10 @@
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas() {
+function get_dados_atividades_vs_notas($modulos = array()) {
     global $DB;
     $query = "SELECT u.id as user_id,
+                     CONCAT(u.firstname,' ',u.lastname) as user_name,
                      gg.finalgrade,
                      gi.courseid,
                      a.id as assign_id
@@ -20,17 +21,21 @@ function get_dados_atividades_vs_notas() {
                 JOIN {user} u ON u.id=gg.userid
                 JOIN {assign} a ON a.course = gi.courseid
                 JOIN {course} c ON a.course = c.id
-               WHERE gi.itemtype = 'course' AND c.id = 50
-            ORDER BY u.firstname
-               LIMIT 500";
+               WHERE gi.itemtype = 'course' ";
+    if($modulos){
+        $string_modulos = int_array_to_sql($modulos);
+        $query .= "AND c.id IN ({$string_modulos})";
+    }
+    $query .= "ORDER BY u.firstname";
     $atividades_alunos = $DB->get_recordset_sql($query);
 
     $group_array = new GroupArray();
+    $aluno_id = array();
     foreach ($atividades_alunos as $atividade) {
-        $group_array->add($atividade->user_id,
-              array('finalgrade'=>$atividade->finalgrade,
-                    'courseid'=>$atividade->courseid,
-                    'assign_id'=>$atividade->assign_id,));
+        $aluno_id[$atividade->user_id] = $atividade->user_name;
+        $group_array->add($atividade->user_id, array('finalgrade' => $atividade->finalgrade,
+            'courseid' => $atividade->courseid,
+            'assign_id' => $atividade->assign_id,));
     }
     $array_dados = $group_array->get_assoc();
 
@@ -38,36 +43,36 @@ function get_dados_atividades_vs_notas() {
     $estudantes = array();
 
     foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades = array();
-        foreach($aluno as $atividade){
+        $lista_atividades[] = new estudante($aluno_id[$id_aluno], $id_aluno);
+        foreach ($aluno as $atividade) {
             $lista_atividades[] = new dado_atividades_vs_notas(
-                  dado_atividades_vs_notas::ATIVIDADE_AVALIADA, $atividade['assign_id'], $atividade['finalgrade']);
+                        dado_atividades_vs_notas::ATIVIDADE_AVALIADA, $atividade['assign_id'], $atividade['finalgrade']);
         }
-        $estudantes[] = array(new estudante($id_aluno, $id_aluno),$lista_atividades);
+        $estudantes[] = $lista_atividades;
+        $lista_atividades = null;
     }
-    return(array('Joao'=>$estudantes));
+    return(array('Joao' => $estudantes));
 }
 
 function get_table_header_atividades_vs_notas($modulos = array()) {
     global $DB;
-    $query =     "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
+    $query = "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
                     FROM {course} as c
                     JOIN {assign} as a
                       ON (c.id = a.course)";
-    if(!empty($modulos)){
+    if (!empty($modulos)) {
         $string_modulos = int_array_to_sql($modulos);
         $query .= "WHERE c.id IN ({$string_modulos})";
     }
-    $query .=     "ORDER BY c.id";
+    $query .= "ORDER BY c.id";
 
     $atividades_modulos = $DB->get_recordset_sql($query);
 
     $group = new GroupArray();
-    foreach($atividades_modulos as $atividade){
+    foreach ($atividades_modulos as $atividade) {
         $group->add($atividade->course_name, $atividade->assign_name);
     }
     return $group->get_assoc();
-
 }
 
 /**
