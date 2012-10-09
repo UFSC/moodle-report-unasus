@@ -11,42 +11,50 @@
  */
 function get_dados_atividades_vs_notas($modulos = array()) {
     global $DB;
-    $query = "SELECT u.id as user_id,
-                     CONCAT(u.firstname,' ',u.lastname) as user_name,
-                     gg.finalgrade,
-                     gi.courseid,
-                     a.id as assign_id
-                FROM {grade_grades} gg
-                JOIN {grade_items} gi ON gi.id=gg.itemid
-                JOIN {user} u ON u.id=gg.userid
-                JOIN {assign} a ON a.course = gi.courseid
-                JOIN {course} c ON a.course = c.id
-               WHERE gi.itemtype = 'course' ";
-    if($modulos){
-        $string_modulos = int_array_to_sql($modulos);
-        $query .= "AND c.id IN ({$string_modulos})";
-    }
-    $query .= "ORDER BY u.firstname";
-    $atividades_alunos = $DB->get_recordset_sql($query);
 
-    $group_array = new GroupArray();
-    $aluno_id = array();
-    foreach ($atividades_alunos as $atividade) {
-        $aluno_id[$atividade->user_id] = $atividade->user_name;
-        $group_array->add($atividade->user_id, array('finalgrade' => $atividade->finalgrade,
-            'courseid' => $atividade->courseid,
-            'assign_id' => $atividade->assign_id,));
-    }
-    $array_dados = $group_array->get_assoc();
+    // Consulta
+    $query = " SELECT u.id as user_id, CONCAT(u.firstname,' ',u.lastname) as user_name, sub.timecreated, gr.timemodified, gr.grader, gr.grade
+                 FROM (
+                      SELECT DISTINCT u.*
+                      FROM {user} u
+                      JOIN {user_enrolments} ue
+                      ON (u.id = ue.userid)
+                      JOIN {enrol} e
+                      ON (e.id = ue.enrolid AND e.courseid=:courseid)
+                      ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id)
+            ORDER BY u.firstname
+    ";
 
+    // Execução da consulta
+
+    $modulos = get_atividades_modulos($modulos);
+    $alunos = array();
+    $group_dados = new GroupArray();
+
+    foreach ($modulos as $modulo => $atividades) {
+
+        foreach ($atividades as $atividade) {
+            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            foreach ($result as $r) {
+                $alunos[$r->user_id] = $r->user_name;
+                $group_dados->add($r->user_id, array('grade' => $r->grade, 'courseid' => $modulo, 'assign_id' => $atividade->assign_id));
+            }
+        }
+    }
+
+    $array_dados = $group_dados->get_assoc();
 
     $estudantes = array();
 
     foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($aluno_id[$id_aluno], $id_aluno);
+        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
         foreach ($aluno as $atividade) {
             $lista_atividades[] = new dado_atividades_vs_notas(
-                        dado_atividades_vs_notas::ATIVIDADE_AVALIADA, $atividade['assign_id'], $atividade['finalgrade']);
+                        dado_atividades_vs_notas::ATIVIDADE_AVALIADA, $atividade['assign_id'], $atividade['grade']);
         }
         $estudantes[] = $lista_atividades;
         $lista_atividades = null;
@@ -56,10 +64,11 @@ function get_dados_atividades_vs_notas($modulos = array()) {
 
 function get_table_header_atividades_vs_notas($modulos = array()) {
     global $DB;
-    $query = "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
-                    FROM {course} as c
-                    JOIN {assign} as a
-                      ON (c.id = a.course)";
+    $query = "SELECT a.id as assign_id, a.name as assign_name, REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name, c.id as course_id
+                FROM {course} as c
+                JOIN {assign} as a
+                  ON (c.id = a.course)";
+
     if (!empty($modulos)) {
         $string_modulos = int_array_to_sql($modulos);
         $query .= "WHERE c.id IN ({$string_modulos})";

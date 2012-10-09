@@ -101,7 +101,7 @@ function get_nomes_polos() {
  */
 function get_atividades_modulos($modulos = null) {
     global $DB;
-    $query =     "SELECT a.id as assign_id, a.name as assign_name, c.fullname as course_name, c.id as course_id
+    $query =     "SELECT a.id as assign_id, a.name as assign_name, c.id as course_id
                     FROM {course} as c
                     JOIN {assign} as a
                       ON (c.id = a.course)";
@@ -116,10 +116,10 @@ function get_atividades_modulos($modulos = null) {
 
 
     $group_array = new GroupArray();
-    foreach ($atividades_modulos as $atividade){
-        $group_array->add($atividade->course_id, new stdClass($atividade->assign_name, $atividade->assign_id));
+    foreach ($atividades_modulos as $atividade) {
+        $group_array->add($atividade->course_id, $atividade);
     }
-    return $group_array;
+    return $group_array->get_assoc();
 }
 
 /**
