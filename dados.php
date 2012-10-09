@@ -361,7 +361,26 @@ function get_dados_uso_sistema_tutor() {
     return $dados;
 }
 
-function get_dados_potenciais_evasoes() {
+function get_dados_potenciais_evasoes($modulos = array(30)) {
+    global $DB;
+    $estudantes = get_id_estudantes();
+    var_dump($estudantes);
+
+    $query = "SELECT DISTINCT u.id, u.firstname, COUNT(gg.finalgrade) as count_assign, gi.courseid
+              FROM grade_grades gg
+              JOIN grade_items gi ON gi.id=gg.itemid
+              JOIN user u ON u.id=gg.userid
+              WHERE gi.itemtype = 'course' AND u.id IN ". int_array_to_sql($estudantes);
+    if($modulos){
+        $query .= " AND gi.courseid IN " . int_array_to_sql($modulos);
+    }
+    $query .= " GROUP BY u.id
+    ORDER BY gi.courseid, u.firstname";
+
+    $result = $DB->$DB->get_recordset_sql($query);
+    var_dump($result);
+    die();
+
     $dados = array();
     $nome_tutores = get_nomes_tutores();
     $lista_estudantes = get_nomes_estudantes();

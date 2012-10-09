@@ -63,6 +63,20 @@ function get_nomes_estudantes() {
     return $estudantes;
 }
 
+function get_id_estudantes(){
+    global $DB;
+    $estudantes = $DB->get_records_sql("
+          SELECT distinct u.id
+            FROM {role_assignments} as ra
+            JOIN {role} as r
+              ON (r.id=ra.roleid)
+            JOIN {context} as c
+              ON (c.id=ra.contextid)
+            JOIN {user} as u
+              ON (u.id=ra.userid)
+           WHERE c.contextlevel=50;");
+    return array_keys($estudantes);
+}
 /**
  * Dado que alimenta a lista do filtro polos
  *
