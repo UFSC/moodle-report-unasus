@@ -237,5 +237,17 @@ function int_array_to_sql($array){
     return implode(',', $array);
 }
 
+///
+/// Funcionalidades semelhantes duplicadas de tool tutores
+/// TODO: refatorar e deduplicar as funcinoalidades abaixo de forma que ambas ferramentas disponibilizem uma única API.
+///
 
+function get_cursos_ativos_list() {
+    $middleware = Academico::singleton();
+    $sql = "SELECT curso, nome_sintetico FROM {$middleware->view_cursos_ativos}";
+    return $middleware->db->get_records_sql_menu($sql);
+}
 
+function get_curso_ufsc_id() {
+    return optional_param('curso_ufsc', null, PARAM_INT);
+}

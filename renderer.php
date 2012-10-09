@@ -3,15 +3,24 @@ defined('MOODLE_INTERNAL') || die();
 
 class report_unasus_renderer extends plugin_renderer_base {
 
+    private $cursos;
+    private $curso_ativo;
     private $report;
 
     public function __construct(moodle_page $page, $target) {
         parent::__construct($page, $target);
-        if (optional_param('relatorio', null, PARAM_ALPHANUMEXT) !== null) {
-            $this->report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+
+        // Carrega tipo de renderização (relatório ou gráfico)
+        $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+        if (!empty($relatorio)) {
+            $this->report = $relatorio;
         } else {
             $this->report = optional_param('grafico', null, PARAM_ALPHANUMEXT);
         }
+
+        // Carrega informações sobre cursos UFSC
+        $this->cursos = get_cursos_ativos_list();
+        $this->curso_ativo = get_curso_ufsc_id();
     }
 
     /*
@@ -90,6 +99,28 @@ class report_unasus_renderer extends plugin_renderer_base {
         }
         $output .= html_writer::end_tag('dl');
         $output .= html_writer::end_tag('fieldset');
+        return $output;
+    }
+
+    public function choose_curso_ufsc_page($destination_url, $relatorio) {
+
+        // Imprime cabeçalho da página
+        $output = $this->header();
+        $output .= $this->heading(get_string('grupos_tutoria', 'tool_tutores'));
+
+        $table = new html_table();
+        $table->head = array(get_string('cursos_ufsc', 'tool_tutores'));
+        $table->tablealign = 'center';
+        $table->data = array();
+
+        foreach ($this->cursos as $id_curso => $nome_curso) {
+            $url = new moodle_url($destination_url, array('curso_ufsc' => $id_curso, 'relatorio' => $relatorio));
+            $table->data[] = array(html_writer::link($url, $nome_curso));
+        }
+
+        $output .= html_writer::table($table);
+
+        $output .= $this->default_footer();
         return $output;
     }
 
