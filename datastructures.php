@@ -88,6 +88,7 @@ class dado_atividades_vs_notas extends unasus_data {
     const CORRECAO_ATRASADA = 1;
     const ATIVIDADE_AVALIADA = 2;
     const ATIVIDADE_NO_PRAZO_ENTREGA = 3;
+    const ATIVIDADE_SEM_PRAZO_ENTREGA = 4;
 
     private $tipo;
     private $nota;
@@ -116,6 +117,9 @@ class dado_atividades_vs_notas extends unasus_data {
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'No prazo';
                 break;
+            case dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA:
+                return 'sem prazo';
+                break;
         }
     }
 
@@ -129,6 +133,8 @@ class dado_atividades_vs_notas extends unasus_data {
                 return 'nota_atribuida';
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'nao_realizada';
+            case dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA:
+                return 'sem_prazo';
             default:
                 return '';
         }
@@ -141,6 +147,7 @@ class dado_atividades_vs_notas extends unasus_data {
         $legend['muito_atraso'] = 'Sem nota atribuída, fora do prazo (após X dias da data de entrega)';
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
+        $legend['sem_prazo'] = 'Atividade não realizada, sem prazo para a entrega';
 
         return $legend;
     }

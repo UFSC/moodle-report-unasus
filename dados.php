@@ -13,7 +13,12 @@ function get_dados_atividades_vs_notas($modulos = array()) {
     global $DB;
 
     // Consulta
-    $query = " SELECT u.id as user_id, CONCAT(u.firstname,' ',u.lastname) as user_name, sub.timecreated, gr.timemodified, gr.grader, gr.grade
+    $query = " SELECT u.id as user_id,
+                      CONCAT(u.firstname,' ',u.lastname) as user_name,
+                      sub.timecreated as submission_date,
+                      gr.timemodified,
+                      gr.grader,
+                      gr.grade
                  FROM (
                       SELECT DISTINCT u.*
                       FROM {user} u
@@ -41,7 +46,14 @@ function get_dados_atividades_vs_notas($modulos = array()) {
             $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
             foreach ($result as $r) {
                 $alunos[$r->user_id] = $r->user_name;
-                $group_dados->add($r->user_id, array('grade' => $r->grade, 'courseid' => $modulo, 'assign_id' => $atividade->assign_id));
+
+                // Adicionando campos extras
+                $r->courseid = $modulo;
+                $r->assignid = $atividade->assign_id;
+                $r->duedate = $atividade->duedate;
+
+                // Adicionar no GroupArray
+                $group_dados->add($r->user_id, $r);
             }
         }
     }
@@ -49,12 +61,33 @@ function get_dados_atividades_vs_notas($modulos = array()) {
     $array_dados = $group_dados->get_assoc();
 
     $estudantes = array();
+    $timenow = time();
 
     foreach ($array_dados as $id_aluno => $aluno) {
         $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
         foreach ($aluno as $atividade) {
-            $lista_atividades[] = new dado_atividades_vs_notas(
-                        dado_atividades_vs_notas::ATIVIDADE_AVALIADA, $atividade['assign_id'], $atividade['grade']);
+
+            $atraso = null;
+
+            // Não entregou
+            if (is_null($atividade->submission_date)) {
+                if ((int) $atividade->duedate == 0) {
+                    $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                } else {
+                    $tipo = ($atividade->duedate < $timenow) ? dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA : dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
+                }
+
+            }
+            elseif ((float) $atividade->grade < 0 || is_null($atividade->grade)) {
+                $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
+                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
+                $atraso = $datadiff->format("%a");
+            }
+            elseif ((float) $atividade->grade > -1) {
+                $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
+            }
+            $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->assignid, $atividade->grade, $atraso);
         }
         $estudantes[] = $lista_atividades;
         $lista_atividades = null;

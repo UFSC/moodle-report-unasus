@@ -4,6 +4,10 @@ require_once("{$CFG->dirroot}/{$CFG->admin}/tool/tutores/middlewarelib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/dados.php');
 
+function get_datetime_from_unixtime($unixtime) {
+    return date_create(date("Y-m-d H:m:s", $unixtime));
+}
+
 /**
  * Função para capturar um formulario do moodle e pegar sua string geradora
  * já que a unica função para um moodleform é o display que printa automaticamente
@@ -87,7 +91,7 @@ function get_nomes_polos() {
  */
 function get_atividades_modulos($modulos = null) {
     global $DB;
-    $query =     "SELECT a.id as assign_id, a.name as assign_name, c.id as course_id
+    $query =     "SELECT a.id as assign_id, a.duedate, a.name as assign_name, c.id as course_id
                     FROM {course} as c
                     JOIN {assign} as a
                       ON (c.id = a.course)";
