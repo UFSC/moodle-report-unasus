@@ -152,7 +152,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $CFG;
 
         // Inicio do Form
-        $output = html_writer::start_tag('form', array('action' => "{$CFG->wwwroot}/report/unasus/index.php?relatorio={$this->report}",
+        $output = html_writer::start_tag('form', array('action' => "{$CFG->wwwroot}/report/unasus/index.php?curso_ufsc={$this->curso_ativo}&relatorio={$this->report}",
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
         // Fieldset
