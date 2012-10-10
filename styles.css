@@ -68,7 +68,8 @@
 /* Tabelas com os dados do relatório */
 
 /* Cinza Claro */
-.relatorio-unasus.atividades_vs_notas .sem_prazo {
+.relatorio-unasus.atividades_vs_notas .sem_prazo,
+.relatorio-unasus.entrega_de_atividades .sem_prazo{
     color: #fff;
     background: #ddd;
 }

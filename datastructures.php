@@ -171,13 +171,16 @@ class dado_entrega_de_atividades extends unasus_data {
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const ATIVIDADE_ENTREGUE_NO_PRAZO = 1;
     const ATIVIDADE_ENTREGUE_FORA_DO_PRAZO = 2;
+    const ATIVIDADE_SEM_PRAZO_ENTREGA = 3;
 
     private $tipo;
     private $atraso;
+    private $atividade_id;
 
-    function __construct($tipo, $atraso = 0) {
+    function __construct($tipo, $atividade_id, $atraso = 0) {
         $this->tipo = $tipo;
         $this->atraso = $atraso;
+        $this->atividade_id = $atividade_id;
     }
 
     public function __toString() {
@@ -190,6 +193,9 @@ class dado_entrega_de_atividades extends unasus_data {
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return $this->dia_toString($this->atraso);
+                break;
+            case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
+                return 'sem prazo';
                 break;
         }
     }
@@ -205,17 +211,25 @@ class dado_entrega_de_atividades extends unasus_data {
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
                 break;
+            case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
+                return 'sem prazo';
+                break;
         }
     }
 
     public static function get_legend() {
         $legend = array();
         $legend['nao_entregue'] = 'Em aberto (não entregue)';
+        $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
         $legend['no_prazo'] = 'Atividade entregue em dia';
         $legend['pouco_atraso'] = 'Atividade entregue, com atraso de até X dias';
         $legend['muito_atraso'] = 'Atividade entregue, com atraso de mais de X dias';
-
+        
         return $legend;
+    }
+
+    public function get_atividade_id(){
+        return $this->atividade_id;
     }
 
 }
