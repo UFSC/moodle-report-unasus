@@ -125,10 +125,32 @@ function get_table_header_atividades_vs_notas($modulos = array()) {
     $atividades_modulos = $DB->get_recordset_sql($query);
 
     $group = new GroupArray();
+    $modulos = array();
+    $header = array();
+
+    // Agrupa atividades por curso e cria um índice de cursos
     foreach ($atividades_modulos as $atividade) {
-        $group->add($atividade->course_name, $atividade->assign_name);
+        $modulos[$atividade->course_id] = $atividade->course_name;
+        $group->add($atividade->course_id, $atividade);
     }
-    return $group->get_assoc();
+
+    $group_assoc = $group->get_assoc();
+
+    foreach ($group_assoc as $course_id => $atividades) {
+        $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
+        $course_link = html_writer::link($course_url, $modulos[$course_id]);
+        $dados = array();
+
+        foreach ($atividades as $atividade) {
+            $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
+
+            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
+            $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
+        }
+        $header[$course_link] = $dados;
+    }
+
+    return $header;
 }
 
 /**
