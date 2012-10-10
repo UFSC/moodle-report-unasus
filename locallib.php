@@ -96,6 +96,27 @@ function get_modulos_menu() {
 }
 
 /**
+ * Dado que alimenta a lista do filtro tutores
+ *
+ * @return array(Strings)
+ */
+function get_tutores_menu() {
+    global $DB;
+    $tutores = $DB->get_records_sql_menu(
+        "SELECT DISTINCT u.id,
+                CONCAT(firstname,' ',lastname) as fullname
+           FROM {role_assignments} as ra
+           JOIN {role} as r
+             ON (r.id=ra.roleid)
+           JOIN {context} as c
+             ON (c.id=ra.contextid)
+           JOIN {user} as u
+             ON (u.id=ra.userid)
+          WHERE c.contextlevel=40;");
+    return $tutores;
+}
+
+/**
  * Função que busca todas as atividades (assign) dentro de um modulo (course)
  *
  * @param array $modulos array de ids dos modulos, padrão null, retornando todos os modulos

@@ -191,7 +191,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Filtro de Tutores
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-        $filter_tutores .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+        $filter_tutores .= html_writer::select(get_tutores_menu(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
         $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_tutor','href'=>'#'));
         $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_tutor','href'=>'#'));
         $output .= html_writer::tag('div', $filter_tutores.$tutores_all.' / '.$tutores_none, array('class' => 'multiple_list'));

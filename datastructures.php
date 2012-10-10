@@ -220,7 +220,7 @@ class dado_entrega_de_atividades extends unasus_data {
 
 }
 
-class dado_acompanhamento_de_avaliacao extends unasus_data {
+class dado_historico_atribuicao_notas extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_NO_PRAZO = 1;
@@ -236,7 +236,7 @@ class dado_acompanhamento_de_avaliacao extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_acompanhamento_de_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE:
                 return '';
                 break;
             default:
@@ -246,13 +246,13 @@ class dado_acompanhamento_de_avaliacao extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_acompanhamento_de_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
                 break;
-            case dado_acompanhamento_de_avaliacao::CORRECAO_NO_PRAZO:
+            case dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO:
                 return 'no_prazo';
                 break;
-            case dado_acompanhamento_de_avaliacao::CORRECAO_ATRASADA:
+            case dado_historico_atribuicao_notas::CORRECAO_ATRASADA:
                 return ($this->atraso > 7) ? 'muito_atraso' : 'pouco_atraso';
                 break;
         }

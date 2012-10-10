@@ -14,9 +14,9 @@ $ADMIN->add('unasus',
                                "{$CFG->wwwroot}/report/unasus/index.php?relatorio=entrega_de_atividades",
                                'report/unasus:view'));
 $ADMIN->add('unasus',
-        new admin_externalpage('report_unasus_acompanhamento_de_avaliacao',
+        new admin_externalpage('report_unasus_historico_atribuicao_notas',
                                'Histórico: atribuição de notas',
-                               "{$CFG->wwwroot}/report/unasus/index.php?relatorio=acompanhamento_de_avaliacao",
+                               "{$CFG->wwwroot}/report/unasus/index.php?relatorio=historico_atribuicao_notas",
                                'report/unasus:view'));
 $ADMIN->add('unasus',
         new admin_externalpage('report_unasus_estudante_sem_atividade_postada',
