@@ -47,17 +47,16 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $data_class = "dado_{$this->report}";
 
-        $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus right_legend'));
-
-        $output .= $this->build_legend(call_user_func("{$data_class}::get_legend"));
-
-        $output .= html_writer::end_tag('div');
-        //end link
+        $output .= html_writer::tag('div',
+            $this->build_legend(call_user_func("{$data_class}::get_legend")),
+            array('class' => 'relatorio-unasus right_legend'));
 
         $dados_method = "get_dados_{$this->report}";
         $header_method = "get_table_header_{$this->report}";
 
-        $table = $this->default_table($dados_method(), $header_method());
+        $modulos = optional_param_array('modulos', null, PARAM_INT);
+
+        $table = $this->default_table($dados_method($modulos), $header_method($modulos));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -178,7 +177,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Filtro de modulo
         $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-        $filter_modulos .= html_writer::select(get_nomes_modulos(), 'multiple_modulo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
+        $filter_modulos .= html_writer::select(get_modulos_menu(), 'modulos[]', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
         $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_modulo','href'=>'#'));
         $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_modulo','href'=>'#'));
         $output .= html_writer::tag('div', $filter_modulos.$modulos_all.' / '.$modulos_none, array('class' => 'multiple_list'));
@@ -192,7 +191,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Filtro de Tutores
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-        $filter_tutores .= html_writer::select(get_nomes_tutores(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+        $filter_tutores .= html_writer::select(get_tutores_menu(), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
         $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_tutor','href'=>'#'));
         $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_tutor','href'=>'#'));
         $output .= html_writer::tag('div', $filter_tutores.$tutores_all.' / '.$tutores_none, array('class' => 'multiple_list'));

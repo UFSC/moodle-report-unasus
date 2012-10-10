@@ -16,8 +16,8 @@ $string['estudante_sem_atividade_avaliada'] = 'Lista: atividades não avaliadas'
 $string['estudante_sem_atividade_avaliada_help'] = 'Listagem de estudantes que entregaram suas atividades mas ainda não foram corrigidas';
 $string['estudante_sem_atividade_avaliada_table_header'] = 'Atividades não Avaliadas';
 
-$string['acompanhamento_de_avaliacao'] = 'Histórico: atribuição de notas';
-$string['acompanhamento_de_avaliacao_help'] = 'OBJETIVO: Acompanhar realização da avaliação das atividades dos estudantes, pelos tutores e servir como histórico sobre o desempenho do tutor na realização das suas atribuições.';
+$string['historico_atribuicao_notas'] = 'Histórico: atribuição de notas';
+$string['historico_atribuicao_notas_help'] = 'OBJETIVO: Acompanhar realização da avaliação das atividades dos estudantes, pelos tutores e servir como histórico sobre o desempenho do tutor na realização das suas atribuições.';
 
 $string['atividades_nao_avaliadas'] = 'Síntese: avaliações em atraso';
 $string['atividades_nao_avaliadas_help'] = 'OBJETIVO: Acompanhar o estado das avalições que foram ou não corrigidas por um tutor';

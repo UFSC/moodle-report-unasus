@@ -80,6 +80,14 @@ abstract class unasus_data {
         }
     }
 
+    /**
+     * Formata uma nota para exibição
+     * @param $grade
+     */
+    protected function format_grade($grade) {
+        return format_float($grade, 2);
+    }
+
 }
 
 class dado_atividades_vs_notas extends unasus_data {
@@ -88,6 +96,7 @@ class dado_atividades_vs_notas extends unasus_data {
     const CORRECAO_ATRASADA = 1;
     const ATIVIDADE_AVALIADA = 2;
     const ATIVIDADE_NO_PRAZO_ENTREGA = 3;
+    const ATIVIDADE_SEM_PRAZO_ENTREGA = 4;
 
     private $tipo;
     private $nota;
@@ -97,24 +106,27 @@ class dado_atividades_vs_notas extends unasus_data {
     function __construct($tipo, $atividade_id, $nota = 0, $atraso = 0) {
 
         $this->tipo = $tipo;
+        $this->atividade_id = $atividade_id;
         $this->nota = $nota;
         $this->atraso = $atraso;
-        $this->atividade_id = $atividade_id;
     }
 
     public function __toString() {
         switch ($this->tipo) {
             case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
-                return 'Não Entregue';
+                return 'não entregue';
                 break;
             case dado_atividades_vs_notas::CORRECAO_ATRASADA:
                 return $this->dia_toString($this->atraso);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
-                return (String) $this->nota;
+                return (String) $this->format_grade($this->nota);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
-                return 'No prazo';
+                return 'no prazo';
+                break;
+            case dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA:
+                return 'sem prazo';
                 break;
         }
     }
@@ -129,6 +141,8 @@ class dado_atividades_vs_notas extends unasus_data {
                 return 'nota_atribuida';
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'nao_realizada';
+            case dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA:
+                return 'sem_prazo';
             default:
                 return '';
         }
@@ -141,6 +155,7 @@ class dado_atividades_vs_notas extends unasus_data {
         $legend['muito_atraso'] = 'Sem nota atribuída, fora do prazo (após X dias da data de entrega)';
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
+        $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
 
         return $legend;
     }
@@ -205,7 +220,7 @@ class dado_entrega_de_atividades extends unasus_data {
 
 }
 
-class dado_acompanhamento_de_avaliacao extends unasus_data {
+class dado_historico_atribuicao_notas extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_NO_PRAZO = 1;
@@ -221,7 +236,7 @@ class dado_acompanhamento_de_avaliacao extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_acompanhamento_de_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE:
                 return '';
                 break;
             default:
@@ -231,13 +246,13 @@ class dado_acompanhamento_de_avaliacao extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_acompanhamento_de_avaliacao::ATIVIDADE_NAO_ENTREGUE:
+            case dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
                 break;
-            case dado_acompanhamento_de_avaliacao::CORRECAO_NO_PRAZO:
+            case dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO:
                 return 'no_prazo';
                 break;
-            case dado_acompanhamento_de_avaliacao::CORRECAO_ATRASADA:
+            case dado_historico_atribuicao_notas::CORRECAO_ATRASADA:
                 return ($this->atraso > 7) ? 'muito_atraso' : 'pouco_atraso';
                 break;
         }

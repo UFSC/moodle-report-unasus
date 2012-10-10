@@ -67,6 +67,12 @@
 
 /* Tabelas com os dados do relatório */
 
+/* Cinza Claro */
+.relatorio-unasus.atividades_vs_notas .sem_prazo {
+    color: #fff;
+    background: #ddd;
+}
+
 /* Cinza */
 .relatorio-unasus.atividades_vs_notas .nao_realizada {
     color: #fff;
@@ -77,7 +83,7 @@
 /* Verde */
 .relatorio-unasus.atividades_vs_notas .pouco_atraso,
 .relatorio-unasus.entrega_de_atividades .no_prazo,
-.relatorio-unasus.acompanhamento_de_avaliacao .no_prazo,
+.relatorio-unasus.historico_atribuicao_notas .no_prazo,
 .relatorio-unasus .media {
     background: #CCFFCC;
     color: gray;
@@ -86,7 +92,7 @@
 /* Vermelho */
 .relatorio-unasus.atividades_vs_notas .nao_entregue,
 .relatorio-unasus.entrega_de_atividades .muito_atraso,
-.relatorio-unasus.acompanhamento_de_avaliacao .muito_atraso,
+.relatorio-unasus.historico_atribuicao_notas .muito_atraso,
 .relatorio-unasus.uso_sistema_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes .nao_concluido {
     color: #fff;
@@ -96,7 +102,7 @@
 /* Amarelo */
 .relatorio-unasus.atividades_vs_notas .muito_atraso,
 .relatorio-unasus.entrega_de_atividades .pouco_atraso,
-.relatorio-unasus.acompanhamento_de_avaliacao .pouco_atraso,
+.relatorio-unasus.historico_atribuicao_notas .pouco_atraso,
 .relatorio-unasus.acesso_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes .parcial {
     background: #FEFF7F;
@@ -105,7 +111,7 @@
 /* Branco */
 .relatorio-unasus.atividades_vs_notas .nota_atribuida,
 .relatorio-unasus.entrega_de_atividades .nao_entregue,
-.relatorio-unasus.acompanhamento_de_avaliacao .nao_entregue,
+.relatorio-unasus.historico_atribuicao_notas .nao_entregue,
 .relatorio-unasus.acesso_tutor .acessou,
 .relatorio-unasus.uso_sistema_tutor .acessou,
 .relatorio-unasus.potenciais_evasoes .concluido {
@@ -115,6 +121,10 @@
 /* Bold */
 .relatorio-unasus.estudante_sem_atividade_postada .modulo {
     font-weight: bold;
+}
+
+.relatorio-unasus .nota_atribuida {
+    white-space: nowrap;
 }
 
 .relatorio-unasus td {
@@ -134,6 +144,7 @@
     text-align: left;
     font-weight: normal;
     background: #FEF9EC;
+    white-space: nowrap;
 }
 
 .relatorio-unasus td.blank {

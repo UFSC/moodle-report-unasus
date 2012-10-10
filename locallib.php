@@ -4,6 +4,10 @@ require_once("{$CFG->dirroot}/{$CFG->admin}/tool/tutores/middlewarelib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/dados.php');
 
+function get_datetime_from_unixtime($unixtime) {
+    return date_create(date("Y-m-d H:m:s", $unixtime));
+}
+
 /**
  * Função para capturar um formulario do moodle e pegar sua string geradora
  * já que a unica função para um moodleform é o display que printa automaticamente
@@ -22,9 +26,11 @@ function get_form_display(&$mform) {
 
 function get_nomes_modulos() {
     global $DB;
-    $query = $DB->get_records_sql(
-          "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname FROM {course} c WHERE c.id != 1");
-    return array_keys($query);
+    $modulos = $DB->get_records_sql(
+        "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
+           FROM {course} c
+          WHERE c.id != 1");
+    return array_keys($modulos);
 }
 
 /**
@@ -93,6 +99,37 @@ function get_nomes_polos() {
     return array_keys($polos);
 }
 
+function get_modulos_menu() {
+    global $DB;
+    $modulos = $DB->get_records_sql_menu(
+        "SELECT c.id,
+                REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
+           FROM {course} c
+          WHERE c.id != 1");
+    return $modulos;
+}
+
+/**
+ * Dado que alimenta a lista do filtro tutores
+ *
+ * @return array(Strings)
+ */
+function get_tutores_menu() {
+    global $DB;
+    $tutores = $DB->get_records_sql_menu(
+        "SELECT DISTINCT u.id,
+                CONCAT(firstname,' ',lastname) as fullname
+           FROM {role_assignments} as ra
+           JOIN {role} as r
+             ON (r.id=ra.roleid)
+           JOIN {context} as c
+             ON (c.id=ra.contextid)
+           JOIN {user} as u
+             ON (u.id=ra.userid)
+          WHERE c.contextlevel=40;");
+    return $tutores;
+}
+
 /**
  * Função que busca todas as atividades (assign) dentro de um modulo (course)
  *
@@ -101,7 +138,7 @@ function get_nomes_polos() {
  */
 function get_atividades_modulos($modulos = null) {
     global $DB;
-    $query =     "SELECT a.id as assign_id, a.name as assign_name, c.id as course_id
+    $query =     "SELECT a.id as assign_id, a.duedate, a.name as assign_name, c.id as course_id
                     FROM {course} as c
                     JOIN {assign} as a
                       ON (c.id = a.course)";
@@ -112,8 +149,6 @@ function get_atividades_modulos($modulos = null) {
     $query .=     "ORDER BY c.id";
 
     $atividades_modulos = $DB->get_recordset_sql($query);
-
-
 
     $group_array = new GroupArray();
     foreach ($atividades_modulos as $atividade) {
