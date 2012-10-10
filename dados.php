@@ -21,11 +21,15 @@ function get_dados_atividades_vs_notas($modulos = array()) {
                       gr.grade
                  FROM (
                       SELECT DISTINCT u.*
-                      FROM {user} u
-                      JOIN {user_enrolments} ue
-                      ON (u.id = ue.userid)
-                      JOIN {enrol} e
-                      ON (e.id = ue.enrolid AND e.courseid=:courseid)
+                        FROM {role_assignments} as ra
+                        JOIN {role} as r
+                          ON (r.id=ra.roleid)
+                        JOIN {context} as c
+                          ON (c.id=ra.contextid)
+                        JOIN {user} as u
+                          ON (u.id=ra.userid)
+                       WHERE c.contextlevel=50
+                         -- AND c.instanceid=:courseid
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -73,8 +77,10 @@ function get_dados_atividades_vs_notas($modulos = array()) {
             if (is_null($atividade->submission_date)) {
                 if ((int) $atividade->duedate == 0) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                } elseif ($atividade->duedate > $timenow) {
+                    $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
                 } else {
-                    $tipo = ($atividade->duedate < $timenow) ? dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA : dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
+                    $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
                 }
 
             }
@@ -87,6 +93,7 @@ function get_dados_atividades_vs_notas($modulos = array()) {
             elseif ((float) $atividade->grade > -1) {
                 $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
             }
+
             $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->assignid, $atividade->grade, $atraso);
         }
         $estudantes[] = $lista_atividades;
