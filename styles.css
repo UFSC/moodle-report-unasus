@@ -123,6 +123,10 @@
     font-weight: bold;
 }
 
+.relatorio-unasus .nota_atribuida {
+    white-space: nowrap;
+}
+
 .relatorio-unasus td {
     text-align: center;
 }

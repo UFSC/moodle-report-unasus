@@ -26,9 +26,11 @@ function get_form_display(&$mform) {
 
 function get_nomes_modulos() {
     global $DB;
-    $query = $DB->get_records_sql(
-          "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname FROM {course} c WHERE c.id != 1");
-    return array_keys($query);
+    $modulos = $DB->get_records_sql(
+        "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
+           FROM {course} c
+          WHERE c.id != 1");
+    return array_keys($modulos);
 }
 
 /**
@@ -83,6 +85,16 @@ function get_nomes_polos() {
     return array_keys($polos);
 }
 
+function get_modulos_menu() {
+    global $DB;
+    $modulos = $DB->get_records_sql_menu(
+        "SELECT c.id,
+                REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
+           FROM {course} c
+          WHERE c.id != 1");
+    return $modulos;
+}
+
 /**
  * Função que busca todas as atividades (assign) dentro de um modulo (course)
  *
@@ -102,8 +114,6 @@ function get_atividades_modulos($modulos = null) {
     $query .=     "ORDER BY c.id";
 
     $atividades_modulos = $DB->get_recordset_sql($query);
-
-
 
     $group_array = new GroupArray();
     foreach ($atividades_modulos as $atividade) {

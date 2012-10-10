@@ -17,7 +17,6 @@ function get_dados_atividades_vs_notas($modulos = array()) {
                       CONCAT(u.firstname,' ',u.lastname) as user_name,
                       sub.timecreated as submission_date,
                       gr.timemodified,
-                      gr.grader,
                       gr.grade
                  FROM (
                       SELECT DISTINCT u.*
@@ -38,25 +37,30 @@ function get_dados_atividades_vs_notas($modulos = array()) {
             ORDER BY u.firstname
     ";
 
-    // Execução da consulta
+
+    // Recupera dados auxiliares
 
     $modulos = get_atividades_modulos($modulos);
-    $alunos = array();
+    $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
+
+
+    // Executa Consulta
 
     foreach ($modulos as $modulo => $atividades) {
 
         foreach ($atividades as $atividade) {
             $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+
             foreach ($result as $r) {
                 $alunos[$r->user_id] = $r->user_name;
 
-                // Adicionando campos extras
+                // Adiciona campos extras
                 $r->courseid = $modulo;
                 $r->assignid = $atividade->assign_id;
                 $r->duedate = $atividade->duedate;
 
-                // Adicionar no GroupArray
+                // Agrupa os dados por usuário
                 $group_dados->add($r->user_id, $r);
             }
         }
@@ -84,12 +88,14 @@ function get_dados_atividades_vs_notas($modulos = array()) {
                 }
 
             }
+            // Entregou e ainda não foi avaliada
             elseif ((float) $atividade->grade < 0 || is_null($atividade->grade)) {
                 $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
                 $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
                 $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
                 $atraso = $datadiff->format("%a");
             }
+            // Atividade entregue e avaliada
             elseif ((float) $atividade->grade > -1) {
                 $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
             }
@@ -99,7 +105,8 @@ function get_dados_atividades_vs_notas($modulos = array()) {
         $estudantes[] = $lista_atividades;
         $lista_atividades = null;
     }
-    return(array('Joao' => $estudantes));
+
+    return(array('Tutor' => $estudantes));
 }
 
 function get_table_header_atividades_vs_notas($modulos = array()) {
