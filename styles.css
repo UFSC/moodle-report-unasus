@@ -75,7 +75,8 @@
 }
 
 /* Cinza */
-.relatorio-unasus.atividades_vs_notas .nao_realizada {
+.relatorio-unasus.atividades_vs_notas .nao_realizada,
+.relatorio-unasus.historico_atribuicao_notas .nao_avaliada{
     color: #fff;
     background: #ccc;
 

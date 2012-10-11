@@ -224,7 +224,7 @@ class dado_entrega_de_atividades extends unasus_data {
         $legend['no_prazo'] = 'Atividade entregue em dia';
         $legend['pouco_atraso'] = 'Atividade entregue, com atraso de até X dias';
         $legend['muito_atraso'] = 'Atividade entregue, com atraso de mais de X dias';
-        
+
         return $legend;
     }
 
@@ -238,14 +238,19 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_NO_PRAZO = 1;
-    const CORRECAO_ATRASADA = 2;
+    const CORRECAO_POUCO_ATRASO = 2;
+    const CORRECAO_MUITO_ATRASO = 3;
+    const ATIVIDADE_ENTREGUE_NAO_AVALIADA = 4;
 
     private $tipo;
     private $atraso;
+    private $atividade_id;
 
-    function __construct($tipo, $atraso = 0) {
+    function __construct($tipo, $atividade_id, $atraso = 0) {
         $this->tipo = $tipo;
         $this->atraso = $atraso;
+        $this->atividade_id = $atividade_id;
+
     }
 
     public function __toString() {
@@ -266,8 +271,14 @@ class dado_historico_atribuicao_notas extends unasus_data {
             case dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO:
                 return 'no_prazo';
                 break;
-            case dado_historico_atribuicao_notas::CORRECAO_ATRASADA:
-                return ($this->atraso > 7) ? 'muito_atraso' : 'pouco_atraso';
+            case dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO:
+                return 'pouco_atraso';
+                break;
+            case dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO:
+                return 'muito_atraso';
+                break;
+            case dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA:
+                return 'nao_avaliada';
                 break;
         }
     }
@@ -275,11 +286,16 @@ class dado_historico_atribuicao_notas extends unasus_data {
     public static function get_legend() {
         $legend = array();
         $legend['nao_entregue'] = 'Em aberto (atividade não entregue pelo estudante)';
+        $legend['nao_avaliada'] = 'Atividade entregue e não avaliada, X dias após entrega';
         $legend['no_prazo'] = 'Avaliadas dentro do prazo';
         $legend['pouco_atraso'] = 'Avaliadas fora do prazo, em até X dias';
         $legend['muito_atraso'] = 'Avaliadas for a do prazo, após X dias';
 
         return $legend;
+    }
+
+    public function get_atividade_id(){
+        return $this->atividade_id;
     }
 
 }

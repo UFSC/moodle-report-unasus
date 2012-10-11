@@ -9,7 +9,7 @@
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($modulos = array()) {
+function get_dados_atividades_vs_notas($modulos) {
     global $DB;
 
     // Consulta
@@ -63,7 +63,9 @@ function get_dados_atividades_vs_notas($modulos = array()) {
                 // Agrupa os dados por usuário
                 $group_dados->add($r->user_id, $r);
             }
+
         }
+
     }
 
     $array_dados = $group_dados->get_assoc();
@@ -119,7 +121,7 @@ function get_table_header_atividades_vs_notas($modulos = array()) {
         $string_modulos = int_array_to_sql($modulos);
         $query .= "WHERE c.id IN ({$string_modulos})";
     }
-    $query .= "ORDER BY c.id";
+    //$query .= "ORDER BY c.id";
 
     $atividades_modulos = $DB->get_recordset_sql($query);
 
@@ -171,7 +173,7 @@ function get_dados_grafico_atividades_vs_notas() {
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_entrega_de_atividades($modulos = array()) {
+function get_dados_entrega_de_atividades($modulos) {
     global $DB;
 
     // Consulta
@@ -285,18 +287,6 @@ function get_dados_grafico_entrega_de_atividades() {
     );
 }
 
-function atividade_aleatoria() {
-    $random = rand(0, 100);
-
-    if ($random <= 65) { // Avaliada
-        return new dado_entrega_de_atividades(dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO);
-    } elseif ($random > 65 && $random <= 85) { // Avaliação atrasada
-        return new dado_entrega_de_atividades(dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO, rand(1, 20));
-    } elseif ($random > 85) { // Não entregue
-        return new dado_entrega_de_atividades(dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE);
-    }
-}
-
 //
 // Relatório de Histórico de Atribuição de Notas
 //
@@ -306,31 +296,121 @@ function atividade_aleatoria() {
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_historico_atribuicao_notas() {
-    $dados = array();
-    $tutores = get_nomes_tutores();
-    $estudantes = get_nomes_estudantes();
+function get_dados_historico_atribuicao_notas($modulos) {
+    global $DB;
 
-    for ($x = 0; $x <= 5; $x++) {
-        $tutor = $tutores[$x];
-        $alunos = array();
-        for ($i = 0; $i < 30; $i++) {
-            $estudante = $estudantes->current();
-            $estudantes->next();
-            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria(),
-                avaliacao_atividade_aleatoria());
+    // Consulta
+    $query = " SELECT u.id as user_id,
+                      CONCAT(u.firstname,' ',u.lastname) as user_name,
+                      sub.timecreated as submission_date,
+                      sub.timemodified as submission_modified,
+                      gr.timemodified as grade_modified,
+                      gr.timecreated as grade_created,
+                      gr.grade,
+                      sub.status
+                 FROM (
+                      SELECT DISTINCT u.*
+                        FROM {role_assignments} as ra
+                        JOIN {role} as r
+                          ON (r.id=ra.roleid)
+                        JOIN {context} as c
+                          ON (c.id=ra.contextid)
+                        JOIN {user} as u
+                          ON (u.id=ra.userid)
+                       WHERE c.contextlevel=50
+                         -- AND c.instanceid=:courseid
+                      ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            ORDER BY u.firstname
+            LIMIT 200
+    ";
+
+
+    // Recupera dados auxiliares
+
+    $modulos = get_atividades_modulos($modulos);
+    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $group_dados = new GroupArray();
+
+
+    // Executa Consulta
+
+    foreach ($modulos as $modulo => $atividades) {
+
+        foreach ($atividades as $atividade) {
+            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+
+            foreach ($result as $r) {
+                $alunos[$r->user_id] = $r->user_name;
+
+                // Adiciona campos extras
+                $r->courseid = $modulo;
+                $r->assignid = $atividade->assign_id;
+                $r->duedate = $atividade->duedate;
+
+                // Agrupa os dados por usuário
+                $group_dados->add($r->user_id, $r);
+            }
         }
-        $dados[$tutor] = $alunos;
     }
 
-    $estudantes->close();
-    return $dados;
+    $array_dados = $group_dados->get_assoc();
+
+    $estudantes = array();
+    $timenow = time();
+    foreach ($array_dados as $id_aluno => $aluno) {
+        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+
+        foreach ($aluno as $atividade) {
+            $atraso = null;
+            // Não enviou a atividade
+            if (is_null($atividade->submission_date)) {
+                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
+            }
+            //Atividade entregue e avalidada
+            elseif ((int)$atividade->grade >= 0) {
+
+
+                //quanto tempo desde a entrega até a correção
+                $data_correcao = ((int)$atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
+                $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
+                $atraso = $datadiff->format("%a");
+
+                //Correção no prazo esperado
+                if((int)$atraso < 3){
+                    $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
+                }
+                //Correção com pouco atraso
+                elseif((int)$atraso < 8){
+                    $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
+                }
+                //Correção com muito atraso
+                else{
+                    $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
+                }
+
+
+            }
+            //Atividade entregue e não avaliada
+            else{
+
+                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
+                $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
+                $atraso = $datadiff->format("%a");
+            }
+
+            $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
+        }
+        $estudantes[] = $lista_atividades;
+        $lista_atividades = null;
+    }
+
+    return(array('Tutor' => $estudantes));
 }
 
 function get_table_header_historico_atribuicao_notas($modulos) {
