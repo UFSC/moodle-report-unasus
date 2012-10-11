@@ -35,3 +35,19 @@ $string['unimplemented_graph_error'] = 'Gráfico não implementado';
 
 $string['potenciais_evasoes'] = 'Relatório de potenciais evasões';
 $string['potenciais_evasoes_help'] = 'OBJETIVO: estimar se um aluno pode possivelmente desistir do curso de acordo com as suas atividades não realizadas e atrasos de entrega.';
+
+$string['report_unasus_settings'] = 'Configurar Relatórios UNA-SUS';
+
+$string['report_unasus_tutor_heading'] = 'Prazos do tutor';
+$string['settings_prazo_esperado_avaliacao'] = 'Prazo esperado para Avaliação';
+$string['description_prazo_esperado_avaliacao'] = 'Informe o prazo em dias';
+
+$string['settings_prazo_maximo_avaliacao'] = 'Prazo máximo para Avaliação';
+$string['description_prazo_maximo_avaliacao'] = 'Informe o prazo em dias';
+
+$string['report_unasus_estudante_heading'] = 'Prazos do Estudante';
+$string['settings_tolerancia_entrega'] = 'Tolerância para entrega de atividades';
+$string['description_tolerancia_entrega'] = 'Informe a tolerância em dias';
+
+$string['settings_tolerancia_entrega_maxima'] = 'Tolerância máxima para entrega de atividades';
+$string['description_tolerancia_entrega_maxima'] = 'Informe a tolerância em dias';
