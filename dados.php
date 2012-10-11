@@ -109,20 +109,16 @@ function get_dados_atividades_vs_notas($modulos) {
     return (array('Tutor' => $estudantes));
 }
 
+/**
+ *  Cabeçalho de duas linhas para os relatórios
+ *  Primeira linha módulo1, modulo2
+ *  Segunda linha ativ1_mod1, ativ2_mod1, ativ1_mod2, ativ2_mod2
+ *
+ * @param array $modulos
+ * @return type
+ */
 function get_table_header_atividades_vs_notas($modulos = array()) {
-    global $DB;
-    $query = "SELECT a.id as assign_id, a.name as assign_name, REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name, c.id as course_id
-                FROM {course} as c
-                JOIN {assign} as a
-                  ON (c.id = a.course)";
-
-    if (!empty($modulos)) {
-        $string_modulos = int_array_to_sql($modulos);
-        $query .= "WHERE c.id IN ({$string_modulos})";
-    }
-    //$query .= "ORDER BY c.id";
-
-    $atividades_modulos = $DB->get_recordset_sql($query);
+    $atividades_modulos = query_atividades_modulos($modulos);
 
     $group = new GroupArray();
     $modulos = array();
@@ -198,7 +194,6 @@ function get_dados_entrega_de_atividades($modulos) {
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
             ORDER BY u.firstname
-            LIMIT 200
     ";
 
 
@@ -440,25 +435,101 @@ function avaliacao_atividade_aleatoria() {
 //
 
 function get_dados_estudante_sem_atividade_postada() {
-    $dados = array();
+    global $DB;
 
-    $tutores = get_nomes_tutores();
-    $estudantes = get_nomes_estudantes();
-    $modulos = get_nomes_modulos();
+    // Consulta
+    $query = " SELECT u.id as user_id,
+                      CONCAT(u.firstname,' ',u.lastname) as user_name,
+                      sub.timecreated as submission_date,
+                      gr.timemodified,
+                      gr.grade,
+                      sub.status
+                 FROM (
+                      SELECT DISTINCT u.*
+                        FROM {role_assignments} as ra
+                        JOIN {role} as r
+                          ON (r.id=ra.roleid)
+                        JOIN {context} as c
+                          ON (c.id=ra.contextid)
+                        JOIN {user} as u
+                          ON (u.id=ra.userid)
+                       WHERE c.contextlevel=50
+                      ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            ORDER BY u.firstname
+    ";
 
-    for ($x = 0; $x <= 3; $x++) {
-        $tutor = $tutores[$x];
-        $alunos = array();
-        for ($i = 0; $i < 40; $i++) {
-            $estudante = $estudantes->current();
-            $estudantes->next();
-            $alunos[] = atividade_nao_postada(new estudante($estudante->fullname, $estudante->id), $modulos);
+
+    // Recupera dados auxiliares
+
+    $modulos = get_atividades_modulos($modulos);
+    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $group_dados = new GroupArray();
+
+
+    // Executa Consulta
+
+    foreach ($modulos as $modulo => $atividades) {
+
+        foreach ($atividades as $atividade) {
+            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+
+            foreach ($result as $r) {
+                $alunos[$r->user_id] = $r->user_name;
+
+                // Adiciona campos extras
+                $r->courseid = $modulo;
+                $r->assignid = $atividade->assign_id;
+                $r->duedate = $atividade->duedate;
+
+                // Agrupa os dados por usuário
+                $group_dados->add($r->user_id, $r);
+            }
         }
-        $dados[$tutor] = $alunos;
     }
 
-    $estudantes->close();
-    return $dados;
+    $array_dados = $group_dados->get_assoc();
+
+    $estudantes = array();
+
+    foreach ($array_dados as $id_aluno => $aluno) {
+        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+
+        foreach ($aluno as $atividade) {
+            $atraso = null;
+
+            // Não enviou a atividade
+            if (is_null($atividade->submission_date)) {
+                if ((int) $atividade->duedate == 0) {
+                    // Não entregou e Atividade sem prazo de entrega
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                } else {
+                    // Não entregou e fora do prazo
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+                }
+            }
+            // Entregou antes ou na data de entrega esperada
+            elseif ((int) $atividade->submission_date <= (int) $atividade->duedate) {
+                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
+            }
+            // Entregou após a data esperada
+            else {
+                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
+                $atraso = $datadiff->format("%a");
+            }
+
+            $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
+        }
+        $estudantes[] = $lista_atividades;
+        $lista_atividades = null;
+    }
+
+    return(array('Tutor' => $estudantes));
 }
 
 function get_header_estudante_sem_atividade_postada($size) {

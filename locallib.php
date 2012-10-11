@@ -137,8 +137,29 @@ function get_tutores_menu() {
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
 function get_atividades_modulos($modulos = null) {
+    $atividades_modulos = query_atividades_modulos($modulos);
+    $group_array = new GroupArray();
+    foreach ($atividades_modulos as $atividade) {
+        $group_array->add($atividade->course_id, $atividade);
+    }
+    return $group_array->get_assoc();
+}
+
+/**
+ * Função que busca os courses com suas respectivas atividades e datas de entrega
+ * utilizada no get_atividade_modulos
+ *
+ * @global type $DB
+ * @param array $modulos
+ * @return record_sql
+ */
+function query_atividades_modulos($modulos = null){
     global $DB;
-    $query =     "SELECT a.id as assign_id, a.duedate, a.name as assign_name, c.id as course_id
+    $query =     "SELECT a.id as assign_id,
+                         a.duedate,
+                         a.name as assign_name,
+                         c.id as course_id,
+                         REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
                     FROM {course} as c
                     JOIN {assign} as a
                       ON (c.id = a.course)";
@@ -148,13 +169,7 @@ function get_atividades_modulos($modulos = null) {
     }
     $query .=     "ORDER BY c.id";
 
-    $atividades_modulos = $DB->get_recordset_sql($query);
-
-    $group_array = new GroupArray();
-    foreach ($atividades_modulos as $atividade) {
-        $group_array->add($atividade->course_id, $atividade);
-    }
-    return $group_array->get_assoc();
+    return $DB->get_recordset_sql($query);
 }
 
 /**

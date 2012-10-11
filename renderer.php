@@ -41,7 +41,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     public function build_report($graficos = true, $dot_chart = false) {
         raise_memory_limit(MEMORY_EXTRA);
-        
+
         $output = $this->default_header();
         $output .= $this->build_filter(true, $graficos, $dot_chart);
 
@@ -151,7 +151,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $CFG;
 
         // Inicio do Form
-        $output = html_writer::start_tag('form', array('action' => "{$CFG->wwwroot}/report/unasus/index.php?curso_ufsc={$this->curso_ativo}&relatorio={$this->report}",
+        $url_filtro = new moodle_url('/report/unasus/index.php', array('curso_ufsc'=>$this->curso_ativo, 'relatorio'=>$this->report));
+        $output = html_writer::start_tag('form', array('action' => $url_filtro,
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
         // Fieldset
