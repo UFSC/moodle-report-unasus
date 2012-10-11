@@ -28,7 +28,6 @@ function get_dados_atividades_vs_notas($modulos) {
                         JOIN {user} as u
                           ON (u.id=ra.userid)
                        WHERE c.contextlevel=50
-                         -- AND c.instanceid=:courseid
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -81,24 +80,24 @@ function get_dados_atividades_vs_notas($modulos) {
 
             // Não entregou
             if (is_null($atividade->submission_date)) {
-                if ((int) $atividade->duedate == 0) {
+                if ((int)$atividade->duedate == 0) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                 } elseif ($atividade->duedate > $timenow) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
                 } else {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
                 }
-            }
-            // Entregou e ainda não foi avaliada
-            elseif ((float) $atividade->grade < 0 || is_null($atividade->grade)) {
+            } // Entregou e ainda não foi avaliada
+            elseif (is_null($atividade->grade) || (float)$atividade->grade < 0) {
                 $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
-                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
                 $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
                 $atraso = $datadiff->format("%a");
-            }
-            // Atividade entregue e avaliada
-            elseif ((float) $atividade->grade > -1) {
+            } // Atividade entregue e avaliada
+            elseif ((float)$atividade->grade > -1) {
                 $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
+            } else {
+                print_error('unmatched_condition', 'report_unasus');
             }
 
             $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->assignid, $atividade->grade, $atraso);
@@ -107,7 +106,7 @@ function get_dados_atividades_vs_notas($modulos) {
         $lista_atividades = null;
     }
 
-    return(array('Tutor' => $estudantes));
+    return (array('Tutor' => $estudantes));
 }
 
 function get_table_header_atividades_vs_notas($modulos = array()) {
@@ -193,7 +192,6 @@ function get_dados_entrega_de_atividades($modulos) {
                         JOIN {user} as u
                           ON (u.id=ra.userid)
                        WHERE c.contextlevel=50
-                         -- AND c.instanceid=:courseid
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -297,7 +295,7 @@ function get_dados_grafico_entrega_de_atividades() {
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_historico_atribuicao_notas($modulos) {
-    global $DB;
+    global $DB, $CFG;
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -318,7 +316,6 @@ function get_dados_historico_atribuicao_notas($modulos) {
                         JOIN {user} as u
                           ON (u.id=ra.userid)
                        WHERE c.contextlevel=50
-                         -- AND c.instanceid=:courseid
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -369,39 +366,38 @@ function get_dados_historico_atribuicao_notas($modulos) {
             // Não enviou a atividade
             if (is_null($atividade->submission_date)) {
                 $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
-            }
-            //Atividade entregue e avalidada
-            elseif ((int)$atividade->grade >= 0) {
 
+            } //Atividade entregue e não avaliada
+            elseif (is_null($atividade->grade) || $atividade->grade < 0) {
+
+                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
+                $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
+                $atraso = (int)$datadiff->format("%a");
+
+            } //Atividade entregue e avalidada
+            elseif ((int)$atividade->grade >= 0) {
 
                 //quanto tempo desde a entrega até a correção
                 $data_correcao = ((int)$atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
                 $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
                 $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
-                $atraso = $datadiff->format("%a");
+                $atraso = (int)$datadiff->format("%a");
 
                 //Correção no prazo esperado
-                if((int)$atraso < 3){
+                if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
                     $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
-                }
-                //Correção com pouco atraso
-                elseif((int)$atraso < 8){
+                } //Correção com pouco atraso
+                elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
                     $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
-                }
-                //Correção com muito atraso
-                else{
+                } //Correção com muito atraso
+                else {
                     $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
                 }
 
 
-            }
-            //Atividade entregue e não avaliada
-            else{
-
-                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
-                $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
-                $atraso = $datadiff->format("%a");
+            } else {
+                print_error('unmatched_condition', 'report_unasus');
             }
 
             $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
@@ -410,7 +406,7 @@ function get_dados_historico_atribuicao_notas($modulos) {
         $lista_atividades = null;
     }
 
-    return(array('Tutor' => $estudantes));
+    return (array('Tutor' => $estudantes));
 }
 
 function get_table_header_historico_atribuicao_notas($modulos) {

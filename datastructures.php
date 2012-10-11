@@ -149,10 +149,12 @@ class dado_atividades_vs_notas extends unasus_data {
     }
 
     public static function get_legend() {
+        global $CFG;
+
         $legend = array();
         $legend['nota_atribuida'] = 'Nota atribuída';
-        $legend['pouco_atraso'] = 'Sem nota atribuída, dentro do prazo (até X dias após data de entrega)';
-        $legend['muito_atraso'] = 'Sem nota atribuída, fora do prazo (após X dias da data de entrega)';
+        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até {$CFG->report_unasus_prazo_avaliacao} dias após data de entrega)";
+        $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após {$CFG->report_unasus_prazo_maximo_avaliacao} dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
@@ -218,12 +220,14 @@ class dado_entrega_de_atividades extends unasus_data {
     }
 
     public static function get_legend() {
+        global $CFG;
+
         $legend = array();
         $legend['nao_entregue'] = 'Em aberto (não entregue)';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
         $legend['no_prazo'] = 'Atividade entregue em dia';
-        $legend['pouco_atraso'] = 'Atividade entregue, com atraso de até X dias';
-        $legend['muito_atraso'] = 'Atividade entregue, com atraso de mais de X dias';
+        $legend['pouco_atraso'] = "Atividade entregue, com atraso de até {$CFG->report_unasus_prazo_maximo_entrega} dias";
+        $legend['muito_atraso'] = "Atividade entregue, com atraso de mais de {$CFG->report_unasus_prazo_maximo_entrega} dias";
 
         return $legend;
     }
@@ -284,12 +288,14 @@ class dado_historico_atribuicao_notas extends unasus_data {
     }
 
     public static function get_legend() {
+        global $CFG;
+
         $legend = array();
         $legend['nao_entregue'] = 'Em aberto (atividade não entregue pelo estudante)';
-        $legend['nao_avaliada'] = 'Atividade entregue e não avaliada, X dias após entrega';
+        $legend['nao_avaliada'] = 'Atividade entregue e não avaliada';
         $legend['no_prazo'] = 'Avaliadas dentro do prazo';
-        $legend['pouco_atraso'] = 'Avaliadas fora do prazo, em até X dias';
-        $legend['muito_atraso'] = 'Avaliadas for a do prazo, após X dias';
+        $legend['pouco_atraso'] = "Avaliadas fora do prazo, em até {$CFG->report_unasus_prazo_maximo_avaliacao} dias";
+        $legend['muito_atraso'] = "Avaliadas fora do prazo, após  {$CFG->report_unasus_prazo_maximo_avaliacao} dias";
 
         return $legend;
     }
