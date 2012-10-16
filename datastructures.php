@@ -481,14 +481,17 @@ class dado_potenciais_evasoes extends unasus_data {
 
 class dado_modulo extends unasus_data {
 
-    private $modulo;
+    private $id;
+    private $nome;
 
-    function __construct($modulo) {
-        $this->modulo = $modulo;
+    function __construct($id, $nome) {
+        $this->id = $id;
+        $this->nome = $nome;
     }
 
     public function __toString() {
-        return $this->modulo;
+        $course_url = new moodle_url('/course/view.php', array('id' => $this->id));
+        return html_writer::link($course_url, $this->nome);
     }
 
     public function get_css_class() {
@@ -499,14 +502,20 @@ class dado_modulo extends unasus_data {
 
 class dado_atividade extends unasus_data {
 
-    private $atividade;
+    private $id;
+    private $nome;
+    private $course_id;
 
-    function __construct($atividade) {
-        $this->atividade = $atividade;
+    function __construct($id, $nome, $course_id) {
+        $this->id = $id;
+        $this->nome = $nome;
+        $this->course_id = $course_id;
     }
 
     public function __toString() {
-        return $this->atividade;
+            $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
+            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
+            return html_writer::link($atividade_url, $this->nome);
     }
 
     public function get_css_class() {

@@ -99,7 +99,7 @@ function get_nomes_polos() {
     return array_keys($polos);
 }
 
-function get_modulos_menu() {
+function get_id_nome_modulos() {
     global $DB;
     $modulos = $DB->get_records_sql_menu(
         "SELECT c.id,
@@ -108,6 +108,16 @@ function get_modulos_menu() {
           WHERE c.id != 1");
     return $modulos;
 }
+
+function get_id_nome_atividades() {
+    global $DB;
+    $modulos = $DB->get_records_sql_menu(
+        "SELECT a.id,
+                a.name
+           FROM {assign} a");
+    return $modulos;
+}
+
 
 /**
  * Dado que alimenta a lista do filtro tutores
