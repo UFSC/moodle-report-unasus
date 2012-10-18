@@ -308,14 +308,17 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 class dado_avaliacao_em_atraso extends unasus_data {
 
-    private $taxa;
+    private $total_alunos;
+    private $count_atrasos;
 
-    function __construct($taxa) {
-        $this->taxa = $taxa;
+    function __construct($total_alunos) {
+        $this->total_alunos = $total_alunos;
+        $this->count_atrasos = 0;
     }
 
     public function __toString() {
-        return "{$this->taxa}%";
+        $porcentagem = ($this->count_atrasos/$$this->total_alunos) * 100;
+        return "{$porcentagem}%";
     }
 
     public function get_css_class() {
@@ -324,6 +327,10 @@ class dado_avaliacao_em_atraso extends unasus_data {
 
     public static function get_legend() {
         return false;
+    }
+
+    public function incrementar_atraso(){
+        $this->count_atrasos++;
     }
 
 }

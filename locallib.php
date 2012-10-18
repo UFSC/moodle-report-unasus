@@ -3,6 +3,7 @@
 require_once("{$CFG->dirroot}/{$CFG->admin}/tool/tutores/middlewarelib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/dados.php');
+require_once($CFG->dirroot . '/report/unasus/dados/dados_atividades_vs_notas.php');
 
 function get_datetime_from_unixtime($unixtime) {
     return date_create(date("Y-m-d H:m:s", $unixtime));
@@ -83,6 +84,22 @@ function get_id_estudantes(){
            WHERE c.contextlevel=50;");
     return array_keys($estudantes);
 }
+
+function get_count_estudantes(){
+    global $DB;
+    $estudantes = $DB->get_records_sql("
+          SELECT COUNT(distinct u.id)
+            FROM {role_assignments} as ra
+            JOIN {role} as r
+              ON (r.id=ra.roleid)
+            JOIN {context} as c
+              ON (c.id=ra.contextid)
+            JOIN {user} as u
+              ON (u.id=ra.userid)
+           WHERE c.contextlevel=50;");
+    return array_keys($estudantes);
+}
+
 /**
  * Dado que alimenta a lista do filtro polos
  *

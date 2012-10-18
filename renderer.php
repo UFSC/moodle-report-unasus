@@ -419,7 +419,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header();
         $output .= $this->build_filter(true,false);
 
-        $table = $this->table_tutores(get_dados_atividades_nao_avaliadas(), get_header_modulo_atividade_geral());
+        $modulos = optional_param_array('modulos', null, PARAM_INT);
+
+        $table = $this->table_tutores(get_dados_atividades_nao_avaliadas($modulos), get_header_modulo_atividade_geral($modulos));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
