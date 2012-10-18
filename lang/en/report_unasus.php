@@ -1,6 +1,8 @@
 <?php
-$string['pluginname'] = 'Relatório UNA-SUS';
-$string['unasus:view'] = 'Visualizar relatórios da UNA-SUS';
+$string['pluginname'] = 'Relatórios UNA-SUS';
+$string['unasus:view'] = 'Visualizar listagem de relatórios da UNA-SUS';
+$string['unasus:view_all'] = 'Visualizar relatórios de todos estudantes';
+$string['unasus:view_tutoria'] = 'Visualizar relatórios dos estudantes do seu grupo de tutoria';
 
 $string['atividades_vs_notas'] = 'Acompanhamento: atribuição de notas';
 $string['atividades_vs_notas_help'] = 'OBJETIVO: Acompanhar a situação atual de realização das atividades dos estudantes e instrumentar os tutores com informações sobre atividades sem nota atribuída, e prazos para atribuição dessas notas.';

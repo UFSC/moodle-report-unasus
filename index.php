@@ -4,16 +4,23 @@
 require('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
+require_once($CFG->dirroot . '/report/unasus/lib.php');
 
-require_login(SITEID);
-
-// carrega arquivo module.js dentro deste módulo
-$PAGE->requires->js_init_call('M.report_unasus.init');
-
-$renderer = $PAGE->get_renderer('report_unasus');
+$courseid = required_param('course', PARAM_INT);
 $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
 $modo_exibicao = optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT);
 $curso_ufsc = optional_param('curso_ufsc', null, PARAM_INT);
+
+$course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
+$params = array('relatorio' => $relatorio);
+
+$PAGE->set_url('/report/unasus/index.php', $params);
+$PAGE->set_pagelayout('report');
+$PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
+
+require_login($course);
+
+$renderer = $PAGE->get_renderer('report_unasus');
 
 $RELATORIOS_VALIDOS = array(
     'atividades_vs_notas', 'entrega_de_atividades', 'historico_atribuicao_notas', 'atividades_nao_avaliadas',
@@ -22,16 +29,8 @@ $RELATORIOS_VALIDOS = array(
 
 // verificar se o relatório é válido e inicializar página (admin_externalpage_setup)
 // caso contrário, mostrar erro.
-if (in_array($relatorio, $RELATORIOS_VALIDOS)) {
-    admin_externalpage_setup("report_unasus_{$relatorio}", '', null, '', array('pagelayout' => 'report'));
-} else {
+if (!in_array($relatorio, report_unasus_relatorios_validos_list())) {
     print_error('unknow_report', 'report_unasus');
-}
-
-
-if (empty($curso_ufsc)) {
-    echo $renderer->choose_curso_ufsc_page('/report/unasus/index.php', $relatorio);
-    die;
 }
 
 // Renderiza os relatórios
