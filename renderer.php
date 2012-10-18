@@ -20,7 +20,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Carrega informações sobre cursos UFSC
         $this->cursos = get_cursos_ativos_list();
-        $this->curso_ativo = get_curso_ufsc_id();
+        $this->curso_ativo = get_course_id();
     }
 
     /*
@@ -151,7 +151,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $CFG;
 
         // Inicio do Form
-        $url_filtro = new moodle_url('/report/unasus/index.php', array('curso_ufsc'=>$this->curso_ativo, 'relatorio'=>$this->report));
+        $url_filtro = new moodle_url('/report/unasus/index.php', array('relatorio'=>$this->report, 'course'=>$this->curso_ativo));
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 

@@ -328,3 +328,7 @@ function get_cursos_ativos_list() {
 function get_curso_ufsc_id() {
     return optional_param('curso_ufsc', null, PARAM_INT);
 }
+
+function get_course_id() {
+    return required_param('course', PARAM_INT);
+}

@@ -6,7 +6,7 @@ require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
 require_once($CFG->dirroot . '/report/unasus/lib.php');
 
-$courseid = required_param('course', PARAM_INT);
+$courseid = get_course_id();
 $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
 $modo_exibicao = optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT);
 $curso_ufsc = optional_param('curso_ufsc', null, PARAM_INT);
