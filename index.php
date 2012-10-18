@@ -9,9 +9,7 @@ require_once($CFG->dirroot . '/report/unasus/lib.php');
 $courseid = get_course_id();
 $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
 $modo_exibicao = optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT);
-$curso_ufsc = optional_param('curso_ufsc', null, PARAM_INT);
 
-$course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
 $params = array('relatorio' => $relatorio, 'course' => $courseid);
 
 // verificar se o relatório é válido e inicializar página
@@ -21,7 +19,7 @@ if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
     $PAGE->set_pagelayout('report');
     $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
 
-    require_login($course);
+    require_login($courseid);
     $renderer = $PAGE->get_renderer('report_unasus');
 } else {
     print_error('unknow_report', 'report_unasus');

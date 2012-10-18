@@ -314,6 +314,26 @@ function int_array_to_sql($array){
     return implode(',', $array);
 }
 
+/**
+ * Recupera o curso UFSC a partir do código de curso moodle que originou a visualização do relatório
+ *
+ * A informação do curso UFSC está armazenada no campo idnumber da categoria principal (nivel 1)
+ * @return bool|string
+ */
+function get_curso_ufsc_id() {
+    global $DB;
+
+    $course = $DB->get_record('course', array('id' => get_course_id()), 'category', MUST_EXIST);
+    $category = $DB->get_record('course_categories', array('id' => $course->category), 'idnumber', MUST_EXIST);
+    $curso_ufsc_id = str_replace('curso_', '', $category->idnumber, $count);
+
+    return ($count) ? $curso_ufsc_id : false;
+}
+
+function get_course_id() {
+    return required_param('course', PARAM_INT);
+}
+
 ///
 /// Funcionalidades semelhantes duplicadas de tool tutores
 /// TODO: refatorar e deduplicar as funcinoalidades abaixo de forma que ambas ferramentas disponibilizem uma única API.
@@ -323,12 +343,4 @@ function get_cursos_ativos_list() {
     $middleware = Academico::singleton();
     $sql = "SELECT curso, nome_sintetico FROM {View_Cursos_Ativos}";
     return $middleware->get_records_sql_menu($sql);
-}
-
-function get_curso_ufsc_id() {
-    return optional_param('curso_ufsc', null, PARAM_INT);
-}
-
-function get_course_id() {
-    return required_param('course', PARAM_INT);
 }
