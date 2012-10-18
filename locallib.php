@@ -107,9 +107,9 @@ function get_count_estudantes(){
  */
 function get_nomes_polos() {
     $academico = Academico::singleton();
-    $polos = $academico->db->get_records_sql_menu("
+    $polos = $academico->get_records_sql_menu("
           SELECT DISTINCT(nomepolo)
-            FROM {$academico->view_usuarios_dados_adicionais}
+            FROM {View_Usuarios_Dados_Adicionais}
            WHERE nomepolo != ''
         ORDER BY nomepolo");
 
@@ -321,8 +321,8 @@ function int_array_to_sql($array){
 
 function get_cursos_ativos_list() {
     $middleware = Academico::singleton();
-    $sql = "SELECT curso, nome_sintetico FROM {$middleware->view_cursos_ativos}";
-    return $middleware->db->get_records_sql_menu($sql);
+    $sql = "SELECT curso, nome_sintetico FROM {View_Cursos_Ativos}";
+    return $middleware->get_records_sql_menu($sql);
 }
 
 function get_curso_ufsc_id() {
