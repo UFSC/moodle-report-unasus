@@ -12,24 +12,18 @@ $modo_exibicao = optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT);
 $curso_ufsc = optional_param('curso_ufsc', null, PARAM_INT);
 
 $course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
-$params = array('relatorio' => $relatorio);
+$params = array('relatorio' => $relatorio, 'course' => $courseid);
 
-$PAGE->set_url('/report/unasus/index.php', $params);
-$PAGE->set_pagelayout('report');
-$PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
-
-require_login($course);
-
-$renderer = $PAGE->get_renderer('report_unasus');
-
-$RELATORIOS_VALIDOS = array(
-    'atividades_vs_notas', 'entrega_de_atividades', 'historico_atribuicao_notas', 'atividades_nao_avaliadas',
-    'estudante_sem_atividade_postada', 'estudante_sem_atividade_avaliada', 'atividades_nota_atribuida', 'acesso_tutor', 'uso_sistema_tutor',
-    'potenciais_evasoes');
-
-// verificar se o relatório é válido e inicializar página (admin_externalpage_setup)
+// verificar se o relatório é válido e inicializar página
 // caso contrário, mostrar erro.
-if (!in_array($relatorio, report_unasus_relatorios_validos_list())) {
+if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
+    $PAGE->set_url('/report/unasus/index.php', $params);
+    $PAGE->set_pagelayout('report');
+    $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
+
+    require_login($course);
+    $renderer = $PAGE->get_renderer('report_unasus');
+} else {
     print_error('unknow_report', 'report_unasus');
 }
 

@@ -21,7 +21,7 @@ function report_unasus_extend_navigation_course($navigation, $course, $context) 
 
         foreach($reports as $report) {
             $url = new moodle_url('/report/unasus/index.php', array('relatorio' => $report, 'course' => $course->id));
-            $navigation->add(get_string($report, 'report_unasus'), $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/report', ''));
+            $navigation->add(get_string($report, 'report_unasus'), $url, navigation_node::TYPE_SETTING, null, $report, new pix_icon('i/report', ''));
         }
     }
 }
