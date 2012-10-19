@@ -10,25 +10,21 @@
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
-    global $DB;
     $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       sub.timecreated as submission_date,
                       gr.timemodified,
                       gr.grade
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                      SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -39,35 +35,26 @@ function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
 
 
     // Recupera dados auxiliares
-    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-
-    $tutores = get_tutores_grupo();
-
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $group_dados = new GroupArray();
+    $tutores = grupos_tutoria::get_tutores_curso_ufsc($curso_ufsc);
 
-    foreach ($tutores as $tutor) {
-        // Executa Consulta
-        foreach ($modulos as $modulo => $atividades) {
+    // Executa Consulta
+    foreach ($modulos as $modulo => $atividades) {
 
-            foreach ($atividades as $atividade) {
-                $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+        foreach ($atividades as $atividade) {
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
 
-                foreach ($result as $r) {
-                    $alunos[$r->user_id] = $r->user_name;
+            foreach ($result as $r) {
 
-                    // Adiciona campos extras
-                    $r->courseid = $modulo;
-                    $r->assignid = $atividade->assign_id;
-                    $r->duedate = $atividade->duedate;
-
-                    // Agrupa os dados por usuário
-                    $group_dados->add($r->user_id, $r);
-                }
+                // Agrupa os dados por usuário
+                $group_dados->add($r->user_id, $r);
             }
         }
     }
+    
     //transforma a consulta num array associativo
     $array_dados = $group_dados->get_assoc();
 
@@ -78,14 +65,14 @@ function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
 
 
     foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
         foreach ($aluno as $atividade) {
 
             $atraso = null;
 
             // Não entregou
             if (is_null($atividade->submission_date)) {
-                if ((int) $atividade->duedate == 0) {
+                if ((int)$atividade->duedate == 0) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                 } elseif ($atividade->duedate > $timenow) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
@@ -93,13 +80,13 @@ function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
                 }
             } // Entregou e ainda não foi avaliada
-            elseif (is_null($atividade->grade) || (float) $atividade->grade < 0) {
+            elseif (is_null($atividade->grade) || (float)$atividade->grade < 0) {
                 $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
-                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
                 $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
                 $atraso = $datadiff->format("%a");
             } // Atividade entregue e avaliada
-            elseif ((float) $atividade->grade > -1) {
+            elseif ((float)$atividade->grade > -1) {
                 $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
             } else {
                 print_error('unmatched_condition', 'report_unasus');

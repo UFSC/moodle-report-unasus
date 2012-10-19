@@ -102,36 +102,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
-    public function choose_curso_ufsc_page($destination_url, $relatorio) {
-
-        // Imprime cabeçalho da página
-        $output = $this->header();
-        $output .= $this->heading(get_string('grupos_tutoria', 'tool_tutores'));
-
-        $table = new html_table();
-        $table->head = array(get_string('cursos_ufsc', 'tool_tutores'));
-        $table->tablealign = 'center';
-        $table->data = array();
-
-        foreach ($this->cursos as $id_curso => $nome_curso) {
-            $url = new moodle_url($destination_url, array('curso_ufsc' => $id_curso, 'relatorio' => $relatorio));
-            $table->data[] = array(html_writer::link($url, $nome_curso));
-        }
-
-        $output .= html_writer::table($table);
-
-        $output .= $this->default_footer();
-        return $output;
-    }
-
     /**
      * Cria o cabeçalho padrão para os relatórios
      * @return String cabeçalho, título da página e barra de filtragem
      */
     public function default_header() {
         $output = $this->header();
-        //$output .= $this->help_icon('ativ','report_unasus');
-        //$output .= $this->heading($title);
 
         $title = get_string($this->report, 'report_unasus');
 
@@ -146,7 +122,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a barra de Filtros
-     * @return filter_tutor_polo $output
+     * @return string $output
      */
     public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false) {
         global $CFG;
@@ -418,6 +394,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function page_atividades_nao_avaliadas() {
+        raise_memory_limit(MEMORY_EXTRA);
         $output = $this->default_header();
         $output .= $this->build_filter(true,false);
 
