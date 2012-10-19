@@ -138,15 +138,10 @@ function get_table_header_atividades_vs_notas($modulos = array()) {
         $dados = array();
 
         foreach ($atividades as $atividade) {
+            $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
 
-            if (is_null($atividade->assign_id)) {
-                $dados[] = '';
-            } else {
-                $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
-
-                $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
-                $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
-            }
+            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
+            $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
         }
         $header[$course_link] = $dados;
     }

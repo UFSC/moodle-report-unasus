@@ -75,33 +75,30 @@ function get_dados_entrega_de_atividades($modulos) {
 
         foreach ($aluno as $atividade) {
             $atraso = null;
-            if (is_null($atividade->assignid)) {
-                $lista_atividades[] = '';
-            } else {
-                // Não enviou a atividade
-                if (is_null($atividade->submission_date)) {
-                    if ((int) $atividade->duedate == 0) {
-                        // Não entregou e Atividade sem prazo de entrega
-                        $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                    } else {
-                        // Não entregou e fora do prazo
-                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
-                    }
-                }
-                // Entregou antes ou na data de entrega esperada
-                elseif ((int) $atividade->submission_date <= (int) $atividade->duedate) {
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
-                }
-                // Entregou após a data esperada
-                else {
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                    $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
-                    $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
-                    $atraso = $datadiff->format("%a");
-                }
 
-                $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
+            // Não enviou a atividade
+            if (is_null($atividade->submission_date)) {
+                if ((int) $atividade->duedate == 0) {
+                    // Não entregou e Atividade sem prazo de entrega
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                } else {
+                    // Não entregou e fora do prazo
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+                }
             }
+            // Entregou antes ou na data de entrega esperada
+            elseif ((int) $atividade->submission_date <= (int) $atividade->duedate) {
+                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
+            }
+            // Entregou após a data esperada
+            else {
+                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
+                $atraso = $datadiff->format("%a");
+            }
+
+            $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
         }
         $estudantes[] = $lista_atividades;
         $lista_atividades = null;
@@ -202,44 +199,40 @@ function get_dados_historico_atribuicao_notas($modulos) {
 
         foreach ($aluno as $atividade) {
             $atraso = null;
-            if (is_null($atividade->assignid)) {
-                $lista_atividades[] = '';
-            } else {
-                // Não enviou a atividade
-                if (is_null($atividade->submission_date)) {
-                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
-                } //Atividade entregue e não avaliada
-                elseif (is_null($atividade->grade) || $atividade->grade < 0) {
+            // Não enviou a atividade
+            if (is_null($atividade->submission_date)) {
+                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
+            } //Atividade entregue e não avaliada
+            elseif (is_null($atividade->grade) || $atividade->grade < 0) {
 
-                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
-                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                    $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
-                    $atraso = (int) $datadiff->format("%a");
-                } //Atividade entregue e avalidada
-                elseif ((int) $atividade->grade >= 0) {
+                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
+                $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
+                $atraso = (int) $datadiff->format("%a");
+            } //Atividade entregue e avalidada
+            elseif ((int) $atividade->grade >= 0) {
 
-                    //quanto tempo desde a entrega até a correção
-                    $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
-                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                    $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
-                    $atraso = (int) $datadiff->format("%a");
+                //quanto tempo desde a entrega até a correção
+                $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
+                $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
+                $atraso = (int) $datadiff->format("%a");
 
-                    //Correção no prazo esperado
-                    if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
-                        $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
-                    } //Correção com pouco atraso
-                    elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
-                        $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
-                    } //Correção com muito atraso
-                    else {
-                        $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
-                    }
-                } else {
-                    print_error('unmatched_condition', 'report_unasus');
+                //Correção no prazo esperado
+                if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
+                    $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
+                } //Correção com pouco atraso
+                elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
+                    $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
+                } //Correção com muito atraso
+                else {
+                    $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
                 }
-
-                $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
+            } else {
+                print_error('unmatched_condition', 'report_unasus');
             }
+
+            $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
         }
         $estudantes[] = $lista_atividades;
         $lista_atividades = null;
@@ -361,11 +354,7 @@ function get_todo_list_data($modulos, $query) {
         $atividades_modulos = new GroupArray();
 
         foreach ($aluno as $atividade) {
-            if (is_null($atividade->assignid)) {
-                $atividades_modulos->add($atividade->courseid, null);
-            } else {
-                $atividades_modulos->add($atividade->courseid, $atividade->assignid);
-            }
+            $atividades_modulos->add($atividade->courseid, $atividade->assignid);
         }
 
 
@@ -373,11 +362,7 @@ function get_todo_list_data($modulos, $query) {
         foreach ($ativ_mod as $key => $modulo) {
             $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
             foreach ($modulo as $atividade) {
-                if (is_null($atividade)) {
-                    $lista_atividades[] = '';
-                } else {
-                    $lista_atividades[] = new dado_atividade($atividade, $id_nome_atividades[$atividade], $key);
-                }
+                $lista_atividades[] = new dado_atividade($atividade, $id_nome_atividades[$atividade], $key);
             }
         }
 
@@ -472,11 +457,9 @@ function get_dados_atividades_nao_avaliadas($modulos) {
             $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
             $total_atividades++;
             // para cada assign um novo dado de avaliacao em atraso
-            if (is_null($atividade->assign_id)) {
-                $lista_atividade->add(0, '');
-            } else {
-                $lista_atividade->add($atividade->assign_id, new dado_avaliacao_em_atraso($total_alunos));
-            }
+
+            $lista_atividade->add($atividade->assign_id, new dado_avaliacao_em_atraso($total_alunos));
+
             foreach ($result as $r) {
                 $alunos[$r->user_id] = $r->user_name;
 
@@ -764,10 +747,7 @@ function get_dados_potenciais_evasoes($modulos) {
 
             $atraso = null;
 
-
-            if (is_null($atividade->assignid)) {
-                $dados_modulos[$atividade->courseid] = '';
-            } elseif (is_null($atividade->submission_date) && $atividade->duedate <= $timenow) {
+            if (is_null($atividade->submission_date) && $atividade->duedate <= $timenow) {
                 $dados_modulos[$atividade->courseid]->add_atividade_nao_realizada();
             }
 //                if ((int)$atividade->duedate == 0) {
