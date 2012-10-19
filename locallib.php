@@ -27,12 +27,12 @@ function get_form_display(&$mform) {
 }
 
 function get_nomes_modulos() {
-    global $DB;
+    global $DB, $SITE;
     $modulos = $DB->get_records_sql(
         "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
            FROM {course} c
-          WHERE c.id != 1");
-    return array_keys($modulos);
+          WHERE c.id != :siteid");
+    return array_keys($modulos, array('siteid'=>$SITE->id));
 }
 
 /**
@@ -119,12 +119,12 @@ function get_nomes_polos() {
 }
 
 function get_id_nome_modulos() {
-    global $DB;
+    global $DB, $SITE;
     $modulos = $DB->get_records_sql_menu(
         "SELECT c.id,
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
            FROM {course} c
-          WHERE c.id != 1");
+          WHERE c.id != :siteid", array( 'siteid' => $SITE->id));
     return $modulos;
 }
 
@@ -182,8 +182,8 @@ function get_atividades_modulos($modulos = null) {
  * @param array $modulos
  * @return record_sql
  */
-function query_atividades_modulos($modulos = null){
-    global $DB;
+function query_atividades_modulos($modulos){
+    global $DB, $SITE;
     $query =     "SELECT a.id as assign_id,
                          a.duedate,
                          a.name as assign_name,
@@ -191,15 +191,15 @@ function query_atividades_modulos($modulos = null){
                          REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
                     FROM {course} as c
                LEFT JOIN {assign} as a
-                      ON (c.id = a.course)";
+                      ON (c.id = a.course)
+                   WHERE c.id != :siteid ";
     if($modulos){
         $string_modulos = int_array_to_sql($modulos);
-        $query .= "WHERE c.id IN ({$string_modulos})";
+        $query .= "  AND c.id IN ({$string_modulos}) ";
     }
     $query .=     "ORDER BY c.id";
 
-    
-    return $DB->get_recordset_sql($query);
+    return $DB->get_recordset_sql($query, array('siteid'=>$SITE->id));
 }
 
 /**
