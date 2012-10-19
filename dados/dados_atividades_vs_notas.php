@@ -61,9 +61,7 @@ function get_dados_atividades_vs_notas($modulos) {
                 // Agrupa os dados por usuário
                 $group_dados->add($r->user_id, $r);
             }
-
         }
-
     }
     //transforma a consulta num array associativo
     $array_dados = $group_dados->get_assoc();
@@ -82,7 +80,7 @@ function get_dados_atividades_vs_notas($modulos) {
 
             // Não entregou
             if (is_null($atividade->submission_date)) {
-                if ((int)$atividade->duedate == 0) {
+                if ((int) $atividade->duedate == 0) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                 } elseif ($atividade->duedate > $timenow) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
@@ -90,13 +88,13 @@ function get_dados_atividades_vs_notas($modulos) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
                 }
             } // Entregou e ainda não foi avaliada
-            elseif (is_null($atividade->grade) || (float)$atividade->grade < 0) {
+            elseif (is_null($atividade->grade) || (float) $atividade->grade < 0) {
                 $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
-                $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
                 $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
                 $atraso = $datadiff->format("%a");
             } // Atividade entregue e avaliada
-            elseif ((float)$atividade->grade > -1) {
+            elseif ((float) $atividade->grade > -1) {
                 $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
             } else {
                 print_error('unmatched_condition', 'report_unasus');
@@ -140,10 +138,15 @@ function get_table_header_atividades_vs_notas($modulos = array()) {
         $dados = array();
 
         foreach ($atividades as $atividade) {
-            $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
 
-            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
-            $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
+            if (is_null($atividade->assign_id)) {
+                $dados[] = '';
+            } else {
+                $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
+
+                $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
+                $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
+            }
         }
         $header[$course_link] = $dados;
     }
@@ -160,5 +163,4 @@ function get_dados_grafico_atividades_vs_notas() {
         'MEDIA DOS TUTORES' => array(8, 4, 5, 1.5, 8)
     );
 }
-
 

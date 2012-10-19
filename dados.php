@@ -1,6 +1,5 @@
 <?php
 
-
 //
 // Relatório de Acompanhamento de Entrega de Atividades
 //
@@ -76,30 +75,33 @@ function get_dados_entrega_de_atividades($modulos) {
 
         foreach ($aluno as $atividade) {
             $atraso = null;
-
-            // Não enviou a atividade
-            if (is_null($atividade->submission_date)) {
-                if ((int) $atividade->duedate == 0) {
-                    // Não entregou e Atividade sem prazo de entrega
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                } else {
-                    // Não entregou e fora do prazo
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+            if (is_null($atividade->assignid)) {
+                $lista_atividades[] = '';
+            } else {
+                // Não enviou a atividade
+                if (is_null($atividade->submission_date)) {
+                    if ((int) $atividade->duedate == 0) {
+                        // Não entregou e Atividade sem prazo de entrega
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                    } else {
+                        // Não entregou e fora do prazo
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+                    }
                 }
-            }
-            // Entregou antes ou na data de entrega esperada
-            elseif ((int) $atividade->submission_date <= (int) $atividade->duedate) {
-                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
-            }
-            // Entregou após a data esperada
-            else {
-                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
-                $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
-                $atraso = $datadiff->format("%a");
-            }
+                // Entregou antes ou na data de entrega esperada
+                elseif ((int) $atividade->submission_date <= (int) $atividade->duedate) {
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
+                }
+                // Entregou após a data esperada
+                else {
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                    $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                    $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
+                    $atraso = $datadiff->format("%a");
+                }
 
-            $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
+                $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
+            }
         }
         $estudantes[] = $lista_atividades;
         $lista_atividades = null;
@@ -200,44 +202,44 @@ function get_dados_historico_atribuicao_notas($modulos) {
 
         foreach ($aluno as $atividade) {
             $atraso = null;
-            // Não enviou a atividade
-            if (is_null($atividade->submission_date)) {
-                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
+            if (is_null($atividade->assignid)) {
+                $lista_atividades[] = '';
+            } else {
+                // Não enviou a atividade
+                if (is_null($atividade->submission_date)) {
+                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
+                } //Atividade entregue e não avaliada
+                elseif (is_null($atividade->grade) || $atividade->grade < 0) {
 
-            } //Atividade entregue e não avaliada
-            elseif (is_null($atividade->grade) || $atividade->grade < 0) {
+                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
+                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                    $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
+                    $atraso = (int) $datadiff->format("%a");
+                } //Atividade entregue e avalidada
+                elseif ((int) $atividade->grade >= 0) {
 
-                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
-                $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
-                $atraso = (int)$datadiff->format("%a");
+                    //quanto tempo desde a entrega até a correção
+                    $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
+                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                    $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
+                    $atraso = (int) $datadiff->format("%a");
 
-            } //Atividade entregue e avalidada
-            elseif ((int)$atividade->grade >= 0) {
-
-                //quanto tempo desde a entrega até a correção
-                $data_correcao = ((int)$atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
-                $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
-                $atraso = (int)$datadiff->format("%a");
-
-                //Correção no prazo esperado
-                if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
-                    $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
-                } //Correção com pouco atraso
-                elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
-                    $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
-                } //Correção com muito atraso
-                else {
-                    $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
+                    //Correção no prazo esperado
+                    if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
+                    } //Correção com pouco atraso
+                    elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
+                    } //Correção com muito atraso
+                    else {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
+                    }
+                } else {
+                    print_error('unmatched_condition', 'report_unasus');
                 }
 
-
-            } else {
-                print_error('unmatched_condition', 'report_unasus');
+                $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
             }
-
-            $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
         }
         $estudantes[] = $lista_atividades;
         $lista_atividades = null;
@@ -314,7 +316,7 @@ function get_header_estudante_sem_atividade_postada($size) {
     return $header;
 }
 
-function get_todo_list_data($modulos, $query){
+function get_todo_list_data($modulos, $query) {
     global $DB;
 
     // Recupera dados auxiliares
@@ -359,19 +361,24 @@ function get_todo_list_data($modulos, $query){
         $atividades_modulos = new GroupArray();
 
         foreach ($aluno as $atividade) {
-
-            $atividades_modulos->add($atividade->courseid, $atividade->assignid);
-
+            if (is_null($atividade->assignid)) {
+                $atividades_modulos->add($atividade->courseid, null);
+            } else {
+                $atividades_modulos->add($atividade->courseid, $atividade->assignid);
+            }
         }
 
 
         $ativ_mod = $atividades_modulos->get_assoc();
-        foreach( $ativ_mod as $key => $modulo){
-            $lista_atividades[] = new dado_modulo($key,$id_nome_modulos[$key]);
-            foreach($modulo as $atividade){
-                $lista_atividades[] = new dado_atividade($atividade, $id_nome_atividades[$atividade], $key);
+        foreach ($ativ_mod as $key => $modulo) {
+            $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
+            foreach ($modulo as $atividade) {
+                if (is_null($atividade)) {
+                    $lista_atividades[] = '';
+                } else {
+                    $lista_atividades[] = new dado_atividade($atividade, $id_nome_atividades[$atividade], $key);
+                }
             }
-
         }
 
 
@@ -381,7 +388,6 @@ function get_todo_list_data($modulos, $query){
     }
     return(array('Tutor' => $estudantes));
 }
-
 
 //
 // Lista: Atividades não Avaliadas
@@ -450,7 +456,7 @@ function get_dados_atividades_nao_avaliadas($modulos) {
             ORDER BY u.firstname
     ";
 
-     // Recupera dados auxiliares
+    // Recupera dados auxiliares
     $modulos = get_atividades_modulos($modulos);
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
@@ -466,8 +472,11 @@ function get_dados_atividades_nao_avaliadas($modulos) {
             $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
             $total_atividades++;
             // para cada assign um novo dado de avaliacao em atraso
-            $lista_atividade->add($atividade->assign_id, new dado_avaliacao_em_atraso($total_alunos));
-
+            if (is_null($atividade->assign_id)) {
+                $lista_atividade->add(0, '');
+            } else {
+                $lista_atividade->add($atividade->assign_id, new dado_avaliacao_em_atraso($total_alunos));
+            }
             foreach ($result as $r) {
                 $alunos[$r->user_id] = $r->user_name;
 
@@ -499,11 +508,11 @@ function get_dados_atividades_nao_avaliadas($modulos) {
     $aux = array();
     $aux[] = new tutor('GERAL', 12);
 
-    foreach($atividades_tutor as $atividade){
+    foreach ($atividades_tutor as $atividade) {
         $aux[] = $atividade[0];
     }
 
-    $aux[] = new dado_media(($somatorio_total_atrasos*100)/($total_alunos*$total_atividades));
+    $aux[] = new dado_media(($somatorio_total_atrasos * 100) / ($total_alunos * $total_atividades));
 
     $dados[] = $aux;
     return($dados);
@@ -514,7 +523,7 @@ function get_dados_atividades_nao_avaliadas($modulos) {
 //
 
 function get_dados_atividades_nota_atribuida($modulos) {
-        global $DB;
+    global $DB;
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -540,7 +549,7 @@ function get_dados_atividades_nota_atribuida($modulos) {
             ORDER BY u.firstname
     ";
 
-     // Recupera dados auxiliares
+    // Recupera dados auxiliares
     $modulos = get_atividades_modulos($modulos);
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
@@ -589,17 +598,15 @@ function get_dados_atividades_nota_atribuida($modulos) {
     $aux = array();
     $aux[] = new tutor('GERAL', 12);
 
-    foreach($atividades_tutor as $atividade){
+    foreach ($atividades_tutor as $atividade) {
         $aux[] = $atividade[0];
     }
 
-    $aux[] = new dado_media(($somatorio_total_atrasos*100)/($total_alunos*$total_atividades));
+    $aux[] = new dado_media(($somatorio_total_atrasos * 100) / ($total_alunos * $total_atividades));
 
     $dados[] = $aux;
     return($dados);
 }
-
-
 
 //
 // Uso do Sistema pelo Tutor (horas)
@@ -732,9 +739,7 @@ function get_dados_potenciais_evasoes($modulos) {
                 // Agrupa os dados por usuário
                 $group_dados->add($r->user_id, $r);
             }
-
         }
-
     }
     //transforma a consulta num array associativo
     $array_dados = $group_dados->get_assoc();
@@ -752,7 +757,7 @@ function get_dados_potenciais_evasoes($modulos) {
         $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
         foreach ($aluno as $atividade) {
 
-            if(!key_exists($atividade->courseid, $dados_modulos)){
+            if (!key_exists($atividade->courseid, $dados_modulos)) {
 
                 $dados_modulos[$atividade->courseid] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->courseid]));
             }
@@ -760,10 +765,9 @@ function get_dados_potenciais_evasoes($modulos) {
             $atraso = null;
 
 
-            if(is_null($atividade->assignid)){
+            if (is_null($atividade->assignid)) {
                 $dados_modulos[$atividade->courseid] = '';
-            }
-            elseif (is_null($atividade->submission_date) && $atividade->duedate <= $timenow) {
+            } elseif (is_null($atividade->submission_date) && $atividade->duedate <= $timenow) {
                 $dados_modulos[$atividade->courseid]->add_atividade_nao_realizada();
             }
 //                if ((int)$atividade->duedate == 0) {
@@ -787,12 +791,9 @@ function get_dados_potenciais_evasoes($modulos) {
 //            }
 //
 //            $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->assignid, $atividade->grade, $atraso);
-
-
-
         }
 
-        foreach($dados_modulos as $key => $modulo){
+        foreach ($dados_modulos as $key => $modulo) {
             $lista_atividades[] = $modulo;
         }
 
@@ -807,7 +808,7 @@ function get_table_header_potenciais_evasoes($modulos) {
 
     $header = array();
     $header[] = 'Estudantes';
-    foreach($modulos as $modulo){
+    foreach ($modulos as $modulo) {
         $header[] = new dado_modulo($modulo, $nome_modulos[$modulo]);
     }
 
@@ -846,11 +847,11 @@ function get_dados_avaliacao_em_atraso() {
 }
 
 function get_table_header_atividades_nota_atribuida($modulos) {
-    return get_header_atividades_nao_avaliadas($modulos);
+    return get_table_header_atividades_nao_avaliadas($modulos);
 }
 
 function get_table_header_atividades_nao_avaliadas($modulos) {
-    $header =  get_table_header_atividades_vs_notas($modulos);
+    $header = get_table_header_atividades_vs_notas($modulos);
     $header[''] = array('Média');
     return $header;
 }
