@@ -9,39 +9,35 @@
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_entrega_de_atividades($modulos) {
-    global $DB;
+function get_dados_entrega_de_atividades($modulos, $curso_ufsc) {
+    $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       sub.timecreated as submission_date,
                       gr.timemodified,
                       gr.grade,
                       sub.status
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                      SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
-            ORDER BY u.firstname
+            ORDER BY u.firstname, u.lastname
     ";
-
 
     // Recupera dados auxiliares
 
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $modulos = get_atividades_modulos($modulos);
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $group_dados = new GroupArray();
 
 
@@ -50,10 +46,10 @@ function get_dados_entrega_de_atividades($modulos) {
     foreach ($modulos as $modulo => $atividades) {
 
         foreach ($atividades as $atividade) {
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
 
             foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
 
                 // Adiciona campos extras
                 $r->courseid = $modulo;
@@ -71,7 +67,7 @@ function get_dados_entrega_de_atividades($modulos) {
     $estudantes = array();
 
     foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
 
         foreach ($aluno as $atividade) {
             $atraso = null;
@@ -129,12 +125,13 @@ function get_dados_grafico_entrega_de_atividades() {
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_historico_atribuicao_notas($modulos) {
-    global $DB, $CFG;
+function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
+    global $CFG;
+
+    $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       sub.timecreated as submission_date,
                       sub.timemodified as submission_modified,
                       gr.timemodified as grade_modified,
@@ -142,29 +139,26 @@ function get_dados_historico_atribuicao_notas($modulos) {
                       gr.grade,
                       sub.status
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                       SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
-            ORDER BY u.firstname
-            LIMIT 200
+            ORDER BY u.firstname, u.lastname
     ";
 
 
     // Recupera dados auxiliares
 
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $modulos = get_atividades_modulos($modulos);
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $group_dados = new GroupArray();
 
 
@@ -173,10 +167,10 @@ function get_dados_historico_atribuicao_notas($modulos) {
     foreach ($modulos as $modulo => $atividades) {
 
         foreach ($atividades as $atividade) {
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
 
             foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
 
                 // Adiciona campos extras
                 $r->courseid = $modulo;
@@ -194,7 +188,7 @@ function get_dados_historico_atribuicao_notas($modulos) {
     $estudantes = array();
     $timenow = time();
     foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
 
         foreach ($aluno as $atividade) {
             $atraso = null;
@@ -270,33 +264,30 @@ function avaliacao_atividade_aleatoria() {
 // Lista: Atividades Não Postadas
 //
 
-function get_dados_estudante_sem_atividade_postada($modulos) {
-    global $DB;
+function get_dados_estudante_sem_atividade_postada($modulos, $curso_ufsc) {
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       gr.grade,
                       sub.status
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                       SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id)
             WHERE sub.status IS NULL
-            ORDER BY u.firstname
+            ORDER BY u.firstname, u.lastname
     ";
-    return get_todo_list_data($modulos, $query);
+
+    return get_todo_list_data($modulos, $query, $curso_ufsc);
 }
 
 function get_header_estudante_sem_atividade_postada($size) {
@@ -308,25 +299,22 @@ function get_header_estudante_sem_atividade_postada($size) {
     return $header;
 }
 
-function get_todo_list_data($modulos, $query) {
-    global $DB;
+function get_todo_list_data($modulos, $query, $curso_ufsc){
+    $middleware = Academico::singleton();
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $modulos = get_atividades_modulos($modulos);
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $group_dados = new GroupArray();
 
-
-
     // Executa Consulta
-
     foreach ($modulos as $modulo => $atividades) {
 
         foreach ($atividades as $atividade) {
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
 
             foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
 
                 // Adiciona campos extras
                 $r->courseid = $modulo;
@@ -348,7 +336,7 @@ function get_todo_list_data($modulos, $query) {
     $estudantes = array();
 
     foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
 
         $atividades_modulos = new GroupArray();
 
@@ -377,31 +365,30 @@ function get_todo_list_data($modulos, $query) {
 // Lista: Atividades não Avaliadas
 //
 
-function get_dados_estudante_sem_atividade_avaliada($modulos) {
+function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc) {
+
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       gr.grade,
                       sub.status
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                       SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
             WHERE gr.grade IS NULL OR gr.grade = -1
-            ORDER BY u.firstname
+            ORDER BY u.firstname, u.lastname
     ";
-    return get_todo_list_data($modulos, $query);
+
+    return get_todo_list_data($modulos, $query, $curso_ufsc);
 }
 
 //
@@ -413,36 +400,33 @@ function get_dados_estudante_sem_atividade_avaliada($modulos) {
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_nao_avaliadas($modulos) {
-    global $DB;
+function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc) {
+
+    $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       gr.grade,
                       sub.status
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                       SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id)
             WHERE sub.status IS NULL
-            ORDER BY u.firstname
+            ORDER BY u.firstname, u.lastname
     ";
 
-    // Recupera dados auxiliares
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+     // Recupera dados auxiliares
+    $modulos = get_atividades_modulos($modulos);
     $group_dados = new GroupArray();
 
     // Listagem da atividades por tutor
@@ -453,14 +437,15 @@ function get_dados_atividades_nao_avaliadas($modulos) {
     // Executa Consulta
     foreach ($modulos as $modulo => $atividades) {
         foreach ($atividades as $atividade) {
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
             $total_atividades++;
+
             // para cada assign um novo dado de avaliacao em atraso
 
             $lista_atividade->add($atividade->assign_id, new dado_avaliacao_em_atraso($total_alunos));
 
             foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
 
                 // Adiciona campos extras
                 $r->courseid = $modulo;
@@ -504,36 +489,32 @@ function get_dados_atividades_nao_avaliadas($modulos) {
 // Síntese: atividades concluídas
 //
 
-function get_dados_atividades_nota_atribuida($modulos) {
-    global $DB;
+function get_dados_atividades_nota_atribuida($modulos, $curso_ufsc) {
+    $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       gr.grade,
                       sub.status
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                      SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
             WHERE gr.grade IS NOT NULL OR gr.grade != -1
-            ORDER BY u.firstname
+            ORDER BY u.firstname, u.lastname
     ";
 
-    // Recupera dados auxiliares
-    $modulos = get_atividades_modulos(get_atividades_modulos($modulos));
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+     // Recupera dados auxiliares
+    $modulos = get_atividades_modulos($modulos);
     $group_dados = new GroupArray();
 
     // Listagem da atividades por tutor
@@ -544,13 +525,14 @@ function get_dados_atividades_nota_atribuida($modulos) {
     // Executa Consulta
     foreach ($modulos as $modulo => $atividades) {
         foreach ($atividades as $atividade) {
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
             $total_atividades++;
+
             // para cada assign um novo dado de avaliacao em atraso
             $lista_atividade->add($atividade->assign_id, new dado_atividades_nota_atribuida($total_alunos));
 
             foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
 
                 // Adiciona campos extras
                 $r->courseid = $modulo;
@@ -667,30 +649,28 @@ function get_table_header_acesso_tutor() {
 //
 
 function get_dados_potenciais_evasoes($modulos) {
-    global $DB;
+
+    $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       sub.timecreated as submission_date,
                       gr.timemodified,
                       gr.grade
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                      SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id)
-            ORDER BY u.firstname
+            ORDER BY u.firstname, u.lastname
     ";
 
 
@@ -698,8 +678,8 @@ function get_dados_potenciais_evasoes($modulos) {
 
 
 
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $modulos = get_atividades_modulos($modulos);
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $group_dados = new GroupArray();
 
 
@@ -707,11 +687,10 @@ function get_dados_potenciais_evasoes($modulos) {
     foreach ($modulos as $modulo => $atividades) {
 
         foreach ($atividades as $atividade) {
-
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
 
             foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
 
                 // Adiciona campos extras
                 $r->courseid = $modulo;
@@ -736,10 +715,10 @@ function get_dados_potenciais_evasoes($modulos) {
 
     foreach ($array_dados as $id_aluno => $aluno) {
         $dados_modulos = array();
-        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
         foreach ($aluno as $atividade) {
 
-            if (!key_exists($atividade->courseid, $dados_modulos)) {
+            if(!array_key_exists($atividade->courseid, $dados_modulos)){
 
                 $dados_modulos[$atividade->courseid] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->courseid]));
             }
