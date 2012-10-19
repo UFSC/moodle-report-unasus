@@ -9,25 +9,22 @@
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($modulos) {
-    global $DB;
+function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
+    $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
-                      CONCAT(u.firstname,' ',u.lastname) as user_name,
                       sub.timecreated as submission_date,
                       gr.timemodified,
                       gr.grade
                  FROM (
-                      SELECT DISTINCT u.*
-                        FROM {role_assignments} as ra
-                        JOIN {role} as r
-                          ON (r.id=ra.roleid)
-                        JOIN {context} as c
-                          ON (c.id=ra.contextid)
-                        JOIN {user} as u
-                          ON (u.id=ra.userid)
-                       WHERE c.contextlevel=50
+                      SELECT DISTINCT u.id, u.firstname, u.lastname
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -39,7 +36,7 @@ function get_dados_atividades_vs_notas($modulos) {
 
     // Recupera dados auxiliares
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $group_dados = new GroupArray();
 
 
@@ -47,10 +44,10 @@ function get_dados_atividades_vs_notas($modulos) {
     foreach ($modulos as $modulo => $atividades) {
 
         foreach ($atividades as $atividade) {
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
+            $result = $middleware->get_records_sql($query, $params);
 
             foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
 
                 // Adiciona campos extras
                 $r->courseid = $modulo;
@@ -72,7 +69,7 @@ function get_dados_atividades_vs_notas($modulos) {
 
 
     foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
         foreach ($aluno as $atividade) {
 
             $atraso = null;
