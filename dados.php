@@ -40,7 +40,7 @@ function get_dados_entrega_de_atividades($modulos) {
 
     // Recupera dados auxiliares
 
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
@@ -97,7 +97,6 @@ function get_dados_entrega_de_atividades($modulos) {
                 $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
                 $atraso = $datadiff->format("%a");
             }
-
             $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
         }
         $estudantes[] = $lista_atividades;
@@ -164,7 +163,7 @@ function get_dados_historico_atribuicao_notas($modulos) {
 
     // Recupera dados auxiliares
 
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
@@ -313,7 +312,7 @@ function get_todo_list_data($modulos, $query) {
     global $DB;
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
@@ -442,7 +441,7 @@ function get_dados_atividades_nao_avaliadas($modulos) {
     ";
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
@@ -533,7 +532,7 @@ function get_dados_atividades_nota_atribuida($modulos) {
     ";
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_atividades_modulos($modulos));
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
@@ -699,7 +698,7 @@ function get_dados_potenciais_evasoes($modulos) {
 
 
 
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
@@ -745,7 +744,6 @@ function get_dados_potenciais_evasoes($modulos) {
                 $dados_modulos[$atividade->courseid] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->courseid]));
             }
 
-            $atraso = null;
 
             if (is_null($atividade->submission_date) && $atividade->duedate <= $timenow) {
                 $dados_modulos[$atividade->courseid]->add_atividade_nao_realizada();
@@ -785,13 +783,15 @@ function get_dados_potenciais_evasoes($modulos) {
 
 function get_table_header_potenciais_evasoes($modulos) {
     $nome_modulos = get_id_nome_modulos();
+    if(is_null($modulos)){
+        $modulos = get_id_modulos();
+    }
 
     $header = array();
     $header[] = 'Estudantes';
     foreach ($modulos as $modulo) {
         $header[] = new dado_modulo($modulo, $nome_modulos[$modulo]);
     }
-
     return $header;
 }
 

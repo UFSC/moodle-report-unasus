@@ -29,10 +29,12 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql(
-        "SELECT REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
+          "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) as fullname
            FROM {course} c
+           JOIN {assign} a
+             ON (c.id = a.course)
           WHERE c.id != :siteid");
-    return array_keys($modulos, array('siteid'=>$SITE->id));
+    return array_keys($modulos, array('siteid' => $SITE->id));
 }
 
 /**
@@ -71,7 +73,7 @@ function get_nomes_estudantes() {
     return $estudantes;
 }
 
-function get_id_estudantes(){
+function get_id_estudantes() {
     global $DB;
     $estudantes = $DB->get_records_sql("
           SELECT distinct u.id
@@ -86,7 +88,7 @@ function get_id_estudantes(){
     return array_keys($estudantes);
 }
 
-function get_count_estudantes(){
+function get_count_estudantes() {
     global $DB;
     $estudantes = $DB->get_records_sql("
           SELECT COUNT(distinct u.id)
@@ -121,22 +123,34 @@ function get_nomes_polos() {
 function get_id_nome_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql_menu(
-        "SELECT c.id,
+          "SELECT DISTINCT(c.id),
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
            FROM {course} c
-          WHERE c.id != :siteid", array( 'siteid' => $SITE->id));
+           JOIN {assign} a
+             ON (c.id = a.course)
+          WHERE c.id != :siteid", array('siteid' => $SITE->id));
     return $modulos;
+}
+
+function get_id_modulos() {
+    global $DB, $SITE;
+    $modulos = $DB->get_records_sql_menu(
+          "SELECT DISTINCT(c.id)
+           FROM {course} c
+           JOIN {assign} a
+             ON (c.id = a.course)
+          WHERE c.id != :siteid", array('siteid' => $SITE->id));
+    return array_keys($modulos);
 }
 
 function get_id_nome_atividades() {
     global $DB;
     $modulos = $DB->get_records_sql_menu(
-        "SELECT a.id,
+          "SELECT a.id,
                 a.name
            FROM {assign} a");
     return $modulos;
 }
-
 
 /**
  * Dado que alimenta a lista do filtro tutores
@@ -146,7 +160,7 @@ function get_id_nome_atividades() {
 function get_tutores_menu() {
     global $DB;
     $tutores = $DB->get_records_sql_menu(
-        "SELECT DISTINCT u.id,
+          "SELECT DISTINCT u.id,
                 CONCAT(firstname,' ',lastname) as fullname
            FROM {role_assignments} as ra
            JOIN {role} as r
@@ -182,9 +196,12 @@ function get_atividades_modulos($modulos = null) {
  * @param array $modulos
  * @return record_sql
  */
-function query_atividades_modulos($modulos){
+function query_atividades_modulos($modulos) {
     global $DB, $SITE;
-    $query =     "SELECT a.id as assign_id,
+
+    $string_modulos = get_modulos_validos($modulos);
+
+    $query = "SELECT a.id as assign_id,
                          a.duedate,
                          a.name as assign_name,
                          c.id as course_id,
@@ -192,15 +209,31 @@ function query_atividades_modulos($modulos){
                     FROM {course} as c
                LEFT JOIN {assign} as a
                       ON (c.id = a.course)
-                   WHERE c.id != :siteid ";
-    if($modulos){
-        $string_modulos = int_array_to_sql($modulos);
-        $query .= "  AND c.id IN ({$string_modulos}) ";
-    }
-    $query .=     "ORDER BY c.id";
+                   WHERE c.id != :siteid
+                     AND c.id IN ({$string_modulos})
+               ORDER BY c.id";
 
-    return $DB->get_recordset_sql($query, array('siteid'=>$SITE->id));
+    return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
+
+
+/**
+ * Verifica se o usuário não enviar uma listagem de modulos obtem todos os modulos válidos (possuem atividade)
+ *
+ * @param array $modulos
+ * @return array
+ */
+function get_modulos_validos($modulos){
+    $string_modulos;
+    if ($modulos) {
+        $string_modulos = int_array_to_sql($modulos);
+    }else {
+        $string_modulos = int_array_to_sql(get_id_modulos());
+    }
+    return $string_modulos;
+}
+
+
 
 /**
  * Classe que constroi a tabela para os relatorios, extende a html_table
@@ -274,8 +307,6 @@ class report_unasus_table extends html_table {
 
 }
 
-
-
 /**
  * Estrutura de dados semelhante ao Array() do php, que permite armazenar mais
  * de um dado em uma mesma chave
@@ -301,8 +332,8 @@ class GroupArray {
     function get_assoc() {
         return $this->data;
     }
-}
 
+}
 
 /**
  * Transforma um array de inteiros numa string unica
@@ -310,8 +341,8 @@ class GroupArray {
  * @param array $array
  * @return String
  */
-function int_array_to_sql($array){
-    if(!is_array($array)){
+function int_array_to_sql($array) {
+    if (!is_array($array)) {
         return $array;
     }
     return implode(',', $array);

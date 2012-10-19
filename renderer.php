@@ -177,8 +177,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('div', array('id'=>'div-multiple'));
 
         // Filtro de modulo
+        $nome_modulos = get_id_nome_modulos();
         $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-        $filter_modulos .= html_writer::select(get_id_nome_modulos(), 'modulos[]', '', false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
+        $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', array_keys($nome_modulos), false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
         $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_modulo','href'=>'#'));
         $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_modulo','href'=>'#'));
         $output .= html_writer::tag('div', $filter_modulos.$modulos_all.' / '.$modulos_none, array('class' => 'multiple_list'));

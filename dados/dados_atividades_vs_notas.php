@@ -38,8 +38,7 @@ function get_dados_atividades_vs_notas($modulos) {
 
 
     // Recupera dados auxiliares
-
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
