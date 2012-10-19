@@ -458,13 +458,13 @@ function get_dados_atividades_nao_avaliadas($modulos) {
     // Listagem da atividades por tutor
     $lista_atividade = new GroupArray();
     $total_alunos = get_count_estudantes();
+    $total_atividades = 0;
 
     // Executa Consulta
     foreach ($modulos as $modulo => $atividades) {
-
         foreach ($atividades as $atividade) {
             $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
-
+            $total_atividades++;
             // para cada assign um novo dado de avaliacao em atraso
             $lista_atividade->add($atividade->assign_id, new dado_avaliacao_em_atraso($total_alunos));
 
@@ -486,23 +486,26 @@ function get_dados_atividades_nao_avaliadas($modulos) {
 
 
     $atividades_tutor = $lista_atividade->get_assoc();
-
-    var_dump($atividades_tutor);
-    die;
+    $somatorio_total_atrasos = 0;
     foreach ($array_dados as $id_aluno => $aluno) {
-
         foreach ($aluno as $atividade) {
             $atividades_tutor[$atividade->assignid][0]->incrementar_atraso();
+            $somatorio_total_atrasos++;
         }
     }
+
     $dados = array();
 
+    $aux = array();
+    $aux[] = new tutor('GERAL', 12);
 
+    foreach($atividades_tutor as $atividade){
+        $aux[] = $atividade[0];
+    }
 
-    var_dump(array_values($atividades_tutor));
-    die();
-    $dados[] = array(new tutor('joanito', 12),array_values($atividades_tutor));
+    $aux[] = new dado_media(($somatorio_total_atrasos*100)/($total_alunos*$total_atividades));
 
+    $dados[] = $aux;
     return($dados);
 }
 
@@ -510,36 +513,93 @@ function get_dados_atividades_nao_avaliadas($modulos) {
 // Síntese: atividades concluídas
 //
 
-function get_dados_atividades_nota_atribuida() {
-    $dados = array();
-    $estudantes = get_nomes_estudantes();
-    $tutores = get_nomes_tutores();
+function get_dados_atividades_nota_atribuida($modulos) {
+        global $DB;
 
-    for ($x = 0; $x <= 5; $x++) {
-        $tutor = $tutores[$x];
-        $alunos = array();
-        for ($i = 1; $i <= 30; $i++) {
-            $estudante = $estudantes->current();
-            $estudantes->next();
-            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
-                new dado_avaliacao_em_atraso(rand(75, 100)),
-                new dado_avaliacao_em_atraso(rand(75, 100)),
-                new dado_avaliacao_em_atraso(rand(75, 100)),
-                new dado_avaliacao_em_atraso(rand(75, 100)),
-                new dado_avaliacao_em_atraso(rand(75, 100)),
-                new dado_avaliacao_em_atraso(rand(75, 100)),
-                new dado_media(rand(0, 100)));
+    // Consulta
+    $query = " SELECT u.id as user_id,
+                      CONCAT(u.firstname,' ',u.lastname) as user_name,
+                      gr.grade,
+                      sub.status
+                 FROM (
+                      SELECT DISTINCT u.*
+                        FROM {role_assignments} as ra
+                        JOIN {role} as r
+                          ON (r.id=ra.roleid)
+                        JOIN {context} as c
+                          ON (c.id=ra.contextid)
+                        JOIN {user} as u
+                          ON (u.id=ra.userid)
+                       WHERE c.contextlevel=50
+                      ) u
+            JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            WHERE gr.grade IS NOT NULL OR gr.grade != -1
+            ORDER BY u.firstname
+    ";
+
+     // Recupera dados auxiliares
+    $modulos = get_atividades_modulos($modulos);
+    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $group_dados = new GroupArray();
+
+    // Listagem da atividades por tutor
+    $lista_atividade = new GroupArray();
+    $total_alunos = get_count_estudantes();
+    $total_atividades = 0;
+
+    // Executa Consulta
+    foreach ($modulos as $modulo => $atividades) {
+        foreach ($atividades as $atividade) {
+            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+            $total_atividades++;
+            // para cada assign um novo dado de avaliacao em atraso
+            $lista_atividade->add($atividade->assign_id, new dado_atividades_nota_atribuida($total_alunos));
+
+            foreach ($result as $r) {
+                $alunos[$r->user_id] = $r->user_name;
+
+                // Adiciona campos extras
+                $r->courseid = $modulo;
+                $r->assignid = $atividade->assign_id;
+                $r->duedate = $atividade->duedate;
+
+                // Agrupa os dados por usuário
+                $group_dados->add($r->user_id, $r);
+            }
         }
-        $dados[$tutor] = $alunos;
     }
 
-    $estudantes->close();
-    return $dados;
+    $array_dados = $group_dados->get_assoc();
+
+
+    $atividades_tutor = $lista_atividade->get_assoc();
+    $somatorio_total_atrasos = 0;
+    foreach ($array_dados as $id_aluno => $aluno) {
+        foreach ($aluno as $atividade) {
+            $atividades_tutor[$atividade->assignid][0]->incrementar_atraso();
+            $somatorio_total_atrasos++;
+        }
+    }
+
+    $dados = array();
+
+    $aux = array();
+    $aux[] = new tutor('GERAL', 12);
+
+    foreach($atividades_tutor as $atividade){
+        $aux[] = $atividade[0];
+    }
+
+    $aux[] = new dado_media(($somatorio_total_atrasos*100)/($total_alunos*$total_atividades));
+
+    $dados[] = $aux;
+    return($dados);
 }
 
-function get_table_header_atividades_nota_atribuida() {
-    return get_table_header_avaliacao_em_atraso();
-}
+
 
 //
 // Uso do Sistema pelo Tutor (horas)
@@ -617,44 +677,141 @@ function get_table_header_acesso_tutor() {
 // Potenciais Evasões
 //
 
-function get_dados_potenciais_evasoes() {
-    $dados = array();
-    $nome_tutores = get_nomes_tutores();
-    $lista_estudantes = get_nomes_estudantes();
-    for ($x = 0; $x <= 5; $x++) {
-        $tutor = $nome_tutores[$x];
+function get_dados_potenciais_evasoes($modulos) {
+    global $DB;
 
-        $estudantes = array();
-        for ($i = 0; $i < 30; $i++) {
-            $estudante = $lista_estudantes->current();
-            $lista_estudantes->next();
-            $estudantes[] = array(new estudante($estudante->fullname, $estudante->id),
-                new dado_potenciais_evasoes(rand(0, 2)),
-                new dado_potenciais_evasoes(rand(0, 2)),
-                new dado_potenciais_evasoes(rand(0, 2)),
-                new dado_potenciais_evasoes(rand(0, 2)),
-                new dado_potenciais_evasoes(rand(0, 2)),
-                new dado_potenciais_evasoes(rand(0, 2)),
-                new dado_potenciais_evasoes(rand(0, 2)));
+    // Consulta
+    $query = " SELECT u.id as user_id,
+                      CONCAT(u.firstname,' ',u.lastname) as user_name,
+                      sub.timecreated as submission_date,
+                      gr.timemodified,
+                      gr.grade
+                 FROM (
+                      SELECT DISTINCT u.*
+                        FROM {role_assignments} as ra
+                        JOIN {role} as r
+                          ON (r.id=ra.roleid)
+                        JOIN {context} as c
+                          ON (c.id=ra.contextid)
+                        JOIN {user} as u
+                          ON (u.id=ra.userid)
+                       WHERE c.contextlevel=50
+                      ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id)
+            ORDER BY u.firstname
+    ";
+
+
+    // Recupera dados auxiliares
+
+
+
+    $modulos = get_atividades_modulos($modulos);
+    $alunos = array(); // TODO recuperar alunos antes da consulta
+    $group_dados = new GroupArray();
+
+
+    // Executa Consulta
+    foreach ($modulos as $modulo => $atividades) {
+
+        foreach ($atividades as $atividade) {
+
+            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+
+            foreach ($result as $r) {
+                $alunos[$r->user_id] = $r->user_name;
+
+                // Adiciona campos extras
+                $r->courseid = $modulo;
+                $r->assignid = $atividade->assign_id;
+                $r->duedate = $atividade->duedate;
+
+                // Agrupa os dados por usuário
+                $group_dados->add($r->user_id, $r);
+            }
+
         }
 
-        $dados[$tutor] = $estudantes;
     }
+    //transforma a consulta num array associativo
+    $array_dados = $group_dados->get_assoc();
 
-    return $dados;
+
+    //pega a hora atual para comparar se uma atividade esta atrasada ou nao
+    $timenow = time();
+    $estudantes = array();
+
+
+
+
+    foreach ($array_dados as $id_aluno => $aluno) {
+        $dados_modulos = array();
+        $lista_atividades[] = new estudante($alunos[$id_aluno], $id_aluno);
+        foreach ($aluno as $atividade) {
+
+            if(!key_exists($atividade->courseid, $dados_modulos)){
+
+                $dados_modulos[$atividade->courseid] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->courseid]));
+            }
+
+            $atraso = null;
+
+
+            if(is_null($atividade->assignid)){
+                $dados_modulos[$atividade->courseid] = '';
+            }
+            elseif (is_null($atividade->submission_date) && $atividade->duedate <= $timenow) {
+                $dados_modulos[$atividade->courseid]->add_atividade_nao_realizada();
+            }
+//                if ((int)$atividade->duedate == 0) {
+//                    $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+//                } elseif ($atividade->duedate > $timenow) {
+//                    $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
+//                } else {
+//                    $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
+//                }
+//            } // Entregou e ainda não foi avaliada
+//            elseif (is_null($atividade->grade) || (float)$atividade->grade < 0) {
+//                $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
+//                $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+//                $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
+//                $atraso = $datadiff->format("%a");
+//            } // Atividade entregue e avaliada
+//            elseif ((float)$atividade->grade > -1) {
+//                $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
+//            } else {
+//                print_error('unmatched_condition', 'report_unasus');
+//            }
+//
+//            $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->assignid, $atividade->grade, $atraso);
+
+
+
+        }
+
+        foreach($dados_modulos as $key => $modulo){
+            $lista_atividades[] = $modulo;
+        }
+
+        $estudantes[] = $lista_atividades;
+        $lista_atividades = null;
+    }
+    return (array('Tutor' => $estudantes));
 }
 
-function get_table_header_potenciais_evasoes() {
-    $lista_modulos = get_nomes_modulos();
-    $modulos = array('Estudantes');
-    $modulos[] = $lista_modulos[4];
-    $modulos[] = $lista_modulos[5];
-    $modulos[] = $lista_modulos[6];
-    $modulos[] = $lista_modulos[7];
-    $modulos[] = $lista_modulos[8];
-    $modulos[] = $lista_modulos[9];
-    $modulos[] = $lista_modulos[10];
-    return $modulos;
+function get_table_header_potenciais_evasoes($modulos) {
+    $nome_modulos = get_id_nome_modulos();
+
+    $header = array();
+    $header[] = 'Estudantes';
+    foreach($modulos as $modulo){
+        $header[] = new dado_modulo($modulo, $nome_modulos[$modulo]);
+    }
+
+    return $header;
 }
 
 //
@@ -688,20 +845,12 @@ function get_dados_avaliacao_em_atraso() {
     return $dados;
 }
 
-function get_table_header_avaliacao_em_atraso() {
-    $header = array();
-    $modulos = get_nomes_modulos();
-    $header[$modulos[6]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header[$modulos[7]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header[''] = array('Consolidado');
-    return $header;
+function get_table_header_atividades_nota_atribuida($modulos) {
+    return get_header_atividades_nao_avaliadas($modulos);
 }
 
-function get_header_modulo_atividade_geral() {
-    $header = array();
-    $modulos = get_nomes_modulos();
-    $header[$modulos[6]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header[$modulos[7]] = array('Atividade 1', 'Atividade 2', 'Atividade 3');
-    $header[''] = array('Geral');
+function get_table_header_atividades_nao_avaliadas($modulos) {
+    $header =  get_table_header_atividades_vs_notas($modulos);
+    $header[''] = array('Média');
     return $header;
 }

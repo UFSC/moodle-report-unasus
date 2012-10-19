@@ -97,7 +97,8 @@ function get_count_estudantes(){
             JOIN {user} as u
               ON (u.id=ra.userid)
            WHERE c.contextlevel=50;");
-    return array_keys($estudantes);
+    $value = array_keys($estudantes);
+    return $value[0];
 }
 
 /**
@@ -188,7 +189,7 @@ function query_atividades_modulos($modulos = null){
                          c.id as course_id,
                          REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
                     FROM {course} as c
-                    JOIN {assign} as a
+               LEFT JOIN {assign} as a
                       ON (c.id = a.course)";
     if($modulos){
         $string_modulos = int_array_to_sql($modulos);
@@ -196,6 +197,7 @@ function query_atividades_modulos($modulos = null){
     }
     $query .=     "ORDER BY c.id";
 
+    
     return $DB->get_recordset_sql($query);
 }
 

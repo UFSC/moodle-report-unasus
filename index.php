@@ -58,6 +58,7 @@ if ($relatorio != null && $modo_exibicao == null) {
         case 'historico_atribuicao_notas':
             echo $renderer->build_report();
             break;
+        case 'atividades_nota_atribuida' :
         case 'atividades_nao_avaliadas':
             echo $renderer->page_atividades_nao_avaliadas();
             break;
@@ -65,7 +66,6 @@ if ($relatorio != null && $modo_exibicao == null) {
         case 'estudante_sem_atividade_avaliada':
             echo $renderer->page_todo_list();
             break;
-        case 'atividades_nota_atribuida' :
         case 'acesso_tutor' :
         case 'potenciais_evasoes' :
             echo $renderer->build_report(false);

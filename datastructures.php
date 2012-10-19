@@ -317,8 +317,8 @@ class dado_avaliacao_em_atraso extends unasus_data {
     }
 
     public function __toString() {
-        $porcentagem = ($this->count_atrasos/$$this->total_alunos) * 100;
-        return "{$porcentagem}%";
+        $porcentagem = ($this->count_atrasos/$this->total_alunos) * 100;
+        return $this->format_grade($porcentagem)."%";
     }
 
     public function get_css_class() {
@@ -351,7 +351,7 @@ class dado_media extends unasus_data {
     }
 
     public function __toString() {
-        return "{$this->media}%";
+        return $this->format_grade($this->media)."%";
     }
 
     public function value() {
@@ -448,19 +448,27 @@ class dado_potenciais_evasoes extends unasus_data {
     const MODULO_PARCIALMENTE_CONCLUIDO = 2;
 
     private $estado;
+    private $total_atividades;
+    private $atividades_nao_realizadas;
 
-    function __construct($estado) {
-        $this->estado = $estado;
+    function __construct($total_atividades) {
+        $this->total_atividades = $total_atividades;
+        $this->atividades_nao_realizadas = 0;
+        $this->estado = dado_potenciais_evasoes::MODULO_CONCLUIDO;
     }
 
     public function __toString() {
+        //$total = $this->total_atividades - $this->atividades_nao_realizadas;
         switch ($this->estado) {
             case 0:
                 return "Não";
+                //return "Não {$total}/{$this->total_atividades}";
             case 1:
                 return "Sim";
+                //return "Sim {$total}/{$this->total_atividades}";
             case 2:
                 return "Parcial";
+                //return "Parcial {$total}/{$this->total_atividades}";
         }
     }
 
@@ -472,6 +480,16 @@ class dado_potenciais_evasoes extends unasus_data {
                 return "concluido";
             case 2:
                 return "parcial";
+        }
+    }
+
+    public function add_atividade_nao_realizada(){
+        $this->atividades_nao_realizadas++;
+        if($this->atividades_nao_realizadas == 1){
+            $this->estado = dado_potenciais_evasoes::MODULO_PARCIALMENTE_CONCLUIDO;
+        }
+        if($this->atividades_nao_realizadas == $this->total_atividades){
+            $this->estado = dado_potenciais_evasoes::MODULO_NAO_CONCLUIDO;
         }
     }
 
