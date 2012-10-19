@@ -648,7 +648,7 @@ function get_table_header_acesso_tutor() {
 // Potenciais Evasões
 //
 
-function get_dados_potenciais_evasoes($modulos) {
+function get_dados_potenciais_evasoes($modulos, $curso_ufsc) {
 
     $middleware = Academico::singleton();
 

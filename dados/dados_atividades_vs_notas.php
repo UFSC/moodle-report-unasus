@@ -9,8 +9,9 @@
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($modulos) {
+function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
     global $DB;
+    $middleware = Academico::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -38,27 +39,32 @@ function get_dados_atividades_vs_notas($modulos) {
 
 
     // Recupera dados auxiliares
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
+
+    $tutores = get_tutores_grupo();
+
     $alunos = array(); // TODO recuperar alunos antes da consulta
     $group_dados = new GroupArray();
 
+    foreach ($tutores as $tutor) {
+        // Executa Consulta
+        foreach ($modulos as $modulo => $atividades) {
 
-    // Executa Consulta
-    foreach ($modulos as $modulo => $atividades) {
+            foreach ($atividades as $atividade) {
+                $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
 
-        foreach ($atividades as $atividade) {
-            $result = $DB->get_recordset_sql($query, array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id));
+                foreach ($result as $r) {
+                    $alunos[$r->user_id] = $r->user_name;
 
-            foreach ($result as $r) {
-                $alunos[$r->user_id] = $r->user_name;
+                    // Adiciona campos extras
+                    $r->courseid = $modulo;
+                    $r->assignid = $atividade->assign_id;
+                    $r->duedate = $atividade->duedate;
 
-                // Adiciona campos extras
-                $r->courseid = $modulo;
-                $r->assignid = $atividade->assign_id;
-                $r->duedate = $atividade->duedate;
-
-                // Agrupa os dados por usuário
-                $group_dados->add($r->user_id, $r);
+                    // Agrupa os dados por usuário
+                    $group_dados->add($r->user_id, $r);
+                }
             }
         }
     }
