@@ -418,6 +418,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function page_atividades_nao_avaliadas() {
+        raise_memory_limit(MEMORY_EXTRA);
         $output = $this->default_header();
         $output .= $this->build_filter(true,false);
 
