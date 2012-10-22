@@ -319,7 +319,7 @@ function get_header_estudante_sem_atividade_postada($size) {
 }
 
 function get_todo_list_data($modulos, $query, $curso_ufsc){
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Recupera dados auxiliares
     // Recupera dados auxiliares
