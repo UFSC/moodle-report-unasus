@@ -12,6 +12,11 @@ $modo_exibicao = optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT);
 
 $params = array('relatorio' => $relatorio, 'course' => $courseid);
 
+$context = context_course::instance($courseid);
+require_login($courseid);
+require_capability('report/unasus:view_all', $context);
+
+
 // verificar se o relatório é válido e inicializar página
 // caso contrário, mostrar erro.
 if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
