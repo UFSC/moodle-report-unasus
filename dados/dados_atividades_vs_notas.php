@@ -11,7 +11,7 @@
  */
 function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
 
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,

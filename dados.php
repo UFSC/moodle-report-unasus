@@ -10,7 +10,7 @@
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_entrega_de_atividades($modulos, $curso_ufsc) {
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -128,7 +128,7 @@ function get_dados_grafico_entrega_de_atividades() {
 function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
     global $CFG;
 
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -300,7 +300,7 @@ function get_header_estudante_sem_atividade_postada($size) {
 }
 
 function get_todo_list_data($modulos, $query, $curso_ufsc){
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Recupera dados auxiliares
     $modulos = get_atividades_modulos($modulos);
@@ -402,7 +402,7 @@ function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc) {
  */
 function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc) {
 
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -490,7 +490,7 @@ function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc) {
 //
 
 function get_dados_atividades_nota_atribuida($modulos, $curso_ufsc) {
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -650,7 +650,7 @@ function get_table_header_acesso_tutor() {
 
 function get_dados_potenciais_evasoes($modulos, $curso_ufsc) {
 
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
