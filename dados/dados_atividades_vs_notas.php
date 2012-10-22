@@ -10,7 +10,6 @@
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
-
     $middleware = Academico::singleton();
 
     // Consulta

@@ -252,7 +252,8 @@ class report_unasus_renderer extends plugin_renderer_base {
             //alunos vao sendo populado na tabela
             $cel_tutor = new html_table_cell($tutor);
             $cel_tutor->attributes = array('class' => 'tutor');
-            $cel_tutor->colspan = count($alunos); // expande a célula com nome dos tutores
+            $cel_tutor->colspan = $ultimo_alvo+1; // expande a célula com nome dos tutores
+
             $row_tutor = new html_table_row();
             $row_tutor->cells[] = $cel_tutor;
             $table->data[] = $row_tutor;
