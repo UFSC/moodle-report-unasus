@@ -90,11 +90,18 @@ function get_id_estudantes() {
 
 function get_count_estudantes() {
     global $DB;
-    $estudantes = $DB->get_records_sql_menu("
-          SELECT gt.grupo, count(gt.matricula)
-          FROM middleware_unificado.PessoasGruposTutoria as gt
-          GROUP BY gt.grupo");
-    return $estudantes;
+    $estudantes = $DB->get_records_sql("
+          SELECT COUNT(distinct u.id)
+            FROM {role_assignments} as ra
+            JOIN {role} as r
+              ON (r.id=ra.roleid)
+            JOIN {context} as c
+              ON (c.id=ra.contextid)
+            JOIN {user} as u
+              ON (u.id=ra.userid)
+           WHERE c.contextlevel=50;");
+    $value = array_keys($estudantes);
+    return $value[0];
 }
 
 /**
