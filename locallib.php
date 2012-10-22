@@ -103,7 +103,7 @@ function get_count_estudantes() {
  * @return array(Strings)
  */
 function get_nomes_polos() {
-    $academico = Academico::singleton();
+    $academico = Middleware::singleton();
     $polos = $academico->get_records_sql_menu("
           SELECT DISTINCT(nomepolo)
             FROM {View_Usuarios_Dados_Adicionais}
@@ -364,7 +364,7 @@ function get_course_id() {
 ///
 
 function get_cursos_ativos_list() {
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
     $sql = "SELECT curso, nome_sintetico FROM {View_Cursos_Ativos}";
     return $middleware->get_records_sql_menu($sql);
 }
