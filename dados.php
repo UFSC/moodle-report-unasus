@@ -10,7 +10,7 @@
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_entrega_de_atividades($modulos, $curso_ufsc) {
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -19,13 +19,13 @@ function get_dados_entrega_de_atividades($modulos, $curso_ufsc) {
                       gr.grade,
                       sub.status
                  FROM (
-                      SELECT DISTINCT u.id, u.firstname, u.lastname
+                      SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
                          JOIN {table_GruposTutoria} gt
                            ON (gt.id=pg.grupo)
-                        WHERE gt.curso=:curso_ufsc
+                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -36,70 +36,82 @@ function get_dados_entrega_de_atividades($modulos, $curso_ufsc) {
 
     // Recupera dados auxiliares
 
-    $modulos = get_atividades_modulos($modulos);
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $group_dados = new GroupArray();
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+
+
+    $group_tutoria = array();
 
 
     // Executa Consulta
 
-    foreach ($modulos as $modulo => $atividades) {
+    foreach ($grupos_tutoria as $grupo) {
+        $group_array_do_grupo = new GroupArray();
+        foreach ($modulos as $modulo => $atividades) {
 
-        foreach ($atividades as $atividade) {
-            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
-            $result = $middleware->get_records_sql($query, $params);
+            foreach ($atividades as $atividade) {
+                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
+                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                $result = $middleware->get_records_sql($query, $params);
 
-            foreach ($result as $r) {
+                foreach ($result as $r) {
 
-                // Adiciona campos extras
-                $r->courseid = $modulo;
-                $r->assignid = $atividade->assign_id;
-                $r->duedate = $atividade->duedate;
+                    // Adiciona campos extras
+                    $r->courseid = $modulo;
+                    $r->assignid = $atividade->assign_id;
+                    $r->duedate = $atividade->duedate;
 
-                // Agrupa os dados por usuário
-                $group_dados->add($r->user_id, $r);
-            }
-        }
-    }
-
-    $array_dados = $group_dados->get_assoc();
-
-    $estudantes = array();
-
-    foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
-
-        foreach ($aluno as $atividade) {
-            $atraso = null;
-
-            // Não enviou a atividade
-            if (is_null($atividade->submission_date)) {
-                if ((int) $atividade->duedate == 0) {
-                    // Não entregou e Atividade sem prazo de entrega
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                } else {
-                    // Não entregou e fora do prazo
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+                    // Agrupa os dados por usuário
+                    $group_array_do_grupo->add($r->user_id, $r);
                 }
             }
-            // Entregou antes ou na data de entrega esperada
-            elseif ((int) $atividade->submission_date <= (int) $atividade->duedate) {
-                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
-            }
-            // Entregou após a data esperada
-            else {
-                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
-                $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
-                $atraso = $datadiff->format("%a");
-            }
-            $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
         }
-        $estudantes[] = $lista_atividades;
-        $lista_atividades = null;
+        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
-    return(array('Tutor' => $estudantes));
+
+    $dados = array();
+
+
+    foreach ($group_tutoria as $grupo_id => $array_dados) {
+        $estudantes = array();
+        foreach ($array_dados as $id_aluno => $aluno) {
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
+
+            foreach ($aluno as $atividade) {
+                $atraso = null;
+
+                // Não enviou a atividade
+                if (is_null($atividade->submission_date)) {
+                    if ((int) $atividade->duedate == 0) {
+                        // Não entregou e Atividade sem prazo de entrega
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                    } else {
+                        // Não entregou e fora do prazo
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+                    }
+                }
+                // Entregou antes ou na data de entrega esperada
+                elseif ((int) $atividade->submission_date <= (int) $atividade->duedate) {
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
+                }
+                // Entregou após a data esperada
+                else {
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                    $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                    $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
+                    $atraso = $datadiff->format("%a");
+                }
+                $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
+            }
+            $estudantes[] = $lista_atividades;
+            $lista_atividades = null;
+        }
+        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+    }
+
+    return($dados);
 }
 
 function get_table_header_entrega_de_atividades($modulos) {
@@ -128,7 +140,7 @@ function get_dados_grafico_entrega_de_atividades() {
 function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
     global $CFG;
 
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -139,13 +151,13 @@ function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
                       gr.grade,
                       sub.status
                  FROM (
-                       SELECT DISTINCT u.id, u.firstname, u.lastname
+                      SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
                          JOIN {table_GruposTutoria} gt
                            ON (gt.id=pg.grupo)
-                        WHERE gt.curso=:curso_ufsc
+                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -159,79 +171,86 @@ function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
 
     $modulos = get_atividades_modulos($modulos);
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $group_dados = new GroupArray();
 
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $group_tutoria = array();
 
     // Executa Consulta
+    foreach ($grupos_tutoria as $grupo) {
+        $group_array_do_grupo = new GroupArray();
+        foreach ($modulos as $modulo => $atividades) {
 
-    foreach ($modulos as $modulo => $atividades) {
+            foreach ($atividades as $atividade) {
+                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
+                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                $result = $middleware->get_records_sql($query, $params);
 
-        foreach ($atividades as $atividade) {
-            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
-            $result = $middleware->get_records_sql($query, $params);
+                foreach ($result as $r) {
 
-            foreach ($result as $r) {
+                    // Adiciona campos extras
+                    $r->courseid = $modulo;
+                    $r->assignid = $atividade->assign_id;
+                    $r->duedate = $atividade->duedate;
 
-                // Adiciona campos extras
-                $r->courseid = $modulo;
-                $r->assignid = $atividade->assign_id;
-                $r->duedate = $atividade->duedate;
-
-                // Agrupa os dados por usuário
-                $group_dados->add($r->user_id, $r);
-            }
-        }
-    }
-
-    $array_dados = $group_dados->get_assoc();
-
-    $estudantes = array();
-    $timenow = time();
-    foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
-
-        foreach ($aluno as $atividade) {
-            $atraso = null;
-            // Não enviou a atividade
-            if (is_null($atividade->submission_date)) {
-                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
-            } //Atividade entregue e não avaliada
-            elseif (is_null($atividade->grade) || $atividade->grade < 0) {
-
-                $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
-                $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
-                $atraso = (int) $datadiff->format("%a");
-            } //Atividade entregue e avalidada
-            elseif ((int) $atividade->grade >= 0) {
-
-                //quanto tempo desde a entrega até a correção
-                $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
-                $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
-                $atraso = (int) $datadiff->format("%a");
-
-                //Correção no prazo esperado
-                if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
-                    $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
-                } //Correção com pouco atraso
-                elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
-                    $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
-                } //Correção com muito atraso
-                else {
-                    $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
+                    // Agrupa os dados por usuário
+                    $group_array_do_grupo->add($r->user_id, $r);
                 }
-            } else {
-                print_error('unmatched_condition', 'report_unasus');
             }
-
-            $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
         }
-        $estudantes[] = $lista_atividades;
-        $lista_atividades = null;
+        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
-    return (array('Tutor' => $estudantes));
+    $dados = array();
+    $timenow = time();
+    foreach ($group_tutoria as $grupo_id => $array_dados) {
+        $estudantes = array();
+        foreach ($array_dados as $id_aluno => $aluno) {
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
+
+            foreach ($aluno as $atividade) {
+                $atraso = null;
+                // Não enviou a atividade
+                if (is_null($atividade->submission_date)) {
+                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
+                } //Atividade entregue e não avaliada
+                elseif (is_null($atividade->grade) || $atividade->grade < 0) {
+
+                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
+                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                    $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
+                    $atraso = (int) $datadiff->format("%a");
+                } //Atividade entregue e avalidada
+                elseif ((int) $atividade->grade >= 0) {
+
+                    //quanto tempo desde a entrega até a correção
+                    $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
+                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                    $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
+                    $atraso = (int) $datadiff->format("%a");
+
+                    //Correção no prazo esperado
+                    if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
+                    } //Correção com pouco atraso
+                    elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
+                    } //Correção com muito atraso
+                    else {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
+                    }
+                } else {
+                    print_error('unmatched_condition', 'report_unasus');
+                }
+
+                $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
+            }
+            $estudantes[] = $lista_atividades;
+            $lista_atividades = null;
+        }
+        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+    }
+
+    return $dados;
 }
 
 function get_table_header_historico_atribuicao_notas($modulos) {
@@ -271,13 +290,13 @@ function get_dados_estudante_sem_atividade_postada($modulos, $curso_ufsc) {
                       gr.grade,
                       sub.status
                  FROM (
-                       SELECT DISTINCT u.id, u.firstname, u.lastname
+                      SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
                          JOIN {table_GruposTutoria} gt
                            ON (gt.id=pg.grupo)
-                        WHERE gt.curso=:curso_ufsc
+                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
                       ) u
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -300,65 +319,76 @@ function get_header_estudante_sem_atividade_postada($size) {
 }
 
 function get_todo_list_data($modulos, $query, $curso_ufsc){
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos($modulos);
+    // Recupera dados auxiliares
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $group_dados = new GroupArray();
+
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+
+    $group_tutoria = array();
 
     // Executa Consulta
-    foreach ($modulos as $modulo => $atividades) {
+    foreach ($grupos_tutoria as $grupo) {
+        $group_array_do_grupo = new GroupArray();
+        foreach ($modulos as $modulo => $atividades) {
+            foreach ($atividades as $atividade) {
+                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
+                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                $result = $middleware->get_records_sql($query, $params);
 
-        foreach ($atividades as $atividade) {
-            $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc);
-            $result = $middleware->get_records_sql($query, $params);
+                foreach ($result as $r) {
 
-            foreach ($result as $r) {
+                    // Adiciona campos extras
+                    $r->courseid = $modulo;
+                    $r->assignid = $atividade->assign_id;
+                    $r->duedate = $atividade->duedate;
 
-                // Adiciona campos extras
-                $r->courseid = $modulo;
-                $r->assignid = $atividade->assign_id;
-                $r->duedate = $atividade->duedate;
-
-                // Agrupa os dados por usuário
-                $group_dados->add($r->user_id, $r);
+                    // Agrupa os dados por usuário
+                    $group_array_do_grupo->add($r->user_id, $r);
+                }
             }
         }
+        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
-    $array_dados = $group_dados->get_assoc();
+
 
     $id_nome_modulos = get_id_nome_modulos();
     $id_nome_atividades = get_id_nome_atividades();
 
 
     $estudantes = array();
+    $dados = array();
+    foreach ($group_tutoria as $grupo_id => $array_dados) {
+        $estudantes = array();
+        foreach ($array_dados as $id_aluno => $aluno) {
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
 
-    foreach ($array_dados as $id_aluno => $aluno) {
-        $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
+            $atividades_modulos = new GroupArray();
 
-        $atividades_modulos = new GroupArray();
-
-        foreach ($aluno as $atividade) {
-            $atividades_modulos->add($atividade->courseid, $atividade->assignid);
-        }
-
-
-        $ativ_mod = $atividades_modulos->get_assoc();
-        foreach ($ativ_mod as $key => $modulo) {
-            $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
-            foreach ($modulo as $atividade) {
-                $lista_atividades[] = new dado_atividade($atividade, $id_nome_atividades[$atividade], $key);
+            foreach ($aluno as $atividade) {
+                $atividades_modulos->add($atividade->courseid, $atividade->assignid);
             }
+
+
+            $ativ_mod = $atividades_modulos->get_assoc();
+            foreach ($ativ_mod as $key => $modulo) {
+                $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
+                foreach ($modulo as $atividade) {
+                    $lista_atividades[] = new dado_atividade($atividade, $id_nome_atividades[$atividade], $key);
+                }
+            }
+
+
+            $estudantes[] = $lista_atividades;
+            $lista_atividades = null;
         }
-
-
-        $estudantes[] = $lista_atividades;
-        $lista_atividades = null;
-        $atividades_modulos = null;
+        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
     }
-    return(array('Tutor' => $estudantes));
+    return $dados;
 }
 
 //
@@ -372,13 +402,13 @@ function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc) {
                       gr.grade,
                       sub.status
                  FROM (
-                       SELECT DISTINCT u.id, u.firstname, u.lastname
+                      SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
                          JOIN {table_GruposTutoria} gt
                            ON (gt.id=pg.grupo)
-                        WHERE gt.curso=:curso_ufsc
+                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
                       ) u
             JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -402,7 +432,7 @@ function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc) {
  */
 function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc) {
 
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -490,7 +520,7 @@ function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc) {
 //
 
 function get_dados_atividades_nota_atribuida($modulos, $curso_ufsc) {
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -650,7 +680,7 @@ function get_table_header_acesso_tutor() {
 
 function get_dados_potenciais_evasoes($modulos, $curso_ufsc) {
 
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
 
     // Consulta
     $query = " SELECT u.id as user_id,

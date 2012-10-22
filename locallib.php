@@ -110,7 +110,7 @@ function get_count_estudantes() {
  * @return array(Strings)
  */
 function get_nomes_polos() {
-    $academico = Academico::singleton();
+    $academico = Middleware::singleton();
     $polos = $academico->get_records_sql_menu("
           SELECT DISTINCT(nomepolo)
             FROM {View_Usuarios_Dados_Adicionais}
@@ -216,24 +216,21 @@ function query_atividades_modulos($modulos) {
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
 
-
 /**
  * Verifica se o usuário não enviar uma listagem de modulos obtem todos os modulos válidos (possuem atividade)
  *
  * @param array $modulos
  * @return array
  */
-function get_modulos_validos($modulos){
+function get_modulos_validos($modulos) {
     $string_modulos;
     if ($modulos) {
         $string_modulos = int_array_to_sql($modulos);
-    }else {
+    } else {
         $string_modulos = int_array_to_sql(get_id_modulos());
     }
     return $string_modulos;
 }
-
-
 
 /**
  * Classe que constroi a tabela para os relatorios, extende a html_table
@@ -374,7 +371,7 @@ function get_course_id() {
 ///
 
 function get_cursos_ativos_list() {
-    $middleware = Academico::singleton();
+    $middleware = Middleware::singleton();
     $sql = "SELECT curso, nome_sintetico FROM {View_Cursos_Ativos}";
     return $middleware->get_records_sql_menu($sql);
 }
