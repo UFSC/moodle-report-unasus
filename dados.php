@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 //
 // Relatório de Acompanhamento de Entrega de Atividades
 //
@@ -732,6 +734,7 @@ function get_dados_potenciais_evasoes($modulos, $curso_ufsc) {
             }
         }
     }
+
     //transforma a consulta num array associativo
     $array_dados = $group_dados->get_assoc();
 

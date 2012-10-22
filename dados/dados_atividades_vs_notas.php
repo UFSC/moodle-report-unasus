@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 //
 // Relatório de Atividades vs Notas Atribuídas
 //
