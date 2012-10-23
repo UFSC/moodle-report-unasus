@@ -9,6 +9,8 @@ defined('MOODLE_INTERNAL') || die;
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
  *
+ * @param array $modulos
+ * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_entrega_de_atividades($modulos, $curso_ufsc) {
@@ -102,7 +104,7 @@ function get_dados_entrega_de_atividades($modulos, $curso_ufsc) {
                 else {
                     $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
                     $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
-                    $datadiff = date_diff(get_datetime_from_unixtime($submission_date), get_datetime_from_unixtime($atividade->duedate));
+                    $datadiff = get_datetime_from_unixtime($submission_date)->diff(get_datetime_from_unixtime($atividade->duedate));
                     $atraso = $datadiff->format("%a");
                 }
                 $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->assignid, $atraso);
@@ -134,9 +136,12 @@ function get_dados_grafico_entrega_de_atividades() {
 // Relatório de Histórico de Atribuição de Notas
 //
 
+
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
  *
+ * @param array $modulos
+ * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
@@ -219,7 +224,7 @@ function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
 
                     $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
                     $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                    $datadiff = date_diff(get_datetime_from_unixtime($timenow), get_datetime_from_unixtime($data_envio));
+                    $datadiff = get_datetime_from_unixtime($timenow)->diff(get_datetime_from_unixtime($data_envio));
                     $atraso = (int) $datadiff->format("%a");
                 } //Atividade entregue e avalidada
                 elseif ((int) $atividade->grade >= 0) {
@@ -227,7 +232,7 @@ function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
                     //quanto tempo desde a entrega até a correção
                     $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
                     $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
-                    $datadiff = date_diff(get_datetime_from_unixtime($data_correcao), get_datetime_from_unixtime($data_envio));
+                    $datadiff = get_datetime_from_unixtime($data_correcao)->diff(get_datetime_from_unixtime($data_envio));
                     $atraso = (int) $datadiff->format("%a");
 
                     //Correção no prazo esperado
@@ -242,6 +247,7 @@ function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc) {
                     }
                 } else {
                     print_error('unmatched_condition', 'report_unasus');
+                    return false;
                 }
 
                 $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
@@ -267,18 +273,6 @@ function get_dados_grafico_historico_atribuicao_notas() {
         $tutores[2] => array(12, 6, 8, 0),
         'MEDIA DOS TUTORES' => array(9.5, 19.6, 4.6, 1.6)
     );
-}
-
-function avaliacao_atividade_aleatoria() {
-    $random = rand(0, 100);
-
-    if ($random <= 65) {
-        return new dado_historico_atribuicao_notas(dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO, rand(0, 3));
-    } elseif ($random > 65 && $random <= 85) {
-        return new dado_historico_atribuicao_notas(dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE);
-    } elseif ($random > 85) {
-        return new dado_historico_atribuicao_notas(dado_historico_atribuicao_notas::CORRECAO_ATRASADA, rand(4, 20));
-    }
 }
 
 //
@@ -362,7 +356,6 @@ function get_todo_list_data($modulos, $query, $curso_ufsc){
     $id_nome_atividades = get_id_nome_atividades();
 
 
-    $estudantes = array();
     $dados = array();
     foreach ($group_tutoria as $grupo_id => $array_dados) {
         $estudantes = array();
@@ -430,6 +423,8 @@ function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc) {
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
  *
+ * @param array $modulos
+ * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc) {
@@ -611,8 +606,8 @@ function get_dados_atividades_nota_atribuida($modulos, $curso_ufsc) {
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor() {
-    $lista_tutores = get_tutores_menu();
+function get_dados_uso_sistema_tutor($modulos, $curso_ufsc) {
+    $lista_tutores = get_tutores_menu($curso_ufsc);
     $dados = array();
     $tutores = array();
     foreach ($lista_tutores as $tutor_id => $tutor) {
@@ -651,9 +646,9 @@ function get_dados_grafico_uso_sistema_tutor() {
 // Uso do Sistema pelo Tutor (acesso)
 //
 
-function get_dados_acesso_tutor() {
+function get_dados_acesso_tutor($modulos, $curso_ufsc) {
     $dados = array();
-    $lista_tutores = get_tutores_menu();
+    $lista_tutores = get_tutores_menu($curso_ufsc);
 
     $tutores = array();
     foreach ($lista_tutores as $tutor_id => $tutor) {
