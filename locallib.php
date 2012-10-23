@@ -130,7 +130,8 @@ function get_id_nome_modulos() {
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
-          WHERE c.id != :siteid", array('siteid' => $SITE->id));
+          WHERE c.id != :siteid
+            AND c.visible=true", array('siteid' => $SITE->id));
     return $modulos;
 }
 
@@ -141,7 +142,8 @@ function get_id_modulos() {
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
-          WHERE c.id != :siteid", array('siteid' => $SITE->id));
+          WHERE c.id != :siteid
+            AND c.visible=true", array('siteid' => $SITE->id));
     return array_keys($modulos);
 }
 
@@ -159,20 +161,18 @@ function get_id_nome_atividades() {
  *
  * @return array(Strings)
  */
-function get_tutores_menu() {
-    global $DB;
-    $tutores = $DB->get_records_sql_menu(
-          "SELECT DISTINCT u.id,
-                CONCAT(firstname,' ',lastname) as fullname
-           FROM {role_assignments} as ra
-           JOIN {role} as r
-             ON (r.id=ra.roleid)
-           JOIN {context} as c
-             ON (c.id=ra.contextid)
-           JOIN {user} as u
-             ON (u.id=ra.userid)
-          WHERE c.contextlevel=40;");
-    return $tutores;
+function get_tutores_menu($curso_ufsc) {
+    $middleware = Middleware::singleton();
+
+    $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) as fullname
+              FROM {user} u
+              JOIN {table_PessoasGruposTutoria} pg
+                ON (pg.matricula=u.username AND pg.tipo=:tipo)
+              JOIN {table_GruposTutoria} gt
+                ON (gt.id=pg.grupo AND gt.curso=:curso_ufsc)";
+
+    $params = array('curso_ufsc' => $curso_ufsc, 'tipo' => GRUPO_TUTORIA_TIPO_TUTOR);
+    return $middleware->get_records_sql_menu($sql, $params);
 }
 
 /**
@@ -184,9 +184,11 @@ function get_tutores_menu() {
 function get_atividades_modulos($modulos = null) {
     $atividades_modulos = query_atividades_modulos($modulos);
     $group_array = new GroupArray();
+
     foreach ($atividades_modulos as $atividade) {
         $group_array->add($atividade->course_id, $atividade);
     }
+
     return $group_array->get_assoc();
 }
 
@@ -194,9 +196,9 @@ function get_atividades_modulos($modulos = null) {
  * Função que busca os courses com suas respectivas atividades e datas de entrega
  * utilizada no get_atividade_modulos
  *
- * @global type $DB
+ * @global moodle_database $DB
  * @param array $modulos
- * @return record_sql
+ * @return moodle_recordset
  */
 function query_atividades_modulos($modulos) {
     global $DB, $SITE;
