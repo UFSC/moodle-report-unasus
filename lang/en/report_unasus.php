@@ -54,4 +54,7 @@ $string['description_tolerancia_entrega'] = 'Informe a tolerância em dias';
 $string['settings_tolerancia_entrega_maxima'] = 'Tolerância máxima para entrega de atividades';
 $string['description_tolerancia_entrega_maxima'] = 'Informe a tolerância em dias';
 
+$string['settings_tolerancia_potencial_evasao'] = 'Tolerância para o numero de atividades não realizadas durante um curso';
+$string['description_tolerancia_potencial_evasao'] = 'Informe a tolerância no total de atividades não feitas';
+
 $string['unmatched_condition'] = 'Condição de seleção de dados incorreta. Informe o administrador sobre o problema.';

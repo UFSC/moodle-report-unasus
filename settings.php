@@ -25,4 +25,8 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('report_unasus_prazo_maximo_entrega',
         get_string('settings_tolerancia_entrega_maxima', 'report_unasus'),
         get_string('description_tolerancia_entrega_maxima', 'report_unasus'), 10, PARAM_INT));
+
+    $settings->add(new admin_setting_configtext('report_unasus_tolerancia_potencial_evasao',
+        get_string('settings_tolerancia_potencial_evasao', 'report_unasus'),
+        get_string('description_tolerancia_potencial_evasao', 'report_unasus'), 3, PARAM_INT));
 }

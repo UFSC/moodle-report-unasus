@@ -205,6 +205,7 @@ class dado_entrega_de_atividades extends unasus_data {
     }
 
     public function get_css_class() {
+        global $CFG;
         switch ($this->tipo) {
             case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
@@ -213,7 +214,7 @@ class dado_entrega_de_atividades extends unasus_data {
                 return 'no_prazo';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
-                return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
+                return ($this->atraso > $CFG->report_unasus_prazo_maximo_entrega) ? 'muito_atraso' : 'pouco_atraso';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem prazo';
@@ -493,6 +494,10 @@ class dado_potenciais_evasoes extends unasus_data {
         if($this->atividades_nao_realizadas == $this->total_atividades){
             $this->estado = dado_potenciais_evasoes::MODULO_NAO_CONCLUIDO;
         }
+    }
+
+    public function get_total_atividades_nao_realizadas(){
+        return $this->atividades_nao_realizadas;
     }
 
     public static function get_legend() {

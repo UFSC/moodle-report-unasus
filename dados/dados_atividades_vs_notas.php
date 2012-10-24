@@ -32,7 +32,7 @@ function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id)
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
             ORDER BY grupo_id, u.firstname, u.lastname
     ";
 
