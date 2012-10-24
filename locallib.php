@@ -81,13 +81,22 @@ function get_count_estudantes() {
  *
  * @return array(Strings)
  */
-function get_polos() {
+function get_polos($curso_ufsc) {
     $academico = Middleware::singleton();
-    $polos = $academico->get_records_sql_menu("
-          SELECT DISTINCT(polo), nomepolo
-            FROM {View_Usuarios_Dados_Adicionais}
-           WHERE nomepolo != ''
-        ORDER BY nomepolo");
+    $sql = "
+          SELECT DISTINCT(u.polo), u.nomepolo
+            FROM {View_Usuarios_Dados_Adicionais} u
+            JOIN {table_PessoasGruposTutoria} pg
+              ON (pg.matricula=u.username)
+            JOIN {table_GruposTutoria} gt
+              ON (gt.id=pg.grupo)
+           WHERE gt.curso=:curso_ufsc
+             AND pg.tipo=:tipo
+             AND nomepolo != ''
+        ORDER BY nomepolo";
+
+    $params = array('curso_ufsc' => $curso_ufsc, 'tipo' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+    $polos = $academico->get_records_sql_menu($sql, $params);
 
     return $polos;
 }

@@ -163,7 +163,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Filtro de Polo
         $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-        $filter_polos .= html_writer::select(get_polos(), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+        $filter_polos .= html_writer::select(get_polos($this->curso_ufsc), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
         $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
         $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
         $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
