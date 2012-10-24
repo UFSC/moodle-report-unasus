@@ -42,6 +42,7 @@ function get_nomes_modulos() {
 /**
  * Dado que alimenta a lista do filtro tutores
  *
+ * @deprecated
  * @return array(Strings)
  */
 function get_nomes_tutores() {
@@ -57,37 +58,6 @@ function get_nomes_tutores() {
                ON (u.id=ra.userid)
             WHERE c.contextlevel=40;");
     return array_keys($tutores);
-}
-
-function get_nomes_estudantes() {
-    global $DB;
-
-    $estudantes = $DB->get_recordset_sql("
-          SELECT distinct u.id, CONCAT(firstname,' ', REPLACE(lastname, CONCAT('(', username, ')'), '')) as fullname
-            FROM {role_assignments} as ra
-            JOIN {role} as r
-              ON (r.id=ra.roleid)
-            JOIN {context} as c
-              ON (c.id=ra.contextid)
-            JOIN {user} as u
-              ON (u.id=ra.userid)
-           WHERE c.contextlevel=50;");
-    return $estudantes;
-}
-
-function get_id_estudantes() {
-    global $DB;
-    $estudantes = $DB->get_records_sql("
-          SELECT distinct u.id
-            FROM {role_assignments} as ra
-            JOIN {role} as r
-              ON (r.id=ra.roleid)
-            JOIN {context} as c
-              ON (c.id=ra.contextid)
-            JOIN {user} as u
-              ON (u.id=ra.userid)
-           WHERE c.contextlevel=50;");
-    return array_keys($estudantes);
 }
 
 function get_count_estudantes() {
@@ -111,15 +81,15 @@ function get_count_estudantes() {
  *
  * @return array(Strings)
  */
-function get_nomes_polos() {
+function get_polos() {
     $academico = Middleware::singleton();
     $polos = $academico->get_records_sql_menu("
-          SELECT DISTINCT(nomepolo)
+          SELECT DISTINCT(polo), nomepolo
             FROM {View_Usuarios_Dados_Adicionais}
            WHERE nomepolo != ''
         ORDER BY nomepolo");
 
-    return array_keys($polos);
+    return $polos;
 }
 
 function get_id_nome_modulos() {

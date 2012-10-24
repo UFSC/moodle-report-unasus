@@ -806,33 +806,6 @@ function get_table_header_potenciais_evasoes($modulos) {
 // Outros ??
 //
 
-function get_dados_avaliacao_em_atraso() {
-    $dados = array();
-    $tutores = get_nomes_tutores();
-    $estudantes = get_nomes_estudantes();
-
-    for ($x = 0; $x <= 5; $x++) {
-        $tutor = $tutores[$x];
-        $alunos = array();
-        for ($i = 0; $i < 30; $i++) {
-            $estudante = $estudantes->current();
-            $estudantes->next();
-            $alunos[] = array(new estudante($estudante->fullname, $estudante->id),
-                new dado_avaliacao_em_atraso(rand(0, 25)),
-                new dado_avaliacao_em_atraso(rand(0, 25)),
-                new dado_avaliacao_em_atraso(rand(0, 25)),
-                new dado_avaliacao_em_atraso(rand(0, 25)),
-                new dado_avaliacao_em_atraso(rand(0, 25)),
-                new dado_avaliacao_em_atraso(rand(0, 25)),
-                new dado_media(rand(0, 100)));
-        }
-        $dados[$tutor] = $alunos;
-    }
-
-    $estudantes->close();
-    return $dados;
-}
-
 function get_table_header_atividades_nota_atribuida($modulos) {
     return get_table_header_atividades_nao_avaliadas($modulos);
 }
