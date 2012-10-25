@@ -56,7 +56,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $modulos = optional_param_array('modulos', null, PARAM_INT);
 
-        $table = $this->default_table($dados_method($modulos, $this->curso_ufsc), $header_method($modulos));
+        $table = $this->default_table($dados_method($modulos, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -160,10 +160,10 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Filtro de Polo
         $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-        $filter_polos .= html_writer::select(get_polos(), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
-        $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
-        $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
-        $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'multiple_list'));
+        $filter_polos .= html_writer::select(get_polos($this->curso_ufsc), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+        $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
+        $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
+        $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
 
         // Filtro de Tutores
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
@@ -200,7 +200,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
-     * @return Form barra lateral de navegação e footer
+     * @return string barra lateral de navegação e footer
      */
     public function default_footer() {
         return $this->footer();
@@ -401,7 +401,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = "get_dados_{$this->report}";
         $header_method = "get_table_header_{$this->report}";
 
-        $table = $this->table_tutores($dados_method($modulos, $this->curso_ufsc), $header_method($modulos));
+        $table = $this->table_tutores($dados_method($modulos, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -420,7 +420,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $modulos = optional_param_array('modulos', null, PARAM_INT);
 
         $dados_method = "get_dados_{$this->report}";
-        $dados_atividades = $dados_method($modulos, $this->curso_ufsc);
+        $dados_atividades = $dados_method($modulos, $this->curso_ufsc, $this->curso_ativo);
 
 
 
