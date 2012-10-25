@@ -60,20 +60,23 @@ function get_nomes_tutores() {
     return array_keys($tutores);
 }
 
-function get_count_estudantes() {
-    global $DB;
-    $estudantes = $DB->get_records_sql("
-          SELECT COUNT(distinct u.id)
-            FROM {role_assignments} as ra
-            JOIN {role} as r
-              ON (r.id=ra.roleid)
-            JOIN {context} as c
-              ON (c.id=ra.contextid)
-            JOIN {user} as u
-              ON (u.id=ra.userid)
-           WHERE c.contextlevel=50;");
-    $value = array_keys($estudantes);
-    return $value[0];
+function get_count_estudantes($curso_ufsc) {
+    $middleware = Middleware::singleton();
+    $query = "SELECT pg.grupo as grupo_id, COUNT(DISTINCT pg.matricula)
+                         FROM {table_PessoasGruposTutoria} pg
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc AND pg.tipo=:tipo_aluno
+                        GROUP BY pg.grupo";
+    $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
+
+    $result = $middleware->get_records_sql_menu($query, $params);
+
+    foreach($result as $key=>$value){
+        $result[$key] = (int)$value;
+    }
+
+    return $result;
 }
 
 /**
