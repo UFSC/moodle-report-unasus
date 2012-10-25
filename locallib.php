@@ -42,6 +42,7 @@ function get_nomes_modulos() {
 /**
  * Dado que alimenta a lista do filtro tutores
  *
+ * @deprecated
  * @return array(Strings)
  */
 function get_nomes_tutores() {
@@ -59,51 +60,23 @@ function get_nomes_tutores() {
     return array_keys($tutores);
 }
 
-function get_nomes_estudantes() {
-    global $DB;
+function get_count_estudantes($curso_ufsc) {
+    $middleware = Middleware::singleton();
+    $query = "SELECT pg.grupo as grupo_id, COUNT(DISTINCT pg.matricula)
+                         FROM {table_PessoasGruposTutoria} pg
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc AND pg.tipo=:tipo_aluno
+                        GROUP BY pg.grupo";
+    $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
 
-    $estudantes = $DB->get_recordset_sql("
-          SELECT distinct u.id, CONCAT(firstname,' ', REPLACE(lastname, CONCAT('(', username, ')'), '')) as fullname
-            FROM {role_assignments} as ra
-            JOIN {role} as r
-              ON (r.id=ra.roleid)
-            JOIN {context} as c
-              ON (c.id=ra.contextid)
-            JOIN {user} as u
-              ON (u.id=ra.userid)
-           WHERE c.contextlevel=50;");
-    return $estudantes;
-}
+    $result = $middleware->get_records_sql_menu($query, $params);
 
-function get_id_estudantes() {
-    global $DB;
-    $estudantes = $DB->get_records_sql("
-          SELECT distinct u.id
-            FROM {role_assignments} as ra
-            JOIN {role} as r
-              ON (r.id=ra.roleid)
-            JOIN {context} as c
-              ON (c.id=ra.contextid)
-            JOIN {user} as u
-              ON (u.id=ra.userid)
-           WHERE c.contextlevel=50;");
-    return array_keys($estudantes);
-}
+    foreach($result as $key=>$value){
+        $result[$key] = (int)$value;
+    }
 
-function get_count_estudantes() {
-    global $DB;
-    $estudantes = $DB->get_records_sql("
-          SELECT COUNT(distinct u.id)
-            FROM {role_assignments} as ra
-            JOIN {role} as r
-              ON (r.id=ra.roleid)
-            JOIN {context} as c
-              ON (c.id=ra.contextid)
-            JOIN {user} as u
-              ON (u.id=ra.userid)
-           WHERE c.contextlevel=50;");
-    $value = array_keys($estudantes);
-    return $value[0];
+    return $result;
 }
 
 /**
@@ -111,15 +84,24 @@ function get_count_estudantes() {
  *
  * @return array(Strings)
  */
-function get_nomes_polos() {
+function get_polos($curso_ufsc) {
     $academico = Middleware::singleton();
-    $polos = $academico->get_records_sql_menu("
-          SELECT DISTINCT(nomepolo)
-            FROM {View_Usuarios_Dados_Adicionais}
-           WHERE nomepolo != ''
-        ORDER BY nomepolo");
+    $sql = "
+          SELECT DISTINCT(u.polo), u.nomepolo
+            FROM {View_Usuarios_Dados_Adicionais} u
+            JOIN {table_PessoasGruposTutoria} pg
+              ON (pg.matricula=u.username)
+            JOIN {table_GruposTutoria} gt
+              ON (gt.id=pg.grupo)
+           WHERE gt.curso=:curso_ufsc
+             AND pg.tipo=:tipo
+             AND nomepolo != ''
+        ORDER BY nomepolo";
 
-    return array_keys($polos);
+    $params = array('curso_ufsc' => $curso_ufsc, 'tipo' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+    $polos = $academico->get_records_sql_menu($sql, $params);
+
+    return $polos;
 }
 
 function get_id_nome_modulos() {

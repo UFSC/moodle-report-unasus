@@ -14,16 +14,18 @@ abstract class pessoa {
 
     protected $name;
     protected $id;
+    protected $courseid;
 
-    function __construct($name, $id) {
+    function __construct($name, $id, $courseid) {
         $this->name = $name;
-        $this->id = $id; // mock id - visitante
+        $this->id = $id;
+        $this->courseid = $courseid;
     }
 
     function __toString() {
         global $OUTPUT;
         $email_icon = $OUTPUT->pix_icon('t/email', 'Enviar mensagem');
-        $profile_link = html_writer::link(new moodle_url('/user/profile.php', array('id' => $this->id)), $this->name, array('target' => '_blank'));
+        $profile_link = html_writer::link(new moodle_url('/user/view.php', array('id' => $this->id, 'course' => $this->courseid)), $this->name, array('target' => '_blank'));
         $message_link = html_writer::link(new moodle_url('/message/index.php', array('id' => $this->id)), $email_icon, array('target' => '_blank'));
 
         return "{$message_link} {$profile_link}";
@@ -134,11 +136,12 @@ class dado_atividades_vs_notas extends unasus_data {
     }
 
     public function get_css_class() {
+        global $CFG;
         switch ($this->tipo) {
             case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
             case dado_atividades_vs_notas::CORRECAO_ATRASADA:
-                return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
+                return ($this->atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? 'muito_atraso' : 'pouco_atraso';
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
                 return 'nota_atribuida';
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
@@ -205,6 +208,7 @@ class dado_entrega_de_atividades extends unasus_data {
     }
 
     public function get_css_class() {
+        global $CFG;
         switch ($this->tipo) {
             case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
@@ -213,7 +217,7 @@ class dado_entrega_de_atividades extends unasus_data {
                 return 'no_prazo';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
-                return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
+                return ($this->atraso > $CFG->report_unasus_prazo_maximo_entrega) ? 'muito_atraso' : 'pouco_atraso';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem prazo';
@@ -493,6 +497,10 @@ class dado_potenciais_evasoes extends unasus_data {
         if($this->atividades_nao_realizadas == $this->total_atividades){
             $this->estado = dado_potenciais_evasoes::MODULO_NAO_CONCLUIDO;
         }
+    }
+
+    public function get_total_atividades_nao_realizadas(){
+        return $this->atividades_nao_realizadas;
     }
 
     public static function get_legend() {
