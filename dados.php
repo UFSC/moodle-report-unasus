@@ -237,10 +237,10 @@ function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc, $curso_mood
                     $atraso = (int) $datadiff->format("%a");
 
                     //Correção no prazo esperado
-                    if ($atraso < $CFG->report_unasus_prazo_avaliacao) {
+                    if ($atraso <= $CFG->report_unasus_prazo_avaliacao) {
                         $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
                     } //Correção com pouco atraso
-                    elseif ($atraso < $CFG->report_unasus_prazo_maximo_avaliacao) {
+                    elseif ($atraso <= $CFG->report_unasus_prazo_maximo_avaliacao) {
                         $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
                     } //Correção com muito atraso
                     else {
