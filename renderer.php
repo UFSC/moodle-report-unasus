@@ -404,7 +404,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = "get_dados_{$this->report}";
         $header_method = "get_table_header_{$this->report}";
 
-        $table = $this->table_tutores($dados_method($modulos, $this->curso_ufsc), $header_method($modulos));
+        $table = $this->table_tutores($dados_method($modulos, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -423,7 +423,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $modulos = optional_param_array('modulos', null, PARAM_INT);
 
         $dados_method = "get_dados_{$this->report}";
-        $dados_atividades = $dados_method($modulos, $this->curso_ufsc);
+        $dados_atividades = $dados_method($modulos, $this->curso_ufsc, $this->curso_ativo);
 
 
 
