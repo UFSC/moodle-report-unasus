@@ -11,7 +11,7 @@ defined('MOODLE_INTERNAL') || die;
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
+function get_dados_atividades_vs_notas($modulos, $curso_ufsc, $curso_moodle) {
 
     $middleware = Middleware::singleton();
 
@@ -78,7 +78,7 @@ function get_dados_atividades_vs_notas($modulos, $curso_ufsc) {
     foreach ($group_tutoria as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno);
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
             foreach ($aluno as $atividade) {
 
                 $atraso = null;

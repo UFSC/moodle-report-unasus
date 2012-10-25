@@ -57,7 +57,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $modulos = optional_param_array('modulos', null, PARAM_INT);
 
-        $table = $this->default_table($dados_method($modulos, $this->curso_ufsc), $header_method($modulos));
+        $table = $this->default_table($dados_method($modulos, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -203,7 +203,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
-     * @return Form barra lateral de navegação e footer
+     * @return string barra lateral de navegação e footer
      */
     public function default_footer() {
         return $this->footer();
