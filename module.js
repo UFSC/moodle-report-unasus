@@ -85,7 +85,7 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
             // ID da div para colocar o gráfico
             renderTo: 'container',
             type: 'bar',
-            height: 60*size
+            height: 200 + (60*size)
         },
         title: {
             text: title
