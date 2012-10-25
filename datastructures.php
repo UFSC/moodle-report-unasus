@@ -134,11 +134,12 @@ class dado_atividades_vs_notas extends unasus_data {
     }
 
     public function get_css_class() {
+        global $CFG;
         switch ($this->tipo) {
             case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
             case dado_atividades_vs_notas::CORRECAO_ATRASADA:
-                return ($this->atraso > 2) ? 'muito_atraso' : 'pouco_atraso';
+                return ($this->atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? 'muito_atraso' : 'pouco_atraso';
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
                 return 'nota_atribuida';
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:

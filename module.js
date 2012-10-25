@@ -75,6 +75,7 @@ var chart1;
  * @param porcentagem boolean -- se o gráfico é do tipo porcentagem ou não
  */
 M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentagem) {
+    var size = Object.keys(dados_grafico).length;
     var stack_option = 'normal';
     if(porcentagem)
         stack_option = 'percent';
@@ -83,7 +84,8 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
         chart: {
             // ID da div para colocar o gráfico
             renderTo: 'container',
-            type: 'bar'
+            type: 'bar',
+            height: 60*size
         },
         title: {
             text: title
