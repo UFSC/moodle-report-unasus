@@ -161,7 +161,7 @@ class dado_atividades_vs_notas extends unasus_data {
         $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até {$CFG->report_unasus_prazo_avaliacao} dias após data de entrega)";
         $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após {$CFG->report_unasus_prazo_maximo_avaliacao} dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
-        $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
+        $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperado';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
 
         return $legend;

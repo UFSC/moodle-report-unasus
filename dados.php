@@ -123,14 +123,122 @@ function get_table_header_entrega_de_atividades($modulos) {
     return get_table_header_atividades_vs_notas($modulos);
 }
 
-function get_dados_grafico_entrega_de_atividades() {
-    $tutores = get_nomes_tutores();
-    return array(
-        $tutores[0] => array(12, 5, 4, 2),
-        $tutores[1] => array(7, 2, 2, 3),
-        $tutores[2] => array(5, 6, 8, 0),
-        'MEDIA DOS TUTORES' => array(12, 12, 5, 1)
-    );
+function get_dados_grafico_entrega_de_atividades($modulos, $curso_ufsc) {
+
+    global $CFG;
+    $middleware = Middleware::singleton();
+
+    // Consulta
+    $query = " SELECT u.id as user_id,
+                      sub.timecreated as submission_date,
+                      gr.timemodified,
+                      gr.grade,
+                      sub.status
+                 FROM (
+                      SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
+                      ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            ORDER BY u.firstname, u.lastname
+    ";
+
+    // Recupera dados auxiliares
+
+    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+
+
+    $group_tutoria = array();
+
+
+    // Executa Consulta
+
+    foreach ($grupos_tutoria as $grupo) {
+        $group_array_do_grupo = new GroupArray();
+        foreach ($modulos as $modulo => $atividades) {
+
+            foreach ($atividades as $atividade) {
+                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
+                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                $result = $middleware->get_records_sql($query, $params);
+
+                foreach ($result as $r) {
+
+                    // Adiciona campos extras
+                    $r->courseid = $modulo;
+                    $r->assignid = $atividade->assign_id;
+                    $r->duedate = $atividade->duedate;
+
+                    // Agrupa os dados por usuário
+                    $group_array_do_grupo->add($r->user_id, $r);
+                }
+            }
+        }
+        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
+    }
+
+
+    $dados = array();
+
+
+    foreach ($group_tutoria as $grupo_id => $array_dados) {
+        //variáveis soltas para melhor entendimento
+        $count_entregue_no_prazo = 0;
+        $count_pouco_atraso = 0;
+        $count_muito_atraso = 0;
+        $count_nao_entregue = 0;
+        $count_sem_prazo = 0;
+
+
+        foreach ($array_dados as $id_aluno => $aluno) {
+
+            foreach ($aluno as $atividade) {
+                $atraso = null;
+
+                // Não enviou a atividade
+                if (is_null($atividade->submission_date)) {
+                    if ((int) $atividade->duedate == 0) {
+                        // Não entregou e Atividade sem prazo de entrega
+                        $count_sem_prazo++;
+                    } else {
+                        // Não entregou e fora do prazo
+                        $count_nao_entregue++;
+                    }
+                }
+                // Entregou antes ou na data de entrega esperada que é a data de entrega com uma tolencia de $CFG->report_unasus_prazo_entrega dias
+                elseif ((int) $atividade->submission_date <= (int) ($atividade->duedate + (3600 * 24 * $CFG->report_unasus_prazo_entrega))) {
+                    $count_entregue_no_prazo++;
+                }
+                // Entregou após a data esperada
+                else {
+                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                    $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                    $datadiff = get_datetime_from_unixtime($submission_date)->diff(get_datetime_from_unixtime($atividade->duedate));
+                    $atraso = $datadiff->format("%a");
+                    ($atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? $count_muito_atraso++ : $count_pouco_atraso++;
+                }
+            }
+        }
+        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] =
+              array($count_nao_entregue,
+                  $count_sem_prazo,
+                  $count_entregue_no_prazo,
+                  $count_pouco_atraso,
+                  $count_muito_atraso,
+        );
+        ;
+    }
+
+    return($dados);
 }
 
 //
@@ -265,14 +373,124 @@ function get_table_header_historico_atribuicao_notas($modulos) {
     return get_table_header_atividades_vs_notas($modulos);
 }
 
-function get_dados_grafico_historico_atribuicao_notas() {
-    $tutores = get_nomes_tutores();
-    return array(
-        $tutores[0] => array(5, 23, 4, 2),
-        $tutores[1] => array(2, 30, 2, 2, 3),
-        $tutores[2] => array(12, 6, 8, 0),
-        'MEDIA DOS TUTORES' => array(9.5, 19.6, 4.6, 1.6)
-    );
+function get_dados_grafico_historico_atribuicao_notas($modulos, $curso_ufsc) {
+    global $CFG;
+
+    $middleware = Middleware::singleton();
+
+    // Consulta
+    $query = " SELECT u.id as user_id,
+                      sub.timecreated as submission_date,
+                      sub.timemodified as submission_modified,
+                      gr.timemodified as grade_modified,
+                      gr.timecreated as grade_created,
+                      gr.grade,
+                      sub.status
+                 FROM (
+                      SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
+                      ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            ORDER BY u.firstname, u.lastname
+    ";
+
+
+    // Recupera dados auxiliares
+
+    $modulos = get_atividades_modulos($modulos);
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $group_tutoria = array();
+
+    // Executa Consulta
+    foreach ($grupos_tutoria as $grupo) {
+        $group_array_do_grupo = new GroupArray();
+        foreach ($modulos as $modulo => $atividades) {
+
+            foreach ($atividades as $atividade) {
+                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
+                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                $result = $middleware->get_records_sql($query, $params);
+
+                foreach ($result as $r) {
+
+                    // Adiciona campos extras
+                    $r->courseid = $modulo;
+                    $r->assignid = $atividade->assign_id;
+                    $r->duedate = $atividade->duedate;
+
+                    // Agrupa os dados por usuário
+                    $group_array_do_grupo->add($r->user_id, $r);
+                }
+            }
+        }
+        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
+    }
+
+    $dados = array();
+    $timenow = time();
+    foreach ($group_tutoria as $grupo_id => $array_dados) {
+
+
+        $count_nao_entregue = 0;
+        $count_nao_avaliada = 0;
+        $count_no_prazo = 0;
+        $count_pouco_atraso = 0;
+        $count_muito_atraso = 0;
+
+        foreach ($array_dados as $id_aluno => $aluno) {
+
+            foreach ($aluno as $atividade) {
+                $atraso = null;
+                // Não enviou a atividade
+                if (is_null($atividade->submission_date)) {
+                    $count_nao_entregue++;
+                } //Atividade entregue e não avaliada
+                elseif (is_null($atividade->grade) || $atividade->grade < 0) {
+                    $count_nao_avaliada++;
+                } //Atividade entregue e avalidada
+                elseif ((int) $atividade->grade >= 0) {
+
+                    //quanto tempo desde a entrega até a correção
+                    $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
+                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                    $datadiff = get_datetime_from_unixtime($data_correcao)->diff(get_datetime_from_unixtime($data_envio));
+                    $atraso = (int) $datadiff->format("%a");
+
+                    //Correção no prazo esperado
+                    if ($atraso <= $CFG->report_unasus_prazo_avaliacao) {
+                        $count_no_prazo++;
+                    } //Correção com pouco atraso
+                    elseif ($atraso <= $CFG->report_unasus_prazo_maximo_avaliacao) {
+                        $count_pouco_atraso++;
+                    } //Correção com muito atraso
+                    else {
+                        $count_muito_atraso++;
+                    }
+                } else {
+                    print_error('unmatched_condition', 'report_unasus');
+                    return false;
+                }
+            }
+        }
+        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = array(
+            $count_nao_entregue,
+            $count_nao_avaliada,
+            $count_no_prazo,
+            $count_pouco_atraso,
+            $count_muito_atraso);
+    }
+
+    return $dados;
 }
 
 //
@@ -464,7 +682,7 @@ function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc, $curso_moodle
     $total_alunos = get_count_estudantes($curso_ufsc);
     $total_atividades = 0;
 
-    foreach($modulos as $atividades){
+    foreach ($modulos as $atividades) {
         $total_atividades += count($atividades);
     }
 
@@ -571,7 +789,7 @@ function get_dados_atividades_nota_atribuida($modulos, $curso_ufsc, $curso_moodl
     $total_alunos = get_count_estudantes($curso_ufsc);
     $total_atividades = 0;
 
-    foreach($modulos as $atividades){
+    foreach ($modulos as $atividades) {
         $total_atividades += count($atividades);
     }
 
