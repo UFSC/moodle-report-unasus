@@ -125,6 +125,9 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false) {
         global $CFG;
 
+        //$dados_tutores = grupos_tutoria::get_chave_valor_grupos_tutoria($this->curso_ufsc);
+
+
         // Inicio do Form
         $url_filtro = new moodle_url('/report/unasus/index.php', array('relatorio' => $this->report, 'course' => $this->curso_ativo));
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
