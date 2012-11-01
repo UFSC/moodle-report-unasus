@@ -2,9 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-//
 // Relatório de Atividades vs Notas Atribuídas
-//
 
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
