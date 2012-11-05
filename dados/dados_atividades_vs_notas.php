@@ -9,7 +9,7 @@ defined('MOODLE_INTERNAL') || die;
  *
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_moodle) {
 
     $middleware = Middleware::singleton();
 
@@ -39,7 +39,7 @@ function get_dados_atividades_vs_notas($modulos, $curso_ufsc, $curso_moodle) {
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
 
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
 
