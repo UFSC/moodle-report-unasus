@@ -172,6 +172,9 @@ table.relatorio-unasus.estudante_sem_atividade_avaliada{
     border-left: 1px solid #004E95 !important;
     border-right: 1px solid #004E95 !important;
 }
+.relatorio-wrapper {
+    overflow: auto;
+}
 
 
 /* Regras para o botao de ocultar, mostrar conteudo do filtro, só é posto em pratica
