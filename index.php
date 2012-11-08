@@ -73,7 +73,7 @@ if ($relatorio != null && $modo_exibicao == null) {
             break;
         case 'acesso_tutor' :
         case 'potenciais_evasoes' :
-            echo $renderer->build_report(false);
+            echo $renderer->build_report(false,false,'Tutores');
             break;
         case 'uso_sistema_tutor' :
             echo $renderer->build_report(false, true);

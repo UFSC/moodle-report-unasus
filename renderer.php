@@ -41,7 +41,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String $output
      */
 
-    public function build_report($graficos = true, $dot_chart = false) {
+    public function build_report($graficos = true, $dot_chart = false, $tipo_cabecalho = 'Estudantes') {
         raise_memory_limit(MEMORY_EXTRA);
 
         $output = $this->default_header();
@@ -57,7 +57,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $modulos = optional_param_array('modulos', null, PARAM_INT);
         $tutores = optional_param_array('tutores', null, PARAM_INT);
 
-        $table = $this->default_table($dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
+        $table = $this->default_table($dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos), $tipo_cabecalho);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -220,7 +220,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      *              array('modulo'=> array('value1','value2'))
      * @return html_table
      */
-    public function default_table($dadostabela, $header) {
+    public function default_table($dadostabela, $header, $tipo_cabecalho = 'Estudante') {
         //criacao da tabela
         $table = new report_unasus_table();
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
@@ -241,7 +241,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         // que não existe no moodle API
         $header_keys = array_keys($header);
         if (is_array($header[$header_keys[0]])) { // Double Header
-            $table->build_double_header($header);
+            $table->build_double_header($header, $tipo_cabecalho);
             $table->attributes['class'] .= " divisao-por-modulos";
         } else {
             $table->build_single_header($header);
