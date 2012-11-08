@@ -41,7 +41,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String $output
      */
 
-    public function build_report($graficos = true, $dot_chart = false) {
+    public function build_report($graficos = true, $dot_chart = false, $tipo_cabecalho = 'Estudantes') {
         raise_memory_limit(MEMORY_EXTRA);
 
         $output = $this->default_header();
@@ -55,8 +55,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $header_method = "get_table_header_{$this->report}";
 
         $modulos = optional_param_array('modulos', null, PARAM_INT);
+        $tutores = optional_param_array('tutores', null, PARAM_INT);
 
-        $table = $this->default_table($dados_method($modulos, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
+        $table = $this->default_table($dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos), $tipo_cabecalho);
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -125,6 +126,9 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false) {
         global $CFG;
 
+        //$dados_tutores = grupos_tutoria::get_chave_valor_grupos_tutoria($this->curso_ufsc);
+
+
         // Inicio do Form
         $url_filtro = new moodle_url('/report/unasus/index.php', array('relatorio' => $this->report, 'course' => $this->curso_ativo));
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
@@ -167,7 +171,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Filtro de Tutores
         $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-        $filter_tutores .= html_writer::select(get_tutores_menu($this->curso_ufsc), 'multiple_tutor', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+        $filter_tutores .= html_writer::select(get_tutores_menu($this->curso_ufsc), 'tutores[]', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
         $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
         $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
         $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
@@ -216,7 +220,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      *              array('modulo'=> array('value1','value2'))
      * @return html_table
      */
-    public function default_table($dadostabela, $header) {
+    public function default_table($dadostabela, $header, $tipo_cabecalho = 'Estudante') {
         //criacao da tabela
         $table = new report_unasus_table();
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
@@ -237,7 +241,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         // que não existe no moodle API
         $header_keys = array_keys($header);
         if (is_array($header[$header_keys[0]])) { // Double Header
-            $table->build_double_header($header);
+            $table->build_double_header($header, $tipo_cabecalho);
             $table->attributes['class'] .= " divisao-por-modulos";
         } else {
             $table->build_single_header($header);
@@ -397,11 +401,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter(true, false);
 
         $modulos = optional_param_array('modulos', null, PARAM_INT);
+        $tutores = optional_param_array('tutores', null, PARAM_INT);
 
         $dados_method = "get_dados_{$this->report}";
         $header_method = "get_table_header_{$this->report}";
 
-        $table = $this->table_tutores($dados_method($modulos, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
+        $table = $this->table_tutores($dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos));
         $output .= html_writer::table($table);
 
         $output .= $this->default_footer();
@@ -418,9 +423,10 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter(false, false);
 
         $modulos = optional_param_array('modulos', null, PARAM_INT);
+        $tutores = optional_param_array('tutores', null, PARAM_INT);
 
         $dados_method = "get_dados_{$this->report}";
-        $dados_atividades = $dados_method($modulos, $this->curso_ufsc, $this->curso_ativo);
+        $dados_atividades = $dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo);
 
 
 
@@ -474,9 +480,10 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $legend = call_user_func("$dados_class::get_legend");
         $modulos = optional_param_array('modulos', null, PARAM_INT);
+        $tutores = optional_param_array('tutores', null, PARAM_INT);
 
         $PAGE->requires->js_init_call('M.report_unasus.init_graph', array(
-            $dados_method($modulos, $this->curso_ufsc),
+            $dados_method($modulos, $tutores, $this->curso_ufsc),
             array_values($legend),
             get_string($this->report, 'report_unasus'), $porcentagem));
 

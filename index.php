@@ -14,7 +14,7 @@ $params = array('relatorio' => $relatorio, 'course' => $courseid);
 
 $context = context_course::instance($courseid);
 require_login($courseid);
-require_capability('report/unasus:view_all', $context);
+require_capability('report/unasus:view', $context);
 
 
 // verificar se o relatório é válido e inicializar página
@@ -26,6 +26,11 @@ if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
 
     require_login($courseid);
     $renderer = $PAGE->get_renderer('report_unasus');
+
+    if (in_array($relatorio, report_unasus_relatorios_restritos_list())) {
+        require_capability('report/unasus:view_all', $context);
+    }
+
 } else {
     print_error('unknow_report', 'report_unasus');
 }
@@ -73,7 +78,7 @@ if ($relatorio != null && $modo_exibicao == null) {
             break;
         case 'acesso_tutor' :
         case 'potenciais_evasoes' :
-            echo $renderer->build_report(false);
+            echo $renderer->build_report(false,false,'Tutores');
             break;
         case 'uso_sistema_tutor' :
             echo $renderer->build_report(false, true);

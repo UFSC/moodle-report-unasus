@@ -13,7 +13,7 @@ defined('MOODLE_INTERNAL') || die;
  * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_entrega_de_atividades($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_entrega_de_atividades($modulos, $tutores, $curso_ufsc, $curso_moodle) {
     global $CFG;
     $middleware = Middleware::singleton();
 
@@ -43,7 +43,7 @@ function get_dados_entrega_de_atividades($modulos, $curso_ufsc, $curso_moodle) {
 
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
     $group_tutoria = array();
@@ -123,7 +123,7 @@ function get_table_header_entrega_de_atividades($modulos) {
     return get_table_header_atividades_vs_notas($modulos);
 }
 
-function get_dados_grafico_entrega_de_atividades($modulos, $curso_ufsc) {
+function get_dados_grafico_entrega_de_atividades($modulos, $tutores, $curso_ufsc) {
 
     global $CFG;
     $middleware = Middleware::singleton();
@@ -154,7 +154,7 @@ function get_dados_grafico_entrega_de_atividades($modulos, $curso_ufsc) {
 
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
     $group_tutoria = array();
@@ -253,7 +253,7 @@ function get_dados_grafico_entrega_de_atividades($modulos, $curso_ufsc) {
  * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_historico_atribuicao_notas($modulos, $tutores, $curso_ufsc, $curso_moodle) {
     global $CFG;
 
     $middleware = Middleware::singleton();
@@ -288,7 +288,7 @@ function get_dados_historico_atribuicao_notas($modulos, $curso_ufsc, $curso_mood
     $modulos = get_atividades_modulos($modulos);
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
 
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
     $group_tutoria = array();
 
     // Executa Consulta
@@ -374,7 +374,7 @@ function get_table_header_historico_atribuicao_notas($modulos) {
     return get_table_header_atividades_vs_notas($modulos);
 }
 
-function get_dados_grafico_historico_atribuicao_notas($modulos, $curso_ufsc) {
+function get_dados_grafico_historico_atribuicao_notas($modulos, $tutores, $curso_ufsc) {
     global $CFG;
 
     $middleware = Middleware::singleton();
@@ -409,7 +409,7 @@ function get_dados_grafico_historico_atribuicao_notas($modulos, $curso_ufsc) {
     $modulos = get_atividades_modulos($modulos);
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
 
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
     $group_tutoria = array();
 
     // Executa Consulta
@@ -498,7 +498,7 @@ function get_dados_grafico_historico_atribuicao_notas($modulos, $curso_ufsc) {
 // Lista: Atividades Não Postadas
 //
 
-function get_dados_estudante_sem_atividade_postada($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_estudante_sem_atividade_postada($modulos, $tutores, $curso_ufsc, $curso_moodle) {
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -521,7 +521,7 @@ function get_dados_estudante_sem_atividade_postada($modulos, $curso_ufsc, $curso
             ORDER BY u.firstname, u.lastname
     ";
 
-    return get_todo_list_data($modulos, $query, $curso_ufsc, $curso_moodle);
+    return get_todo_list_data($modulos, $tutores, $query, $curso_ufsc, $curso_moodle);
 }
 
 function get_header_estudante_sem_atividade_postada($size) {
@@ -533,7 +533,7 @@ function get_header_estudante_sem_atividade_postada($size) {
     return $header;
 }
 
-function get_todo_list_data($modulos, $query, $curso_ufsc, $curso_moodle) {
+function get_todo_list_data($modulos, $tutores, $query, $curso_ufsc, $curso_moodle) {
     $middleware = Middleware::singleton();
 
     // Recupera dados auxiliares
@@ -541,7 +541,7 @@ function get_todo_list_data($modulos, $query, $curso_ufsc, $curso_moodle) {
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
 
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
     $group_tutoria = array();
 
@@ -609,7 +609,7 @@ function get_todo_list_data($modulos, $query, $curso_ufsc, $curso_moodle) {
 // Lista: Atividades não Avaliadas
 //
 
-function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_estudante_sem_atividade_avaliada($modulos, $tutores, $curso_ufsc, $curso_moodle) {
 
     // Consulta
     $query = " SELECT u.id as user_id,
@@ -632,7 +632,7 @@ function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc, $curs
             ORDER BY u.firstname, u.lastname
     ";
 
-    return get_todo_list_data($modulos, $query, $curso_ufsc, $curso_moodle);
+    return get_todo_list_data($modulos, $tutores, $query, $curso_ufsc, $curso_moodle);
 }
 
 //
@@ -646,7 +646,7 @@ function get_dados_estudante_sem_atividade_avaliada($modulos, $curso_ufsc, $curs
  * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_atividades_nao_avaliadas($modulos, $tutores, $curso_ufsc, $curso_moodle) {
 
     $middleware = Middleware::singleton();
 
@@ -673,7 +673,7 @@ function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc, $curso_moodle
 
     // Recupera dados auxiliares
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
 
@@ -754,7 +754,7 @@ function get_dados_atividades_nao_avaliadas($modulos, $curso_ufsc, $curso_moodle
 // Síntese: atividades concluídas
 //
 
-function get_dados_atividades_nota_atribuida($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_atividades_nota_atribuida($modulos, $tutores, $curso_ufsc, $curso_moodle) {
     $middleware = Middleware::singleton();
 
     // Consulta
@@ -780,7 +780,7 @@ function get_dados_atividades_nota_atribuida($modulos, $curso_ufsc, $curso_moodl
 
     // Recupera dados auxiliares
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
 
@@ -904,36 +904,115 @@ function get_dados_grafico_uso_sistema_tutor() {
 // Uso do Sistema pelo Tutor (acesso)
 //
 
-function get_dados_acesso_tutor($modulos, $curso_ufsc, $curso_moodle) {
-    $dados = array();
-    $lista_tutores = get_tutores_menu($curso_ufsc);
+function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) {
+    $middleware = Middleware::singleton();
 
-    $tutores = array();
-    foreach ($lista_tutores as $tutor_id => $tutor) {
-        $tutores[] = array(new tutor($tutor, $tutor_id, $curso_moodle),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false));
+    // Consulta
+    $query = " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
+                      month(from_unixtime(sud.`timeend`)) AS calendar_month,
+                      day(from_unixtime(sud.`timeend`)) AS calendar_day,
+                      sud.userid
+                 FROM {stats_user_daily} sud
+           INNER JOIN {user} u
+                   ON (u.id=sud.userid)
+           INNER JOIN {table_PessoasGruposTutoria} pgt
+                   ON (pgt.matricula=u.username)
+                   -- ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
+             GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
+             ORDER BY calendar_year, calendar_month, calendar_day";
+
+
+    $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR);
+    $result = $middleware->get_recordset_sql($query, $params);
+
+    //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]
+    $group_array = new GroupArray();
+    foreach ($result as $r) {
+        $dia = $r['calendar_day'];
+        $mes = $r['calendar_month'];
+        if ($dia < 10)
+            $dia = '0' . $dia;
+        if ($mes < 10)
+            $mes = '0' . $mes;
+        $group_array->add($r['userid'], $dia . '/' . $mes);
     }
-    $dados["Tutores"] = $tutores;
+    $dados = $group_array->get_assoc();
+
+    // Intervalo de dias no formato d/m
+    $end = new DateTime();
+    $interval = new DateInterval('P60D');
+
+    $begin = clone $end;
+    $begin->sub($interval);
+
+    $increment = new DateInterval('P1D');
+    $daterange = new DatePeriod($begin, $increment, $end);
+
+    $dias_meses = array();
+    foreach ($daterange as $date) {
+        $dias_meses[] = $date->format('d/m');
+    }
 
 
-    return $dados;
+    //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
+    //date interval acima
+    $result = new GroupArray();
+    foreach ($dados as $id => $datas) {
+        foreach($dias_meses as $dia){
+           (in_array($dia, $datas)) ?
+                        $result->add($id, new dado_acesso_tutor(true)) :
+                        $result->add($id, new dado_acesso_tutor(false));
+        }
+
+    }
+    $result = $result->get_assoc();
+
+    $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($curso_ufsc);
+
+    //para cada resultado que estava no formato [id]=>[dados_acesso]
+    // ele transforma para [tutor,dado_acesso1,dado_acesso2]
+    $retorno = array();
+    foreach($result as $id => $values){
+        $dados = array();
+        $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
+        array_push($dados, new tutor($nome,$id,$curso_moodle));
+        foreach($values as $value){
+            array_push($dados, $value);
+        }
+        $retorno[] = $dados;
+    }
+    
+
+    return array('Tutores'=>$retorno);
 }
 
 function get_table_header_acesso_tutor() {
-    return array('Tutor', '15/06', '16/06', '17/06', '18/06', '19/06', '20/06', '21/06');
+    $end = new DateTime();
+    $interval = new DateInterval('P60D');
+
+    $begin = clone $end;
+    $begin->sub($interval);
+
+    $increment = new DateInterval('P1D');
+    $daterange = new DatePeriod($begin, $increment, $end);
+
+    $meses = array();
+    foreach ($daterange as $date) {
+        $mes = $date->format('F');
+        if (!array_key_exists($mes, $meses)) {
+            $meses[$mes] = null;
+        }
+        $meses[$mes][] = $date->format('d/m');
+    }
+
+    return $meses;
 }
 
 //
 // Potenciais Evasões
 //
 
-function get_dados_potenciais_evasoes($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_potenciais_evasoes($modulos, $tutores, $curso_ufsc, $curso_moodle) {
     global $CFG;
     $middleware = Middleware::singleton();
 
@@ -965,7 +1044,7 @@ function get_dados_potenciais_evasoes($modulos, $curso_ufsc, $curso_moodle) {
 
     $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
     $group_tutoria = array();
 
