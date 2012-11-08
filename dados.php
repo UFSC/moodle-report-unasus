@@ -864,7 +864,7 @@ function get_dados_atividades_nota_atribuida($modulos, $tutores, $curso_ufsc, $c
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor($modulos, $curso_ufsc, $curso_moodle) {
+function get_dados_uso_sistema_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) {
     $lista_tutores = get_tutores_menu($curso_ufsc);
     $dados = array();
     $tutores = array();
