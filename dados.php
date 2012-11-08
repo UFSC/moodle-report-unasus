@@ -920,12 +920,11 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
              GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
              ORDER BY calendar_year, calendar_month, calendar_day";
 
-    $group_tutoria = array();
-    $lista_atividade = array();
 
     $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR);
     $result = $middleware->get_recordset_sql($query, $params);
 
+    //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]
     $group_array = new GroupArray();
     foreach ($result as $r) {
         $dia = $r['calendar_day'];
@@ -941,7 +940,7 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
     //var_dump($dados);
     // Intervalo de dias no formato d/m
     $end = new DateTime();
-    $end->sub(new DateInterval('P70D'));
+    $end->sub(new DateInterval('P70D')); //linha desnecessaria no "quente"
     $interval = new DateInterval('P30D');
 
     $begin = clone $end;
@@ -957,7 +956,8 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
     //var_dump($dias_meses);
 
 
-
+    //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
+    //date interval acima
     $result = new GroupArray();
     foreach ($dados as $id => $datas) {
         foreach($dias_meses as $dia){
@@ -971,6 +971,8 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
 
     $tutores = get_tutores_menu($curso_ufsc);
 
+    //para cada resultado que estava no formato [id]=>[dados_acesso]
+    // ele transforma para [tutor,dado_acesso1,dado_acesso2]
     $retorno = array();
     foreach($result as $id => $values){
         $dados = array();
@@ -981,7 +983,7 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
         }
         $retorno[] = $dados;
     }
-    var_dump($retorno);
+    
 
     return array('Tutores'=>$retorno);
 }
