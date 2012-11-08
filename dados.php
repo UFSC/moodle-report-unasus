@@ -997,7 +997,7 @@ function get_table_header_acesso_tutor() {
 
     $meses = array();
     foreach ($daterange as $date) {
-        $mes = $date->format('F');
+        $mes = strftime("%B", $date->format('U'));
         if (!array_key_exists($mes, $meses)) {
             $meses[$mes] = null;
         }
