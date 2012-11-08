@@ -915,8 +915,8 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
            INNER JOIN {user} u
                    ON (u.id=sud.userid)
            INNER JOIN {table_PessoasGruposTutoria} pgt
-                   ON (pgt.matricula=u.username)
-                   -- ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
+                   -- ON (pgt.matricula=u.username)
+                   ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
              GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
              ORDER BY calendar_year, calendar_month, calendar_day";
 
