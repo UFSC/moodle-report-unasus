@@ -916,7 +916,7 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
                    ON (u.id=sud.userid)
            INNER JOIN {table_PessoasGruposTutoria} pgt
                    ON (pgt.matricula=u.username)
-                   -- AND pgt.tipo=:tipo_tutor)
+                   -- ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
              GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
              ORDER BY calendar_year, calendar_month, calendar_day";
 
@@ -937,11 +937,9 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
     }
     $dados = $group_array->get_assoc();
 
-    //var_dump($dados);
     // Intervalo de dias no formato d/m
     $end = new DateTime();
-    $end->sub(new DateInterval('P70D')); //linha desnecessaria no "quente"
-    $interval = new DateInterval('P30D');
+    $interval = new DateInterval('P60D');
 
     $begin = clone $end;
     $begin->sub($interval);
@@ -953,7 +951,6 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
     foreach ($daterange as $date) {
         $dias_meses[] = $date->format('d/m');
     }
-    //var_dump($dias_meses);
 
 
     //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
@@ -969,15 +966,15 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
     }
     $result = $result->get_assoc();
 
-    $tutores = get_tutores_menu($curso_ufsc);
+    $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($curso_ufsc);
 
     //para cada resultado que estava no formato [id]=>[dados_acesso]
     // ele transforma para [tutor,dado_acesso1,dado_acesso2]
     $retorno = array();
     foreach($result as $id => $values){
         $dados = array();
-        $nome = (array_key_exists($id, $tutores)) ? $tutores[$id] : $id;
-        array_push($dados, new tutor($nome,$id,$curso_ufsc));
+        $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
+        array_push($dados, new tutor($nome,$id,$curso_moodle));
         foreach($values as $value){
             array_push($dados, $value);
         }
@@ -990,7 +987,7 @@ function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) 
 
 function get_table_header_acesso_tutor() {
     $end = new DateTime();
-    $interval = new DateInterval('P30D');
+    $interval = new DateInterval('P60D');
 
     $begin = clone $end;
     $begin->sub($interval);
