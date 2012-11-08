@@ -58,7 +58,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $tutores = optional_param_array('tutores', null, PARAM_INT);
 
         $table = $this->default_table($dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos), $tipo_cabecalho);
-        $output .= html_writer::table($table);
+        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
         return $output;
