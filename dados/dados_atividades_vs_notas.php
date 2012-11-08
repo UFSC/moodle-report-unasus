@@ -156,7 +156,7 @@ function get_table_header_atividades_vs_notas($modulos = array()) {
 
 
 
-function get_dados_grafico_atividades_vs_notas($modulos, $curso_ufsc) {
+function get_dados_grafico_atividades_vs_notas($modulos, $tutores, $curso_ufsc) {
     global $CFG;
     $middleware = Middleware::singleton();
 
@@ -188,7 +188,7 @@ function get_dados_grafico_atividades_vs_notas($modulos, $curso_ufsc) {
 
 
 
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
     $group_tutoria = array();

@@ -645,7 +645,7 @@ function get_dados_estudante_sem_atividade_avaliada($modulos, $tutores, $curso_u
  * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_nao_avaliadas($modulos, $tutores,  $curso_ufsc, $curso_moodle) {
+function get_dados_atividades_nao_avaliadas($modulos, $tutores, $curso_ufsc, $curso_moodle) {
 
     $middleware = Middleware::singleton();
 
@@ -903,29 +903,111 @@ function get_dados_grafico_uso_sistema_tutor() {
 // Uso do Sistema pelo Tutor (acesso)
 //
 
-function get_dados_acesso_tutor($modulos, $curso_ufsc, $curso_moodle) {
-    $dados = array();
-    $lista_tutores = get_tutores_menu($curso_ufsc);
+function get_dados_acesso_tutor($modulos, $tutores, $curso_ufsc, $curso_moodle) {
+    $middleware = Middleware::singleton();
 
-    $tutores = array();
-    foreach ($lista_tutores as $tutor_id => $tutor) {
-        $tutores[] = array(new tutor($tutor, $tutor_id, $curso_moodle),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false),
-            new dado_acesso_tutor(rand(0, 3) ? true : false));
+    // Consulta
+    $query = " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
+                      month(from_unixtime(sud.`timeend`)) AS calendar_month,
+                      day(from_unixtime(sud.`timeend`)) AS calendar_day,
+                      sud.userid
+                 FROM {stats_user_daily} sud
+           INNER JOIN {user} u
+                   ON (u.id=sud.userid)
+           INNER JOIN {table_PessoasGruposTutoria} pgt
+                   ON (pgt.matricula=u.username)
+                   -- AND pgt.tipo=:tipo_tutor)
+             GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
+             ORDER BY calendar_year, calendar_month, calendar_day";
+
+
+    $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR);
+    $result = $middleware->get_recordset_sql($query, $params);
+
+    //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]
+    $group_array = new GroupArray();
+    foreach ($result as $r) {
+        $dia = $r['calendar_day'];
+        $mes = $r['calendar_month'];
+        if ($dia < 10)
+            $dia = '0' . $dia;
+        if ($mes < 10)
+            $mes = '0' . $mes;
+        $group_array->add($r['userid'], $dia . '/' . $mes);
     }
-    $dados["Tutores"] = $tutores;
+    $dados = $group_array->get_assoc();
+
+    //var_dump($dados);
+    // Intervalo de dias no formato d/m
+    $end = new DateTime();
+    $end->sub(new DateInterval('P70D')); //linha desnecessaria no "quente"
+    $interval = new DateInterval('P30D');
+
+    $begin = clone $end;
+    $begin->sub($interval);
+
+    $increment = new DateInterval('P1D');
+    $daterange = new DatePeriod($begin, $increment, $end);
+
+    $dias_meses = array();
+    foreach ($daterange as $date) {
+        $dias_meses[] = $date->format('d/m');
+    }
+    //var_dump($dias_meses);
 
 
-    return $dados;
+    //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
+    //date interval acima
+    $result = new GroupArray();
+    foreach ($dados as $id => $datas) {
+        foreach($dias_meses as $dia){
+           (in_array($dia, $datas)) ?
+                        $result->add($id, new dado_acesso_tutor(true)) :
+                        $result->add($id, new dado_acesso_tutor(false));
+        }
+
+    }
+    $result = $result->get_assoc();
+
+    $tutores = get_tutores_menu($curso_ufsc);
+
+    //para cada resultado que estava no formato [id]=>[dados_acesso]
+    // ele transforma para [tutor,dado_acesso1,dado_acesso2]
+    $retorno = array();
+    foreach($result as $id => $values){
+        $dados = array();
+        $nome = (array_key_exists($id, $tutores)) ? $tutores[$id] : $id;
+        array_push($dados, new tutor($nome,$id,$curso_ufsc));
+        foreach($values as $value){
+            array_push($dados, $value);
+        }
+        $retorno[] = $dados;
+    }
+    
+
+    return array('Tutores'=>$retorno);
 }
 
 function get_table_header_acesso_tutor() {
-    return array('Tutor', '15/06', '16/06', '17/06', '18/06', '19/06', '20/06', '21/06');
+    $end = new DateTime();
+    $interval = new DateInterval('P30D');
+
+    $begin = clone $end;
+    $begin->sub($interval);
+
+    $increment = new DateInterval('P1D');
+    $daterange = new DatePeriod($begin, $increment, $end);
+
+    $meses = array();
+    foreach ($daterange as $date) {
+        $mes = $date->format('F');
+        if (!array_key_exists($mes, $meses)) {
+            $meses[$mes] = null;
+        }
+        $meses[$mes][] = $date->format('d/m');
+    }
+
+    return $meses;
 }
 
 //
