@@ -872,14 +872,14 @@ function get_dados_uso_sistema_tutor($modulos, $tutores, $curso_ufsc, $curso_moo
         $media = new dado_media(rand(0, 20));
 
         $tutores[] = array(new tutor($tutor, $tutor_id, $curso_moodle),
-            new dado_uso_sistema_tutor(rand(0, 20)),
-            new dado_uso_sistema_tutor(rand(0, 20)),
-            new dado_uso_sistema_tutor(rand(0, 20)),
-            new dado_uso_sistema_tutor(rand(0, 20)),
-            new dado_uso_sistema_tutor(rand(0, 20)),
-            new dado_uso_sistema_tutor(rand(0, 20)),
+            new dado_uso_sistema_tutor(rand(5, 20)),
+            new dado_uso_sistema_tutor(rand(5, 20)),
+            new dado_uso_sistema_tutor(rand(5, 20)),
+            new dado_uso_sistema_tutor(rand(5, 20)),
+            new dado_uso_sistema_tutor(rand(5, 20)),
+            new dado_uso_sistema_tutor(rand(5, 20)),
             $media->value(),
-            new dado_somatorio(rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20) + rand(0, 20)));
+            new dado_somatorio(rand(10, 20) + rand(10, 20) + rand(10, 20) + rand(10, 20) + rand(10, 20) + rand(10, 20)));
     }
     $dados["Tutores"] = $tutores;
 
@@ -890,14 +890,15 @@ function get_table_header_uso_sistema_tutor() {
     return array('Tutor', 'Jun/Q4', 'Jul/Q1', 'Jul/Q2', 'Jul/Q3', 'Jul/Q4', 'Ago/Q1', 'Media', 'Total');
 }
 
-function get_dados_grafico_uso_sistema_tutor() {
-    $tutores = get_nomes_tutores();
-    return array(
-        $tutores[0] => array('Jun/Q4' => 23, 'Jul/Q1' => 23, 'Jul/Q2' => 4, 'Jul/Q3' => 8, 'Jul/Q4' => 12, 'Ago/Q1' => 12),
-        $tutores[1] => array('Jun/Q4' => 6, 'Jul/Q1' => 12, 'Jul/Q2' => 19, 'Jul/Q3' => 15, 'Jul/Q4' => 1, 'Ago/Q1' => 1),
-        $tutores[2] => array('Jun/Q4' => 9, 'Jul/Q1' => 1, 'Jul/Q2' => 7, 'Jul/Q3' => 22, 'Jul/Q4' => 5, 'Ago/Q1' => 20),
-        $tutores[3] => array('Jun/Q4' => 12, 'Jul/Q1' => 1, 'Jul/Q2' => 7, 'Jul/Q3' => 1, 'Jul/Q4' => 8, 'Ago/Q1' => 6)
-    );
+function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc) {
+    $tutores = get_tutores_menu($curso_ufsc);
+
+    $dados = array();
+    foreach ($tutores as $tutor) {
+        $dados[$tutor] = array('Jun/Q4' => rand(5, 20), 'Jul/Q1' => rand(5, 20), 'Jul/Q2' => rand(5, 20), 'Jul/Q3' => rand(5, 20), 'Jul/Q4' => rand(5, 20), 'Ago/Q1' => rand(5, 20));
+    }
+
+    return $dados;
 }
 
 //
