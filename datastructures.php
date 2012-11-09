@@ -56,18 +56,12 @@ class tutor extends pessoa {
  */
 abstract class unasus_data {
 
-    protected $header = false;
-
     /**
      * Dependendo do tipo do dado ele deve ser apresentado de uma forma diferente
      * Assim esta função é feita para definir qual classe de css deve ser aplicada
      * a um tipo de dado
      */
     public abstract function get_css_class();
-
-    public function is_header() {
-        return $header;
-    }
 
     /**
      * Função para auxiliar na renderização dos relatórios, concordância para o caso de "um dia" e "mesmo dia"

@@ -209,7 +209,7 @@ function query_atividades_modulos($modulos) {
  * @return array
  */
 function get_modulos_validos($modulos) {
-    $string_modulos;
+    $string_modulos = '';
     if ($modulos) {
         $string_modulos = int_array_to_sql($modulos);
     } else {
