@@ -58,6 +58,9 @@ function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_m
                     $r->courseid = $modulo;
                     $r->assignid = $atividade->assign_id;
                     $r->duedate = $atividade->duedate;
+                    if (!is_null($r->grade)) {
+                        $r->grade = (float) $r->grade;
+                    }
                     // Agrupa os dados por usuário
                     $group_array_do_grupo->add($r->user_id, $r);
                 }
@@ -91,13 +94,13 @@ function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_m
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
                     }
                 } // Entregou e ainda não foi avaliada
-                elseif (is_null($atividade->grade) || (float) $atividade->grade < 0) {
+                elseif (is_null($atividade->grade) || $atividade->grade < 0) {
                     $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
                     $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
-                    $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
-                    $atraso = $datadiff->format("%a");
+                    $datadiff = date_create()->diff(get_datetime_from_unixtime($submission_date));
+                    $atraso = (int) $datadiff->format("%a");
                 } // Atividade entregue e avaliada
-                elseif ((float) $atividade->grade > -1) {
+                elseif ($atividade->grade > -1) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
                 } else {
                     print_error('unmatched_condition', 'report_unasus');
