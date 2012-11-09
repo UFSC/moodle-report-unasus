@@ -4,8 +4,8 @@ defined('MOODLE_INTERNAL') || die;
 
 function report_unasus_relatorios_validos_list() {
     return array(
-        'atividades_vs_notas', 'entrega_de_atividades', 'historico_atribuicao_notas', 'atividades_nao_avaliadas',
-        'estudante_sem_atividade_postada', 'estudante_sem_atividade_avaliada', 'atividades_nota_atribuida', 'acesso_tutor', 'uso_sistema_tutor',
+        'atividades_vs_notas', 'entrega_de_atividades', 'historico_atribuicao_notas', 'atividades_nao_avaliadas', 'atividades_nota_atribuida',
+        'estudante_sem_atividade_postada', 'estudante_sem_atividade_avaliada', 'acesso_tutor', 'uso_sistema_tutor',
         'potenciais_evasoes');
 }
 

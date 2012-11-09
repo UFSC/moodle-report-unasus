@@ -54,10 +54,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = "get_dados_{$this->report}";
         $header_method = "get_table_header_{$this->report}";
 
-        $modulos = optional_param_array('modulos', null, PARAM_INT);
-        $tutores = optional_param_array('tutores', null, PARAM_INT);
+        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
-        $table = $this->default_table($dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo), $header_method($modulos), $tipo_cabecalho);
+        $modulos = get_atividades_modulos(get_modulos_validos($modulos_raw));
+
+        $table = $this->default_table($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw), $header_method($modulos_raw), $tipo_cabecalho);
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -422,11 +424,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header();
         $output .= $this->build_filter(false, false);
 
-        $modulos = optional_param_array('modulos', null, PARAM_INT);
-        $tutores = optional_param_array('tutores', null, PARAM_INT);
+        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
+
+        $modulos = get_atividades_modulos(get_modulos_validos($modulos_raw));
 
         $dados_method = "get_dados_{$this->report}";
-        $dados_atividades = $dados_method($modulos, $tutores, $this->curso_ufsc, $this->curso_ativo);
+        $dados_atividades = $dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw);
 
 
 
@@ -479,11 +483,14 @@ class report_unasus_renderer extends plugin_renderer_base {
         }
 
         $legend = call_user_func("$dados_class::get_legend");
-        $modulos = optional_param_array('modulos', null, PARAM_INT);
-        $tutores = optional_param_array('tutores', null, PARAM_INT);
+
+        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
+
+        $modulos = get_atividades_modulos(get_modulos_validos($modulos_raw));
 
         $PAGE->requires->js_init_call('M.report_unasus.init_graph', array(
-            $dados_method($modulos, $tutores, $this->curso_ufsc),
+            $dados_method($this->curso_ufsc, $modulos, $tutores_raw),
             array_values($legend),
             get_string($this->report, 'report_unasus'), $porcentagem));
 
@@ -524,4 +531,3 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
 }
-
