@@ -218,6 +218,17 @@ function get_modulos_validos($modulos) {
     return $string_modulos;
 }
 
+function get_prazo_avaliacao() {
+    global $CFG;
+    return (int) $CFG->report_unasus_prazo_avaliacao;
+}
+
+function get_prazo_maximo_avaliacao() {
+    global $CFG;
+    return (int) $CFG->report_unasus_prazo_maximo_avaliacao;
+}
+
+
 /**
  * Classe que constroi a tabela para os relatorios, extende a html_table
  * da MoodleAPI.
