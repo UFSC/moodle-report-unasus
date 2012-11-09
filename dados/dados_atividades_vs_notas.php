@@ -7,6 +7,10 @@ defined('MOODLE_INTERNAL') || die;
 /**
  * Geração de dados dos tutores e seus respectivos alunos.
  *
+ * @param $modulos
+ * @param $tutores
+ * @param $curso_ufsc
+ * @param $curso_moodle
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_moodle) {
@@ -57,10 +61,11 @@ function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_m
                 foreach ($result as $r) {
                     $r->courseid = $modulo;
                     $r->assignid = $atividade->assign_id;
-                    $r->duedate = $atividade->duedate;
+                    $r->duedate = (int) $atividade->duedate;
                     if (!is_null($r->grade)) {
                         $r->grade = (float) $r->grade;
                     }
+
                     // Agrupa os dados por usuário
                     $group_array_do_grupo->add($r->user_id, $r);
                 }
@@ -86,7 +91,7 @@ function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_m
 
                 // Não entregou
                 if (is_null($atividade->submission_date)) {
-                    if ((int) $atividade->duedate == 0) {
+                    if ($atividade->duedate == 0) {
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                     } elseif ($atividade->duedate > $timenow) {
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
@@ -96,6 +101,8 @@ function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_m
                 } // Entregou e ainda não foi avaliada
                 elseif (is_null($atividade->grade) || $atividade->grade < 0) {
                     $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
+
+                    // calculo do atraso
                     $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
                     $datadiff = date_create()->diff(get_datetime_from_unixtime($submission_date));
                     $atraso = (int) $datadiff->format("%a");
@@ -123,7 +130,7 @@ function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_m
  *  Segunda linha ativ1_mod1, ativ2_mod1, ativ1_mod2, ativ2_mod2
  *
  * @param array $modulos
- * @return type
+ * @return array
  */
 function get_table_header_atividades_vs_notas($modulos = array()) {
     $atividades_modulos = query_atividades_modulos($modulos);
@@ -257,7 +264,7 @@ function get_dados_grafico_atividades_vs_notas($modulos, $tutores, $curso_ufsc) 
                 elseif (is_null($atividade->grade) || (float) $atividade->grade < 0) {
                     $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
                     $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
-                    $datadiff = date_diff(date_create(), get_datetime_from_unixtime($submission_date));
+                    $datadiff = date_create()->diff(get_datetime_from_unixtime($submission_date));
                     $atraso = $datadiff->format("%a");
                     ($atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? $count_muito_atraso++ : $count_pouco_atraso++;
                 } // Atividade entregue e avaliada
@@ -268,6 +275,7 @@ function get_dados_grafico_atividades_vs_notas($modulos, $tutores, $curso_ufsc) 
                 }
             }
         }
+
         $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] =
               array($count_nota_atribuida,
                   $count_pouco_atraso,
