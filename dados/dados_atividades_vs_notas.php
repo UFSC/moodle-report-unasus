@@ -13,7 +13,7 @@ defined('MOODLE_INTERNAL') || die;
  * @param $curso_moodle
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_moodle) {
+function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tutores) {
 
     $middleware = Middleware::singleton();
 
@@ -40,9 +40,7 @@ function get_dados_atividades_vs_notas($modulos, $tutores, $curso_ufsc, $curso_m
 
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
@@ -166,7 +164,7 @@ function get_table_header_atividades_vs_notas($modulos = array()) {
 
 
 
-function get_dados_grafico_atividades_vs_notas($modulos, $tutores, $curso_ufsc) {
+function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores) {
     global $CFG;
     $middleware = Middleware::singleton();
 
@@ -194,18 +192,15 @@ function get_dados_grafico_atividades_vs_notas($modulos, $tutores, $curso_ufsc) 
 
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
-
-
-
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
-    $group_tutoria = array();
+    $grupos = array();
 
     // Executa Consulta
     foreach ($grupos_tutoria as $grupo) {
         $group_array_do_grupo = new GroupArray();
+
         foreach ($modulos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
                 $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
@@ -221,7 +216,8 @@ function get_dados_grafico_atividades_vs_notas($modulos, $tutores, $curso_ufsc) 
                 }
             }
         }
-        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
+
+        $grupos[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
@@ -237,7 +233,7 @@ function get_dados_grafico_atividades_vs_notas($modulos, $tutores, $curso_ufsc) 
 //        'sem_prazo'
 
     $dados = array();
-    foreach ($group_tutoria as $grupo_id => $array_dados) {
+    foreach ($grupos as $grupo_id => $array_dados) {
         //variáveis soltas para melhor entendimento
         $count_nota_atribuida = 0;
         $count_pouco_atraso = 0;
