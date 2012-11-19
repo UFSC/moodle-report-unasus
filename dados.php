@@ -655,7 +655,7 @@ function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, 
  * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_nao_avaliadas($modulos, $tutores, $curso_ufsc, $curso_moodle) {
+function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos, $tutores) {
 
     $middleware = Middleware::singleton();
 
@@ -681,9 +681,7 @@ function get_dados_atividades_nao_avaliadas($modulos, $tutores, $curso_ufsc, $cu
     ";
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
-
 
 
     $group_tutoria = array();
@@ -763,7 +761,7 @@ function get_dados_atividades_nao_avaliadas($modulos, $tutores, $curso_ufsc, $cu
 // Síntese: atividades concluídas
 //
 
-function get_dados_atividades_nota_atribuida($modulos, $tutores, $curso_ufsc, $curso_moodle) {
+function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulos, $tutores) {
     $middleware = Middleware::singleton();
 
     // Consulta
@@ -788,7 +786,6 @@ function get_dados_atividades_nota_atribuida($modulos, $tutores, $curso_ufsc, $c
     ";
 
     // Recupera dados auxiliares
-    $modulos = get_atividades_modulos(get_modulos_validos($modulos));
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
