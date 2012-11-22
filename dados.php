@@ -662,7 +662,8 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
     // Consulta
     $query = " SELECT u.id as user_id,
                       gr.grade,
-                      sub.status
+                      sub.status,
+                      sub.timemodified as submission_modified
                  FROM (
                        SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
@@ -676,7 +677,7 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id)
-            WHERE sub.status IS NULL
+            WHERE gr.grade IS NULL
             ORDER BY u.firstname, u.lastname
     ";
 
@@ -698,46 +699,54 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
     // Executa Consulta
     foreach ($grupos_tutoria as $grupo) {
         $group_array_do_grupo = new GroupArray();
-        $group_array_das_atividades = new GroupArray();
+        $array_das_atividades = array();
+
         foreach ($modulos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
                 $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc,
-                    'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                                'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+
                 $result = $middleware->get_records_sql($query, $params);
 
                 // para cada assign um novo dado de avaliacao em atraso
-                $group_array_das_atividades->add($atividade->assign_id, new dado_atividades_nota_atribuida($total_alunos[$grupo->id]));
+                $array_das_atividades[$atividade->assign_id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                 foreach ($result as $r) {
 
                     // Adiciona campos extras
                     $r->courseid = $modulo;
                     $r->assignid = $atividade->assign_id;
-                    $r->duedate = $atividade->duedate;
+                    $r->submission_modified = (int) $r->submission_modified;
 
                     // Agrupa os dados por usuário
                     $group_array_do_grupo->add($r->user_id, $r);
                 }
             }
         }
-        $lista_atividade[$grupo->id] = $group_array_das_atividades->get_assoc();
+        $lista_atividade[$grupo->id] = $array_das_atividades;
         $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
 
-
-
+    $timenow = time();
+    $prazo_avaliacao = (get_prazo_avaliacao() * 60 * 60 * 24);
 
 
     $somatorio_total_atrasos = array();
     foreach ($group_tutoria as $grupo_id => $array_dados) {
-        foreach ($array_dados as $id_aluno => $aluno) {
-            foreach ($aluno as $atividade) {
-                $lista_atividade[$grupo_id][$atividade->assignid][0]->incrementar_atraso();
-                if (!key_exists($grupo_id, $somatorio_total_atrasos)) {
+        foreach ($array_dados as $results) {
+
+            foreach ($results as $atividade) {
+                if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
                 }
-                $somatorio_total_atrasos[$grupo_id]++;
+
+                if ($atividade->status == 'draft' && $atividade->submission_modified + $prazo_avaliacao < $timenow) {
+
+                    $lista_atividade[$grupo_id][$atividade->assignid]->incrementar_atraso();
+                    $somatorio_total_atrasos[$grupo_id]++;
+                }
+
             }
         }
     }
@@ -748,8 +757,9 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
         $data = array();
         $data[] = grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id);
         foreach ($grupo as $atividades) {
-            $data[] = $atividades[0];
+            $data[] = $atividades;
         }
+
         $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
         $dados[] = $data;
     }
