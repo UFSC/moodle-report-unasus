@@ -56,6 +56,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
         foreach ($modulos as $modulo => $atividades) {
 
             foreach ($atividades as $atividade) {
+
                 $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
                     'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
                 $result = $middleware->get_records_sql($query, $params);

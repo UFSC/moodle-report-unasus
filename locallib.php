@@ -202,6 +202,23 @@ function query_atividades_modulos($modulos) {
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
 
+function query_forum_modulo($modulos){
+    global $DB;
+
+    $string_modulos = get_modulos_validos($modulos);
+
+    $query = "SELECT courseid as course_id,
+                         itemname,
+                         itemmodule,
+                         idnumber
+                    FROM {grade_items}
+                   WHERE itemmodule LIKE 'forum'
+                     AND courseid IN ({$string_modulos})
+               ORDER BY courseid";
+
+    return $DB->get_recordset_sql($query);
+}
+
 /**
  * Verifica se o usuário não enviar uma listagem de modulos obtem todos os modulos válidos (possuem atividade)
  *
