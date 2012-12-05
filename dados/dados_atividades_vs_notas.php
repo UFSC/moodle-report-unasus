@@ -42,8 +42,10 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
     $query_forum = " SELECT u.id as userid,
                             gg.finalgrade as grade,
                             gi.courseid,
-                            gi.itemmodule,
-                            grupo_id
+                            gi.itemmodule as assignid,
+                            grupo_id,
+                            gg.timemodified as submission_date,
+                            cm.completionexpected as duedate
                      FROM (
                        SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
@@ -57,6 +59,8 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
               ON (gg.userid = u.id)
               LEFT JOIN {grade_items} as gi
               ON (gi.courseid=:courseid AND gi.id = gg.itemid AND gi.itemmodule LIKE 'forum')
+              LEFT JOIN {course_modules} as cm
+              ON (gi.iteminstance = cm.instance)
               ORDER BY grupo_id, u.firstname, u.lastname
     ";
 
@@ -92,13 +96,15 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
             }
             $params_forum =  array('courseid' => $modulo, 'curso_ufsc' => $curso_ufsc,
                 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-            $result_forum = $middleware->get_records_sql($query_forum, $params);
+            $result_forum = $middleware->get_records_sql($query_forum, $params_forum);
 
-            foreach($result_forum as $r){
-                if (!is_null($r->grade)) {
-                    $r->grade = (float)$r->grade;
+            foreach($result_forum as $f){
+                if (!is_null($f->grade)) {
+                    $f->grade = (float)$f->grade;
+                    
                 }
-                $group_array_do_grupo->add($r->userid, $r);
+                $group_array_do_grupo->add($f->userid, $f);
+                var_dump($f);
             }
         }
         $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
@@ -120,10 +126,6 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
 
 
                 $atraso = null;
-                if(array_key_exists('itemmodule',$atividade)){
-                    $lista_atividades[] = rand(-12,-5);
-                    break;
-                }
 
                 // Não entregou
                 if (is_null($atividade->submission_date)) {
@@ -209,7 +211,6 @@ function get_table_header_atividades_vs_notas($modulos = array())
         }
         $header[$course_link] = $dados;
     }
-
     return $header;
 }
 
