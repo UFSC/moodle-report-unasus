@@ -41,6 +41,41 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
             ORDER BY u.firstname, u.lastname
     ";
 
+    $query_forum = " SELECT *,  userid_posts IS NOT NULL as has_post
+                     FROM (
+                       SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
+                         FROM {user} u
+                         JOIN {table_PessoasGruposTutoria} pg
+                           ON (pg.matricula=u.username)
+                         JOIN {table_GruposTutoria} gt
+                           ON (gt.id=pg.grupo)
+                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
+                     ) u
+                     LEFT JOIN
+                    (
+                        SELECT fp.userid as userid_posts, fp.created as submission_date
+                        FROM {course_modules} cm
+                        JOIN {forum} f
+                        ON (f.id=cm.instance AND cm.id=:forumid)
+                        JOIN {forum_discussions} fd
+                        ON (fd.forum=f.id)
+                        JOIN {forum_posts} fp
+                        ON (fd.id = fp.discussion)
+                        GROUP BY fp.userid
+                        ORDER BY fp.created ASC
+                    ) forum_posts
+                    ON (forum_posts.userid_posts=u.id)
+                    LEFT JOIN
+                    (
+                        SELECT gg.userid, gg.rawgrade as grade, gg.timemodified, gg.itemid
+                        FROM {grade_grades} gg
+                        JOIN {grade_items} gi
+                        ON ( gi.courseid=:courseid AND gg.itemid=:idforumitem AND gi.id = gg.itemid AND gi.itemmodule LIKE 'forum' AND rawgrade IS NOT NULL)
+                    ) gg
+                    ON (gg.userid = u.id)
+                    ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
@@ -72,6 +107,33 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
 
                     // Agrupa os dados por usuário
                     $group_array_do_grupo->add($r->user_id, $r);
+                }
+            }
+
+            //Pega quais e quantos foruns existem dentro de um modulo
+            $foruns_modulos = query_forum_modulo($modulo);
+            $group_foruns_modulos = new GroupArray();
+
+            //Agrupa os foruns pelos seus respectivos modulos
+            foreach ($foruns_modulos as $forum) {
+                $group_foruns_modulos->add($forum->course_id, $forum);
+            }
+            $group_foruns_modulos = $group_foruns_modulos->get_assoc();
+
+            if(!empty($group_foruns_modulos)){
+                //Para cada forum dentro de um módulo ele faz a querry das respectivas avaliacoes
+                foreach($group_foruns_modulos[$modulo] as $forum){
+                    $params_forum =  array('courseid' => $modulo, 'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'forumid' => $forum->idnumber, 'idforumitem' => $forum->id);
+                    $result_forum = $middleware->get_records_sql($query_forum, $params_forum);
+                    $forum_duedate = query_forum_duedate($forum->idnumber);
+                    // para cada aluno adiciona a listagem de atividades
+                    foreach($result_forum as $f){
+                        $f->assignid = $f->id;
+                        $group_array_do_grupo->add($f->id, $f);
+                        $f->duedate = $forum_duedate->completionexpected;
+                    }
+
                 }
             }
         }
@@ -372,7 +434,44 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 }
 
 function get_table_header_historico_atribuicao_notas($modulos) {
-    return get_table_header_atividades_vs_notas($modulos);
+    return get_table_header_modulos_atividades($modulos);
+}
+
+function get_table_header_modulos_atividades($modulos = array())
+{
+    $atividades_modulos = query_atividades_modulos($modulos);
+
+    $group = new GroupArray();
+    $modulos = array();
+    $header = array();
+
+    // Agrupa atividades por curso e cria um índice de cursos
+    foreach ($atividades_modulos as $atividade) {
+        $modulos[$atividade->course_id] = $atividade->course_name;
+        $group->add($atividade->course_id, $atividade);
+    }
+
+    $group_assoc = $group->get_assoc();
+
+    foreach ($group_assoc as $course_id => $atividades) {
+        $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
+        $course_link = html_writer::link($course_url, $modulos[$course_id]);
+        $dados = array();
+
+        foreach ($atividades as $atividade) {
+            if (array_key_exists('assign_id', $atividade)) {
+                $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
+
+                $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
+                $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
+            } else {
+                $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $atividade->idnumber));
+                $dados[] = html_writer::link($forum_url, $atividade->itemname);
+            }
+        }
+        $header[$course_link] = $dados;
+    }
+    return $header;
 }
 
 function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tutores) {
