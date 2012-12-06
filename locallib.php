@@ -207,7 +207,7 @@ function query_forum_modulo($modulos){
 
     $string_modulos = get_modulos_validos($modulos);
 
-    $query = "SELECT courseid as course_id,
+    $query = "SELECT id, courseid as course_id,
                          itemname,
                          itemmodule,
                          idnumber
