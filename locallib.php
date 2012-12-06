@@ -218,6 +218,21 @@ function query_forum_modulo($modulos){
 
     return $DB->get_recordset_sql($query);
 }
+/*
+ * TODO remove foreach
+ */
+function query_forum_duedate($forum_id){
+    global $DB;
+    $query = "SELECT *
+              FROM {course_modules} cm
+              JOIN {forum} f
+              ON (f.id=cm.instance AND cm.id=:forumid)";
+
+    $query =  $DB->get_recordset_sql($query, array('forumid'=>$forum_id));
+    foreach($query as $row){
+        return $row;
+    }
+}
 
 /**
  * Verifica se o usuário não enviar uma listagem de modulos obtem todos os modulos válidos (possuem atividade)

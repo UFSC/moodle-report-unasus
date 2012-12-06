@@ -51,7 +51,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                      ) u
                      LEFT JOIN
                     (
-                        SELECT DISTINCT (fp.userid) as userid_posts
+                        SELECT fp.userid as userid_posts, fp.created as submission_date
                         FROM {course_modules} cm
                         JOIN {forum} f
                         ON (f.id=cm.instance AND cm.id=:forumid)
@@ -59,9 +59,18 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                         ON (fd.forum=f.id)
                         JOIN {forum_posts} fp
                         ON (fd.id = fp.discussion)
+                        GROUP BY fp.userid
+                        ORDER BY fp.created ASC
                     ) forum_posts
-
                     ON (forum_posts.userid_posts=u.id)
+                    LEFT JOIN
+                    (
+                        SELECT gg.userid, gg.rawgrade as grade, gg.timemodified, gg.itemid
+                        FROM {grade_grades} gg
+                        JOIN {grade_items} gi
+                        ON ( gi.courseid=:courseid AND gg.itemid=:idforumitem AND gi.id = gg.itemid AND gi.itemmodule LIKE 'forum' AND rawgrade IS NOT NULL)
+                    ) gg
+                    ON (gg.userid = u.id)
                     ORDER BY grupo_id, u.firstname, u.lastname
     ";
 
@@ -77,11 +86,12 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
         $group_array_do_grupo = new GroupArray();
         foreach ($modulos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
+
+                //ATividades dentro de um curso
                 $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
                     'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
                 $result = $middleware->get_records_sql($query, $params);
-
                 foreach ($result as $r) {
                     $r->courseid = $modulo;
                     $r->assignid = $atividade->assign_id;
@@ -108,17 +118,21 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
             }
             $group_foruns_modulos = $group_foruns_modulos->get_assoc();
 
+            if(!empty($group_foruns_modulos)){
             //Para cada forum dentro de um módulo ele faz a querry das respectivas avaliacoes
-            foreach($group_foruns_modulos[$modulo] as $forum){
-                $params_forum =  array('courseid' => $modulo, 'curso_ufsc' => $curso_ufsc,
-                    'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'forumid' => $forum->idnumber);
-                $result_forum = $middleware->get_records_sql($query_forum, $params_forum);
-                // para cada aluno adiciona a listagem de atividades
-                foreach($result_forum as $f){
-                    $f->assignid = $f->id;
-                    $group_array_do_grupo->add($f->id, $f);
-                }
+                foreach($group_foruns_modulos[$modulo] as $forum){
+                    $params_forum =  array('courseid' => $modulo, 'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'forumid' => $forum->idnumber, 'idforumitem' => $forum->id);
+                    $result_forum = $middleware->get_records_sql($query_forum, $params_forum);
+                    $forum_duedate = query_forum_duedate($forum->idnumber);
+                    // para cada aluno adiciona a listagem de atividades
+                    foreach($result_forum as $f){
+                        $f->assignid = $f->id;
+                        $group_array_do_grupo->add($f->id, $f);
+                        $f->duedate = $forum_duedate->completionexpected;
+                    }
 
+                }
             }
 
 
@@ -139,19 +153,6 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
 
 
             foreach ($aluno as $atividade) {
-                //caso de forum
-                if(array_key_exists('has_post',$atividade)){
-
-                    if($atividade->has_post){
-                        $atividade->grade = 10;
-                        $atividade->submission_date = $timenow - 200;
-                    }else{
-                        $atividade->grade = null;
-                        $atividade->submission_date = null;
-                        $atividade->duedate = 00001;
-                    }
-                }
-
                 $atraso = null;
 
                 // Não entregou

@@ -46,10 +46,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
 
-    //Agrupa os foruns pelos seus respectivos modulos
-    foreach ($foruns_modulos as $forum) {
-        $group->add($forum->course_id, $forum);
-    }
+
 
     $group_tutoria = array();
 
