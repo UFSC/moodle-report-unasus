@@ -1247,16 +1247,19 @@ function get_table_header_potenciais_evasoes($modulos) {
     return $header;
 }
 
-//
-// Outros ??
-//
 
+/*
+ * Cabeçalho para o sintese: atividades concluidas
+ */
 function get_table_header_atividades_nota_atribuida($modulos) {
     return get_table_header_atividades_nao_avaliadas($modulos);
 }
 
+/*
+ * Cabeçalho para o sintese: avaliacoes em atraso
+ */
 function get_table_header_atividades_nao_avaliadas($modulos) {
-    $header = get_table_header_atividades_vs_notas($modulos);
+    $header = get_table_header_modulos_atividades($modulos);
     $header[''] = array('Média');
     return $header;
 }
