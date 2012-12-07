@@ -131,7 +131,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
                     foreach($result_forum as $f){
                         $f->assignid = $f->id;
                         $group_array_do_grupo->add($f->id, $f);
-                        $f->duedate = $forum_duedate->completionexpected;
+                        $f->duedate = isset($forum_duedate->completionexpected) ? $forum_duedate->completionexpected : null;
                     }
 
                 }

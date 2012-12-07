@@ -129,7 +129,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                     foreach($result_forum as $f){
                         $f->assignid = $f->id;
                         $group_array_do_grupo->add($f->id, $f);
-                        $f->duedate = $forum_duedate->completionexpected;
+                        $f->duedate = isset($forum_duedate->completionexpected) ? $forum_duedate->completionexpected : null;
                     }
 
                 }
