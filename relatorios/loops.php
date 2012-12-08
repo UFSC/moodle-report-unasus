@@ -76,7 +76,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                     foreach($result_forum as $f){
                         $f->assignid = $f->id;
                         $group_array_do_grupo->add($f->id, $f);
-                        $f->duedate = $forum_duedate->completionexpected;
+                        $f->duedate = isset($forum_duedate->completionexpected) ? $forum_duedate->completionexpected : null;
                     }
 
                 }
