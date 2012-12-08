@@ -434,7 +434,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 }
 
 function get_table_header_historico_atribuicao_notas($modulos) {
-    return get_table_header_modulos_atividades($modulos);
+    return get_table_header_atividades_vs_notas($modulos);
 }
 
 function get_table_header_modulos_atividades($modulos = array())

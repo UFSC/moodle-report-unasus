@@ -140,6 +140,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
         $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
+    var_dump($group_tutoria);
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
     $timenow = time();
