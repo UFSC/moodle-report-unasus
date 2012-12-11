@@ -173,7 +173,7 @@ function query_entrega_de_atividades()
  */
 function query_historico_atribuicao_notas(){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-    $query = " SELECT u.id as user_id,
+    return " SELECT u.id as user_id,
                       sub.timecreated as submission_date,
                       sub.timemodified as submission_modified,
                       gr.timemodified as grade_modified,
@@ -260,7 +260,6 @@ function query_atividades_nao_avaliadas(){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
-                      sub.status,
                       sub.timemodified as submission_modified
                  FROM (
 
@@ -286,7 +285,7 @@ function query_atividades_nao_avaliadas(){
  */
 function query_atividades_nota_atribuida(){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-    $query = " SELECT u.id as user_id,
+    return " SELECT u.id as user_id,
                       gr.grade,
                       sub.status
                  FROM (

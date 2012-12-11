@@ -403,7 +403,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
     global $CFG;
 
     // Consultas
-    $query_alunos_grupo_tutoria = query_entrega_de_atividades();
+    $query_alunos_grupo_tutoria = query_historico_atribuicao_notas();
     $query_forum = query_postagens_forum();
 
     // Recupera dados auxiliares
@@ -415,7 +415,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                                                                     $modulos,$tutores,
-                                                                    $query_alunos_grupo_tutoria,$query_forum);
+                                                                    $query_alunos_grupo_tutoria,$query_forum, false);
 
     $dados = array();
     $timenow = time();
@@ -438,6 +438,9 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
                     $atraso = (int) $datadiff->format("%a");
                 } //Atividade entregue e avalidada
                 elseif ((int) $atividade->grade >= 0) {
+                    if(!array_key_exists('grade_created', $atividade)){
+                        $atividade->grade_created = $atividade->timemodified;
+                    }
 
                     //quanto tempo desde a entrega até a correção
                     $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
@@ -459,6 +462,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
                     print_error('unmatched_condition', 'report_unasus');
                     return false;
                 }
+
 
                 $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->assignid, $atraso);
             }
@@ -622,52 +626,17 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades_nao_avaliadas();
+    $query_forum = query_postagens_forum();
 
-    // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
+    $result_array = loop_atividades_e_foruns_sintese($curso_ufsc,$modulos, $tutores,
+                                    $query_alunos_grupo_tutoria,$query_forum);
 
-
-    $group_tutoria = array();
-    $lista_atividade = array();
-    // Listagem da atividades por tutor
-    $total_alunos = get_count_estudantes($curso_ufsc);
-    $total_atividades = 0;
-
-    foreach ($modulos as $atividades) {
-        $total_atividades += count($atividades);
-    }
+    $total_alunos = $result_array['total_alunos'];
+    $total_atividades = $result_array['total_atividades'];
+    $lista_atividade = $result_array['lista_atividade'];
+    $associativo_atividade = $result_array['associativo_atividade'];
 
 
-    // Executa Consulta
-    foreach ($grupos_tutoria as $grupo) {
-        $group_array_do_grupo = new GroupArray();
-        $array_das_atividades = array();
-
-        foreach ($modulos as $modulo => $atividades) {
-            foreach ($atividades as $atividade) {
-                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc,
-                    'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-
-                $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
-
-                // para cada assign um novo dado de avaliacao em atraso
-                $array_das_atividades[$atividade->assign_id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
-
-                foreach ($result as $r) {
-
-                    // Adiciona campos extras
-                    $r->courseid = $modulo;
-                    $r->assignid = $atividade->assign_id;
-                    $r->submission_modified = (int) $r->submission_modified;
-
-                    // Agrupa os dados por usuário
-                    $group_array_do_grupo->add($r->user_id, $r);
-                }
-            }
-        }
-        $lista_atividade[$grupo->id] = $array_das_atividades;
-        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
-    }
 
 
     $timenow = time();
@@ -675,19 +644,23 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 
 
     $somatorio_total_atrasos = array();
-    foreach ($group_tutoria as $grupo_id => $array_dados) {
+    foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $results) {
 
             foreach ($results as $atividade) {
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
                 }
-
-                if ($atividade->status == 'draft' && $atividade->submission_modified + $prazo_avaliacao < $timenow) {
+                $atividade_nao_corrigida = false;
+                if(array_key_exists('status', $atividade))
+                    $atividade_nao_corrigida = $atividade->status == 'draft' && $atividade->submission_modified + $prazo_avaliacao < $timenow;
+                $forum_nao_corrigido = array_key_exists('firstname',$atividade) && $atividade->submission_date != null && $atividade->grade == null;
+                if ( $atividade_nao_corrigida || $forum_nao_corrigido ) {
 
                     $lista_atividade[$grupo_id][$atividade->assignid]->incrementar_atraso();
                     $somatorio_total_atrasos[$grupo_id]++;
                 }
+
 
             }
         }
@@ -713,7 +686,7 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
  * Cabeçalho para o sintese: avaliacoes em atraso
  */
 function get_table_header_atividades_nao_avaliadas($modulos) {
-    $header = get_table_header_modulos_atividades($modulos);
+    $header = get_table_header_atividades_vs_notas($modulos);
     $header[''] = array('Média');
     return $header;
 }
@@ -727,60 +700,28 @@ function get_table_header_atividades_nao_avaliadas($modulos) {
  */
 
 function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulos, $tutores) {
-    $middleware = Middleware::singleton();
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades_nota_atribuida();
+    $query_forum = query_postagens_forum();
 
-    // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
+    $result_array = loop_atividades_e_foruns_sintese($curso_ufsc,$modulos, $tutores,
+        $query_alunos_grupo_tutoria,$query_forum);
 
-    $group_tutoria = array();
-    $lista_atividade = array();
-    // Listagem da atividades por tutor
-    $total_alunos = get_count_estudantes($curso_ufsc);
-    $total_atividades = 0;
-
-    foreach ($modulos as $atividades) {
-        $total_atividades += count($atividades);
-    }
+    $total_alunos = $result_array['total_alunos'];
+    $total_atividades = $result_array['total_atividades'];
+    $lista_atividade = $result_array['lista_atividade'];
+    $associativo_atividade = $result_array['associativo_atividade'];
 
 
-    // Executa Consulta
-    foreach ($grupos_tutoria as $grupo) {
-        $group_array_do_grupo = new GroupArray();
-        $group_array_das_atividades = new GroupArray();
-        foreach ($modulos as $modulo => $atividades) {
-            foreach ($atividades as $atividade) {
-                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc,
-                    'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-                $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
-
-                // para cada assign um novo dado de avaliacao em atraso
-                $group_array_das_atividades->add($atividade->assign_id, new dado_atividades_nota_atribuida($total_alunos[$grupo->id]));
-
-                foreach ($result as $r) {
-
-                    // Adiciona campos extras
-                    $r->courseid = $modulo;
-                    $r->assignid = $atividade->assign_id;
-                    $r->duedate = $atividade->duedate;
-
-                    // Agrupa os dados por usuário
-                    $group_array_do_grupo->add($r->user_id, $r);
-                }
-            }
-        }
-        $lista_atividade[$grupo->id] = $group_array_das_atividades->get_assoc();
-        $group_tutoria[$grupo->id] = $group_array_do_grupo->get_assoc();
-    }
 
     $somatorio_total_atrasos = array();
-    foreach ($group_tutoria as $grupo_id => $array_dados) {
+    foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $id_aluno => $aluno) {
             foreach ($aluno as $atividade) {
-                $lista_atividade[$grupo_id][$atividade->assignid][0]->incrementar_atraso();
-                if (!key_exists($grupo_id, $somatorio_total_atrasos)) {
+                if(!is_null($atividade->grade))
+                    $lista_atividade[$grupo_id][$atividade->assignid]->incrementar_atraso();
+                if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
                 }
                 $somatorio_total_atrasos[$grupo_id]++;
@@ -793,7 +734,7 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
         $data = array();
         $data[] = grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id);
         foreach ($grupo as $atividades) {
-            $data[] = $atividades[0];
+            $data[] = $atividades;
         }
         $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
         $dados[] = $data;
@@ -1076,6 +1017,8 @@ function get_table_header_potenciais_evasoes($modulos) {
 
 function get_table_header_modulos_atividades($modulos = array())
 {
+
+
     $atividades_modulos = query_atividades_modulos($modulos);
 
     $group = new GroupArray();
