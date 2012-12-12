@@ -914,54 +914,23 @@ function get_table_header_acesso_tutor() {
 
 function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tutores) {
     global $CFG;
-    $middleware = Middleware::singleton();
 
     // Consulta
-    $query = query_potenciais_evasoes();
+    $query_alunos_atividades = query_potenciais_evasoes();
+    $query_forum = query_postagens_forum();
 
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
 
-    $grupos = array();
-
-
-    // Executa Consulta
-    foreach ($grupos_tutoria as $grupo) {
-        $group_array_do_grupo = new GroupArray();
-        foreach ($modulos as $modulo => $atividades) {
-
-            foreach ($atividades as $atividade) {
-                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
-                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-                $result = $middleware->get_records_sql($query, $params);
-
-                foreach ($result as $r) {
-
-                    // Adiciona campos extras
-                    $r->courseid = $modulo;
-                    $r->assignid = $atividade->assign_id;
-                    $r->duedate = $atividade->duedate;
-
-                    // Agrupa os dados por usuário
-                    $group_array_do_grupo->add($r->user_id, $r);
-                }
-            }
-        }
-        $grupos[$grupo->id] = $group_array_do_grupo->get_assoc();
-    }
-
-
-
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,$modulos,
+        $tutores,$query_alunos_atividades,$query_forum);
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
     $timenow = time();
     $dados = array();
 
-
-
-    foreach ($grupos as $grupo_id => $array_dados) {
+    foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
             $dados_modulos = array();
@@ -978,6 +947,7 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
                     $dados_modulos[$atividade->courseid]->add_atividade_nao_realizada();
                 }
             }
+
 
             $atividades_nao_realizadas_do_estudante = 0;
             foreach ($dados_modulos as $key => $modulo) {

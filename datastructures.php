@@ -544,10 +544,8 @@ class dado_atividade extends unasus_data {
     }
 
     public function __toString() {
-
         if($this->tipo == 'atividade'){
             //atividade
-
             $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
             $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
             return html_writer::link($atividade_url, $this->nome);
