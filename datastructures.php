@@ -532,17 +532,28 @@ class dado_atividade extends unasus_data {
     private $id;
     private $nome;
     private $course_id;
+    private $tipo;
 
-    function __construct($id, $nome, $course_id) {
+    function __construct($id, $course_id, $nome, $tipo) {
         $this->id = $id;
-        $this->nome = $nome;
         $this->course_id = $course_id;
+        $this->nome = $nome;
+        $this->tipo = $tipo;
     }
 
     public function __toString() {
+
+        if($this->tipo == 'atividade'){
+            //atividade
+
             $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
             $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
             return html_writer::link($atividade_url, $this->nome);
+        }else{
+            //forum
+            $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $this->id));
+            return html_writer::link($forum_url, $this->nome);
+        }
     }
 
     public function get_css_class() {

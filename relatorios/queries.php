@@ -62,7 +62,7 @@ function query_postagens_forum(){
                      ) u
                      LEFT JOIN
                     (
-                        SELECT fp.userid as userid_posts, fp.created as submission_date
+                        SELECT fp.userid as userid_posts, fp.created as submission_date, fd.name as forum_name
                         FROM {course_modules} cm
                         JOIN {forum} f
                         ON (f.id=cm.instance AND cm.id=:forumid)

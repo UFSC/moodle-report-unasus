@@ -1063,47 +1063,22 @@ function get_header_estudante_sem_atividade_postada($size) {
     return $header;
 }
 
-function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query) {
+function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_atividades) {
     $middleware = Middleware::singleton();
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
+    $query_forum = query_postagens_forum();
 
-    $grupos = array();
-
-    // Executa Consulta
-    foreach ($grupos_tutoria as $grupo) {
-        $group_array_do_grupo = new GroupArray();
-        foreach ($modulos as $modulo => $atividades) {
-            foreach ($atividades as $atividade) {
-                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id,
-                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-                $result = $middleware->get_records_sql($query, $params);
-
-                foreach ($result as $r) {
-
-                    // Adiciona campos extras
-                    $r->courseid = $modulo;
-                    $r->assignid = $atividade->assign_id;
-                    $r->duedate = $atividade->duedate;
-
-                    // Agrupa os dados por usuário
-                    $group_array_do_grupo->add($r->user_id, $r);
-                }
-            }
-        }
-        $grupos[$grupo->id] = $group_array_do_grupo->get_assoc();
-    }
-
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,$modulos,
+                                $tutores,$query_alunos_atividades,$query_forum);
 
 
     $id_nome_modulos = get_id_nome_modulos();
     $id_nome_atividades = get_id_nome_atividades();
 
-
     $dados = array();
-    foreach ($grupos as $grupo_id => $array_dados) {
+    foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
@@ -1111,7 +1086,19 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
             $atividades_modulos = new GroupArray();
 
             foreach ($aluno as $atividade) {
-                $atividades_modulos->add($atividade->courseid, $atividade->assignid);
+                var_dump($atividade);
+                $tipo_avaliacao = 'atividade';
+                $nome_atividade = null;
+                $course_id = null;
+                if(array_key_exists('has_post',$atividade)){
+                    $tipo_avaliacao = 'forum';
+                    $nome_atividade = $atividade->forum_name;
+                }else{
+                    $nome_atividade = $id_nome_atividades[$atividade->assignid];
+                    $course_id = $atividade->courseid;
+                }
+                $atividades_modulos->add($atividade->assignid, array('nome' => $nome_atividade,'course_id'=>$course_id,
+                    'assign_id' => $atividade->assignid, 'tipo' => $tipo_avaliacao));
             }
 
 
@@ -1119,7 +1106,9 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
             foreach ($ativ_mod as $key => $modulo) {
                 $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
                 foreach ($modulo as $atividade) {
-                    $lista_atividades[] = new dado_atividade($atividade, $id_nome_atividades[$atividade], $key);
+                    var_dump($atividade);
+                    $lista_atividades[] = new dado_atividade($atividade['assign_id'], $atividade['course_id'],
+                        $atividade['nome'], $atividade['tipo']);
                 }
             }
 
