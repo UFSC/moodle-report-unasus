@@ -77,6 +77,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                     $forum_duedate = query_forum_duedate($forum->idnumber);
                     // para cada aluno adiciona a listagem de atividades
                     foreach($result_forum as $f){
+                        $f->courseid = $modulo;
                         $f->assignid = $f->id;
                         $group_array_do_grupo->add($f->id, $f);
                         $f->duedate = isset($forum_duedate->completionexpected) ? $forum_duedate->completionexpected : null;

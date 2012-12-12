@@ -533,12 +533,14 @@ class dado_atividade extends unasus_data {
     private $nome;
     private $course_id;
     private $tipo;
+    private $forumid;
 
-    function __construct($id, $course_id, $nome, $tipo) {
+    function __construct($id, $course_id, $nome, $tipo, $forumid) {
         $this->id = $id;
         $this->course_id = $course_id;
         $this->nome = $nome;
         $this->tipo = $tipo;
+        $this->forumid = $forumid;
     }
 
     public function __toString() {
@@ -551,7 +553,7 @@ class dado_atividade extends unasus_data {
             return html_writer::link($atividade_url, $this->nome);
         }else{
             //forum
-            $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $this->id));
+            $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $this->forumid));
             return html_writer::link($forum_url, $this->nome);
         }
     }
