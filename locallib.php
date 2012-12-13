@@ -2,8 +2,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once("{$CFG->dirroot}/{$CFG->admin}/tool/tutores/middlewarelib.php");
-require_once("$CFG->dirroot/$CFG->admin/tool/tutores/lib.php");
+require_once("{$CFG->dirroot}/local/tutores/middlewarelib.php");
+require_once("{$CFG->dirroot}/local/tutores/lib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 //require_once($CFG->dirroot . '/report/unasus/dados.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/relatorios.php');
