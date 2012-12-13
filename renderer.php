@@ -433,7 +433,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $header_method = "get_table_header_{$this->report}";
 
         $table = $this->table_tutores($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw), $header_method($modulos_raw));
-        $output .= html_writer::table($table);
+        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
         return $output;
@@ -477,7 +477,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         }
 
         $table = $this->table_todo_list($dados_atividades, $max_size);
-        $output .= html_writer::table($table);
+        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
         return $output;
