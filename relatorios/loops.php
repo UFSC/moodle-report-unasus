@@ -32,7 +32,11 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
             foreach ($atividades as $atividade) {
 
                 $params = array('assignmentid' => $atividade->assign_id,
-                    'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                                'assignmentid2' => $atividade->assign_id,
+                                'assignmentid3' => $atividade->assign_id,
+                                'curso_ufsc' => $curso_ufsc,
+                                'grupo_tutoria' => $grupo->id,
+                                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
                 if($query_course){
                     $params['courseid'] = $modulo;
                 }

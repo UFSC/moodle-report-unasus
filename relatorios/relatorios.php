@@ -55,10 +55,16 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
 
 
             foreach ($aluno as $atividade) {
+
                 $atraso = null;
 
-                // Não entregou
-                if (is_null($atividade->submission_date)) {
+                // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
+                // aonde o tutor deveria dar a nota da avalicao offline
+                $atividade_offline = array_key_exists('nosubmissions',$atividade) && $atividade->nosubmissions == 1;
+
+                // Se for uma ativade online e o aluno nao enviou
+                if (  !$atividade_offline && is_null($atividade->submission_date))
+                {
                     if ($atividade->duedate == 0) {
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                     } elseif ($atividade->duedate > $timenow) {
@@ -70,8 +76,15 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                 elseif (is_null($atividade->grade) || $atividade->grade < 0) {
                     $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
 
-                    // calculo do atraso
+                    //atividade online o calculo do atraso eh feito com a data de envio ou edicao
                     $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+
+                    //atividade offline o calculo do atraso eh feito com a data da tarefa, duedate
+                    if($atividade_offline){
+                        $submission_date = (int)$atividade->duedate;
+                    }
+
+                    // calculo do atraso
                     $datadiff = date_create()->diff(get_datetime_from_unixtime($submission_date));
                     $atraso = (int)$datadiff->format("%a");
                 } // Atividade entregue e avaliada

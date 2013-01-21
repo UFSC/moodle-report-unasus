@@ -100,6 +100,7 @@ function query_postagens_forum(){
  *          timemodified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
  *          grade -> nota
  *          grupo_id -> grupo de tutoria a qual o usuário pertence
+ *          nosubmissions -> atividade offline
  *
  * @return string
  *
@@ -111,16 +112,19 @@ function query_atividades_vs_notas()
     return "SELECT u.id as user_id,
                       sub.timecreated as submission_date,
                       gr.timemodified,
-                      gr.grade, grupo_id
+                      gr.grade, grupo_id,
+                      ass.nosubmissions
                  FROM (
 
                     {$alunos_grupo_tutoria}
 
                  ) u
             LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status LIKE 'submitted')
             LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+            LEFT JOIN {assign} ass
+            ON (ass.id=:assignmentid3)
             ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
