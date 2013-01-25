@@ -127,8 +127,13 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
 
         foreach ($modulos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
-                $params = array('courseid' => $modulo, 'assignmentid' => $atividade->assign_id, 'curso_ufsc' => $curso_ufsc,
-                    'grupo_tutoria' => $grupo->id, 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                $params = array('courseid' => $modulo,
+                                'assignmentid' => $atividade->assign_id,
+                                'assignmentid2' => $atividade->assign_id,
+                                'assignmentid3' => $atividade->assign_id,
+                                'curso_ufsc' => $curso_ufsc,
+                                'grupo_tutoria' => $grupo->id,
+                                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
                 $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
 
@@ -163,8 +168,12 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
                 //Para cada forum dentro de um módulo ele faz a querry das respectivas avaliacoes
                 foreach($group_foruns_modulos[$modulo] as $forum){
 
-                    $params_forum =  array('courseid' => $modulo, 'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id,
-                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'forumid' => $forum->idnumber, 'idforumitem' => $forum->id);
+                    $params_forum =  array('courseid' => $modulo,
+                                           'curso_ufsc' => $curso_ufsc,
+                                           'grupo_tutoria' => $grupo->id,
+                                           'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
+                                           'forumid' => $forum->idnumber,
+                                           'idforumitem' => $forum->id);
 
                     $array_das_atividades['forum_'.$forum->idnumber] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
@@ -184,8 +193,10 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
         $associativo_atividade[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
-    return array('total_alunos' => $total_alunos, 'total_atividades' => $total_atividades,
-        'lista_atividade' => $lista_atividade, 'associativo_atividade' => $associativo_atividade);
+    return array('total_alunos' => $total_alunos,
+                 'total_atividades' => $total_atividades,
+                 'lista_atividade' => $lista_atividade,
+                 'associativo_atividade' => $associativo_atividade);
 
 }
 

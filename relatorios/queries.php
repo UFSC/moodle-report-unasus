@@ -183,16 +183,19 @@ function query_historico_atribuicao_notas(){
                       gr.timemodified as grade_modified,
                       gr.timecreated as grade_created,
                       gr.grade,
-                      sub.status
+                      sub.status,
+                      ass.nosubmissions
                  FROM (
 
                       {$alunos_grupo_tutoria}
 
                       ) u
             LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status LIKE 'submitted')
             LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+            LEFT JOIN {assign} ass
+            ON (ass.id=:assignmentid3)
             ORDER BY u.firstname, u.lastname
     ";
 }
@@ -264,7 +267,9 @@ function query_atividades_nao_avaliadas(){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
-                      sub.timemodified as submission_modified
+                      sub.timemodified as submission_modified,
+                      ass.nosubmissions,
+                      ass.duedate
                  FROM (
 
                       {$alunos_grupo_tutoria}
@@ -273,7 +278,9 @@ function query_atividades_nao_avaliadas(){
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id)
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+            LEFT JOIN {assign} ass
+            ON (ass.id=:assignmentid3)
             WHERE gr.grade IS NULL
             ORDER BY u.firstname, u.lastname
     ";
