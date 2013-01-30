@@ -34,18 +34,37 @@
 
 .relatorio-unasus.fieldset dl {
     margin: 0;
+
+    -moz-column-count: 2;
+    -webkit-column-count: 2;
+    column-count: 2;
+
+    -moz-column-width: 50%;
+    -webkit-column-width: 50%;
+    column-width: 50%;
+
 }
+
+.relatorio-unasus.fieldset dl dd,
+.relatorio-unasus.fieldset dl dt{
+    margin: 0;
+    padding: 0;
+
+    line-height: 22px;
+
+}
+
+
 .relatorio-unasus.fieldset dl dt {
     width: 2em;
     height: 15px;
     float: left;
     display: inline-block;
-    margin-right: 1em;
     border: 1px solid gray;
+    margin-right: 0.5em;
 }
-.relatorio-unasus.fieldset dl dd {
-    margin-bottom: 5px;
-}
+
+
 
 .relatorio-unasus.fieldset{
     color: #004E95;
