@@ -42,7 +42,6 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                                                                     $query_alunos_grupo_tutoria,$query_forum);
 
 
-
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
     $timenow = time();
 
@@ -682,8 +681,6 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 
             foreach ($results as $atividade) {
 
-                var_dump($atividade);
-
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
                 }
@@ -1080,9 +1077,18 @@ function get_header_estudante_sem_atividade_postada($size) {
     return $header;
 }
 
+/**
+ * @param $curso_ufsc
+ * @param $curso_moodle
+ * @param $modulos
+ * @param $tutores
+ * @param $query_alunos_atividades
+ * @param $relatorio
+ * @return array
+ *
+ * Dados para os relatórios Lista: Atividades não postadas e Lista: Atividades não avaliadas
+ */
 function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_atividades, $relatorio) {
-    $middleware = Middleware::singleton();
-
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $foruns_modulo = query_forum_modulo(array_keys($modulos));
@@ -1119,6 +1125,10 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
                 $atividade_sera_listada = true;
                 $idnumber = null;
 
+                // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
+                // aonde o tutor deveria dar a nota da avalicao offline
+                $atividade_offline = array_key_exists('nosubmissions',$atividade) && $atividade->nosubmissions == 1;
+
                 //workaround time
                 if(array_key_exists('has_post',$atividade)){
                     $count_foruns++;
@@ -1141,6 +1151,16 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
 
                 }else{
                     $count_foruns = -1;
+
+                    //logica para atividades offlines, para estudante_sem_atividade_postada atividades offlines nao devem ser listadas
+                    //ja para estudante_sem_atividade_avaliada so se ele nao tiver nota
+                    if($atividade_offline &&
+                        ($relatorio == 'estudante_sem_atividade_postada' ||
+                        ($relatorio == 'estudante_sem_atividade_avaliada' && !is_null($atividade->grade) ))){
+                        $atividade_sera_listada = false;
+
+                    }
+
                     $nome_atividade = $id_nome_atividades[$atividade->assignid];
                 }
 

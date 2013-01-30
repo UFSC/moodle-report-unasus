@@ -105,6 +105,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus {$this->report}"));
         $output .= html_writer::tag('legend', 'Legenda', array('class' => 'legend'));
         $output .= html_writer::start_tag('dl');
+
         foreach ($legend as $class => $description) {
             //$class é a mesma classe definida no styles.css
             $output .= html_writer::tag('dt', '', array('class' => "{$class}"));

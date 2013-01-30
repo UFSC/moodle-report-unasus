@@ -119,7 +119,6 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
         $total_atividades += count($atividades);
     }
 
-
     // Executa Consulta
     foreach ($grupos_tutoria as $grupo) {
         $group_array_do_grupo = new GroupArray();
@@ -127,6 +126,7 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
 
         foreach ($modulos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
+
                 $params = array('courseid' => $modulo,
                                 'assignmentid' => $atividade->assign_id,
                                 'assignmentid2' => $atividade->assign_id,
@@ -141,7 +141,6 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
                 $array_das_atividades['atividade_'.$atividade->assign_id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                 foreach ($result as $r) {
-
                     // Adiciona campos extras
                     $r->courseid = $modulo;
                     $r->assignid = 'atividade_'.$atividade->assign_id;

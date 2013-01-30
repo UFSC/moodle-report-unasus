@@ -212,7 +212,10 @@ function query_estudante_sem_atividade_postada(){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
-                      sub.status
+                      sub.status,
+                      ass.nosubmissions,
+                      ass.id
+
                  FROM (
 
                       {$alunos_grupo_tutoria}
@@ -221,7 +224,9 @@ function query_estudante_sem_atividade_postada(){
             LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id)
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+            LEFT JOIN {assign} ass
+            ON (ass.id=:assignmentid3)
             WHERE sub.status IS NULL
             ORDER BY u.firstname, u.lastname
     ";
@@ -239,16 +244,20 @@ function query_estudante_sem_atividade_avaliada(){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
-                      sub.status
+                      sub.status,
+                      ass.nosubmissions,
+                      ass.id
                  FROM (
 
                       {$alunos_grupo_tutoria}
 
                       ) u
-            JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status LIKE 'submitted')
             LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id )
+            LEFT JOIN {assign} ass
+            ON (ass.id=:assignmentid3)
             WHERE gr.grade IS NULL OR gr.grade = -1
             ORDER BY u.firstname, u.lastname
     ";
@@ -298,17 +307,20 @@ function query_atividades_nota_atribuida(){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
-                      sub.status
+                      sub.status,
+                      ass.nosubmissions,
+                      ass.id
                  FROM (
 
                       {$alunos_grupo_tutoria}
 
                       ) u
-            JOIN {assign_submission} sub
+            LEFT JOIN {assign_submission} sub
             ON (u.id=sub.userid AND sub.assignment=:assignmentid)
             LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
-            WHERE gr.grade IS NOT NULL OR gr.grade != -1
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+            LEFT JOIN {assign} ass
+            ON (ass.id=:assignmentid3)
             ORDER BY u.firstname, u.lastname
     ";
 }
