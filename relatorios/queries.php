@@ -344,6 +344,27 @@ function query_acesso_tutor(){
 }
 
 /*
+ * Query para o relatorio de uso do sistema horas
+ */
+function query_uso_sistema_tutor(){
+    return "SELECT userid, dia , count(*) /2  as horas
+            FROM (
+
+                SELECT date_format( (FROM_UNIXTIME(time))  , '%Y/%m/%d') AS dia,
+                       date_format( (FROM_UNIXTIME(time))  , '%H') AS hora,
+                       ROUND (date_format( (FROM_UNIXTIME(time))  , '%i') / 30) *30 AS min,
+                       userid
+                FROM {log}
+                WHERE time > :tempominimo
+                      AND time < UNIX_TIMESTAMP(DATE_SUB(NOW(),INTERVAL 30 MINUTE)) AND userid=:userid
+                      AND action != 'login' AND action != 'logout'
+                GROUP BY dia, hora, min
+
+            )as report
+            GROUP BY report.dia";
+}
+
+/*
  * Query para o relatorio de potenciais evasões
  */
 function query_potenciais_evasoes(){
