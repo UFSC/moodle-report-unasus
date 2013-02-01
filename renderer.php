@@ -533,7 +533,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             array_values($legend),
             get_string($this->report, 'report_unasus'), $porcentagem));
 
-        $output .= '<div id="container" class="container"></div>';
+        $output .= '<div id="container" class="container relatorio-wrapper"></div>';
         $output .= $this->default_footer();
 
         return $output;
