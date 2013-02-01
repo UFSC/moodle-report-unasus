@@ -563,7 +563,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method($modulos, $tutores, $this->curso_ufsc)));
 
-        $output .= '<div id="container" class="container"></div>';
+        $output .= '<div id="container" class="container relatorio-wrapper"></div>';
         $output .= $this->default_footer();
 
         return $output;
