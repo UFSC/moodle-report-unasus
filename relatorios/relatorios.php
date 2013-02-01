@@ -117,7 +117,6 @@ function get_table_header_atividades_vs_notas($modulos = array())
     $foruns_modulos = query_forum_modulo($modulos);
 
 
-
     $group = new GroupArray();
     $modulos = array();
     $header = array();
@@ -767,7 +766,8 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 /*
  * Cabeçalho para o sintese: avaliacoes em atraso
  */
-function get_table_header_atividades_nao_avaliadas($modulos) {
+function get_table_header_atividades_nao_avaliadas($modulos)
+{
     $header = get_table_header_atividades_vs_notas($modulos);
     $header[''] = array('Média');
     return $header;
@@ -781,14 +781,15 @@ function get_table_header_atividades_nao_avaliadas($modulos) {
  * -----------------
  */
 
-function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulos, $tutores) {
+function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulos, $tutores)
+{
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades_nota_atribuida();
     $query_forum = query_postagens_forum();
 
-    $result_array = loop_atividades_e_foruns_sintese($curso_ufsc,$modulos, $tutores,
-        $query_alunos_grupo_tutoria,$query_forum);
+    $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -796,12 +797,11 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
     $associativo_atividade = $result_array['associativo_atividade'];
 
 
-
     $somatorio_total_atrasos = array();
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $id_aluno => $aluno) {
             foreach ($aluno as $atividade) {
-                if(!is_null($atividade->grade))
+                if (!is_null($atividade->grade))
                     $lista_atividade[$grupo_id][$atividade->assignid]->incrementar_atraso();
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
@@ -828,7 +828,8 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
 /*
  * Cabeçalho para o sintese: atividades concluidas
  */
-function get_table_header_atividades_nota_atribuida($modulos) {
+function get_table_header_atividades_nota_atribuida($modulos)
+{
     return get_table_header_atividades_nao_avaliadas($modulos);
 }
 
@@ -842,47 +843,114 @@ function get_table_header_atividades_nota_atribuida($modulos) {
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores) {
+function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores)
+{
+    $middleware = Middleware::singleton();
     $lista_tutores = get_tutores_menu($curso_ufsc);
+
+    $query = query_uso_sistema_tutor();
+
+    //Query
     $dados = array();
-    $tutores = array();
-    foreach ($lista_tutores as $tutor_id => $tutor) {
-        $media = new dado_media(rand(0, 20));
 
-        $tutores[] = array(new tutor($tutor, $tutor_id, $curso_moodle),
-            new dado_uso_sistema_tutor(rand(5, 20)),
-            new dado_uso_sistema_tutor(rand(5, 20)),
-            new dado_uso_sistema_tutor(rand(5, 20)),
-            new dado_uso_sistema_tutor(rand(5, 20)),
-            new dado_uso_sistema_tutor(rand(5, 20)),
-            new dado_uso_sistema_tutor(rand(5, 20)),
-            $media->value(),
-            new dado_somatorio(rand(10, 20) + rand(10, 20) + rand(10, 20) + rand(10, 20) + rand(10, 20) + rand(10, 20)));
+    $timenow = time();
+    $tempo_pesquisa = strtotime('-120 day', $timenow);
+
+    foreach ($lista_tutores as $id => $tutor) {
+        $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $tempo_pesquisa));
+
+        foreach ($result as $r) {
+            $dados[$id][$r['dia']] = $r;
+        }
     }
-    $dados["Tutores"] = $tutores;
 
-    return $dados;
+
+    // Intervalo de dias no formato d/m
+    $intervalo_tempo = 120;
+    $dias_meses = get_time_interval("P{$intervalo_tempo}D",'P1D','Y/m/d');
+
+    //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
+    //date interval acima
+    $result = new GroupArray();
+
+
+    foreach ($dados as $id_user => $datas) {
+
+        //quanto tempo ele ficou logado
+        $total_tempo = 0;
+
+        foreach ($dias_meses as $dia) {
+            if (array_key_exists($dia, $dados[$id_user])) {
+                $horas = (float)$dados[$id_user][$dia]['horas'];
+                $result->add($id_user, new dado_uso_sistema_tutor($horas));
+                $total_tempo += $horas;
+
+            } else {
+                $result->add($id_user, new dado_uso_sistema_tutor('0'));
+            }
+        }
+
+        $result->add($id_user, format_float($total_tempo/$intervalo_tempo,3,''));
+        $result->add($id_user, $total_tempo);
+
+    }
+    $result = $result->get_assoc();
+
+
+    $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($curso_ufsc);
+
+    //para cada resultado que estava no formato [id]=>[dados_acesso]
+    // ele transforma para [tutor,dado_acesso1,dado_acesso2]
+    $retorno = array();
+    foreach ($result as $id => $values) {
+        $dados = array();
+        $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
+        array_push($dados, new tutor($nome, $id, $curso_moodle));
+        foreach ($values as $value) {
+            array_push($dados, $value);
+        }
+        $retorno[] = $dados;
+    }
+
+    return array('Tutores'=>$retorno);
+}
+
+
+function get_table_header_uso_sistema_tutor()
+{
+    $double_header = get_time_interval_com_meses('P120D', 'P1D','m/d');
+    $double_header[''] = array('Media');
+    $double_header[' '] = array('Total');
+    return $double_header;
 }
 
 /**
- * @TODO arrumar media
+ * @FIXME a data adicionada é do tipo Mes/dia, num futuro caso exiba mais de um ano tem de modificar para mostrar ano/mes/dia
  */
-function get_table_header_uso_sistema_tutor() {
-    return array('Tutor', 'Jun/Q4', 'Jul/Q1', 'Jul/Q2', 'Jul/Q3', 'Jul/Q4', 'Ago/Q1', 'Media', 'Total');
-}
-
-/**
- * @TODO arrumar media
- */
-function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc) {
+function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc)
+{
     $tutores = get_tutores_menu($curso_ufsc);
+    $tempo_intervalo = 120;
+    $dia_mes = get_time_interval("P{$tempo_intervalo}D", 'P1D','d/m');
 
-    $dados = array();
-    foreach ($tutores as $tutor) {
-        $dados[$tutor] = array('Jun/Q4' => rand(5, 20), 'Jul/Q1' => rand(5, 20), 'Jul/Q2' => rand(5, 20), 'Jul/Q3' => rand(5, 20), 'Jul/Q4' => rand(5, 20), 'Ago/Q1' => rand(5, 20));
+    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $tutores);
+
+    $dados_grafico = array();
+    foreach($dados['Tutores'] as $tutor){
+        $dados_tutor = array();
+        $count_dias = 1;
+        foreach ($dia_mes as $dia) {
+                $dados_tutor[$dia] = $tutor[$count_dias]->__toString();
+                $count_dias++;
+
+
+        }
+        $dados_grafico[$tutor[0]->get_name()] = $dados_tutor;
     }
 
-    return $dados;
+
+
+    return $dados_grafico;
 }
 
 /* -----------------
@@ -892,7 +960,8 @@ function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc) {
  * -----------------
  */
 
-function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores) {
+function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores)
+{
     $middleware = Middleware::singleton();
 
     // Consulta
@@ -915,26 +984,14 @@ function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores) {
     $dados = $group_array->get_assoc();
 
     // Intervalo de dias no formato d/m
-    $end = new DateTime();
-    $interval = new DateInterval('P60D');
-
-    $begin = clone $end;
-    $begin->sub($interval);
-
-    $increment = new DateInterval('P1D');
-    $daterange = new DatePeriod($begin, $increment, $end);
-
-    $dias_meses = array();
-    foreach ($daterange as $date) {
-        $dias_meses[] = $date->format('d/m');
-    }
+    $dias_meses = get_time_interval('P120D','P1D','d/m');
 
 
     //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
     //date interval acima
     $result = new GroupArray();
     foreach ($dados as $id => $datas) {
-        foreach($dias_meses as $dia){
+        foreach ($dias_meses as $dia) {
             (in_array($dia, $datas)) ?
                 $result->add($id, new dado_acesso_tutor(true)) :
                 $result->add($id, new dado_acesso_tutor(false));
@@ -948,43 +1005,26 @@ function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores) {
     //para cada resultado que estava no formato [id]=>[dados_acesso]
     // ele transforma para [tutor,dado_acesso1,dado_acesso2]
     $retorno = array();
-    foreach($result as $id => $values){
+    foreach ($result as $id => $values) {
         $dados = array();
         $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-        array_push($dados, new tutor($nome,$id,$curso_moodle));
-        foreach($values as $value){
+        array_push($dados, new tutor($nome, $id, $curso_moodle));
+        foreach ($values as $value) {
             array_push($dados, $value);
         }
         $retorno[] = $dados;
     }
 
 
-    return array('Tutores'=>$retorno);
+    return array('Tutores' => $retorno);
 }
 
 /*
  * Cabeçalho para o relatorio de uso do sistema do tutor, cria um intervalo de tempo de 60 dias atras
  */
-function get_table_header_acesso_tutor() {
-    $end = new DateTime();
-    $interval = new DateInterval('P60D');
-
-    $begin = clone $end;
-    $begin->sub($interval);
-
-    $increment = new DateInterval('P1D');
-    $daterange = new DatePeriod($begin, $increment, $end);
-
-    $meses = array();
-    foreach ($daterange as $date) {
-        $mes = strftime("%B", $date->format('U'));
-        if (!array_key_exists($mes, $meses)) {
-            $meses[$mes] = null;
-        }
-        $meses[$mes][] = $date->format('d/m');
-    }
-
-    return $meses;
+function get_table_header_acesso_tutor()
+{
+    return get_time_interval_com_meses('P120D', 'P1D', 'd/m');
 }
 
 /* -----------------
@@ -994,7 +1034,8 @@ function get_table_header_acesso_tutor() {
  * -----------------
  */
 
-function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tutores) {
+function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tutores)
+{
     global $CFG;
 
     // Consulta
@@ -1005,8 +1046,8 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
 
-    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,$modulos,
-        $tutores,$query_alunos_atividades,$query_forum);
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc, $modulos,
+        $tutores, $query_alunos_atividades, $query_forum);
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
     $timenow = time();
