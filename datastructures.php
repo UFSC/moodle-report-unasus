@@ -214,7 +214,7 @@ class dado_entrega_de_atividades extends unasus_data {
                 return ($this->atraso > $CFG->report_unasus_prazo_maximo_entrega) ? 'muito_atraso' : 'pouco_atraso';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
-                return 'sem prazo';
+                return 'sem_prazo';
                 break;
         }
     }
