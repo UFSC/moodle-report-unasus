@@ -38,8 +38,8 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-                                                                    $modulos,$tutores,
-                                                                    $query_alunos_grupo_tutoria,$query_forum);
+        $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum);
 
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
@@ -59,11 +59,10 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
 
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
-                $atividade_offline = array_key_exists('nosubmissions',$atividade) && $atividade->nosubmissions == 1;
+                $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
 
                 // Se for uma ativade online e o aluno nao enviou
-                if (  !$atividade_offline && is_null($atividade->submission_date))
-                {
+                if (!$atividade_offline && is_null($atividade->submission_date)) {
                     if ($atividade->duedate == 0) {
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                     } elseif ($atividade->duedate > $timenow) {
@@ -79,7 +78,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                     $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
 
                     //atividade offline o calculo do atraso eh feito com a data da tarefa, duedate
-                    if($atividade_offline){
+                    if ($atividade_offline) {
                         $submission_date = (int)$atividade->duedate;
                     }
 
@@ -172,8 +171,8 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores)
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-                                                                    $modulos,$tutores,
-                                                                    $query_alunos_grupo_tutoria,$query_forum);
+        $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum);
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
     $timenow = time();
@@ -257,7 +256,8 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores)
  * @param array $tutores
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $tutores) {
+function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $tutores)
+{
     global $CFG;
 
     // Consultas
@@ -272,8 +272,8 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-                                                                    $modulos,$tutores,
-                                                                    $query_alunos_grupo_tutoria,$query_forum);
+        $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -286,22 +286,20 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
 
                 // Não enviou a atividade
                 if (is_null($atividade->submission_date)) {
-                    if ((int) $atividade->duedate == 0) {
+                    if ((int)$atividade->duedate == 0) {
                         // Não entregou e Atividade sem prazo de entrega
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
                     } else {
                         // Não entregou e fora do prazo
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
                     }
-                }
-                // Entregou antes ou na data de entrega esperada que é a data de entrega com uma tolencia de $CFG->report_unasus_prazo_entrega dias
-                elseif ((int) $atividade->submission_date <= (int) ($atividade->duedate + (3600 * 24 * $CFG->report_unasus_prazo_entrega))) {
+                } // Entregou antes ou na data de entrega esperada que é a data de entrega com uma tolencia de $CFG->report_unasus_prazo_entrega dias
+                elseif ((int)$atividade->submission_date <= (int)($atividade->duedate + (3600 * 24 * $CFG->report_unasus_prazo_entrega))) {
                     $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
-                }
-                // Entregou após a data esperada
+                } // Entregou após a data esperada
                 else {
                     $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                    $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                    $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
                     $datadiff = get_datetime_from_unixtime($submission_date)->diff(get_datetime_from_unixtime($atividade->duedate));
                     $atraso = $datadiff->format("%a");
                 }
@@ -313,20 +311,22 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
         $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
     }
 
-    return($dados);
+    return ($dados);
 }
 
 /*
  * Cabeçalho da tabela
  */
-function get_table_header_entrega_de_atividades($modulos) {
+function get_table_header_entrega_de_atividades($modulos)
+{
     return get_table_header_atividades_vs_notas($modulos);
 }
 
 /*
  * Dados para o gráfico do relatorio entrega de atividadas
  */
-function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores) {
+function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores)
+{
     global $CFG;
 
     // Consultas
@@ -339,8 +339,8 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-                                                                    $modulos,$tutores,
-                                                                    $query_alunos_grupo_tutoria,$query_forum);
+        $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum);
 
 
     $dados = array();
@@ -358,24 +358,33 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
             foreach ($aluno as $atividade) {
                 $atraso = null;
 
+                // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
+                // aonde o tutor deveria dar a nota da avalicao offline
+                $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
+
+
                 // Não enviou a atividade
-                if (is_null($atividade->submission_date)) {
-                    if ((int) $atividade->duedate == 0) {
+                if (!$atividade_offline && is_null($atividade->submission_date)) {
+                    if ((int)$atividade->duedate == 0) {
                         // Não entregou e Atividade sem prazo de entrega
                         $count_sem_prazo++;
                     } else {
                         // Não entregou e fora do prazo
                         $count_nao_entregue++;
                     }
-                }
-                // Entregou antes ou na data de entrega esperada que é a data de entrega com uma tolencia de $CFG->report_unasus_prazo_entrega dias
-                elseif ((int) $atividade->submission_date <= (int) ($atividade->duedate + (3600 * 24 * $CFG->report_unasus_prazo_entrega))) {
+                } // Entregou antes ou na data de entrega esperada que é a data de entrega com uma tolencia de $CFG->report_unasus_prazo_entrega dias
+                elseif ((int)$atividade->submission_date <= (int)($atividade->duedate + (3600 * 24 * $CFG->report_unasus_prazo_entrega))) {
                     $count_entregue_no_prazo++;
-                }
-                // Entregou após a data esperada
+                } // Entregou após a data esperada
                 else {
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                    $submission_date = ((int) $atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+                    //atividade online o calculo do atraso eh feito com a data de envio ou edicao
+                    $submission_date = ((int)$atividade->submission_date == 0) ? $atividade->timemodified : $atividade->submission_date;
+
+                    //atividade offline o calculo do atraso eh feito com a data da tarefa, duedate
+                    if ($atividade_offline) {
+                        $submission_date = (int)$atividade->duedate;
+                    }
+
                     $datadiff = get_datetime_from_unixtime($submission_date)->diff(get_datetime_from_unixtime($atividade->duedate));
                     $atraso = $datadiff->format("%a");
                     ($atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? $count_muito_atraso++ : $count_pouco_atraso++;
@@ -392,7 +401,7 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
         ;
     }
 
-    return($dados);
+    return ($dados);
 }
 
 /* -----------------
@@ -411,7 +420,8 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
  * @param array $tutores
  * @return array|bool Array[tutores][aluno][unasus_data]
  */
-function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modulos, $tutores) {
+function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modulos, $tutores)
+{
     global $CFG;
 
     // Consultas
@@ -426,8 +436,8 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-                                                                    $modulos,$tutores,
-                                                                    $query_alunos_grupo_tutoria,$query_forum, false);
+        $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum, false);
 
     $dados = array();
     $timenow = time();
@@ -442,7 +452,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
-                $atividade_offline = array_key_exists('nosubmissions',$atividade) && $atividade->nosubmissions == 1;
+                $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
 
                 // Se for uma ativade online e o aluno nao enviou
                 if (!$atividade_offline && is_null($atividade->submission_date)) {
@@ -454,32 +464,32 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 
 
                     //atividade online o calculo do atraso eh feito com a data de envio ou edicao
-                    $submission_date = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                    $submission_date = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
 
                     //atividade offline o calculo do atraso eh feito com a data da tarefa, duedate
-                    if($atividade_offline){
+                    if ($atividade_offline) {
                         $submission_date = (int)$atividade->duedate;
                     }
 
                     $datadiff = get_datetime_from_unixtime($timenow)->diff(get_datetime_from_unixtime($submission_date));
-                    $atraso = (int) $datadiff->format("%a");
+                    $atraso = (int)$datadiff->format("%a");
                 } //Atividade entregue e avalidada
-                elseif ((int) $atividade->grade >= 0) {
-                    if(!array_key_exists('grade_created', $atividade)){
+                elseif ((int)$atividade->grade >= 0) {
+                    if (!array_key_exists('grade_created', $atividade)) {
                         $atividade->grade_created = $atividade->timemodified;
                     }
 
                     //quanto tempo desde a entrega até a correção
-                    $data_correcao = ((int) $atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
-                    $data_envio = ((int) $atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
+                    $data_correcao = ((int)$atividade->grade_created != 0) ? $atividade->grade_created : $atividade->grade_modified;
+                    $data_envio = ((int)$atividade->submission_date != 0) ? $atividade->submission_date : $atividade->submission_modified;
 
                     //atividade offline nao tem data de envio, logo a data de envio é a data de correcao
-                    if($atividade_offline){
-                        $data_envio = (int) $atividade->duedate;
+                    if ($atividade_offline) {
+                        $data_envio = (int)$atividade->duedate;
                     }
 
                     $datadiff = get_datetime_from_unixtime($data_correcao)->diff(get_datetime_from_unixtime($data_envio));
-                    $atraso = (int) $datadiff->format("%a");
+                    $atraso = (int)$datadiff->format("%a");
 
                     //Correção no prazo esperado
                     if ($atraso <= $CFG->report_unasus_prazo_avaliacao) {
@@ -607,7 +617,8 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
  * @param $tutores
  * @return array
  */
-function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $modulos, $tutores) {
+function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $modulos, $tutores)
+{
 
     // Consulta
     $query_alunos_grupo_tutoria = query_estudante_sem_atividade_postada();
@@ -631,7 +642,8 @@ function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $
  * @param array $tutores
  * @return array
  */
-function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, $modulos, $tutores) {
+function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, $modulos, $tutores)
+{
 
     // Consulta
     $query_alunos_grupo_tutoria = query_estudante_sem_atividade_avaliada();
@@ -1010,7 +1022,8 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
     return $dados;
 }
 
-function get_table_header_potenciais_evasoes($modulos) {
+function get_table_header_potenciais_evasoes($modulos)
+{
     $nome_modulos = get_id_nome_modulos();
     if (is_null($modulos)) {
         $modulos = get_id_modulos();
@@ -1068,7 +1081,8 @@ function get_table_header_modulos_atividades($modulos = array())
     return $header;
 }
 
-function get_header_estudante_sem_atividade_postada($size) {
+function get_header_estudante_sem_atividade_postada($size)
+{
     $content = array();
     for ($index = 0; $index < $size - 1; $index++) {
         $content[] = '';
@@ -1088,21 +1102,22 @@ function get_header_estudante_sem_atividade_postada($size) {
  *
  * Dados para os relatórios Lista: Atividades não postadas e Lista: Atividades não avaliadas
  */
-function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_atividades, $relatorio) {
+function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_atividades, $relatorio)
+{
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
     $foruns_modulo = query_forum_modulo(array_keys($modulos));
 
     $listagem_forum = new GroupArray();
-    foreach($foruns_modulo as $forum){
+    foreach ($foruns_modulo as $forum) {
         $listagem_forum->add($forum->course_id, $forum);
     }
     $listagem_forum = $listagem_forum->get_assoc();
 
 
     $query_forum = query_postagens_forum();
-    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,$modulos,
-                                $tutores,$query_alunos_atividades,$query_forum);
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc, $modulos,
+        $tutores, $query_alunos_atividades, $query_forum);
 
 
     $id_nome_modulos = get_id_nome_modulos();
@@ -1127,36 +1142,38 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
 
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
-                $atividade_offline = array_key_exists('nosubmissions',$atividade) && $atividade->nosubmissions == 1;
+                $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
 
                 //workaround time
-                if(array_key_exists('has_post',$atividade)){
+                if (array_key_exists('has_post', $atividade)) {
                     $count_foruns++;
                     $tipo_avaliacao = 'forum';
 
-                    if(!array_key_exists($count_foruns, $listagem_forum[$atividade->courseid]))
+                    if (!array_key_exists($count_foruns, $listagem_forum[$atividade->courseid]))
                         $count_foruns = 0;
 
                     $nome_atividade = $listagem_forum[$atividade->courseid][$count_foruns]->itemname;
                     $idnumber = $listagem_forum[$atividade->courseid][$count_foruns]->idnumber;
 
-                    if($relatorio == 'estudante_sem_atividade_postada' && $atividade->has_post == 1){
+                    if ($relatorio == 'estudante_sem_atividade_postada' && $atividade->has_post == 1) {
 
                         $atividade_sera_listada = false;
-                    }elseif($relatorio == 'estudante_sem_atividade_avaliada' &&
-                        ($atividade->has_post == 1 && !is_null($atividade->grade) || $atividade->has_post == 0)){
+                    } elseif ($relatorio == 'estudante_sem_atividade_avaliada' &&
+                        ($atividade->has_post == 1 && !is_null($atividade->grade) || $atividade->has_post == 0)
+                    ) {
                         $atividade_sera_listada = false;
                     }
 
 
-                }else{
+                } else {
                     $count_foruns = -1;
 
                     //logica para atividades offlines, para estudante_sem_atividade_postada atividades offlines nao devem ser listadas
                     //ja para estudante_sem_atividade_avaliada so se ele nao tiver nota
-                    if($atividade_offline &&
+                    if ($atividade_offline &&
                         ($relatorio == 'estudante_sem_atividade_postada' ||
-                        ($relatorio == 'estudante_sem_atividade_avaliada' && !is_null($atividade->grade) ))){
+                            ($relatorio == 'estudante_sem_atividade_avaliada' && !is_null($atividade->grade)))
+                    ) {
                         $atividade_sera_listada = false;
 
                     }
@@ -1164,16 +1181,16 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
                     $nome_atividade = $id_nome_atividades[$atividade->assignid];
                 }
 
-                if($atividade_sera_listada){
-                    $atividades_modulos->add($atividade->courseid, array('nome' => $nome_atividade,'course_id'=>$atividade->courseid,
-                        'assign_id' => $atividade->assignid, 'tipo' => $tipo_avaliacao, 'idnumber'=>$idnumber));
+                if ($atividade_sera_listada) {
+                    $atividades_modulos->add($atividade->courseid, array('nome' => $nome_atividade, 'course_id' => $atividade->courseid,
+                        'assign_id' => $atividade->assignid, 'tipo' => $tipo_avaliacao, 'idnumber' => $idnumber));
                 }
             }
 
 
             $ativ_mod = $atividades_modulos->get_assoc();
 
-            if(!empty($ativ_mod)){
+            if (!empty($ativ_mod)) {
 
                 $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
 
@@ -1181,7 +1198,7 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
                     $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
                     foreach ($modulo as $atividade) {
                         $lista_atividades[] = new dado_atividade($atividade['assign_id'], $atividade['course_id'],
-                            $atividade['nome'], $atividade['tipo'] , $atividade['idnumber']);
+                            $atividade['nome'], $atividade['tipo'], $atividade['idnumber']);
                     }
                 }
 
