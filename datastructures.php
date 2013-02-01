@@ -44,7 +44,9 @@ class estudante extends pessoa {
  * Representa um tutor nos relatórios
  */
 class tutor extends pessoa {
-
+    function get_name(){
+        return $this->name;
+    }
 }
 
 //
