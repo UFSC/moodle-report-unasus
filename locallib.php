@@ -404,3 +404,53 @@ function get_cursos_ativos_list() {
     $sql = "SELECT curso, nome_sintetico FROM {View_Cursos_Ativos}";
     return $middleware->get_records_sql_menu($sql);
 }
+
+/*
+ * @dias_atras quantos dias antes da data atual no formato (P120D)
+ * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
+ * @date_format formato da data em DateTime()
+ */
+function get_time_interval($dias_atras, $tempo_pulo, $date_format){
+    // Intervalo de dias no formato d/m
+    $end = new DateTime();
+    $interval = new DateInterval($dias_atras);
+
+    $begin = clone $end;
+    $begin->sub($interval);
+
+    $increment = new DateInterval($tempo_pulo);
+    $daterange = new DatePeriod($begin, $increment, $end);
+
+    $dias_meses = array();
+    foreach ($daterange as $date) {
+        $dias_meses[] = $date->format($date_format);
+    }
+    return $dias_meses;
+}
+
+/*
+ * @dias_atras quantos dias antes da data atual no formato (P120D)
+ * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
+ * @date_format formato da data em DateTime()
+ */
+function get_time_interval_com_meses($dias_atras, $tempo_pulo, $date_format){
+    $end = new DateTime();
+    $interval = new DateInterval($dias_atras);
+
+    $begin = clone $end;
+    $begin->sub($interval);
+
+    $increment = new DateInterval($tempo_pulo);
+    $daterange = new DatePeriod($begin, $increment, $end);
+
+    $meses = array();
+    foreach ($daterange as $date) {
+        $mes = strftime("%B", $date->format('U'));
+        if (!array_key_exists($mes, $meses)) {
+            $meses[$mes] = null;
+        }
+        $meses[$mes][] = $date->format($date_format);
+    }
+
+    return $meses;
+}
