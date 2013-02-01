@@ -692,22 +692,21 @@ function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, 
  * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos, $tutores) {
+function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos, $tutores)
+{
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades_nao_avaliadas();
 
     $query_forum = query_postagens_forum();
 
-    $result_array = loop_atividades_e_foruns_sintese($curso_ufsc,$modulos, $tutores,
-                                    $query_alunos_grupo_tutoria,$query_forum);
+    $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
     $lista_atividade = $result_array['lista_atividade'];
     $associativo_atividade = $result_array['associativo_atividade'];
-
-
 
 
     $timenow = time();
@@ -726,19 +725,19 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 
 
                 $atividade_nao_corrigida = false;
-                if(array_key_exists('status', $atividade))
+                if (array_key_exists('status', $atividade))
                     $atividade_nao_corrigida = $atividade->status == 'draft' && $atividade->submission_modified + $prazo_avaliacao < $timenow;
 
-                $forum_nao_corrigido = array_key_exists('firstname',$atividade) && $atividade->submission_date != null && $atividade->grade == null;
+                $forum_nao_corrigido = array_key_exists('firstname', $atividade) && $atividade->submission_date != null && $atividade->grade == null;
 
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
                 $offline_nao_corrigido = false;
-                $atividade_offline = array_key_exists('nosubmissions',$atividade) && $atividade->nosubmissions == 1;
-                if($atividade_offline)
+                $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
+                if ($atividade_offline)
                     $offline_nao_corrigido = ($atividade->duedate + $prazo_avaliacao < $timenow) && $atividade->grade == null;
 
-                if ( $atividade_nao_corrigida || $forum_nao_corrigido || $offline_nao_corrigido ) {
+                if ($atividade_nao_corrigida || $forum_nao_corrigido || $offline_nao_corrigido) {
 
                     $lista_atividade[$grupo_id][$atividade->assignid]->incrementar_atraso();
                     $somatorio_total_atrasos[$grupo_id]++;
