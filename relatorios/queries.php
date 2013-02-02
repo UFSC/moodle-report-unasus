@@ -6,17 +6,21 @@
  */
 
 
-/* Query para retornar os alunos pertencentes a um grupo de tutoria
+/**
+ * Query para retornar os alunos pertencentes a um grupo de tutoria
+ *
  * Utilizada em diversos relatórios, necessita do middleware para rodar.
  *
- * Colunas  user_id
- *          firstname
- *          lastname
- *          grupo_id
+ * Colunas:
+ *
+ * - user_id
+ * - firstname
+ * - lastname
+ * - grupo_id
  *
  * @return string
  */
-function query_alunos_grupo_tutoria(){
+function query_alunos_grupo_tutoria() {
     return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
@@ -27,19 +31,21 @@ function query_alunos_grupo_tutoria(){
 }
 
 
-/*
+/**
  * Query para retornar se um dado aluno possui postagens num forum de um dado módulo
  * se o tiver retorna a nota e outros dados da postagem.
  *
- * Colunas: id -> id do usuario
- *          firstname -> nome do usuario
- *          lastname -> sobrenome do usuario
- *          grupo_id -> grupo de tutoria que o aluno pertence
- *          userid_posts -> booleano se o aluno possui ou nao postagens naquele forum
- *          submission_date -> data de envio da primeira postagem do aluno naquele forum
- *          rawgrade-> nota final do aluno naquele forum, nota que já é a média estipulada nas configuraçoes do forum
- *          timemodified -> data de alteração da postagem
- *          itemid -> id do forum
+ * Colunas:
+ *
+ * - id -> id do usuario
+ * - firstname -> nome do usuario
+ * - lastname -> sobrenome do usuario
+ * - grupo_id -> grupo de tutoria que o aluno pertence
+ * - userid_posts -> booleano se o aluno possui ou nao postagens naquele forum
+ * - submission_date -> data de envio da primeira postagem do aluno naquele forum
+ * - rawgrade-> nota final do aluno naquele forum, nota que já é a média estipulada nas configuraçoes do forum
+ * - timemodified -> data de alteração da postagem
+ * - itemid -> id do forum
  *
  * A primeira parte da query seleciona todos os alunos de um grupo de tutoria
  *
@@ -50,8 +56,9 @@ function query_alunos_grupo_tutoria(){
  * A tarceira parte da query se o aluno tiver uma postagem ele verifica no forum (grade_item) as notas do respectivo
  * aluno em grade_grades.
  *
+ * @return string
  */
-function query_postagens_forum(){
+function query_postagens_forum() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
     return " SELECT *,  userid_posts IS NOT NULL as has_post
@@ -93,20 +100,22 @@ function query_postagens_forum(){
  */
 
 
-/*
+/**
  * Query para o relatório atividades vs notas
- * Colunas: user_id
- *          submission_date -> unixtime de envio da atividade,
- *          timemodified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
- *          grade -> nota
- *          grupo_id -> grupo de tutoria a qual o usuário pertence
- *          nosubmissions -> atividade offline
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - submission_date -> unixtime de envio da atividade,
+ * - timemodified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
+ * - grade -> nota
+ * - grupo_id -> grupo de tutoria a qual o usuário pertence
+ * - nosubmissions -> atividade offline
  *
  * @return string
  *
  */
-function query_atividades_vs_notas()
-{
+function query_atividades_vs_notas() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
     return "SELECT u.id as user_id,
@@ -130,19 +139,21 @@ function query_atividades_vs_notas()
 }
 
 
-/*
+/**
  * Query para o relatório entrega de atividades
- * Colunas: user_id
- *          submission_date -> unixtime de envio da atividade,
- *          timemodified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
- *          grade -> nota
- *          status -> estado da avaliaçao
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - submission_date -> unixtime de envio da atividade,
+ * - timemodified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
+ * - grade -> nota
+ * - status -> estado da avaliaçao
  *
  * @return string
  *
  */
-function query_entrega_de_atividades()
-{
+function query_entrega_de_atividades() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       sub.timecreated as submission_date,
@@ -162,20 +173,23 @@ function query_entrega_de_atividades()
     ";
 }
 
-/*
+/**
  * Query para o relatório histrorico atribuicao de notas
- * Colunas: user_id
- *          submission_date -> unixtime de envio da atividade,
- *          submission_modified -> unixtime da data de alteracao da atividade
- *          grade_modified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
- *          grade_created -> unixtime da data que a nota foi atribuuda
- *          grade -> nota
- *          status -> estado da avaliaçao
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - submission_date -> unixtime de envio da atividade,
+ * - submission_modified -> unixtime da data de alteracao da atividade
+ * - grade_modified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
+ * - grade_created -> unixtime da data que a nota foi atribuuda
+ * - grade -> nota
+ * - status -> estado da avaliaçao
  *
  * @return string
  *
  */
-function query_historico_atribuicao_notas(){
+function query_historico_atribuicao_notas() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       sub.timecreated as submission_date,
@@ -200,15 +214,18 @@ function query_historico_atribuicao_notas(){
     ";
 }
 
-/*
+/**
  * Query para o relatório estudante sem atividade postada
- * Colunas: user_id
- *          grade -> nota
- *          status -> estado da avaliaçao
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - grade -> nota
+ * - status -> estado da avaliaçao
  *
  * @return string
  */
-function query_estudante_sem_atividade_postada(){
+function query_estudante_sem_atividade_postada() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
@@ -232,15 +249,18 @@ function query_estudante_sem_atividade_postada(){
     ";
 }
 
-/*
+/**
  * Query para o relatório estudante sem atividade avaliada
- * Colunas: user_id
- *          grade -> nota
- *          status -> estado da avaliaçao
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - grade -> nota
+ * - status -> estado da avaliaçao
  *
  * @return string
  */
-function query_estudante_sem_atividade_avaliada(){
+function query_estudante_sem_atividade_avaliada() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
@@ -263,16 +283,19 @@ function query_estudante_sem_atividade_avaliada(){
     ";
 }
 
-/*
+/**
  * Query para o relatorio atividade nao avaliadas
- * Colunas: user_id
- *          grade -> nota
- *          status -> estado da avaliaçao
- *          submission_modfied -> data de envio da avaliacao
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - grade -> nota
+ * - status -> estado da avaliaçao
+ * - submission_modfied -> data de envio da avaliacao
  *
  * @return string
  */
-function query_atividades_nao_avaliadas(){
+function query_atividades_nao_avaliadas() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
@@ -295,15 +318,18 @@ function query_atividades_nao_avaliadas(){
     ";
 }
 
-/*
+/**
  * Query para o relatorio atividade nota atribuida
- * Colunas: user_id
- *          grade -> nota
- *          status -> estado da avaliaçao
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - grade -> nota
+ * - status -> estado da avaliaçao
  *
  * @return string
  */
-function query_atividades_nota_atribuida(){
+function query_atividades_nota_atribuida() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return " SELECT u.id as user_id,
                       gr.grade,
@@ -325,10 +351,12 @@ function query_atividades_nota_atribuida(){
     ";
 }
 
-/*
+/**
  * Query para o relatorio de acesso tutor
+ *
+ * @return string
  */
-function query_acesso_tutor(){
+function query_acesso_tutor() {
     return " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
                       month(from_unixtime(sud.`timeend`)) AS calendar_month,
                       day(from_unixtime(sud.`timeend`)) AS calendar_day,
@@ -343,10 +371,12 @@ function query_acesso_tutor(){
              ORDER BY calendar_year, calendar_month, calendar_day";
 }
 
-/*
+/**
  * Query para o relatorio de uso do sistema horas
+ *
+ * @return string
  */
-function query_uso_sistema_tutor(){
+function query_uso_sistema_tutor() {
     return "SELECT userid, dia , count(*) /2  as horas
             FROM (
 
@@ -364,10 +394,12 @@ function query_uso_sistema_tutor(){
             GROUP BY report.dia";
 }
 
-/*
+/**
  * Query para o relatorio de potenciais evasões
+ *
+ * @return string
  */
-function query_potenciais_evasoes(){
+function query_potenciais_evasoes() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
     return "SELECT u.id as user_id,
                       sub.timecreated as submission_date,
