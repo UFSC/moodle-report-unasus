@@ -8,20 +8,29 @@ defined('MOODLE_INTERNAL') || die;
 
 /**
  * Estrutura de dados de Pessoas (Tutores, Estudantes)
+ *
  * Auxilia renderização nos relatórios.
  */
-abstract class pessoa {
+class pessoa {
 
     protected $name;
     protected $id;
     protected $courseid;
 
+    /**
+     * @param $name
+     * @param $id
+     * @param $courseid
+     */
     function __construct($name, $id, $courseid) {
         $this->name = $name;
         $this->id = $id;
         $this->courseid = $courseid;
     }
 
+    /**
+     * @return string
+     */
     function __toString() {
         global $OUTPUT;
         $email_icon = $OUTPUT->pix_icon('t/email', 'Enviar mensagem');
@@ -31,21 +40,15 @@ abstract class pessoa {
         return "{$message_link} {$profile_link}";
     }
 
-}
-
-/**
- * Representa um estudante nos relatórios
- */
-class estudante extends pessoa {
-
-}
-
-/**
- * Representa um tutor nos relatórios
- */
-class tutor extends pessoa {
-    function get_name(){
+    function get_name() {
         return $this->name;
+    }
+
+}
+
+
+}
+
     }
 }
 

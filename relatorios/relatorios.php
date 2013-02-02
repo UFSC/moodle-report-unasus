@@ -50,7 +50,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
 
 
             foreach ($aluno as $atividade) {
@@ -289,7 +289,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
 
             foreach ($aluno as $atividade) {
                 $atraso = null;
@@ -454,7 +454,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
 
             foreach ($aluno as $atividade) {
 
@@ -905,7 +905,7 @@ function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores)
     foreach ($result as $id => $values) {
         $dados = array();
         $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-        array_push($dados, new tutor($nome, $id, $curso_moodle));
+        array_push($dados, new pessoa($nome, $id, $curso_moodle));
         foreach ($values as $value) {
             array_push($dados, $value);
         }
@@ -1008,7 +1008,7 @@ function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores)
     foreach ($result as $id => $values) {
         $dados = array();
         $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-        array_push($dados, new tutor($nome, $id, $curso_moodle));
+        array_push($dados, new pessoa($nome, $id, $curso_moodle));
         foreach ($values as $value) {
             array_push($dados, $value);
         }
@@ -1057,7 +1057,7 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
             $dados_modulos = array();
-            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
             foreach ($aluno as $atividade) {
 
                 //para cada novo modulo ele cria uma entrada de dado_potenciais_evasoes com o maximo de atividades daquele modulo
@@ -1259,7 +1259,7 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
 
             if (!empty($ativ_mod)) {
 
-                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+                $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
 
                 foreach ($ativ_mod as $key => $modulo) {
                     $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
