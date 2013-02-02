@@ -469,6 +469,9 @@ class dado_potenciais_evasoes extends unasus_data {
             case 2:
                 return "Parcial";
                 //return "Parcial {$total}/{$this->total_atividades}";
+            default:
+                return false;
+                break;
         }
     }
 
@@ -480,6 +483,9 @@ class dado_potenciais_evasoes extends unasus_data {
                 return "concluido";
             case 2:
                 return "parcial";
+            default:
+                return false;
+                break;
         }
     }
 
