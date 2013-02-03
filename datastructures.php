@@ -47,11 +47,6 @@ class pessoa {
 }
 
 
-}
-
-    }
-}
-
 //
 // Relatórios
 //
