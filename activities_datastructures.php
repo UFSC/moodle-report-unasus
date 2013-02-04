@@ -76,7 +76,7 @@ class report_unasus_forum_activity extends report_unasus_activity {
     }
 }
 
-abstract class report_unasus_data {
+class report_unasus_data {
 
     /** @var report_unasus_activity */
     protected $source_activity;

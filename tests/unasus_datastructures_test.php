@@ -29,8 +29,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
-        /** @var report_unasus_data $data */
-        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+        $data = new report_unasus_data(&$activity);
 
         $activity->deadline = 0;
 
@@ -53,8 +52,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
-        /** @var report_unasus_data $data */
-        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+        $data = new report_unasus_data(&$activity);
 
         $activity->deadline = $year_ago;
 
@@ -67,8 +65,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
-        /** @var report_unasus_data $data */
-        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+        $data = new report_unasus_data(&$activity);
 
         $activity->deadline = $year_ago;
 
