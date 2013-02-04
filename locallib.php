@@ -5,7 +5,7 @@ defined('MOODLE_INTERNAL') || die;
 require_once("{$CFG->dirroot}/local/tutores/middlewarelib.php");
 require_once("{$CFG->dirroot}/local/tutores/lib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
-//require_once($CFG->dirroot . '/report/unasus/dados.php');
+require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/relatorios.php');
 
 function get_datetime_from_unixtime($unixtime) {
@@ -158,17 +158,23 @@ function get_tutores_menu($curso_ufsc) {
 }
 
 /**
- * Função que busca todas as atividades (assign) dentro de um modulo (course)
+ * Função que busca todas as atividades (assign, forum) dentro de um modulo (course)
  *
- * @param array $modulos array de ids dos modulos, padrão null, retornando todos os modulos
+ * @param array $courses array de ids dos cursos moodle, padrão null, retornando todos os modulos
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_modulos($modulos = null) {
-    $atividades_modulos = query_atividades_modulos($modulos);
+function get_atividades_cursos($courses = null) {
+    $assigns = query_assign_courses($courses);
+    $foruns = query_forum_courses($courses);
+
     $group_array = new GroupArray();
 
-    foreach ($atividades_modulos as $atividade) {
-        $group_array->add($atividade->course_id, $atividade);
+    foreach ($assigns as $atividade) {
+        $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade));
+    }
+
+    foreach ($foruns as $forum) {
+        $group_array->add($atividade->course_id, new report_unasus_forum_activity($forum));
     }
 
     return $group_array->get_assoc();
@@ -179,13 +185,13 @@ function get_atividades_modulos($modulos = null) {
  * utilizada no get_atividade_modulos
  *
  * @global moodle_database $DB
- * @param array $modulos
+ * @param array $courses
  * @return moodle_recordset
  */
-function query_atividades_modulos($modulos) {
+function query_assign_courses($courses) {
     global $DB, $SITE;
 
-    $string_modulos = get_modulos_validos($modulos);
+    $string_courses = get_modulos_validos($courses);
 
     $query = "SELECT a.id as assign_id,
                          a.duedate,
@@ -194,36 +200,43 @@ function query_atividades_modulos($modulos) {
                          REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
                     FROM {course} as c
                LEFT JOIN {assign} as a
-                      ON (c.id = a.course)
-                   WHERE c.id != :siteid
-                     AND c.id IN ({$string_modulos})
+                      ON (c.id = a.course AND c.id != :siteid)
+                   WHERE c.id IN ({$string_courses})
                ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
 
-function query_forum_modulo($modulos){
+function query_forum_courses($courses){
     global $DB;
 
-    $string_modulos = get_modulos_validos($modulos);
+    $string_courses = get_modulos_validos($courses);
 
-    $query = "SELECT id, courseid as course_id,
-                         itemname,
-                         itemmodule,
-                         idnumber
-                    FROM {grade_items}
-                   WHERE itemmodule LIKE 'forum'
-                     AND courseid IN ({$string_modulos})
-               ORDER BY courseid";
+    $query = "SELECT f.id as forum_id,
+                     f.name as forum_name,
+                     cm.completionexpected,
+                     c.id as course_id,
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
+                     FROM course as c
+                LEFT JOIN forum as f
+                       ON (c.id = f.course AND c.id != :siteid)
+                     JOIN grade_items as gi
+                       ON (gi.courseid=c.id AND gi.itemtype = 'mod' AND
+                           gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
+                     JOIN course_modules cm
+                       ON (cm.course=c.id AND cm.instance=f.id)
+                       -- TODO: é preciso adicionar o cm.module na linha acima pra ficar 100%
+                    WHERE c.id IN ({$string_courses})
+                 ORDER BY c.id";
 
-    return $DB->get_recordset_sql($query);
+    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
-/*
- * TODO remove foreach
- */
+
+
+// TODO: remover esta função, não é mais necessária com as novas consultas.
 function query_forum_duedate($forum_id){
     global $DB;
-    $query = "SELECT *
+    $query = "SELECT cm.*
               FROM {course_modules} cm
               JOIN {forum} f
               ON (f.id=cm.instance AND cm.id=:forumid)";

@@ -39,9 +39,9 @@ class report_unasus_renderer extends plugin_renderer_base {
      * e sua busca é feita pelo get_string da moodle API
      *
      * Todos os métodos e classes possuem seu nome de acordo com o report:
-     * -Classe de dados: dado_{NOME DO REPORT}
-     * -Método que faz a busca no banco de dados: get_dados_{NOME DO REPORT}
-     * -Método que pega o array do cabeçalho da tabela: get_table_header_{NOME DO REPORT}
+     * - Classe de dados: dado_{NOME DO REPORT}
+     * - Método que faz a busca no banco de dados: get_dados_{NOME DO REPORT}
+     * - Método que pega o array do cabeçalho da tabela: get_table_header_{NOME DO REPORT}
      *
      * @return String $output
      */
@@ -63,7 +63,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
-        $modulos = get_atividades_modulos(get_modulos_validos($modulos_raw));
+        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
@@ -422,7 +422,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
-        $modulos = get_atividades_modulos(get_modulos_validos($modulos_raw));
+        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
@@ -454,7 +454,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
-        $modulos = get_atividades_modulos(get_modulos_validos($modulos_raw));
+        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
@@ -520,7 +520,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
-        $modulos = get_atividades_modulos(get_modulos_validos($modulos_raw));
+        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.

@@ -5,8 +5,8 @@
  *
  */
 function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-                                               $modulos, $tutores,
-                                               $query_alunos_grupo_tutoria, $query_forum, $query_course = true){
+                                               $cursos_ids, $tutores,
+                                               $query_alunos_grupo_tutoria, $query_forum, $query_course = true) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
@@ -25,72 +25,60 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $group_array_do_grupo = new GroupArray();
 
         // Para cada modulo e suas atividades
-        foreach ($modulos as $modulo => $atividades) {
+        foreach ($cursos_ids as $courseid => $atividades) {
 
             // Num módulo existem várias atividades, numa dada atividade ele irá pesquisar todas as notas dos alunos daquele
             // grupo de tutoria
             foreach ($atividades as $atividade) {
 
-                $params = array('assignmentid' => $atividade->assign_id,
-                                'assignmentid2' => $atividade->assign_id,
-                                'assignmentid3' => $atividade->assign_id,
-                                'curso_ufsc' => $curso_ufsc,
-                                'grupo_tutoria' => $grupo->id,
-                                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-                if($query_course){
-                    $params['courseid'] = $modulo;
-                }
-
-                $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
-
-                // Para cada resultado da query de atividades
-                foreach ($result as $r) {
-                    $r->courseid = $modulo;
-                    $r->assignid = $atividade->assign_id;
-                    $r->duedate = (int)$atividade->duedate;
-                    if (!is_null($r->grade)) {
-                        $r->grade = (float)$r->grade;
+                if (is_a($atividade, 'report_unasus_assign_activity')) {
+                    $params = array('assignmentid' => $atividade->id,
+                                    'assignmentid2' => $atividade->id,
+                                    'assignmentid3' => $atividade->id,
+                                    'curso_ufsc' => $curso_ufsc,
+                                    'grupo_tutoria' => $grupo->id,
+                                    'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                    if($query_course){
+                        $params['courseid'] = $courseid;
                     }
 
-                    // Agrupa os dados por usuário
-                    $group_array_do_grupo->add($r->user_id, $r);
-                }
+                    $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
 
+                    // Para cada resultado da query de atividades
+                    foreach ($result as $r) {
+                        $r->courseid = $courseid;
+                        $r->assignid = $atividade->id;
+                        $r->duedate = (int)$atividade->deadline;
+                        if (!is_null($r->grade)) {
+                            $r->grade = (float)$r->grade;
+                        }
 
-            }
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($r->user_id, $r);
+                    }
+                } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
 
+                    $params =  array(
+                        'courseid' => $courseid,
+                        'curso_ufsc' => $curso_ufsc,
+                        'grupo_tutoria' => $grupo->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
+                        'forumid' => $atividade->id);
 
-            //Pega quais e quantos foruns existem dentro de um modulo
-            $foruns_modulos = query_forum_modulo($modulo);
-            $group_foruns_modulos = new GroupArray();
+                    $result = $middleware->get_records_sql($query_forum, $params);
 
-            //Agrupa os foruns pelos seus respectivos modulos
-            foreach ($foruns_modulos as $forum) {
-                $group_foruns_modulos->add($forum->course_id, $forum);
-            }
-            $group_foruns_modulos = $group_foruns_modulos->get_assoc();
-
-            if(!empty($group_foruns_modulos)){
-                //Para cada forum dentro de um módulo ele faz a querry das respectivas avaliacoes
-                foreach($group_foruns_modulos[$modulo] as $forum){
-
-                    $params_forum =  array('courseid' => $modulo, 'curso_ufsc' => $curso_ufsc, 'grupo_tutoria' => $grupo->id,
-                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'forumid' => $forum->idnumber, 'idforumitem' => $forum->id);
-
-                    $result_forum = $middleware->get_records_sql($query_forum, $params_forum);
-                    $forum_duedate = query_forum_duedate($forum->idnumber);
                     // para cada aluno adiciona a listagem de atividades
-                    foreach($result_forum as $f){
-                        $f->courseid = $modulo;
-                        $f->assignid = $f->id;
-                        $group_array_do_grupo->add($f->id, $f);
-                        $f->duedate = isset($forum_duedate->completionexpected) ? $forum_duedate->completionexpected : null;
+                    foreach($result as $f) {
+                        $f->courseid = $courseid;
+                        $f->assignid = $atividade->id;
+                        $f->duedate = $atividade->deadline;
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($f->userid, $f);
                     }
 
                 }
             }
-
-
         }
         $associativo_atividades[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
@@ -99,6 +87,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
 
 }
 
+// TODO: alterar este loop para utilizar a nova estrutura de dados
 function loop_atividades_e_foruns_sintese($curso_ufsc,
                                           $modulos, $tutores,
                                           $query_alunos_grupo_tutoria, $query_forum)
@@ -154,7 +143,7 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
             }
 
             //Pega quais e quantos foruns existem dentro de um modulo
-            $foruns_modulos = query_forum_modulo($modulo);
+            $foruns_modulos = query_forum_courses($modulo);
             $group_foruns_modulos = new GroupArray();
 
             //Agrupa os foruns pelos seus respectivos modulos

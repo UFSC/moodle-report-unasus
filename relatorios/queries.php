@@ -61,32 +61,34 @@ function query_alunos_grupo_tutoria() {
 function query_postagens_forum() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
-    return " SELECT *,  userid_posts IS NOT NULL as has_post
+    return " SELECT u.id as userid, fp.submission_date, fp.forum_name, gg.grade, gg.timemodified, gg.itemid, userid_posts IS NOT NULL as has_post
                      FROM (
 
                         {$alunos_grupo_tutoria}
 
                      ) u
                      LEFT JOIN
-                    (
+                     (
                         SELECT fp.userid as userid_posts, fp.created as submission_date, fd.name as forum_name
-                        FROM {course_modules} cm
-                        JOIN {forum} f
-                        ON (f.id=cm.instance AND cm.id=:forumid)
-                        JOIN {forum_discussions} fd
-                        ON (fd.forum=f.id)
-                        JOIN {forum_posts} fp
-                        ON (fd.id = fp.discussion)
-                        GROUP BY fp.userid
-                        ORDER BY fp.created ASC
-                    ) forum_posts
-                    ON (forum_posts.userid_posts=u.id)
+                          FROM {forum} f
+                          JOIN {forum_discussions} fd
+                            ON (fd.forum=f.id)
+                          JOIN {forum_posts} fp
+                            ON (fd.id = fp.discussion)
+                         WHERE f.id=:forumid
+                      GROUP BY fp.userid
+                      ORDER BY fp.created ASC
+                     ) fp
+                    ON (fp.userid_posts=u.id)
                     LEFT JOIN
                     (
                         SELECT gg.userid, gg.rawgrade as grade, gg.timemodified, gg.itemid
-                        FROM {grade_grades} gg
+                        FROM {forum} f
                         JOIN {grade_items} gi
-                        ON ( gi.courseid=:courseid AND gg.itemid=:idforumitem AND gi.id = gg.itemid AND gi.itemmodule LIKE 'forum' AND rawgrade IS NOT NULL)
+                          ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                              gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
+                        JOIN {grade_grades} gg
+                          ON (gg.itemid=gi.id)
                     ) gg
                     ON (gg.userid = u.id)
                     ORDER BY grupo_id, u.firstname, u.lastname

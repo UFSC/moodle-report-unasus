@@ -111,46 +111,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
  * @return array
  */
 function get_table_header_atividades_vs_notas($modulos = array()) {
-    $atividades_modulos = query_atividades_modulos($modulos);
-    $foruns_modulos = query_forum_modulo($modulos);
-
-
-    $group = new GroupArray();
-    $modulos = array();
-    $header = array();
-
-    // Agrupa atividades por curso e cria um índice de cursos
-    foreach ($atividades_modulos as $atividade) {
-        $modulos[$atividade->course_id] = $atividade->course_name;
-        $group->add($atividade->course_id, $atividade);
-    }
-
-    //Agrupa os foruns pelos seus respectivos modulos
-    foreach ($foruns_modulos as $forum) {
-        $group->add($forum->course_id, $forum);
-    }
-
-    $group_assoc = $group->get_assoc();
-
-    foreach ($group_assoc as $course_id => $atividades) {
-        $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
-        $course_link = html_writer::link($course_url, $modulos[$course_id]);
-        $dados = array();
-
-        foreach ($atividades as $atividade) {
-            if (array_key_exists('assign_id', $atividade)) {
-                $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
-
-                $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
-                $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
-            } else {
-                $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $atividade->idnumber));
-                $dados[] = html_writer::link($forum_url, $atividade->itemname);
-            }
-        }
-        $header[$course_link] = $dados;
-    }
-    return $header;
+    get_table_header_modulos_atividades($modulos);
 }
 
 
@@ -324,7 +285,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
  * Cabeçalho da tabela
  */
 function get_table_header_entrega_de_atividades($modulos) {
-    return get_table_header_atividades_vs_notas($modulos);
+    return get_table_header_modulos_atividades($modulos);
 }
 
 /*
@@ -525,7 +486,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
  * Cabeçalho do relatorio historico atribuicao de notas
  */
 function get_table_header_historico_atribuicao_notas($modulos) {
-    return get_table_header_atividades_vs_notas($modulos);
+    return get_table_header_modulos_atividades($modulos);
 }
 
 /*
@@ -755,7 +716,7 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
  * Cabeçalho para o sintese: avaliacoes em atraso
  */
 function get_table_header_atividades_nao_avaliadas($modulos) {
-    $header = get_table_header_atividades_vs_notas($modulos);
+    $header = get_table_header_modulos_atividades($modulos);
     $header[''] = array('Média');
     return $header;
 }
@@ -1087,39 +1048,15 @@ function get_table_header_potenciais_evasoes($modulos) {
  */
 
 function get_table_header_modulos_atividades($modulos = array()) {
+    $atividades_cursos = get_atividades_cursos($modulos);
 
-
-    $atividades_modulos = query_atividades_modulos($modulos);
-
-    $group = new GroupArray();
-    $modulos = array();
     $header = array();
 
-    // Agrupa atividades por curso e cria um índice de cursos
-    foreach ($atividades_modulos as $atividade) {
-        $modulos[$atividade->course_id] = $atividade->course_name;
-        $group->add($atividade->course_id, $atividade);
-    }
-
-    $group_assoc = $group->get_assoc();
-
-    foreach ($group_assoc as $course_id => $atividades) {
+    foreach ($atividades_cursos as $course_id => $atividades) {
         $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
-        $course_link = html_writer::link($course_url, $modulos[$course_id]);
-        $dados = array();
+        $course_link = html_writer::link($course_url, $atividades[0]->course_name);
 
-        foreach ($atividades as $atividade) {
-            if (array_key_exists('assign_id', $atividade)) {
-                $cm = get_coursemodule_from_instance('assign', $atividade->assign_id, $course_id, null, MUST_EXIST);
-
-                $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
-                $dados[] = html_writer::link($atividade_url, $atividade->assign_name);
-            } else {
-                $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $atividade->idnumber));
-                $dados[] = html_writer::link($forum_url, $atividade->itemname);
-            }
-        }
-        $header[$course_link] = $dados;
+        $header[$course_link] = $atividades;
     }
     return $header;
 }
@@ -1147,7 +1084,7 @@ function get_header_estudante_sem_atividade_postada($size) {
 function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_atividades, $relatorio) {
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
-    $foruns_modulo = query_forum_modulo(array_keys($modulos));
+    $foruns_modulo = query_forum_courses(array_keys($modulos));
 
     $listagem_forum = new GroupArray();
     foreach ($foruns_modulo as $forum) {
