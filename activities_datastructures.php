@@ -1,9 +1,5 @@
 <?php
 
-//
-// Consulta
-//
-
 /**
  * Representa uma atividade (tarefa, forum, quiz)
  *
@@ -11,9 +7,13 @@
  */
 abstract class report_unasus_activity {
 
+    public $id;
+    public $name;
     public $deadline;
     public $has_submission;
     public $has_grade;
+    public $course_id;
+    public $course_name;
 
     public function __construct($has_submission, $has_grade) {
         if (!is_bool($has_submission) || !is_bool($has_grade)) {
@@ -31,6 +31,48 @@ abstract class report_unasus_activity {
      */
     public function has_deadline() {
         return (!empty($this->deadline));
+    }
+
+    abstract function __toString();
+}
+
+class report_unasus_assign_activity extends report_unasus_activity {
+
+    public function  __construct($db_model) {
+        // TODO: recuperar pelo banco so parâmetros abaixo:
+        parent::__construct(true, true);
+
+        $this->id = $db_model->assign_id;
+        $this->name = $db_model->assign_name;
+        $this->deadline = $db_model->duedate;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+
+    public function __toString() {
+        $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
+        $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
+        return html_writer::link($atividade_url, $this->name);
+    }
+}
+
+class report_unasus_forum_activity extends report_unasus_activity {
+
+    public function  __construct($db_model) {
+        // TODO: recuperar pelo banco so parâmetros abaixo:
+        parent::__construct(true, true);
+
+        $this->id = $db_model->forum_id;
+        $this->name = $db_model->forum_name;
+        $this->deadline = $db_model->completionexpected;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+
+    public function __toString() {
+        $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
+        $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id));
+        return html_writer::link($forum_url, $this->name);
     }
 }
 
