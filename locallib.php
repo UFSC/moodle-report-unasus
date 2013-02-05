@@ -174,7 +174,7 @@ function get_atividades_cursos($courses = null) {
     }
 
     foreach ($foruns as $forum) {
-        $group_array->add($atividade->course_id, new report_unasus_forum_activity($forum));
+        $group_array->add($forum->course_id, new report_unasus_forum_activity($forum));
     }
 
     return $group_array->get_assoc();
@@ -194,8 +194,10 @@ function query_assign_courses($courses) {
     $string_courses = get_modulos_validos($courses);
 
     $query = "SELECT a.id as assign_id,
-                         a.duedate,
                          a.name as assign_name,
+                         a.duedate,
+                         a.nosubmissions,
+                         a.grade,
                          c.id as course_id,
                          REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
                     FROM {course} as c

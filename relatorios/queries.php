@@ -61,7 +61,13 @@ function query_alunos_grupo_tutoria() {
 function query_postagens_forum() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
-    return " SELECT u.id as userid, fp.submission_date, fp.forum_name, gg.grade, gg.timemodified, gg.itemid, userid_posts IS NOT NULL as has_post
+    return " SELECT u.id as userid,
+                    fp.submission_date,
+                    fp.forum_name,
+                    gg.grade,
+                    gg.timemodified,
+                    gg.itemid,
+                    userid_posts IS NOT NULL as has_post
                      FROM (
 
                         {$alunos_grupo_tutoria}
@@ -89,9 +95,11 @@ function query_postagens_forum() {
                               gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
                         JOIN {grade_grades} gg
                           ON (gg.itemid=gi.id)
+                       LIMIT 1
                     ) gg
                     ON (gg.userid = u.id)
                     ORDER BY grupo_id, u.firstname, u.lastname
+
     ";
 }
 
@@ -417,5 +425,44 @@ function query_potenciais_evasoes() {
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=sub.assignment AND gr.userid=u.id)
             ORDER BY u.firstname, u.lastname
+    ";
+}
+
+/**
+ * Query para os relatórios
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - grade -> nota
+ * - submission_date -> unixtime de envio da atividade,
+ * - submission_modified -> unixtime da data de alteracao da atividade
+ * - grade_modified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
+ * - grade_created -> unixtime da data que a nota foi atribuuda
+ * - status -> estado da avaliaçao
+ *
+ * @return string
+ *
+ */
+function query_atividades() {
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+
+    return "SELECT u.id as userid,
+                   gr.grade,
+                   sub.timecreated as submission_date,
+                   sub.timemodified as submission_modified,
+                   gr.timemodified as grade_modified,
+                   gr.timecreated as grade_created,
+                   sub.status
+                 FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                 ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+            ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }

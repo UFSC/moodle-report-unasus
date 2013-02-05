@@ -33,14 +33,26 @@ abstract class report_unasus_activity {
         return (!empty($this->deadline));
     }
 
+    /**
+     * Esta atividade possui uma entrega?
+     *
+     * @return bool true se tiver entrega, seja de arquivo ou texto online
+     */
+    public function has_submission() {
+        return (!empty($this->has_submission));
+    }
+
     abstract function __toString();
 }
 
 class report_unasus_assign_activity extends report_unasus_activity {
 
     public function  __construct($db_model) {
-        // TODO: recuperar pelo banco so parâmetros abaixo:
-        parent::__construct(true, true);
+
+        $has_submission = !$db_model->nosubmissions;
+        $has_grade = ((int)$db_model->grade) == 0 ? false : true ;
+
+        parent::__construct($has_submission, $has_grade);
 
         $this->id = $db_model->assign_id;
         $this->name = $db_model->assign_name;
@@ -59,7 +71,6 @@ class report_unasus_assign_activity extends report_unasus_activity {
 class report_unasus_forum_activity extends report_unasus_activity {
 
     public function  __construct($db_model) {
-        // TODO: recuperar pelo banco so parâmetros abaixo:
         parent::__construct(true, true);
 
         $this->id = $db_model->forum_id;
@@ -76,10 +87,9 @@ class report_unasus_forum_activity extends report_unasus_activity {
     }
 }
 
-class report_unasus_data {
+abstract class report_unasus_data {
 
-    /** @var report_unasus_activity */
-    protected $source_activity;
+    public $source_activity;
     public $userid;
     public $grade;
     public $submission_date;
@@ -169,7 +179,6 @@ class report_unasus_data {
             // usaremos a diferença do deadline com a data atual
             $duediff = $deadline->diff(date_create());
         }
-
         return (int)$duediff->format("%a");
     }
 
@@ -233,3 +242,35 @@ class report_unasus_data {
         }
     }
 }
+
+class report_unasus_data_activity extends report_unasus_data{
+
+    public function  __construct(report_unasus_activity &$source_activity, $db_model) {
+
+        parent::__construct($source_activity);
+
+        $this->userid = $db_model->userid;
+        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+            $this->grade = (float)$db_model->grade;
+        }
+        $this->submission_date = ( !is_null($db_model->submission_date) ) ? $db_model->submission_date : $db_model->submission_modified;
+        $this->grade_date = ( !is_null($db_model->grade_created) ) ? $db_model->grade_created : $db_model->grade_modified;
+    }
+
+}
+
+class report_unasus_data_forum extends report_unasus_data{
+
+    public function  __construct(report_unasus_activity &$source_activity, $db_model) {
+        parent::__construct($source_activity);
+
+        $this->userid = $db_model->userid;
+        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+            $this->grade = (float)$db_model->grade;
+        }
+        $this->submission_date = $db_model->submission_date;
+        $this->grade_date = $db_model->timemodified;
+    }
+
+}
+
