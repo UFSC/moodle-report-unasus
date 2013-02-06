@@ -173,7 +173,9 @@ abstract class report_unasus_data {
         if ($this->has_grade()) {
             // se possui nota, o atraso é relacionado a um dado histórico
             // usaremos a diferença do deadline com a data de envio da nota
-            $duediff = $deadline->diff($this->grade_date);
+
+            $grade_datetime =  get_datetime_from_unixtime($this->grade_date);
+            $duediff = $deadline->diff($grade_datetime);
         } else {
             // se não possui nota, o atraso é relacionado a um dado atual
             // usaremos a diferença do deadline com a data atual
@@ -240,6 +242,32 @@ abstract class report_unasus_data {
             // Usaremos a diferença entre a atual e a data esperada
             return $this->source_activity->deadline < time();
         }
+    }
+
+    /**
+     * Retorna se a atividade é para o futuro, ou seja a data de entrega da atividade é maior
+     * que o dia de hoje
+     *
+     * - Atividade não tem nota
+     * - Atividade tem um deadline e este é maior que o dia de hoje
+     * - Atividade que possui entrega, esta data é maior que o dia de hoje
+     *
+     * @return bool
+     */
+    public function is_a_future_due(){
+        $now = time();
+        //Se atividade ja tiver nota, mesmo que seja uma atividade futura esta tudo ok
+        if($this->has_grade()){
+            return false;
+        }
+
+        // A data de avaliacao é maior do que a data atual
+        if($this->source_activity->deadline > $now){
+            return true;
+        }
+
+        // Se ele nao tiver nota e sua entrega estiver atrasada ou necessita de nota, não é uma atividade pro futuro
+        return false;
     }
 }
 

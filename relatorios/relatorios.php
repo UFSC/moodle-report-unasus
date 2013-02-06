@@ -52,23 +52,33 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                 /** @var report_unasus_data $atividade */
                 $atraso = null;
 
-                // Se for uma ativade online e o aluno nao enviou
-                if ($atividade->source_activity->has_submission()) {
-                    if (!$atividade->source_activity->has_deadline()) {
-                        $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                    } elseif ($atividade->is_submission_due()) {
-                        $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
-                    } else {
+                //Se atividade não tem data de entrega e nem nota
+                if(!$atividade->source_activity->has_deadline() && !$atividade->has_grade()){
+                    $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                }else{
+
+                    //Atividade pro futuro
+                    if($atividade->is_a_future_due()){
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
                     }
-                } elseif (!$atividade->has_grade()) {
-                    $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
-                    $atraso = $atividade->grade_due_days();
-                } // Atividade entregue e avaliada
-                elseif ($atividade->has_grade()) {
-                    $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
-                } else {
-                    print_error('unmatched_condition', 'report_unasus');
+
+                    //Entrega atrasada
+                    if($atividade->is_submission_due()){
+                        $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
+                    }
+
+                    //Atividade entregue e necessita de nota
+                    if($atividade->is_grade_needed()){
+                        $atraso = $atividade->grade_due_days();
+                        $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
+                    }
+
+                    //Atividade tem nota
+                    if($atividade->has_grade()){
+                        $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
+                    }
+
+
                 }
 
                 $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->source_activity->id, $atividade->grade, $atraso);
