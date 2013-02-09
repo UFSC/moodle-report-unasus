@@ -273,6 +273,8 @@ abstract class report_unasus_data {
 
 class report_unasus_data_activity extends report_unasus_data{
 
+    public $status;
+
     public function  __construct(report_unasus_activity &$source_activity, $db_model) {
 
         parent::__construct($source_activity);
@@ -281,8 +283,27 @@ class report_unasus_data_activity extends report_unasus_data{
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float)$db_model->grade;
         }
+        $this->status = $db_model->status;
         $this->submission_date = ( !is_null($db_model->submission_date) ) ? $db_model->submission_date : $db_model->submission_modified;
         $this->grade_date = ( !is_null($db_model->grade_created) ) ? $db_model->grade_created : $db_model->grade_modified;
+    }
+
+    /**
+     * Houve um envio de atividade?
+     * @return bool true se existe um envio ou false caso contrário
+     */
+    public function has_submitted() {
+
+        // Houve entrega
+        if (!empty($this->submission_date)) {
+            if ($this->status != 'draft') {
+                return true;
+            } elseif ($this->has_grade()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
