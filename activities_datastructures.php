@@ -94,6 +94,7 @@ abstract class report_unasus_data {
     public $grade;
     public $submission_date;
     public $grade_date;
+    public $status;
 
     /**
      * @param report_unasus_activity $source_activity qual a atividade esta informação se refere
@@ -281,6 +282,7 @@ class report_unasus_data_activity extends report_unasus_data{
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float)$db_model->grade;
         }
+        $this->status = $db_model->status;
         $this->submission_date = ( !is_null($db_model->submission_date) ) ? $db_model->submission_date : $db_model->submission_modified;
         $this->grade_date = ( !is_null($db_model->grade_created) ) ? $db_model->grade_created : $db_model->grade_modified;
     }
