@@ -460,7 +460,7 @@ function query_atividades() {
 
                  ) u
             LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status != 'draft)
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status != 'draft')
             LEFT JOIN {assign_grades} gr
             ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
             ORDER BY grupo_id, u.firstname, u.lastname
