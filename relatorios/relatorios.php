@@ -1074,11 +1074,12 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $rel
 
 
             foreach ($aluno as $atividade) {
+                /** @var report_unasus_data $atividade */
                 $tipo_avaliacao = 'atividade';
                 $nome_atividade = null;
                 $atividade_sera_listada = false;
 
-                if($relatorio == 'estudante_sem_atividade_postada' && $atividade->is_submission_due()){
+                if($relatorio == 'estudante_sem_atividade_postada' && $atividade->has_submitted()){
                     $atividade_sera_listada = true;
                 }
 
