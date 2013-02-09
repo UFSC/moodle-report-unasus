@@ -29,7 +29,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
-        $data = new report_unasus_data($activity);
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
 
         $activity->deadline = 0;
 
@@ -52,7 +52,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
-        $data = new report_unasus_data($activity);
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
 
         $activity->deadline = $year_ago;
 
@@ -65,7 +65,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
-        $data = new report_unasus_data($activity);
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
 
         $activity->deadline = $year_ago;
 
@@ -74,5 +74,95 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         // nunca estará com a entrega em atraso, já que não possui entrega
         $this->assertEquals(false, $data->is_submission_due());
+    }
+
+    public function test_report_unasus_data_grade() {
+        $now = time();
+        $year_ago = $now-60*60*24*365;
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        //
+        // Para atividades sem prazo e com envio ativado
+        //
+
+        $activity->deadline = null;
+
+        // Se não houver uma entrega, uma nota não é necessária
+        $this->assertEquals(false, $data->is_grade_needed());
+
+        // Se houver uma entrega, uma nota é necessária (independente de quando for a entrega)
+        $data->submission_date = $now;
+        $this->assertEquals(true, $data->is_grade_needed());
+
+        $data->submission_date = $year_ago;
+        $this->assertEquals(true, $data->is_grade_needed());
+
+        // Se houver uma entrega e foi dado uma nota, ainda deve retornar que uma nota é necessária
+        $data->grade = 5;
+        $data->grade_date = $now;
+        $this->assertEquals(true, $data->is_grade_needed());
+
+    }
+
+    public function test_report_unasus_data_activity() {
+        $now = time();
+        $year_ago = $now-60*60*24*365;
+
+        //
+        // Dado com submission em draft e com nota
+        //
+        $assign_draft = new stdClass();
+        $assign_draft->userid = 1;
+        $assign_draft->grade = 5;
+        $assign_draft->submission_date = $year_ago;
+        $assign_draft->grade_created = $year_ago;
+        $assign_draft->status = 'draft';
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = new report_unasus_data_activity($activity, $assign_draft);
+
+        // HACK: consideramos como enviado (mesmo que esteja em draft), se já tiver nota, para não estregar os outros relatórios
+        $this->assertEquals(true, $data->has_submitted());
+
+        //
+        // Dado com submission em draft e sem nota
+        //
+        $assign_draft = new stdClass();
+        $assign_draft->userid = 1;
+        $assign_draft->grade = null;
+        $assign_draft->grade_created = null;
+        $assign_draft->grade_modified = null;
+        $assign_draft->submission_date = $year_ago;
+        $assign_draft->status = 'draft';
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = new report_unasus_data_activity($activity, $assign_draft);
+
+        $this->assertEquals(false, $data->has_submitted());
+
+        //
+        // Dado com submission em correto
+        //
+        $assign_submitted = new stdClass();
+        $assign_submitted->userid = 1;
+        $assign_submitted->grade = 5;
+        $assign_submitted->submission_date = $year_ago;
+        $assign_submitted->grade_created = $year_ago;
+        $assign_submitted->status = 'submitted';
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = new report_unasus_data_activity($activity, $assign_submitted);
+
+        $this->assertEquals(true, $data->has_submitted());
     }
 }
