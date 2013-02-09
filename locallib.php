@@ -111,7 +111,7 @@ function get_id_nome_modulos($curso_ufsc) {
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
            FROM {course} c
            JOIN {course_categories} cc
-             ON (c.category = cc.id AND cc.idnumber = :curso_ufsc)
+             ON ( (c.category = cc.id OR cc.path LIKE CONCAT('/', c.category, '/%')) AND cc.idnumber = :curso_ufsc)
            JOIN {assign} a
              ON (c.id = a.course)
           WHERE c.id != :siteid
