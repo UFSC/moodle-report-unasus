@@ -943,7 +943,7 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
     global $CFG;
 
     // Consulta
-    $query_alunos_atividades = query_potenciais_evasoes();
+    $query_alunos_atividades = query_atividades();
     $query_forum = query_postagens_forum();
 
 
@@ -965,13 +965,13 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
             foreach ($aluno as $atividade) {
 
                 //para cada novo modulo ele cria uma entrada de dado_potenciais_evasoes com o maximo de atividades daquele modulo
-                if (!array_key_exists($atividade->courseid, $dados_modulos)) {
-                    $dados_modulos[$atividade->courseid] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->courseid]));
+                if (!array_key_exists($atividade->source_activity->course_id, $dados_modulos)) {
+                    $dados_modulos[$atividade->source_activity->course_id] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->source_activity->course_id]));
                 }
 
                 //para cada atividade nao feita ele adiciona uma nova atividade nao realizada naquele modulo
-                if (is_null($atividade->submission_date) && $atividade->duedate <= $timenow) {
-                    $dados_modulos[$atividade->courseid]->add_atividade_nao_realizada();
+                if ($atividade->source_activity->has_submission() && is_null($atividade->submission_date) && !$atividade->is_a_future_due()) {
+                    $dados_modulos[$atividade->source_activity->course_id]->add_atividade_nao_realizada();
                 }
             }
 
