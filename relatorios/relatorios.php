@@ -557,11 +557,7 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
  */
 function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $modulos, $tutores)
 {
-
-    // Consulta
-    $query_alunos_grupo_tutoria = query_estudante_sem_atividade_postada();
-
-    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_grupo_tutoria, 'estudante_sem_atividade_postada');
+    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, 'estudante_sem_atividade_postada');
 }
 
 /* -----------------
@@ -582,10 +578,7 @@ function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $
  */
 function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, $modulos, $tutores)
 {
-
-    // Consulta
-    $query_alunos_grupo_tutoria = query_estudante_sem_atividade_avaliada();
-    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_grupo_tutoria, 'estudante_sem_atividade_avaliada');
+    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, 'estudante_sem_atividade_avaliada');
 }
 
 /* -----------------
@@ -1056,7 +1049,7 @@ function get_header_estudante_sem_atividade_postada($size)
  *
  * Dados para os relatórios Lista: Atividades não postadas e Lista: Atividades não avaliadas
  */
-function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $query_alunos_atividades, $relatorio)
+function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $relatorio)
 {
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
@@ -1066,15 +1059,12 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
     foreach ($foruns_modulo as $forum) {
         $listagem_forum->add($forum->course_id, $forum);
     }
-    $listagem_forum = $listagem_forum->get_assoc();
 
-
+    $query_alunos_grupo_tutoria = query_atividades();
     $query_forum = query_postagens_forum();
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc, $modulos,
-        $tutores, $query_alunos_atividades, $query_forum);
+        $tutores, $query_alunos_grupo_tutoria, $query_forum);
 
-    $id_nome_modulos = get_id_nome_modulos();
-    $id_nome_atividades = get_id_nome_atividades();
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -1083,62 +1073,32 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
 
             $atividades_modulos = new GroupArray();
 
-            //workaround time
-            $count_foruns = -1;
 
             foreach ($aluno as $atividade) {
-
                 $tipo_avaliacao = 'atividade';
                 $nome_atividade = null;
-                $atividade_sera_listada = true;
-                $idnumber = null;
+                $atividade_sera_listada = false;
 
-                // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
-                // aonde o tutor deveria dar a nota da avalicao offline
-                $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
-
-                //workaround time
-                if (array_key_exists('has_post', $atividade)) {
-                    $count_foruns++;
-                    $tipo_avaliacao = 'forum';
-
-                    if (!array_key_exists($count_foruns, $listagem_forum[$atividade->courseid]))
-                        $count_foruns = 0;
-
-                    $nome_atividade = $listagem_forum[$atividade->courseid][$count_foruns]->itemname;
-                    $idnumber = $listagem_forum[$atividade->courseid][$count_foruns]->idnumber;
-
-                    if ($relatorio == 'estudante_sem_atividade_postada' && $atividade->has_post == 1) {
-
-                        $atividade_sera_listada = false;
-                    } elseif ($relatorio == 'estudante_sem_atividade_avaliada' &&
-                        ($atividade->has_post == 1 && !is_null($atividade->grade) || $atividade->has_post == 0)
-                    ) {
-                        $atividade_sera_listada = false;
-                    }
-
-
-                } else {
-                    $count_foruns = -1;
-
-                    //logica para atividades offlines, para estudante_sem_atividade_postada atividades offlines nao devem ser listadas
-                    //ja para estudante_sem_atividade_avaliada so se ele nao tiver nota
-                    if ($atividade_offline &&
-                        ($relatorio == 'estudante_sem_atividade_postada' ||
-                            ($relatorio == 'estudante_sem_atividade_avaliada' && !is_null($atividade->grade)))
-                    ) {
-                        $atividade_sera_listada = false;
-
-                    }
-
-                    $nome_atividade = $id_nome_atividades[$atividade->assignid];
+                if($relatorio == 'estudante_sem_atividade_postada' && $atividade->is_submission_due()){
+                    $atividade_sera_listada = true;
                 }
+
+                if($relatorio == 'estudante_sem_atividade_avaliada' && $atividade->has_grade()){
+                    $atividade_sera_listada = true;
+                }
+
+                if(is_a($atividade,'report_unasus_data_forum' )){
+                    $tipo_avaliacao = 'forum';
+                }
+
+
 
                 if ($atividade_sera_listada) {
-                    $atividades_modulos->add($atividade->courseid, array('nome' => $nome_atividade, 'course_id' => $atividade->courseid,
-                        'assign_id' => $atividade->assignid, 'tipo' => $tipo_avaliacao, 'idnumber' => $idnumber));
+                    $atividades_modulos->add($atividade->source_activity->course_id,
+                        array('atividade'=>$atividade, 'tipo'=>$tipo_avaliacao));
                 }
             }
+
 
 
             $ativ_mod = $atividades_modulos->get_assoc();
@@ -1148,10 +1108,13 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $que
                 $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
 
                 foreach ($ativ_mod as $key => $modulo) {
-                    $lista_atividades[] = new dado_modulo($key, $id_nome_modulos[$key]);
+                    $lista_atividades[] = new dado_modulo($key, $modulo[0]['atividade']->source_activity->course_name);
                     foreach ($modulo as $atividade) {
-                        $lista_atividades[] = new dado_atividade($atividade['assign_id'], $atividade['course_id'],
-                            $atividade['nome'], $atividade['tipo'], $atividade['idnumber']);
+                        $lista_atividades[] = new dado_atividade(
+                            $atividade['atividade']->source_activity->id,
+                            $atividade['atividade']->source_activity->course_id,
+                            $atividade['atividade']->source_activity->name,
+                            $atividade['tipo']);
                     }
                 }
 

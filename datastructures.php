@@ -541,12 +541,11 @@ class dado_atividade extends unasus_data {
     private $tipo;
     private $forumid;
 
-    function __construct($id, $course_id, $nome, $tipo, $forumid) {
+    function __construct($id, $course_id, $nome, $tipo) {
         $this->id = $id;
         $this->course_id = $course_id;
         $this->nome = $nome;
         $this->tipo = $tipo;
-        $this->forumid = $forumid;
     }
 
     public function __toString() {
