@@ -95,7 +95,7 @@ function query_postagens_forum() {
                               gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
                         JOIN {grade_grades} gg
                           ON (gg.itemid=gi.id)
-                       LIMIT 1
+                    GROUP BY gg.userid, gg.itemid
                     ) gg
                     ON (gg.userid = u.id)
                     ORDER BY grupo_id, u.firstname, u.lastname
