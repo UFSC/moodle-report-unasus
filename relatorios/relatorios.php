@@ -599,8 +599,7 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 {
 
     // Consulta
-    $query_alunos_grupo_tutoria = query_atividades_nao_avaliadas();
-
+    $query_alunos_grupo_tutoria = query_atividades();
     $query_forum = query_postagens_forum();
 
     $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
@@ -611,42 +610,30 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
     $lista_atividade = $result_array['lista_atividade'];
     $associativo_atividade = $result_array['associativo_atividade'];
 
-
+    // TODO: incluir esse prazo na estrutura de dados
     $timenow = time();
     $prazo_avaliacao = (get_prazo_avaliacao() * 60 * 60 * 24);
-
 
     $somatorio_total_atrasos = array();
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $results) {
 
             foreach ($results as $atividade) {
+                /** @var report_unasus_data $atividade */
 
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
                 }
 
+                if (!$atividade->has_grade() && $atividade->is_grade_needed()) {
+                    if (is_a($atividade, 'report_unasus_assign_activity')) {
+                        $lista_atividade[$grupo_id]['atividade_'.$atividade->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
+                        $lista_atividade[$grupo_id]['forum_'.$atividade->id]->incrementar_atraso();
+                    }
 
-                $atividade_nao_corrigida = false;
-                if (array_key_exists('status', $atividade))
-                    $atividade_nao_corrigida = $atividade->status == 'draft' && $atividade->submission_modified + $prazo_avaliacao < $timenow;
-
-                $forum_nao_corrigido = array_key_exists('firstname', $atividade) && $atividade->submission_date != null && $atividade->grade == null;
-
-                // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
-                // aonde o tutor deveria dar a nota da avalicao offline
-                $offline_nao_corrigido = false;
-                $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
-                if ($atividade_offline)
-                    $offline_nao_corrigido = ($atividade->duedate + $prazo_avaliacao < $timenow) && $atividade->grade == null;
-
-                if ($atividade_nao_corrigida || $forum_nao_corrigido || $offline_nao_corrigido) {
-
-                    $lista_atividade[$grupo_id][$atividade->assignid]->incrementar_atraso();
                     $somatorio_total_atrasos[$grupo_id]++;
                 }
-
-
             }
         }
     }

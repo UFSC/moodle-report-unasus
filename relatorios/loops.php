@@ -111,64 +111,49 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
         foreach ($modulos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
 
-                $params = array('courseid' => $modulo,
-                                'assignmentid' => $atividade->assign_id,
-                                'assignmentid2' => $atividade->assign_id,
-                                'assignmentid3' => $atividade->assign_id,
-                                'curso_ufsc' => $curso_ufsc,
-                                'grupo_tutoria' => $grupo->id,
-                                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                if (is_a($atividade, 'report_unasus_assign_activity')) {
 
-                $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
+                    // para cada assign um novo dado de avaliacao em atraso
+                    $array_das_atividades['atividade_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
-                // para cada assign um novo dado de avaliacao em atraso
-                $array_das_atividades['atividade_'.$atividade->assign_id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $params = array('courseid' => $modulo,
+                        'assignmentid' => $atividade->id,
+                        'assignmentid2' => $atividade->id,
+                        'assignmentid3' => $atividade->id,
+                        'curso_ufsc' => $curso_ufsc,
+                        'grupo_tutoria' => $grupo->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
-                foreach ($result as $r) {
-                    // Adiciona campos extras
-                    $r->courseid = $modulo;
-                    $r->assignid = 'atividade_'.$atividade->assign_id;
+                    $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
 
-                    if(array_key_exists('submission_modified',$r))
-                        $r->submission_modified = (int) $r->submission_modified;
+                    foreach ($result as $r) {
+                        /** @var report_unasus_data_activity $data */
+                        $data = new report_unasus_data_activity($atividade, $r);
 
-                    // Agrupa os dados por usuário
-                    $group_array_do_grupo->add($r->user_id, $r);
-                }
-            }
-
-            //Pega quais e quantos foruns existem dentro de um modulo
-            $foruns_modulos = query_forum_courses($modulo);
-            $group_foruns_modulos = new GroupArray();
-
-            //Agrupa os foruns pelos seus respectivos modulos
-            foreach ($foruns_modulos as $forum) {
-                $group_foruns_modulos->add($forum->course_id, $forum);
-            }
-            $group_foruns_modulos = $group_foruns_modulos->get_assoc();
-
-            if(!empty($group_foruns_modulos)){
-                //Para cada forum dentro de um módulo ele faz a querry das respectivas avaliacoes
-                foreach($group_foruns_modulos[$modulo] as $forum){
-
-                    $params_forum =  array('courseid' => $modulo,
-                                           'curso_ufsc' => $curso_ufsc,
-                                           'grupo_tutoria' => $grupo->id,
-                                           'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
-                                           'forumid' => $forum->idnumber,
-                                           'idforumitem' => $forum->id);
-
-                    $array_das_atividades['forum_'.$forum->idnumber] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
-
-                    $result_forum = $middleware->get_records_sql($query_forum, $params_forum);
-                    $forum_duedate = query_forum_duedate($forum->idnumber);
-                    // para cada aluno adiciona a listagem de atividades
-                    foreach($result_forum as $f){
-                        $f->assignid = 'forum_'.$forum->idnumber;
-                        $group_array_do_grupo->add($f->id, $f);
-                        $f->duedate = isset($forum_duedate->completionexpected) ? $forum_duedate->completionexpected : null;
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($data->userid, $data);
                     }
+                } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
 
+                    $array_das_atividades['forum_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+
+                    $params = array(
+                        'courseid' => $modulo,
+                        'curso_ufsc' => $curso_ufsc,
+                        'grupo_tutoria' => $grupo->id,
+                        'forumid' => $atividade->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+
+                    $result = $middleware->get_records_sql($query_forum, $params);
+
+                    // para cada aluno adiciona a listagem de atividades
+                    foreach ($result as $f) {
+                        /** @var report_unasus_data_forum $data */
+                        $data = new report_unasus_data_forum($atividade, $f);
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($f->userid, $data);
+                    }
                 }
             }
         }
