@@ -535,30 +535,14 @@ class dado_modulo extends unasus_data {
 
 class dado_atividade extends unasus_data {
 
-    private $id;
-    private $nome;
-    private $course_id;
-    private $tipo;
-    private $forumid;
+    private $atividade;
 
-    function __construct($id, $course_id, $nome, $tipo) {
-        $this->id = $id;
-        $this->course_id = $course_id;
-        $this->nome = $nome;
-        $this->tipo = $tipo;
+    function __construct($atividade) {
+        $this->atividade=$atividade;
     }
 
     public function __toString() {
-        if($this->tipo == 'atividade'){
-            //atividade
-            $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
-            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
-            return html_writer::link($atividade_url, $this->nome);
-        }else{
-            //forum
-            $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $this->forumid));
-            return html_writer::link($forum_url, $this->nome);
-        }
+        return ''.$this->atividade->source_activity->__toString();
     }
 
     public function get_css_class() {

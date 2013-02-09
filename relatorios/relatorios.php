@@ -52,8 +52,8 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                 /** @var report_unasus_data $atividade */
                 $atraso = null;
 
-                //Se atividade não tem data de entrega e nem nota
-                if(!$atividade->source_activity->has_deadline() && !$atividade->has_grade()){
+                //Se atividade não tem data de entrega, não tem entrega e nem nota
+                if(!$atividade->source_activity->has_deadline() && !$atividade->has_submitted() && !$atividade->has_grade()){
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                 }else{
 
@@ -1110,11 +1110,7 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $rel
                 foreach ($ativ_mod as $key => $modulo) {
                     $lista_atividades[] = new dado_modulo($key, $modulo[0]['atividade']->source_activity->course_name);
                     foreach ($modulo as $atividade) {
-                        $lista_atividades[] = new dado_atividade(
-                            $atividade['atividade']->source_activity->id,
-                            $atividade['atividade']->source_activity->course_id,
-                            $atividade['atividade']->source_activity->name,
-                            $atividade['tipo']);
+                        $lista_atividades[] = new dado_atividade($atividade['atividade']);
                     }
                 }
 
