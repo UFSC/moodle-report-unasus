@@ -626,10 +626,10 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
                 }
 
                 if (!$atividade->has_grade() && $atividade->is_grade_needed()) {
-                    if (is_a($atividade, 'report_unasus_assign_activity')) {
-                        $lista_atividade[$grupo_id]['atividade_'.$atividade->id]->incrementar_atraso();
-                    } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
-                        $lista_atividade[$grupo_id]['forum_'.$atividade->id]->incrementar_atraso();
+                    if (is_a($atividade, 'report_unasus_data_activity')) {
+                        $lista_atividade[$grupo_id]['atividade_'.$atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_forum')) {
+                        $lista_atividade[$grupo_id]['forum_'.$atividade->source_activity->id]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
