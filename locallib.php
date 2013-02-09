@@ -104,16 +104,18 @@ function get_polos($curso_ufsc) {
     return $polos;
 }
 
-function get_id_nome_modulos() {
+function get_id_nome_modulos($curso_ufsc) {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql_menu(
           "SELECT DISTINCT(c.id),
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
            FROM {course} c
+           JOIN {course_categories} cc
+             ON (c.category = cc.id AND cc.idnumber = :curso_ufsc)
            JOIN {assign} a
              ON (c.id = a.course)
           WHERE c.id != :siteid
-            AND c.visible=true", array('siteid' => $SITE->id));
+            AND c.visible=true", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
     return $modulos;
 }
 
