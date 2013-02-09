@@ -238,26 +238,29 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
             $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
 
             foreach ($aluno as $atividade) {
+                /** @var report_unasus_data $atividade */
                 $atraso = null;
 
-                //Se atividade não tem data de entrega e nem nota
-                if(!$atividade->source_activity->has_deadline() && !$atividade->has_grade()){
-                    $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                }else{
+                // Se a atividade não foi entregue
+                if (!$atividade->has_submitted()) {
 
-                    $atraso = $atividade->submission_due_days();
+                    if (!$atividade->source_activity->has_deadline()) {
+                        // E não tem entrega prazo
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                    } else {
+                        // Tem prazo de entrega
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+                    }
+                } else {
 
-                    if($atraso){
+                    // Entrega atrasada
+                    if ($atividade->is_submission_due()) {
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                    }else{
+                    } else {
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
                     }
 
-                    //Offlines nao precisam de entrega
-                    if(!$atividade->source_activity->has_submission() || $atividade->is_submission_due()){
-                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
-                    }
-
+                    $atraso = $atividade->submission_due_days();
                 }
                 $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->source_activity->id, $atraso);
             }
