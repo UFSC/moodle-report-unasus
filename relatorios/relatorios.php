@@ -676,7 +676,7 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
 {
 
     // Consulta
-    $query_alunos_grupo_tutoria = query_atividades_nota_atribuida();
+    $query_alunos_grupo_tutoria = query_atividades();
     $query_forum = query_postagens_forum();
 
     $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
@@ -690,14 +690,25 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
 
     $somatorio_total_atrasos = array();
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
-        foreach ($array_dados as $id_aluno => $aluno) {
+        foreach ($array_dados as $aluno) {
             foreach ($aluno as $atividade) {
-                if (!is_null($atividade->grade))
-                    $lista_atividade[$grupo_id][$atividade->assignid]->incrementar_atraso();
+                /** @var report_unasus_data $atividade */
+
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
                 }
-                $somatorio_total_atrasos[$grupo_id]++;
+
+
+                if ($atividade->has_grade() && $atividade->is_grade_needed()) {
+                    
+                    if (is_a($atividade, 'report_unasus_data_activity')) {
+                        $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_forum')) {
+                        $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id]->incrementar_atraso();
+                    }
+
+                    $somatorio_total_atrasos[$grupo_id]++;
+                }
             }
         }
     }
