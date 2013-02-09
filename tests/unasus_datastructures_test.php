@@ -130,6 +130,9 @@ class unasus_datastructures_testcase extends advanced_testcase {
         // HACK: consideramos como enviado (mesmo que esteja em draft), se já tiver nota, para não estregar os outros relatórios
         $this->assertEquals(true, $data->has_submitted());
 
+        // O fato de ser draft não deve influenciar o comando de verificar a existência de nota
+        $this->assertEquals(true, $data->has_grade());
+
         //
         // Dado com submission em draft e sem nota
         //
@@ -146,7 +149,11 @@ class unasus_datastructures_testcase extends advanced_testcase {
         /** @var report_unasus_data $data */
         $data = new report_unasus_data_activity($activity, $assign_draft);
 
+        // Dado com envio em draft, não deve ser considerado como enviado
         $this->assertEquals(false, $data->has_submitted());
+
+        // O fato de ser draft não deve influenciar o comando de verificar a existência de nota
+        $this->assertEquals(false, $data->has_grade());
 
         //
         // Dado com submission em correto
