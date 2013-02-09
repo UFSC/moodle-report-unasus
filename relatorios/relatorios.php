@@ -245,11 +245,6 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
                     $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
                 }else{
 
-                    //Entrega atrasada
-                    if($atividade->is_submission_due()){
-                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
-                    }
-
                     $atraso = $atividade->submission_due_days();
 
                     if($atraso){
@@ -259,9 +254,10 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
                     }
 
                     //Offlines nao precisam de entrega
-                    if(!$atividade->source_activity->has_submission()){
+                    if(!$atividade->source_activity->has_submission() || $atividade->is_submission_due()){
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
                     }
+
                 }
                 $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->source_activity->id, $atraso);
             }
