@@ -870,7 +870,7 @@ function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores)
     // Consulta
     $query = query_acesso_tutor();
 
-    $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR);
+    $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR, 'curso_ufsc' => get_curso_ufsc_id());
     $result = $middleware->get_recordset_sql($query, $params);
 
     //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]

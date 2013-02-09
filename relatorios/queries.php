@@ -375,8 +375,9 @@ function query_acesso_tutor() {
            INNER JOIN {user} u
                    ON (u.id=sud.userid)
            INNER JOIN {table_PessoasGruposTutoria} pgt
-                   -- ON (pgt.matricula=u.username)
                    ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
+                 JOIN {table_GruposTutoria} gt
+                   ON (gt.id=pgt.grupo AND gt.curso=:curso_ufsc)
              GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
              ORDER BY calendar_year, calendar_month, calendar_day";
 }
