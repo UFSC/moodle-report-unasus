@@ -1079,11 +1079,11 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $rel
                 $nome_atividade = null;
                 $atividade_sera_listada = false;
 
-                if($relatorio == 'estudante_sem_atividade_postada' && $atividade->has_submitted()){
+                if ($relatorio == 'estudante_sem_atividade_postada' && !$atividade->has_submitted()){
                     $atividade_sera_listada = true;
                 }
 
-                if($relatorio == 'estudante_sem_atividade_avaliada' && $atividade->has_grade()){
+                if($relatorio == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade()){
                     $atividade_sera_listada = true;
                 }
 
