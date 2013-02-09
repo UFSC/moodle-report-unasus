@@ -700,7 +700,7 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
 
 
                 if ($atividade->has_grade() && $atividade->is_grade_needed()) {
-                    
+
                     if (is_a($atividade, 'report_unasus_data_activity')) {
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
@@ -1077,23 +1077,22 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $rel
                 $nome_atividade = null;
                 $atividade_sera_listada = false;
 
-                if ($relatorio == 'estudante_sem_atividade_postada' && !$atividade->has_submitted()){
+                if ($relatorio == 'estudante_sem_atividade_postada' && !$atividade->has_submitted()) {
                     $atividade_sera_listada = true;
                 }
 
-                if($relatorio == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade()){
+                if ($relatorio == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade() && $atividade->is_grade_needed()) {
                     $atividade_sera_listada = true;
                 }
 
-                if(is_a($atividade,'report_unasus_data_forum' )){
+                if (is_a($atividade, 'report_unasus_data_forum')) {
                     $tipo_avaliacao = 'forum';
                 }
 
 
-
                 if ($atividade_sera_listada) {
                     $atividades_modulos->add($atividade->source_activity->course_id,
-                        array('atividade'=>$atividade, 'tipo'=>$tipo_avaliacao));
+                        array('atividade' => $atividade, 'tipo' => $tipo_avaliacao));
                 }
             }
 
