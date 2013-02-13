@@ -50,6 +50,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
+        var_dump($_POST);
+
         $output = $this->default_header();
         $output .= $this->build_filter(true, $graficos, $dot_chart);
 
@@ -61,7 +63,10 @@ class report_unasus_renderer extends plugin_renderer_base {
         $header_method = "get_table_header_{$this->report}";
 
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
+
+        var_dump($polos_raw, $modulos_raw);
 
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
@@ -143,7 +148,6 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         //$dados_tutores = grupos_tutoria::get_chave_valor_grupos_tutoria($this->curso_ufsc);
 
-
         // Inicio do Form
         $url_filtro = new moodle_url('/report/unasus/index.php', array('relatorio' => $this->report, 'course' => $this->curso_ativo));
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
@@ -180,7 +184,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         if (has_capability('report/unasus:view_all', $this->context)) {
             // Filtro de Polo
             $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-            $filter_polos .= html_writer::select(get_polos($this->curso_ufsc), 'multiple_polo', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+            $filter_polos .= html_writer::select(get_polos($this->curso_ufsc), 'polos[]', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
             $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
             $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
             $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
@@ -420,6 +424,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter(true, false);
 
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
@@ -452,6 +457,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter(false, false);
 
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
@@ -518,6 +524,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $legend = call_user_func("$dados_class::get_legend");
 
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
@@ -559,6 +566,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = "get_dados_grafico_{$this->report}";
 
         $modulos = optional_param_array('modulos', null, PARAM_INT);
+        $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores = optional_param_array('tutores', null, PARAM_INT);
 
         $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method($modulos, $tutores, $this->curso_ufsc)));
