@@ -50,8 +50,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
-        var_dump($_POST);
-
         $output = $this->default_header();
         $output .= $this->build_filter(true, $graficos, $dot_chart);
 
@@ -66,8 +64,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
-        var_dump($polos_raw, $modulos_raw);
-
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
@@ -76,7 +72,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $tutores_raw = array($USER->id);
         }
 
-        $table = $this->default_table($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw), $header_method($modulos_raw), $tipo_cabecalho);
+        $table = $this->default_table($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw), $header_method($modulos_raw), $tipo_cabecalho);
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -438,7 +434,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = "get_dados_{$this->report}";
         $header_method = "get_table_header_{$this->report}";
 
-        $table = $this->table_tutores($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw), $header_method($modulos_raw));
+        $table = $this->table_tutores($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw), $header_method($modulos_raw));
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -469,7 +465,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         }
 
         $dados_method = "get_dados_{$this->report}";
-        $dados_atividades = $dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw);
+        $dados_atividades = $dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw);
 
 
 
@@ -536,7 +532,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         }
 
         $PAGE->requires->js_init_call('M.report_unasus.init_graph', array(
-            $dados_method($this->curso_ufsc, $modulos, $tutores_raw),
+            $dados_method($this->curso_ufsc, $modulos, $tutores_raw, $polos_raw),
             array_values($legend),
             get_string($this->report, 'report_unasus'), $porcentagem));
 

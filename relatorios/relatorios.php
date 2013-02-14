@@ -23,14 +23,14 @@ defined('MOODLE_INTERNAL') || die;
  * @param $curso_moodle
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
     // Dado Auxiliar
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
 
     // Consultas
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
@@ -106,13 +106,13 @@ function get_table_header_atividades_vs_notas($modulos = array())
 }
 
 
-function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores)
+function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, $polos)
 {
     global $CFG;
 
     // Consultas
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
@@ -212,13 +212,13 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores)
  * @param array $tutores
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
     global $CFG;
 
     // Consultas
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
@@ -284,13 +284,13 @@ function get_table_header_entrega_de_atividades($modulos)
 /*
  * Dados para o gráfico do relatorio entrega de atividadas
  */
-function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores)
+function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores, $polos)
 {
     global $CFG;
 
     // Consultas
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
@@ -371,13 +371,13 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
  * @param array $tutores
  * @return array|bool Array[tutores][aluno][unasus_data]
  */
-function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
     global $CFG;
 
     // Consultas
-    $query_alunos_grupo_tutoria =  query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria =  query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
@@ -450,13 +450,13 @@ function get_table_header_historico_atribuicao_notas($modulos)
 /*
  * Dados para o gráfico de historico atribuicao de notas
  */
-function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tutores)
+function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tutores, $polos)
 {
     global $CFG;
 
     // Consultas
-    $query_alunos_grupo_tutoria = query_historico_atribuicao_notas();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_historico_atribuicao_notas($polos);
+    $query_forum = query_postagens_forum($polos);
 
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
@@ -554,9 +554,9 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
  * @param $tutores
  * @return array
  */
-function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
-    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, 'estudante_sem_atividade_postada');
+    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, 'estudante_sem_atividade_postada');
 }
 
 /* -----------------
@@ -575,9 +575,9 @@ function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $
  * @param array $tutores
  * @return array
  */
-function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
-    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, 'estudante_sem_atividade_avaliada');
+    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, 'estudante_sem_atividade_avaliada');
 }
 
 /* -----------------
@@ -595,12 +595,12 @@ function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, 
  * @param string $curso_ufsc
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
 
     // Consulta
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
     $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
         $query_alunos_grupo_tutoria, $query_forum);
@@ -672,12 +672,12 @@ function get_table_header_atividades_nao_avaliadas($modulos)
  * -----------------
  */
 
-function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
 
     // Consulta
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
     $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
         $query_alunos_grupo_tutoria, $query_forum);
@@ -745,7 +745,7 @@ function get_table_header_atividades_nota_atribuida($modulos)
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores)
+function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores, $polos)
 {
     $middleware = Middleware::singleton();
     $lista_tutores = get_tutores_menu($curso_ufsc);
@@ -829,13 +829,13 @@ function get_table_header_uso_sistema_tutor()
 /**
  * @FIXME a data adicionada é do tipo Mes/dia, num futuro caso exiba mais de um ano tem de modificar para mostrar ano/mes/dia
  */
-function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc)
+function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc, $polos)
 {
     $tutores = get_tutores_menu($curso_ufsc);
     $tempo_intervalo = 120;
     $dia_mes = get_time_interval("P{$tempo_intervalo}D", 'P1D', 'd/m');
 
-    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $tutores);
+    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $tutores, $polos);
 
     $dados_grafico = array();
     foreach ($dados['Tutores'] as $tutor) {
@@ -861,7 +861,7 @@ function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc)
  * -----------------
  */
 
-function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores)
+function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores, $polos)
 {
     $middleware = Middleware::singleton();
 
@@ -935,13 +935,13 @@ function get_table_header_acesso_tutor()
  * -----------------
  */
 
-function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
     global $CFG;
 
     // Consulta
-    $query_alunos_atividades = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_atividades = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
 
 
     // Recupera dados auxiliares
@@ -992,7 +992,7 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
 
 function get_table_header_potenciais_evasoes($modulos)
 {
-    $nome_modulos = get_id_nome_modulos();
+    $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
     if (is_null($modulos)) {
         $modulos = get_id_modulos();
     }
@@ -1046,7 +1046,7 @@ function get_header_estudante_sem_atividade_postada($size)
  *
  * Dados para os relatórios Lista: Atividades não postadas e Lista: Atividades não avaliadas
  */
-function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $relatorio)
+function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $relatorio)
 {
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
@@ -1057,8 +1057,8 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $rel
         $listagem_forum->add($forum->course_id, $forum);
     }
 
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_forum = query_postagens_forum($polos);
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc, $modulos,
         $tutores, $query_alunos_grupo_tutoria, $query_forum);
 

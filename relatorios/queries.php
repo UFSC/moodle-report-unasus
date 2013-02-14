@@ -20,13 +20,24 @@
  *
  * @return string
  */
-function query_alunos_grupo_tutoria() {
-    return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
+function query_alunos_grupo_tutoria($polos = null) {
+    $query_polo = ' ';
+    $polos = int_array_to_sql($polos);
+
+    if(!is_null($polos)){
+        $query_polo = " JOIN {view_usuarios_dados_adicionais} vd
+                         ON (vd.username = u.username AND vd.polo IN ({$polos}) )";
+    }
+    
+    return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
                          JOIN {table_GruposTutoria} gt
                            ON (gt.id=pg.grupo)
+
+                              {$query_polo}
+
                         WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno";
 }
 
@@ -58,8 +69,8 @@ function query_alunos_grupo_tutoria() {
  *
  * @return string
  */
-function query_postagens_forum() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+function query_postagens_forum($polos) {
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
 
     return " SELECT u.id as userid,
                     fp.submission_date,
@@ -125,8 +136,8 @@ function query_postagens_forum() {
  * @return string
  *
  */
-function query_atividades_vs_notas() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+function query_atividades_vs_notas($polos) {
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
 
     return "SELECT u.id as user_id,
                       sub.timecreated as submission_date,
@@ -199,8 +210,8 @@ function query_entrega_de_atividades() {
  * @return string
  *
  */
-function query_historico_atribuicao_notas() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+function query_historico_atribuicao_notas($polos) {
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
     return " SELECT u.id as user_id,
                       sub.timecreated as submission_date,
                       sub.timemodified as submission_modified,
@@ -410,8 +421,8 @@ function query_uso_sistema_tutor() {
  *
  * @return string
  */
-function query_potenciais_evasoes() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+function query_potenciais_evasoes($polos) {
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
     return "SELECT u.id as user_id,
                       sub.timecreated as submission_date,
                       gr.timemodified,
@@ -445,8 +456,8 @@ function query_potenciais_evasoes() {
  * @return string
  *
  */
-function query_atividades() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+function query_atividades($polos) {
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
 
     return "SELECT u.id as userid,
                    gr.grade,
