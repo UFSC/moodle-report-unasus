@@ -9,6 +9,8 @@
 /**
  * Query para retornar os alunos pertencentes a um grupo de tutoria
  *
+ * @polos array(int) polos para filtrar os alunos
+ *
  * Utilizada em diversos relatórios, necessita do middleware para rodar.
  *
  * Colunas:
@@ -20,7 +22,7 @@
  *
  * @return string
  */
-function query_alunos_grupo_tutoria($polos = null) {
+function query_alunos_grupo_tutoria($polos) {
     $query_polo = ' ';
     $polos = int_array_to_sql($polos);
 
@@ -28,7 +30,7 @@ function query_alunos_grupo_tutoria($polos = null) {
         $query_polo = " JOIN {view_usuarios_dados_adicionais} vd
                          ON (vd.username = u.username AND vd.polo IN ({$polos}) )";
     }
-    
+
     return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
@@ -45,6 +47,8 @@ function query_alunos_grupo_tutoria($polos = null) {
 /**
  * Query para retornar se um dado aluno possui postagens num forum de um dado módulo
  * se o tiver retorna a nota e outros dados da postagem.
+ *
+ * @polos array(int) polos para filtrar os alunos
  *
  * Colunas:
  *
@@ -123,6 +127,8 @@ function query_postagens_forum($polos) {
 
 /**
  * Query para o relatório atividades vs notas
+ *
+ * @polos array(int) polos para filtrar os alunos
  *
  * Colunas:
  *
@@ -419,6 +425,8 @@ function query_uso_sistema_tutor() {
 /**
  * Query para o relatorio de potenciais evasões
  *
+ * @polos array(int) polos para filtrar os alunos
+ *
  * @return string
  */
 function query_potenciais_evasoes($polos) {
@@ -442,6 +450,8 @@ function query_potenciais_evasoes($polos) {
 
 /**
  * Query para os relatórios
+ *
+ * @polos array(int) polos para filtrar os alunos
  *
  * Colunas:
  *
@@ -477,4 +487,23 @@ function query_atividades($polos) {
             ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
             ORDER BY grupo_id, u.firstname, u.lastname
     ";
+}
+
+function query_quiz($polos){
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
+    return "SELECT u.id as userid,
+                   qg.grade,
+                   q.timeclose as submission_date
+                   qg.timemodified
+            FROM (
+
+                {$alunos_grupo_tutoria}
+
+            ) u
+            LEFT JOIN {quiz} q
+            ON (q.course=:assignmentid)
+            LEFT JOIN {quiz_grade} qg
+            ON (qg.quiz = q.id AND u.id = qg.userid)
+            ORDER BY grupo_id, u.firstname, u.lastname
+     ";
 }
