@@ -406,40 +406,31 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 
                 $atraso = null;
 
-                if(is_a($atividade, 'report_unasus_data_quiz')){
-                    if(!$atividade->has_grade()){
-                        $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
-                    }else{
+                if ($atividade->is_submission_due() || $atividade->is_a_future_due()) {
+                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
+                }
+
+                //Atividade entregue e necessita de nota
+                if ($atividade->is_grade_needed()) {
+                    $atraso = $atividade->grade_due_days();
+                    $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
+                }
+
+
+                //Atividade tem nota
+                if ($atividade->has_grade()) {
+                    $atraso = $atividade->grade_due_days();
+                    //Correção no prazo esperado
+                    if ($atraso <= $CFG->report_unasus_prazo_avaliacao) {
                         $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
-                    }
-                }else{
-
-                    if ($atividade->is_submission_due() || $atividade->is_a_future_due()) {
-                        $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
-                    }
-
-                    //Atividade entregue e necessita de nota
-                    if ($atividade->is_grade_needed()) {
-                        $atraso = $atividade->grade_due_days();
-                        $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
+                    } //Correção com pouco atraso
+                    elseif ($atraso <= $CFG->report_unasus_prazo_maximo_avaliacao) {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
+                    } //Correção com muito atraso
+                    else {
+                        $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
                     }
 
-
-                    //Atividade tem nota
-                    if ($atividade->has_grade()) {
-                        $atraso = $atividade->grade_due_days();
-                        //Correção no prazo esperado
-                        if ($atraso <= $CFG->report_unasus_prazo_avaliacao) {
-                            $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
-                        } //Correção com pouco atraso
-                        elseif ($atraso <= $CFG->report_unasus_prazo_maximo_avaliacao) {
-                            $tipo = dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO;
-                        } //Correção com muito atraso
-                        else {
-                            $tipo = dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO;
-                        }
-
-                    }
                 }
 
                 $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->source_activity->id, $atraso);
