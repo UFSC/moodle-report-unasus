@@ -9,7 +9,6 @@
 /**
  * Query para retornar os alunos pertencentes a um grupo de tutoria
  *
- * @polos array(int) polos para filtrar os alunos
  *
  * Utilizada em diversos relatórios, necessita do middleware para rodar.
  *
@@ -19,7 +18,7 @@
  * - firstname
  * - lastname
  * - grupo_id
- *
+ * @param array $polos array(int) polos para filtrar os alunos
  * @return string
  */
 function query_alunos_grupo_tutoria($polos) {
@@ -27,7 +26,7 @@ function query_alunos_grupo_tutoria($polos) {
     $polos = int_array_to_sql($polos);
 
     if(!is_null($polos)){
-        $query_polo = " JOIN {view_usuarios_dados_adicionais} vd
+        $query_polo = " JOIN {View_Usuarios_Dados_Adicionais} vd
                          ON (vd.username = u.username AND vd.polo IN ({$polos}) )";
     }
 
