@@ -168,6 +168,7 @@ function get_tutores_menu($curso_ufsc) {
 function get_atividades_cursos($courses = null) {
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
+    $quizes = query_quiz_courses($courses);
 
     $group_array = new GroupArray();
 
@@ -177,6 +178,10 @@ function get_atividades_cursos($courses = null) {
 
     foreach ($foruns as $forum) {
         $group_array->add($forum->course_id, new report_unasus_forum_activity($forum));
+    }
+
+    foreach ($quizes as $quiz){
+        $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
     return $group_array->get_assoc();
@@ -207,6 +212,35 @@ function query_assign_courses($courses) {
                       ON (c.id = a.course AND c.id != :siteid)
                    WHERE c.id IN ({$string_courses})
                ORDER BY c.id";
+
+    return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
+}
+
+/**
+ * Função que busca os courses com seus respectivos quiz e datas de entrega
+ * utilizada no get_atividade_modulos
+ *
+ * @global moodle_database $DB
+ * @param array $courses
+ * @return moodle_recordset
+ */
+function query_quiz_courses($courses){
+    global $DB, $SITE;
+
+    $string_courses = get_modulos_validos($courses);
+
+    $query = "SELECT q.id as quiz_id,
+                     q.name as quiz_name,
+                     q.timeopen,
+                     q.timeclose,
+                     q.grade,
+                     c.id as course_id,
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
+                FROM {course} as c
+                JOIN {quiz} as q
+                  ON (c.id = q.course AND c.id != :siteid)
+               WHERE c.id IN ({$string_courses})
+            ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }

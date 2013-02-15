@@ -493,16 +493,15 @@ function query_quiz($polos){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
     return "SELECT u.id as userid,
                    qg.grade,
-                   q.timeclose as submission_date
-                   qg.timemodified
+                   qg.timemodified as submission_date
             FROM (
 
                 {$alunos_grupo_tutoria}
 
             ) u
             LEFT JOIN {quiz} q
-            ON (q.course=:assignmentid)
-            LEFT JOIN {quiz_grade} qg
+            ON (q.course=:courseid AND q.id =:assignmentid)
+            LEFT JOIN {quiz_grades} qg
             ON (qg.quiz = q.id AND u.id = qg.userid)
             ORDER BY grupo_id, u.firstname, u.lastname
      ";

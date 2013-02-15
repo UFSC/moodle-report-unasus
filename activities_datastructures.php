@@ -87,6 +87,25 @@ class report_unasus_forum_activity extends report_unasus_activity {
     }
 }
 
+class report_unasus_quiz_activity extends report_unasus_activity{
+
+    public function __construct($db_model){
+        parent::__construct(true,true);
+
+        $this->id = $db_model->quiz_id;
+        $this->name = $db_model->quiz_name;
+        $this->deadline = $db_model->timeclose;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+
+    public function __toString(){
+        $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
+        $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id));
+        return html_writer::link($quiz_url, $this->name);
+    }
+}
+
 abstract class report_unasus_data {
 
     public $source_activity;
@@ -322,5 +341,20 @@ class report_unasus_data_forum extends report_unasus_data{
         $this->grade_date = $db_model->timemodified;
     }
 
+}
+
+class report_unasus_data_quiz extends report_unasus_data{
+
+    public function  __construct(report_unasus_activity &$source_activity, $db_model) {
+        parent::__construct($source_activity);
+
+        $this->userid = $db_model->userid;
+        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+            $this->grade = (float)$db_model->grade;
+        }
+        $this->submission_date = $db_model->submission_date;
+        $this->grade_date = $db_model->submission_date;
+
+    }
 }
 

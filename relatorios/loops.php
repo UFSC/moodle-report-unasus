@@ -6,7 +6,7 @@
  */
 function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                                                $cursos_ids, $tutores,
-                                               $query_alunos_grupo_tutoria, $query_forum, $query_course = true) {
+                                               $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_course = true) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
@@ -72,6 +72,27 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                         $group_array_do_grupo->add($f->userid, $data);
                     }
 
+                } elseif (is_a($atividade, 'report_unasus_quiz_activity')){
+
+                    $params =  array(
+                        'assignmentid' => $atividade->id,
+                        'courseid' => $courseid,
+                        'curso_ufsc' => $curso_ufsc,
+                        'grupo_tutoria' => $grupo->id,
+                        'forumid' => $atividade->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+
+                    $result = $middleware->get_records_sql($query_quiz, $params);
+
+                    // para cada aluno adiciona a listagem de atividades
+                    foreach($result as $q){
+
+                        /** @var report_unasus_data_forum $data  */
+                        $data = new report_unasus_data_quiz($atividade, $q);
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($q->userid, $data);
+                    }
                 }
             }
         }
@@ -85,7 +106,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
 // TODO: alterar este loop para utilizar a nova estrutura de dados
 function loop_atividades_e_foruns_sintese($curso_ufsc,
                                           $modulos, $tutores,
-                                          $query_alunos_grupo_tutoria, $query_forum)
+                                          $query_alunos_grupo_tutoria, $query_forum, $query_quiz)
 {
     $middleware = Middleware::singleton();
 
@@ -153,6 +174,29 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
 
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($f->userid, $data);
+                    }
+                } elseif (is_a($atividade, 'report_unasus_quiz_activity')){
+
+                    $array_das_atividades['quiz_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+
+                    $params =  array(
+                        'assignmentid' => $atividade->id,
+                        'courseid' => $modulo,
+                        'curso_ufsc' => $curso_ufsc,
+                        'grupo_tutoria' => $grupo->id,
+                        'forumid' => $atividade->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+
+                    $result = $middleware->get_records_sql($query_quiz, $params);
+
+                    // para cada aluno adiciona a listagem de atividades
+                    foreach($result as $q){
+
+                        /** @var report_unasus_data_forum $data  */
+                        $data = new report_unasus_data_quiz($atividade, $q);
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($q->userid, $data);
                     }
                 }
             }

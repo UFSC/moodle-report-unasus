@@ -31,6 +31,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades($polos);
     $query_forum = query_postagens_forum($polos);
+    $query_quiz = query_quiz($polos);
 
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
@@ -39,7 +40,7 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -53,28 +54,28 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
                 $atraso = null;
 
                 //Se atividade não tem data de entrega, não tem entrega e nem nota
-                if(!$atividade->source_activity->has_deadline() && !$atividade->has_submitted() && !$atividade->has_grade()){
+                if (!$atividade->source_activity->has_deadline() && !$atividade->has_submitted() && !$atividade->has_grade()) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                }else{
+                } else {
 
                     //Atividade pro futuro
-                    if($atividade->is_a_future_due()){
+                    if ($atividade->is_a_future_due()) {
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
                     }
 
                     //Entrega atrasada
-                    if($atividade->is_submission_due()){
+                    if ($atividade->is_submission_due()) {
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
                     }
 
                     //Atividade entregue e necessita de nota
-                    if($atividade->is_grade_needed()){
+                    if ($atividade->is_grade_needed()) {
                         $atraso = $atividade->grade_due_days();
                         $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
                     }
 
                     //Atividade tem nota
-                    if($atividade->has_grade()){
+                    if ($atividade->has_grade()) {
                         $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
                     }
 
@@ -112,6 +113,7 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
 
@@ -121,7 +123,7 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
     $timenow = time();
@@ -150,28 +152,28 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
                 $atraso = null;
 
                 //Se atividade não tem data de entrega e nem nota
-                if(!$atividade->source_activity->has_deadline() && !$atividade->has_grade()){
+                if (!$atividade->source_activity->has_deadline() && !$atividade->has_grade()) {
                     $count_sem_prazo++;
-                }else{
+                } else {
 
                     //Atividade pro futuro
-                    if($atividade->is_a_future_due()){
+                    if ($atividade->is_a_future_due()) {
                         $count_nao_realizada++;
                     }
 
                     //Entrega atrasada
-                    if($atividade->is_submission_due()){
+                    if ($atividade->is_submission_due()) {
                         $count_nao_entregue++;
                     }
 
                     //Atividade entregue e necessita de nota
-                    if($atividade->is_grade_needed()){
+                    if ($atividade->is_grade_needed()) {
                         $atraso = $atividade->grade_due_days();
                         ($atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? $count_muito_atraso++ : $count_pouco_atraso++;
                     }
 
                     //Atividade tem nota
-                    if($atividade->has_grade()){
+                    if ($atividade->has_grade()) {
                         $count_nota_atribuida++;
                     }
 
@@ -218,6 +220,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
     // Recupera dados auxiliares
@@ -229,7 +232,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -290,6 +293,7 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
 
@@ -299,7 +303,7 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
@@ -318,25 +322,25 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
                 $atraso = null;
 
                 //Se atividade não tem data de entrega e nem nota
-                if(!$atividade->source_activity->has_deadline() && !$atividade->has_grade()){
+                if (!$atividade->source_activity->has_deadline() && !$atividade->has_grade()) {
                     $count_sem_prazo++;
-                }else{
+                } else {
 
                     //Entrega atrasada
-                    if($atividade->is_submission_due()){
+                    if ($atividade->is_submission_due()) {
                         $count_nao_entregue++;
                     }
 
                     $atraso = $atividade->submission_due_days();
-                    if($atraso){
+                    if ($atraso) {
                         ($atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? $count_muito_atraso++ : $count_pouco_atraso++;
 
-                    }else{
+                    } else {
                         $count_entregue_no_prazo++;
                     }
 
                     //Offlines nao precisam de entrega
-                    if(!$atividade->source_activity->has_submission()){
+                    if (!$atividade->source_activity->has_submission()) {
                         $count_nao_entregue++;
                     }
                 }
@@ -376,7 +380,8 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
     global $CFG;
 
     // Consultas
-    $query_alunos_grupo_tutoria =  query_atividades($polos);
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
     // Recupera dados auxiliares
@@ -388,7 +393,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum, false);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz, false);
 
     $dados = array();
     $timenow = time();
@@ -401,19 +406,19 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 
                 $atraso = null;
 
-                if($atividade->is_submission_due() || $atividade->is_a_future_due()){
+                if ($atividade->is_submission_due() || $atividade->is_a_future_due()) {
                     $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
                 }
 
                 //Atividade entregue e necessita de nota
-                if($atividade->is_grade_needed()){
+                if ($atividade->is_grade_needed()) {
                     $atraso = $atividade->grade_due_days();
                     $tipo = dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA;
                 }
 
 
                 //Atividade tem nota
-                if($atividade->has_grade()){
+                if ($atividade->has_grade()) {
                     $atraso = $atividade->grade_due_days();
                     //Correção no prazo esperado
                     if ($atraso <= $CFG->report_unasus_prazo_avaliacao) {
@@ -456,6 +461,7 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
 
     // Consultas
     $query_alunos_grupo_tutoria = query_historico_atribuicao_notas($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
 
@@ -465,7 +471,7 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -600,10 +606,11 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
     $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -627,9 +634,11 @@ function get_dados_atividades_nao_avaliadas($curso_ufsc, $curso_moodle, $modulos
 
                 if (!$atividade->has_grade() && $atividade->is_grade_needed()) {
                     if (is_a($atividade, 'report_unasus_data_activity')) {
-                        $lista_atividade[$grupo_id]['atividade_'.$atividade->source_activity->id]->incrementar_atraso();
+                        $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
-                        $lista_atividade[$grupo_id]['forum_'.$atividade->source_activity->id]->incrementar_atraso();
+                        $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
+                        $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -677,10 +686,11 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
     $result_array = loop_atividades_e_foruns_sintese($curso_ufsc, $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -705,6 +715,8 @@ function get_dados_atividades_nota_atribuida($curso_ufsc, $curso_moodle, $modulo
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
                         $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
+                        $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -941,6 +953,7 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
 
     // Consulta
     $query_alunos_atividades = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
 
 
@@ -948,7 +961,7 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc, $modulos,
-        $tutores, $query_alunos_atividades, $query_forum);
+        $tutores, $query_alunos_atividades, $query_forum, $query_quiz);
 
     //pega a hora atual para comparar se uma atividade esta atrasada ou nao
     $timenow = time();
@@ -1058,9 +1071,11 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $pol
     }
 
     $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
+
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc, $modulos,
-        $tutores, $query_alunos_grupo_tutoria, $query_forum);
+        $tutores, $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
@@ -1095,7 +1110,6 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $pol
                         array('atividade' => $atividade, 'tipo' => $tipo_avaliacao));
                 }
             }
-
 
 
             $ativ_mod = $atividades_modulos->get_assoc();
