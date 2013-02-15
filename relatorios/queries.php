@@ -167,218 +167,6 @@ function query_atividades_vs_notas($polos) {
 
 
 /**
- * Query para o relatório entrega de atividades
- *
- * Colunas:
- *
- * - user_id
- * - submission_date -> unixtime de envio da atividade,
- * - timemodified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
- * - grade -> nota
- * - status -> estado da avaliaçao
- *
- * @return string
- *
- */
-function query_entrega_de_atividades() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-    return " SELECT u.id as user_id,
-                      sub.timecreated as submission_date,
-                      gr.timemodified,
-                      gr.grade,
-                      sub.status
-                 FROM (
-
-                      {$alunos_grupo_tutoria}
-
-                      ) u
-            LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-            LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=sub.assignment AND gr.userid=u.id AND sub.status LIKE 'submitted')
-            ORDER BY u.firstname, u.lastname
-    ";
-}
-
-/**
- * Query para o relatório histrorico atribuicao de notas
- *
- * Colunas:
- *
- * - user_id
- * - submission_date -> unixtime de envio da atividade,
- * - submission_modified -> unixtime da data de alteracao da atividade
- * - grade_modified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
- * - grade_created -> unixtime da data que a nota foi atribuuda
- * - grade -> nota
- * - status -> estado da avaliaçao
- *
- * @return string
- *
- */
-function query_historico_atribuicao_notas($polos) {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
-    return " SELECT u.id as user_id,
-                      sub.timecreated as submission_date,
-                      sub.timemodified as submission_modified,
-                      gr.timemodified as grade_modified,
-                      gr.timecreated as grade_created,
-                      gr.grade,
-                      sub.status,
-                      ass.nosubmissions
-                 FROM (
-
-                      {$alunos_grupo_tutoria}
-
-                      ) u
-            LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status LIKE 'submitted')
-            LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-            LEFT JOIN {assign} ass
-            ON (ass.id=:assignmentid3)
-            ORDER BY u.firstname, u.lastname
-    ";
-}
-
-/**
- * Query para o relatório estudante sem atividade postada
- *
- * Colunas:
- *
- * - user_id
- * - grade -> nota
- * - status -> estado da avaliaçao
- *
- * @return string
- */
-function query_estudante_sem_atividade_postada() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-    return " SELECT u.id as user_id,
-                      gr.grade,
-                      sub.status,
-                      ass.nosubmissions,
-                      ass.id
-
-                 FROM (
-
-                      {$alunos_grupo_tutoria}
-
-                      ) u
-            LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-            LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-            LEFT JOIN {assign} ass
-            ON (ass.id=:assignmentid3)
-            WHERE sub.status IS NULL
-            ORDER BY u.firstname, u.lastname
-    ";
-}
-
-/**
- * Query para o relatório estudante sem atividade avaliada
- *
- * Colunas:
- *
- * - user_id
- * - grade -> nota
- * - status -> estado da avaliaçao
- *
- * @return string
- */
-function query_estudante_sem_atividade_avaliada() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-    return " SELECT u.id as user_id,
-                      gr.grade,
-                      sub.status,
-                      ass.nosubmissions,
-                      ass.id
-                 FROM (
-
-                      {$alunos_grupo_tutoria}
-
-                      ) u
-            LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status LIKE 'submitted')
-            LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id )
-            LEFT JOIN {assign} ass
-            ON (ass.id=:assignmentid3)
-            WHERE gr.grade IS NULL OR gr.grade = -1
-            ORDER BY u.firstname, u.lastname
-    ";
-}
-
-/**
- * Query para o relatorio atividade nao avaliadas
- *
- * Colunas:
- *
- * - user_id
- * - grade -> nota
- * - status -> estado da avaliaçao
- * - submission_modfied -> data de envio da avaliacao
- *
- * @return string
- */
-function query_atividades_nao_avaliadas() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-    return " SELECT u.id as user_id,
-                      gr.grade,
-                      sub.timemodified as submission_modified,
-                      ass.nosubmissions,
-                      ass.duedate
-                 FROM (
-
-                      {$alunos_grupo_tutoria}
-
-                      ) u
-            LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-            LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-            LEFT JOIN {assign} ass
-            ON (ass.id=:assignmentid3)
-            WHERE gr.grade IS NULL
-            ORDER BY u.firstname, u.lastname
-    ";
-}
-
-/**
- * Query para o relatorio atividade nota atribuida
- *
- * Colunas:
- *
- * - user_id
- * - grade -> nota
- * - status -> estado da avaliaçao
- *
- * @return string
- */
-function query_atividades_nota_atribuida() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-    return " SELECT u.id as user_id,
-                      gr.grade,
-                      sub.status,
-                      ass.nosubmissions,
-                      ass.id
-                 FROM (
-
-                      {$alunos_grupo_tutoria}
-
-                      ) u
-            LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-            LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-            LEFT JOIN {assign} ass
-            ON (ass.id=:assignmentid3)
-            ORDER BY u.firstname, u.lastname
-    ";
-}
-
-/**
  * Query para o relatorio de acesso tutor
  *
  * @return string
@@ -489,6 +277,21 @@ function query_atividades($polos) {
     ";
 }
 
+
+/**
+ * Query para os relatórios
+ *
+ * @polos array(int) polos para filtrar os alunos
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - grade -> nota
+ * - submission_date -> unixtime de envio da atividade,
+ *
+ * @return string
+ *
+ */
 function query_quiz($polos){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
     return "SELECT u.id as userid,
