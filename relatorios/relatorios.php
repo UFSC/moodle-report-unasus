@@ -404,9 +404,11 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 
             foreach ($aluno as $atividade) {
 
+                /** @var report_unasus_data_activity $atividade */
                 $atraso = null;
+                $tipo = null;
 
-                if ($atividade->is_submission_due() || $atividade->is_a_future_due()) {
+                if (!$atividade->has_submitted()) {
                     $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
                 }
 

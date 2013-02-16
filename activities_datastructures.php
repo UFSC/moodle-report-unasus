@@ -353,7 +353,7 @@ class report_unasus_data_quiz extends report_unasus_data{
             $this->grade = (float)$db_model->grade;
         }
         $this->submission_date = $db_model->submission_date;
-        $this->grade_date = $db_model->submission_date;
+        $this->grade_date = $db_model->grade_date;
 
     }
 }

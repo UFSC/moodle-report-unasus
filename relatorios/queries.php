@@ -302,12 +302,20 @@ function query_quiz($polos){
                 {$alunos_grupo_tutoria}
 
             ) u
-            LEFT JOIN {quiz} q
-            ON (q.course=:courseid AND q.id =:assignmentid)
-            LEFT JOIN {quiz_attempts} qa
-            ON (qa.userid = u.id AND qa.quiz = q.id)
+            LEFT JOIN (
+                SELECT qa.*
+                FROM (
+                    SELECT *
+                    FROM {quiz_attempts}
+                    ORDER BY attempt DESC
+                ) qa
+                GROUP BY qa.userid, qa.quiz
+            ) qa
+            ON (qa.userid = u.id)
             LEFT JOIN {quiz_grades} qg
-            ON (qg.quiz = q.id AND u.id = qg.userid)
+            ON (u.id = qg.userid AND qg.quiz=qa.quiz)
+            LEFT JOIN {quiz} q
+            ON (q.course=:courseid AND q.id =:assignmentid AND qa.quiz = q.id AND qg.quiz = q.id)
             ORDER BY grupo_id, u.firstname, u.lastname
      ";
 }
