@@ -76,7 +76,14 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
 
                     //Atividade tem nota
                     if ($atividade->has_grade()) {
-                        $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA;
+                        $atraso = $atividade->grade_due_days();
+
+                        //Verifica se a correcao foi dada com ou sem atraso
+                        if($atraso > get_prazo_avaliacao()){
+                            $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO;
+                        }else{
+                            $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO;
+                        }
                     }
 
 
@@ -131,6 +138,7 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
 
 //  Ordem dos dados nos gráficos
 //        'nota_atribuida'
+//        'nota_atribuida_atraso'
 //        'pouco_atraso'
 //        'muito_atraso'
 //        'nao_entregue'
@@ -146,6 +154,7 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
         $count_nao_entregue = 0;
         $count_nao_realizada = 0;
         $count_sem_prazo = 0;
+        $count_nota_atribuida_atraso = 0;
 
         foreach ($array_dados as $id_aluno => $aluno) {
             foreach ($aluno as $atividade) {
@@ -174,7 +183,12 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
 
                     //Atividade tem nota
                     if ($atividade->has_grade()) {
-                        $count_nota_atribuida++;
+                        $atraso = $atividade->grade_due_days();
+
+                        //Verifica se a correcao foi dada com ou sem atraso
+                       ($atraso > get_prazo_avaliacao()) ?  $count_nota_atribuida_atraso++ : $count_nota_atribuida++;
+
+
                     }
 
 
@@ -186,6 +200,7 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
 
         $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] =
             array($count_nota_atribuida,
+                $count_nota_atribuida_atraso,
                 $count_pouco_atraso,
                 $count_muito_atraso,
                 $count_nao_entregue,

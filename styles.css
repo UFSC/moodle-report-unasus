@@ -50,7 +50,7 @@
     margin: 0;
     padding: 0;
 
-    line-height: 22px;
+    line-height: 20px;
 
 }
 
@@ -137,6 +137,11 @@
 .relatorio-unasus.uso_sistema_tutor .acessou,
 .relatorio-unasus.potenciais_evasoes .concluido {
     background: #fff;
+}
+
+/* Light blue */
+.relatorio-unasus.atividades_vs_notas .nota_atribuida_atraso{
+    background: #d8f9fc;
 }
 
 /* Bold */

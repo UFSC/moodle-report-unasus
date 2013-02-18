@@ -92,9 +92,10 @@ class dado_atividades_vs_notas extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_ATRASADA = 1;
-    const ATIVIDADE_AVALIADA = 2;
+    const ATIVIDADE_AVALIADA_SEM_ATRASO = 2;
     const ATIVIDADE_NO_PRAZO_ENTREGA = 3;
     const ATIVIDADE_SEM_PRAZO_ENTREGA = 4;
+    const ATIVIDADE_AVALIADA_COM_ATRASO = 5;
 
     private $tipo;
     private $nota;
@@ -117,7 +118,10 @@ class dado_atividades_vs_notas extends unasus_data {
             case dado_atividades_vs_notas::CORRECAO_ATRASADA:
                 return $this->dia_toString($this->atraso);
                 break;
-            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
+            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO:
+                return (String) $this->format_grade($this->nota);
+                break;
+            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO:
                 return (String) $this->format_grade($this->nota);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
@@ -135,8 +139,10 @@ class dado_atividades_vs_notas extends unasus_data {
                 return 'nao_entregue';
             case dado_atividades_vs_notas::CORRECAO_ATRASADA:
                 return ($this->atraso >= get_prazo_avaliacao()) ? 'muito_atraso' : 'pouco_atraso';
-            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA:
+            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO:
                 return 'nota_atribuida';
+            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO:
+                return 'nota_atribuida_atraso';
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'nao_realizada';
             case dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA:
@@ -149,7 +155,8 @@ class dado_atividades_vs_notas extends unasus_data {
     public static function get_legend() {
 
         $legend = array();
-        $legend['nota_atribuida'] = 'Nota atribuída';
+        $legend['nota_atribuida'] = 'Nota atribuída no prazo (até '. get_prazo_avaliacao()*24 . 'hs)';
+        $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de '. get_prazo_avaliacao()*24 .'hs)';
         $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até ". get_prazo_avaliacao() ." dias após data de entrega)";
         $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após ". get_prazo_maximo_avaliacao() ." dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
