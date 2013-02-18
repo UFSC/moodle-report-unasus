@@ -10,7 +10,8 @@ function report_unasus_relatorios_validos_list() {
         'atividades_nota_atribuida',
         'entrega_de_atividades',
         'atividades_vs_notas',
-        'historico_atribuicao_notas',
+        // - relatório desativado segundo o ticket #4460 'historico_atribuicao_notas',
+        'boletim',
         'acesso_tutor',
         'uso_sistema_tutor',
         'potenciais_evasoes');

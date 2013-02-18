@@ -88,7 +88,8 @@
 
 /* Cinza Claro */
 .relatorio-unasus.atividades_vs_notas .sem_prazo,
-.relatorio-unasus.entrega_de_atividades .sem_prazo{
+.relatorio-unasus.entrega_de_atividades .sem_prazo,
+.relatorio-unasus.boletim .sem_nota{
     color: #fff;
     background: #ddd;
 }
@@ -135,7 +136,8 @@
 .relatorio-unasus.historico_atribuicao_notas .nao_entregue,
 .relatorio-unasus.acesso_tutor .acessou,
 .relatorio-unasus.uso_sistema_tutor .acessou,
-.relatorio-unasus.potenciais_evasoes .concluido {
+.relatorio-unasus.potenciais_evasoes .concluido,
+.relatorio-unasus.boletim .com_nota{
     background: #fff;
 }
 
