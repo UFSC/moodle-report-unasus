@@ -250,9 +250,14 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
                     if (!$atividade->source_activity->has_deadline()) {
                         // E não tem entrega prazo
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                    } else {
-                        // Tem prazo de entrega
-                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+
+                    }elseif($atividade->is_a_future_due()){
+                        //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
+                    }else
+                    {
+                        // Atividade nao entregue e atrasada
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
                     }
                 } else {
 
@@ -393,10 +398,9 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz, false);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
-    $timenow = time();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
@@ -406,13 +410,12 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 
                 $atraso = null;
 
+
                 if(is_a($atividade, 'report_unasus_data_quiz')){
-                    if(!$atividade->has_grade()){
-                        $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
-                    }else{
-                        $tipo = dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO;
-                    }
-                }else{
+                    var_dump($atividade);
+                }
+
+
 
                     if ($atividade->is_submission_due() || $atividade->is_a_future_due()) {
                         $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
@@ -440,7 +443,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
                         }
 
                     }
-                }
+
 
                 $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->source_activity->id, $atraso);
             }
