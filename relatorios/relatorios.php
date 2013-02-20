@@ -764,7 +764,7 @@ function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores, $polo
     $middleware = Middleware::singleton();
     $lista_tutores = get_tutores_menu($curso_ufsc);
 
-    $query = query_uso_sistema_tutor();
+    $query = query_uso_sistema_tutor($tutores);
 
     //Query
     $dados = array();
@@ -875,12 +875,12 @@ function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc, $po
  * -----------------
  */
 
-function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $tutores, $polos)
+function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
 {
     $middleware = Middleware::singleton();
 
     // Consulta
-    $query = query_acesso_tutor();
+    $query = query_acesso_tutor($tutores);
 
     $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR, 'curso_ufsc' => get_curso_ufsc_id());
     $result = $middleware->get_recordset_sql($query, $params);

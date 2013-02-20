@@ -47,12 +47,15 @@ if ($relatorio != null && $modo_exibicao == null) {
         case 'estudante_sem_atividade_postada':
         case 'estudante_sem_atividade_avaliada':
         case 'atividades_nota_atribuida' :
-        case 'acesso_tutor' :
         case 'potenciais_evasoes' :
             echo $renderer->build_page(false);
             break;
+        case 'acesso_tutor' :
+            //nao mostrar botao de grafico, nem grafico de bolas e nem filtro de polo
+            echo $renderer->build_page(false, false, false);
+            break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_page(false, true);
+            echo $renderer->build_page(false, true, false);
             break;
         default:
             print_error('unknow_report', 'report_unasus');
@@ -76,12 +79,14 @@ if ($relatorio != null && $modo_exibicao == null) {
         case 'estudante_sem_atividade_avaliada':
             echo $renderer->page_todo_list();
             break;
-        case 'acesso_tutor' :
         case 'potenciais_evasoes' :
             echo $renderer->build_report(false,false,'Tutores');
             break;
+        case 'acesso_tutor' :
+            echo $renderer->build_report(false,false,'Tutores', false);
+            break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_report(false, true);
+            echo $renderer->build_report(false, true, null, false);
             break;
         default:
             print_error('unknow_report', 'report_unasus');

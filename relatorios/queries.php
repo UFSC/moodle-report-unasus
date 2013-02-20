@@ -170,14 +170,20 @@ function query_atividades_vs_notas($polos) {
  *
  * @return string
  */
-function query_acesso_tutor() {
+function query_acesso_tutor($tutores = null) {
+    $filtro_tutor = '';
+    if(!is_null($tutores)){
+        $tutores = int_array_to_sql($tutores);
+       $filtro_tutor = "AND u.id IN ({$tutores}) ";
+    }
+
     return " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
                       month(from_unixtime(sud.`timeend`)) AS calendar_month,
                       day(from_unixtime(sud.`timeend`)) AS calendar_day,
                       sud.userid
                  FROM {stats_user_daily} sud
            INNER JOIN {user} u
-                   ON (u.id=sud.userid)
+                   ON (u.id=sud.userid {$filtro_tutor} )
            INNER JOIN {table_PessoasGruposTutoria} pgt
                    ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
                  JOIN {table_GruposTutoria} gt
