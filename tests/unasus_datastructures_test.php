@@ -93,6 +93,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         // Se não houver uma entrega, uma nota não é necessária
         $this->assertEquals(false, $data->is_grade_needed());
+        $this->assertEquals(false, $data->grade_due_days());
 
         // Se houver uma entrega, uma nota é necessária (independente de quando for a entrega)
         $data->submission_date = $now;
