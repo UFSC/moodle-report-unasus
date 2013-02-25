@@ -94,13 +94,15 @@ class report_unasus_renderer extends plugin_renderer_base {
         if($show_filter_error){
             $output .= $this->build_filter_warning();
         }
-        
+
         $output .= $this->build_filter(false, $graficos, $dot_chart, $show_polo_filter);
         $output .= $this->default_footer();
         return $output;
     }
 
-    /** Cria a barra de warning para que o usuário não selecionou um dos filtros necessários para os relatorios */
+    /** Cria a barra de warning para que o usuário não selecionou um dos filtros necessários para os relatorios
+     * @return String
+     */
     public function build_filter_warning(){
         $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus filter-error"));
         $output .= html_writer::start_tag('h3');
