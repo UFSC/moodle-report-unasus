@@ -140,7 +140,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return string $output
      */
     public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false, $show_polo_filter = true) {
-        global $CFG;
+        global $CFG, $_POST;
 
         //$dados_tutores = grupos_tutoria::get_chave_valor_grupos_tutoria($this->curso_ufsc);
 
@@ -170,9 +170,11 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
 
         // Filtro de modulo
+
+        $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '' ;
         $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
         $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-        $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', array_keys($nome_modulos), false, array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
+        $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post,'', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
         $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
         $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
         $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
@@ -181,16 +183,18 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             if($show_polo_filter){
             // Filtro de Polo
+                $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '' ;
                 $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-                $filter_polos .= html_writer::select(get_polos($this->curso_ufsc), 'polos[]', '', false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+                $filter_polos .= html_writer::select(get_polos($this->curso_ufsc), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
                 $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
                 $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
                 $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
             }
 
             // Filtro de Tutores
+            $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '' ;
             $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-            $filter_tutores .= html_writer::select(get_tutores_menu($this->curso_ufsc), 'tutores[]', '', false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+            $filter_tutores .= html_writer::select(get_tutores_menu($this->curso_ufsc), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
             $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
             $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
             $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
