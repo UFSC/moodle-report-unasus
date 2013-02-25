@@ -87,10 +87,27 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param boolean $dot_chart
      * @return String
      */
-    public function build_page($graficos = true, $dot_chart = false, $show_polo_filter = true) {
+    public function build_page($graficos = true, $dot_chart = false, $show_polo_filter = true, $show_filter_error = false) {
         $output = $this->default_header();
+
+        //Usuário não selecionou nenhum dos filtros
+        if($show_filter_error){
+            $output .= $this->build_filter_warning();
+        }
+        
         $output .= $this->build_filter(false, $graficos, $dot_chart, $show_polo_filter);
         $output .= $this->default_footer();
+        return $output;
+    }
+
+    /** Cria a barra de warning para que o usuário não selecionou um dos filtros necessários para os relatorios */
+    public function build_filter_warning(){
+        $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus filter-error"));
+        $output .= html_writer::start_tag('h3');
+        $output .= get_string('necessary_filter_selection', 'report_unasus');
+        $output .= html_writer::end_tag('h3');
+        $output .= html_writer::end_tag('fieldset');
+
         return $output;
     }
 
