@@ -23,7 +23,7 @@ defined('MOODLE_INTERNAL') || die;
  * @param $curso_moodle
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupamento_polos = false)
+function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos = false)
 {
     // Dado Auxiliar
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
@@ -94,14 +94,14 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
 
 
 
-            if($agrupamento_polos){
+            if($agrupar_relatorio_por_polos){
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
 
             $lista_atividades = null;
         }
 
-        if(!$agrupamento_polos){
+        if(!$agrupar_relatorio_por_polos){
             $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
         }
     }

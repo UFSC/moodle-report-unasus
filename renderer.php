@@ -64,6 +64,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
+        $agrupar_relatorio_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
+
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
@@ -72,7 +74,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $tutores_raw = array($USER->id);
         }
 
-        $table = $this->default_table($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw), $header_method($modulos_raw), $tipo_cabecalho);
+        $table = $this->default_table($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw, $agrupar_relatorio_por_polos), $header_method($modulos_raw), $tipo_cabecalho);
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -182,8 +184,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
 
         // Dropdown list
-        $output .= html_writer::label('Estado da Atividade: ', 'select_estado');
-        $output .= html_writer::select(array('Em Aberto', 'Em Dia', 'Expirado', 'Fora do Prazo'), 'prazo_select', '', false, array('id' => 'select_estado'));
+        $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
+        $selecao_agrupar_post = $_POST['agrupar_tutor_polo_select'];
+        $output .= html_writer::select(array('Tutores', 'Polos'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
 
         // Div para os 3 filtros
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
