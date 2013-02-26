@@ -46,6 +46,20 @@ class pessoa {
 
 }
 
+// Estudante possui um polo para poder fazer agrupamento dos relatorios
+class estudante extends pessoa{
+
+    public $polo;
+
+    function __construct($name, $id, $courseid, $polo) {
+        parent::__construct($name, $id, $courseid);
+        $this->polo = $polo;
+    }
+
+
+}
+
+
 
 //
 // Relatórios
