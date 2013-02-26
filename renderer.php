@@ -183,11 +183,12 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
 
-        // Dropdown list
-        $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
-        $selecao_agrupar_post = $_POST['agrupar_tutor_polo_select'];
-        $output .= html_writer::select(array('Tutores', 'Polos'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
-
+        if($show_polo_filter){
+            // Dropdown list
+            $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
+            $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
+            $output .= html_writer::select(array('Tutores', 'Polos'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+        }
         // Div para os 3 filtros
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
 

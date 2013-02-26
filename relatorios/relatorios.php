@@ -21,6 +21,8 @@ defined('MOODLE_INTERNAL') || die;
  * @param $tutores
  * @param $curso_ufsc
  * @param $curso_moodle
+ * @param $polos
+ * @param $agrupar_relatorio_por_polos
  * @return array Array[tutores][aluno][unasus_data]
  */
 function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos = false)
@@ -33,9 +35,6 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
     $query_alunos_grupo_tutoria = query_atividades($polos);
     $query_forum = query_postagens_forum($polos);
     $query_quiz = query_quiz($polos);
-
-
-
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
      *
@@ -91,16 +90,14 @@ function get_dados_atividades_vs_notas($curso_ufsc, $curso_moodle, $modulos, $tu
 
             }
             $estudantes[] = $lista_atividades;
-
-
-
+            // Unir os alunos de acordo com o polo deles
             if($agrupar_relatorio_por_polos){
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
 
             $lista_atividades = null;
         }
-
+        // Ou unir os alunos de acordo com o tutor dele
         if(!$agrupar_relatorio_por_polos){
             $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
         }
@@ -140,9 +137,6 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
         $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
-
-    //pega a hora atual para comparar se uma atividade esta atrasada ou nao
-    $timenow = time();
 
 
 //  Ordem dos dados nos gráficos
@@ -230,10 +224,8 @@ function get_dados_grafico_atividades_vs_notas($curso_ufsc, $modulos, $tutores, 
  * @param array $tutores
  * @return array Array[tutores][aluno][unasus_data]
  */
-function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
+function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos = false)
 {
-    global $CFG;
-
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades($polos);
     $query_quiz = query_quiz($polos);
@@ -241,6 +233,7 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+    $nomes_polos = get_polos($curso_ufsc);
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
      *
@@ -254,7 +247,8 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
+                                    $id_aluno, $curso_moodle, $aluno[0]->polo);
 
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
@@ -284,9 +278,16 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
                 $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->source_activity->id, $atraso);
             }
             $estudantes[] = $lista_atividades;
+            // Unir os alunos de acordo com o polo deles
+            if($agrupar_relatorio_por_polos){
+                $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
+            }
             $lista_atividades = null;
         }
-        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        // Ou unir os alunos de acordo com o tutor dele
+        if(!$agrupar_relatorio_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        }
     }
 
     return ($dados);
@@ -391,7 +392,7 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
  * @param array $tutores
  * @return array|bool Array[tutores][aluno][unasus_data]
  */
-function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
+function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos = false)
 {
     global $CFG;
 
@@ -402,6 +403,7 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+    $nomes_polos = get_polos($curso_ufsc);
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
      *
@@ -412,11 +414,11 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
         $query_alunos_grupo_tutoria, $query_forum, $query_quiz, false);
 
     $dados = array();
-    $timenow = time();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
+                                    $id_aluno, $curso_moodle, $aluno[0]->polo);
 
             foreach ($aluno as $atividade) {
 
@@ -454,9 +456,17 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
                 $lista_atividades[] = new dado_historico_atribuicao_notas($tipo, $atividade->source_activity->id, $atraso);
             }
             $estudantes[] = $lista_atividades;
+            // Unir os alunos de acordo com o polo deles
+            if($agrupar_relatorio_por_polos){
+                $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
+            }
+
             $lista_atividades = null;
         }
-        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        // Ou unir os alunos de acordo com o tutor dele
+        if(!$agrupar_relatorio_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        }
     }
 
     return $dados;
