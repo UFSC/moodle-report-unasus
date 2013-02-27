@@ -251,11 +251,10 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
                         // E não tem entrega prazo
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
 
-                    }elseif($atividade->is_a_future_due()){
+                    } elseif ($atividade->is_a_future_due()) {
                         //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
-                    }else
-                    {
+                    } else {
                         // Atividade nao entregue e atrasada
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
                     }
@@ -333,13 +332,15 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
                 } else {
 
                     //Entrega atrasada
-                    if ($atividade->is_submission_due() && $atividade->is_a_future_due()){
-                        //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
-                        $count_nao_entregue_mas_no_prazo++;
-                    }else
-                    {
-                        // Atividade nao entregue e atrasada
-                        $count_nao_entregue_fora_prazo++;
+                    if ($atividade->is_submission_due()) {
+
+                        if ($atividade->is_a_future_due()) {
+                            //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                            $count_nao_entregue_mas_no_prazo++;
+                        } else {
+                            // Atividade nao entregue e atrasada
+                            $count_nao_entregue_fora_prazo++;
+                        }
                     }
 
                     $atraso = $atividade->submission_due_days();
