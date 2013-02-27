@@ -250,9 +250,14 @@ function get_dados_entrega_de_atividades($curso_ufsc, $curso_moodle, $modulos, $
                     if (!$atividade->source_activity->has_deadline()) {
                         // E não tem entrega prazo
                         $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                    } else {
-                        // Tem prazo de entrega
-                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE;
+
+                    }elseif($atividade->is_a_future_due()){
+                        //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
+                    }else
+                    {
+                        // Atividade nao entregue e atrasada
+                        $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
                     }
                 } else {
 
@@ -312,8 +317,9 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
         $count_entregue_no_prazo = 0;
         $count_pouco_atraso = 0;
         $count_muito_atraso = 0;
-        $count_nao_entregue = 0;
+        $count_nao_entregue_mas_no_prazo = 0;
         $count_sem_prazo = 0;
+        $count_nao_entregue_fora_prazo = 0;
 
 
         foreach ($array_dados as $id_aluno => $aluno) {
@@ -327,8 +333,13 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
                 } else {
 
                     //Entrega atrasada
-                    if ($atividade->is_submission_due()) {
-                        $count_nao_entregue++;
+                    if ($atividade->is_submission_due() && $atividade->is_a_future_due()){
+                        //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                        $count_nao_entregue_mas_no_prazo++;
+                    }else
+                    {
+                        // Atividade nao entregue e atrasada
+                        $count_nao_entregue_fora_prazo++;
                     }
 
                     $atraso = $atividade->submission_due_days();
@@ -341,13 +352,14 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
 
                     //Offlines nao precisam de entrega
                     if (!$atividade->source_activity->has_submission()) {
-                        $count_nao_entregue++;
+                        $count_nao_entregue_mas_no_prazo++;
                     }
                 }
             }
         }
         $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] =
-            array($count_nao_entregue,
+            array($count_nao_entregue_mas_no_prazo,
+                $count_nao_entregue_fora_prazo,
                 $count_sem_prazo,
                 $count_entregue_no_prazo,
                 $count_pouco_atraso,
@@ -393,10 +405,9 @@ function get_dados_historico_atribuicao_notas($curso_ufsc, $curso_moodle, $modul
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz, false);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
-    $timenow = time();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {

@@ -167,10 +167,11 @@ class dado_atividades_vs_notas extends unasus_data {
 
 class dado_entrega_de_atividades extends unasus_data {
 
-    const ATIVIDADE_NAO_ENTREGUE = 0;
+    const ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO = 0;
     const ATIVIDADE_ENTREGUE_NO_PRAZO = 1;
     const ATIVIDADE_ENTREGUE_FORA_DO_PRAZO = 2;
     const ATIVIDADE_SEM_PRAZO_ENTREGA = 3;
+    const ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO = 4;
 
     private $tipo;
     private $atraso;
@@ -184,7 +185,7 @@ class dado_entrega_de_atividades extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE:
+            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO:
                 return '';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO:
@@ -196,14 +197,17 @@ class dado_entrega_de_atividades extends unasus_data {
             case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem prazo';
                 break;
+            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
+                return '';
+                break;
         }
     }
 
     public function get_css_class() {
         global $CFG;
         switch ($this->tipo) {
-            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE:
-                return 'nao_entregue';
+            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO:
+                return 'nao_entregue_fora_do_prazo';
                 break;
             case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO:
                 return 'no_prazo';
@@ -214,6 +218,9 @@ class dado_entrega_de_atividades extends unasus_data {
             case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem_prazo';
                 break;
+            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
+                return 'nao_entregue_mas_no_prazo';
+                break;
         }
     }
 
@@ -221,7 +228,8 @@ class dado_entrega_de_atividades extends unasus_data {
         global $CFG;
 
         $legend = array();
-        $legend['nao_entregue'] = 'Em aberto (não entregue)';
+        $legend['nao_entregue_mas_no_prazo'] = 'Atividade não entregue, mas dentro do prazo';
+        $legend['nao_entregue_fora_do_prazo'] = 'Atividade não entregue, já fora do prazo';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
         $legend['no_prazo'] = 'Atividade entregue em dia';
         $legend['pouco_atraso'] = "Atividade entregue, com atraso de até {$CFG->report_unasus_prazo_maximo_entrega} dias";

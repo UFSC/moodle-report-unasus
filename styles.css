@@ -49,8 +49,7 @@
 .relatorio-unasus.fieldset dl dt{
     margin: 0;
     padding: 0;
-
-    line-height: 22px;
+    line-height: 20px;
 
 }
 
@@ -95,7 +94,8 @@
 
 /* Cinza */
 .relatorio-unasus.atividades_vs_notas .nao_realizada,
-.relatorio-unasus.historico_atribuicao_notas .nao_avaliada{
+.relatorio-unasus.historico_atribuicao_notas .nao_avaliada,
+.relatorio-unasus.entrega_de_atividades .nao_entregue_fora_do_prazo{
     color: #fff;
     background: #ccc;
 
@@ -131,13 +131,14 @@
 
 /* Branco */
 .relatorio-unasus.atividades_vs_notas .nota_atribuida,
-.relatorio-unasus.entrega_de_atividades .nao_entregue,
+.relatorio-unasus.entrega_de_atividades .nao_entregue_mas_no_prazo,
 .relatorio-unasus.historico_atribuicao_notas .nao_entregue,
 .relatorio-unasus.acesso_tutor .acessou,
 .relatorio-unasus.uso_sistema_tutor .acessou,
 .relatorio-unasus.potenciais_evasoes .concluido {
     background: #fff;
 }
+
 
 /* Bold */
 .relatorio-unasus.estudante_sem_atividade_postada .modulo {
