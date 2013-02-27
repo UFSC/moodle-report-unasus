@@ -109,7 +109,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
     }
 
-    public function test_report_unasus_data_activity() {
+    public function test_report_unasus_data_activity_status() {
         $now = time();
         $year_ago = $now-60*60*24*365;
 
@@ -172,5 +172,96 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $data = new report_unasus_data_activity($activity, $assign_submitted);
 
         $this->assertEquals(true, $data->has_submitted());
+    }
+
+    public function test_report_unasus_data_activity_offline() {
+        $now = time();
+        $year_ago = $now-60*60*24*365;
+        $next_year = $now+60*60*24*365;
+
+        /**
+         * Criacao de uma atividade sem nota e sem prazo.
+         * @var stdClass $assign_offline
+         */
+        $assign_offline = new stdClass();
+        $assign_offline->userid = 1;
+        $assign_offline->grade = null;
+        $assign_offline->submission_date = null;
+        $assign_offline->submission_modified = null;
+        $assign_offline->status = null;
+        $assign_offline->grade_created = null;
+        $assign_offline->grade_modified = null;
+
+        /**
+         * Atividade offline com data de entrega e sem prazo
+         * @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
+
+        /** @var report_unasus_data $data */
+        $data = new report_unasus_data_activity($activity, $assign_offline);
+
+        $this->assertEquals(false, $data->has_submitted());
+        $this->assertEquals(false, $data->has_grade());
+        $this->assertEquals(false, $data->is_submission_due());
+
+
+        /**
+         * Atividade offline com data de entrega e com prazo
+         * @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
+        $activity->deadline = $year_ago;
+
+        /** @var report_unasus_data_activity $data */
+        $data = new report_unasus_data_activity($activity, $assign_offline);
+
+        $this->assertEquals(false, $data->has_submitted());
+        $this->assertEquals(false, $data->has_grade());
+        $this->assertEquals(false, $data->is_submission_due());
+        $this->assertEquals(true, $data->is_grade_needed());
+
+
+        /**
+         * Criacao de uma atividade com nota e sem prazo.
+         * @var stdClass $assign_offline
+         */
+        $assign_offline->grade = 7;
+        $assign_offline->grade_created = $now;
+
+        /** @var report_unasus_data_activity $data */
+        $data = new report_unasus_data_activity($activity, $assign_offline);
+
+        $this->assertEquals(true, $data->has_grade());
+        $this->assertEquals(true, $data->has_submitted());
+        $this->assertEquals(false, $data->is_submission_due());
+        $this->assertEquals(true, $data->is_grade_needed());
+
+
+
+        $activity->deadline = $next_year;
+
+        /**
+         * Atividade pro ano que vem com nota
+         * @var report_unasus_data_activity $data */
+        $data = new report_unasus_data_activity($activity, $assign_offline);
+        $this->assertEquals(true, $data->has_grade());
+        $this->assertEquals(true, $data->has_submitted());
+        $this->assertEquals(false, $data->is_submission_due());
+        $this->assertEquals(true, $data->is_grade_needed());
+
+        $assign_offline->grade = null;
+        $assign_offline->grade_created = null;
+
+        /**
+         * Atividade pro ano que vem sem nota
+         * @var report_unasus_data_activity $data */
+        $data = new report_unasus_data_activity($activity, $assign_offline);
+        $this->assertEquals(false, $data->has_grade());
+        $this->assertEquals(false, $data->has_submitted());
+        $this->assertEquals(false, $data->is_submission_due());
+        $this->assertEquals(false, $data->is_grade_needed());
+
+
+
+
     }
 }

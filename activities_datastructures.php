@@ -300,9 +300,11 @@ class report_unasus_data_activity extends report_unasus_data{
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
+
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float)$db_model->grade;
         }
+
         $this->status = $db_model->status;
         $this->submission_date = ( !is_null($db_model->submission_date) ) ? $db_model->submission_date : $db_model->submission_modified;
         $this->grade_date = ( !is_null($db_model->grade_created) ) ? $db_model->grade_created : $db_model->grade_modified;
@@ -320,6 +322,11 @@ class report_unasus_data_activity extends report_unasus_data{
                 return true;
             } elseif ($this->has_grade()) {
                 return true;
+            }
+        } else {
+            // Se for uma atividade offline, vamos considerar a data de avaliação como entrega
+            if (!$this->source_activity->has_submission()) {
+                 return $this->has_grade();
             }
         }
 
