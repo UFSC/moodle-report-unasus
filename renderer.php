@@ -89,29 +89,10 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param boolean $dot_chart
      * @return String
      */
-    public function build_page($graficos = true, $dot_chart = false, $show_polo_filter = true, $show_filter_error = false) {
+    public function build_page($graficos = true, $dot_chart = false, $show_polo_filter = true) {
         $output = $this->default_header();
-
-        //Usuário não selecionou nenhum dos filtros
-        if($show_filter_error){
-            $output .= $this->build_filter_warning();
-        }
-
         $output .= $this->build_filter(false, $graficos, $dot_chart, $show_polo_filter);
         $output .= $this->default_footer();
-        return $output;
-    }
-
-    /** Cria a barra de warning para que o usuário não selecionou um dos filtros necessários para os relatorios
-     * @return String
-     */
-    public function build_filter_warning(){
-        $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus filter-error"));
-        $output .= html_writer::start_tag('h3');
-        $output .= get_string('necessary_filter_selection', 'report_unasus');
-        $output .= html_writer::end_tag('h3');
-        $output .= html_writer::end_tag('fieldset');
-
         return $output;
     }
 
@@ -183,12 +164,12 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
 
-        if($show_polo_filter){
-            // Dropdown list
-            $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
-            $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
-            $output .= html_writer::select(array('Tutores', 'Polos'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
-        }
+        
+        // Dropdown list
+        $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
+        $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
+        $output .= html_writer::select(array('Tutores', 'Polos'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+        
         // Div para os 3 filtros
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
 

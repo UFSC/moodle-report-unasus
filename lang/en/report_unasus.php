@@ -58,5 +58,3 @@ $string['settings_tolerancia_potencial_evasao'] = 'Tolerância para o numero de 
 $string['description_tolerancia_potencial_evasao'] = 'Informe a tolerância no total de atividades não feitas';
 
 $string['unmatched_condition'] = 'Condição de seleção de dados incorreta. Informe o administrador sobre o problema.';
-
-$string['necessary_filter_selection'] = 'ERRO: Para geração dos relatórios é necessário escolher algum filtro para tutores e/ou polos';
