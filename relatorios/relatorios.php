@@ -380,6 +380,8 @@ function get_dados_grafico_entrega_de_atividades($curso_ufsc, $modulos, $tutores
  */
 
 /**
+ * relatório desativado segundo o ticket #4460
+ *
  * Geração de dados dos tutores e seus respectivos alunos.
  *
  * @param string $curso_ufsc
@@ -556,6 +558,110 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
     }
 
     return $dados;
+}
+
+/* -----------------
+ * ---------------------------------------
+ * Boletim de Notas
+ * ---------------------------------------
+ * -----------------
+ */
+
+function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos){
+    global $CFG;
+
+    // Consultas
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
+    $query_forum = query_postagens_forum($polos);
+
+    // Recupera dados auxiliares
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+
+    /*  associativo_atividades[modulo][id_aluno][atividade]
+     *
+     * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
+     */
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
+        $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz, false);
+
+    $dados = array();
+    $timenow = time();
+    foreach ($associativo_atividades as $grupo_id => $array_dados) {
+        $estudantes = array();
+        foreach ($array_dados as $id_aluno => $aluno) {
+            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+
+            foreach ($aluno as $atividade) {
+                $nota = null;
+                //Atividade tem nota
+                if ($atividade->has_grade()) {
+                    $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
+                    $nota = $atividade->grade;
+                }else{
+                    $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
+                }
+
+                $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota);
+            }
+            $estudantes[] = $lista_atividades;
+            $lista_atividades = null;
+        }
+        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+    }
+
+    return $dados;
+}
+
+function get_table_header_boletim($modulos = array()){
+    return get_table_header_modulos_atividades($modulos);
+}
+
+function get_dados_grafico_boletim($curso_ufsc, $modulos, $tutores, $polos){
+    // Consultas
+    $query_alunos_grupo_tutoria = query_atividades($polos);
+    $query_quiz = query_quiz($polos);
+    $query_forum = query_postagens_forum($polos);
+
+
+    /*  associativo_atividades[modulo][id_aluno][atividade]
+     *
+     * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
+     */
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
+        $modulos, $tutores,
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+
+
+    $dados = array();
+    foreach ($associativo_atividades as $grupo_id => $array_dados) {
+        //variáveis soltas para melhor entendimento
+        $count_com_nota = 0;
+        $count_sem_nota = 0;
+
+
+        foreach ($array_dados as $id_aluno => $aluno) {
+
+            foreach ($aluno as $atividade) {
+                $atraso = null;
+
+                //Atividade tem nota
+                if ($atividade->has_grade()) {
+                    $count_com_nota++;
+                }else{
+                    $count_sem_nota++;
+                }
+
+            }
+        }
+        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] =
+            array($count_com_nota,$count_sem_nota);
+
+    }
+
+    return ($dados);
+
 }
 
 /* -----------------

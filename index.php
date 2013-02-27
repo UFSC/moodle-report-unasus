@@ -38,9 +38,10 @@ if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
 // Renderiza os relatórios
 if ($relatorio != null && $modo_exibicao == null) {
     switch ($relatorio) {
+        // - relatório desativado segundo o ticket #4460 case 'historico_atribuicao_notas':
         case 'atividades_vs_notas':
         case 'entrega_de_atividades':
-        case 'historico_atribuicao_notas':
+        case 'boletim':
             echo $renderer->build_page();
             break;
         case 'atividades_nao_avaliadas':
@@ -63,9 +64,10 @@ if ($relatorio != null && $modo_exibicao == null) {
 } else if ($relatorio != null && ($modo_exibicao === 'tabela' || $modo_exibicao == null)) {
     switch ($relatorio) {
 
+        // - relatório desativado segundo o ticket #4460  case 'historico_atribuicao_notas':
         case 'atividades_vs_notas':
         case 'entrega_de_atividades':
-        case 'historico_atribuicao_notas':
+        case 'boletim':
             echo $renderer->build_report();
             break;
         case 'atividades_nota_atribuida' :
@@ -94,9 +96,10 @@ if ($relatorio != null && $modo_exibicao == null) {
     }
     switch ($relatorio) {
 
+        // - relatório desativado segundo o ticket #4460 case 'historico_atribuicao_notas':
         case 'atividades_vs_notas':
         case 'entrega_de_atividades':
-        case 'historico_atribuicao_notas':
+        case 'boletim':
             echo $renderer->build_graph($porcentagem);
             break;
         case 'uso_sistema_tutor' :

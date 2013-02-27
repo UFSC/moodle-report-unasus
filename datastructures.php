@@ -244,6 +244,52 @@ class dado_entrega_de_atividades extends unasus_data {
 
 }
 
+class dado_boletim extends unasus_data{
+    const ATIVIDADE_COM_NOTA = 0;
+    const ATIVIDADE_SEM_NOTA = 1;
+
+    private $tipo;
+    private $atividade_id;
+    private $nota;
+
+    function __construct($tipo, $atividade_id, $nota = 0) {
+        $this->tipo = $tipo;
+        $this->atividade_id = $atividade_id;
+        $this->nota = $nota;
+    }
+
+    public function __toString() {
+        switch ($this->tipo) {
+            case dado_boletim::ATIVIDADE_COM_NOTA:
+                return (String) $this->format_grade($this->nota);
+                break;
+            case dado_boletim::ATIVIDADE_SEM_NOTA:
+                return '';
+                break;
+        }
+    }
+
+    public function get_css_class() {
+        switch($this->tipo){
+            case dado_boletim::ATIVIDADE_COM_NOTA:
+                return 'com_nota';
+                break;
+            case dado_boletim::ATIVIDADE_SEM_NOTA:
+                return 'sem_nota';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+        $legend = array();
+        $legend['com_nota'] = 'Atividade avaliada';
+        $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
+        return $legend;
+    }
+
+
+}
+
 class dado_historico_atribuicao_notas extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
