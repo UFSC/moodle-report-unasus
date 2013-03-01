@@ -1202,7 +1202,7 @@ function get_table_header_potenciais_evasoes($modulos)
 
 function get_table_header_modulos_atividades($modulos = array(), $mostrar_nota_final = false)
 {
-    $atividades_cursos = get_atividades_cursos($modulos, true);
+    $atividades_cursos = get_atividades_cursos($modulos, $mostrar_nota_final);
     $header = array();
 
     foreach ($atividades_cursos as $course_id => $atividades) {
