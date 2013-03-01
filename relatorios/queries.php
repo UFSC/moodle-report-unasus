@@ -26,19 +26,21 @@ function query_alunos_grupo_tutoria($polos) {
     $polos = int_array_to_sql($polos);
 
     if(!is_null($polos)){
-        $query_polo = " JOIN {View_Usuarios_Dados_Adicionais} vd
-                         ON (vd.username = u.username AND vd.polo IN ({$polos}) )";
+        $query_polo = "  AND vd.polo IN ({$polos}) ";
     }
 
-    return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id
+    return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vd.polo
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
                          JOIN {table_GruposTutoria} gt
                            ON (gt.id=pg.grupo)
+                         JOIN {View_Usuarios_Dados_Adicionais} vd
+                           ON (vd.username = u.username
 
                               {$query_polo}
 
+                             )
                         WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno";
 }
 
@@ -76,6 +78,7 @@ function query_postagens_forum($polos) {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
 
     return " SELECT u.id as userid,
+                    u.polo,
                     fp.submission_date,
                     fp.forum_name,
                     gg.grade,
@@ -145,6 +148,7 @@ function query_atividades_vs_notas($polos) {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
 
     return "SELECT u.id as user_id,
+                   u.polo,
                       sub.timecreated as submission_date,
                       gr.timemodified,
                       gr.grade, grupo_id,
@@ -170,14 +174,20 @@ function query_atividades_vs_notas($polos) {
  *
  * @return string
  */
-function query_acesso_tutor() {
+function query_acesso_tutor($tutores = null) {
+    $filtro_tutor = '';
+    if(!is_null($tutores)){
+        $tutores = int_array_to_sql($tutores);
+       $filtro_tutor = "AND u.id IN ({$tutores}) ";
+    }
+
     return " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
                       month(from_unixtime(sud.`timeend`)) AS calendar_month,
                       day(from_unixtime(sud.`timeend`)) AS calendar_day,
                       sud.userid
                  FROM {stats_user_daily} sud
            INNER JOIN {user} u
-                   ON (u.id=sud.userid)
+                   ON (u.id=sud.userid {$filtro_tutor} )
            INNER JOIN {table_PessoasGruposTutoria} pgt
                    ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
                  JOIN {table_GruposTutoria} gt
@@ -219,6 +229,7 @@ function query_uso_sistema_tutor() {
 function query_potenciais_evasoes($polos) {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
     return "SELECT u.id as user_id,
+                      u.polo,
                       sub.timecreated as submission_date,
                       gr.timemodified,
                       gr.grade
@@ -257,6 +268,7 @@ function query_atividades($polos) {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
 
     return "SELECT u.id as userid,
+                   u.polo,
                    gr.grade,
                    sub.timecreated as submission_date,
                    sub.timemodified as submission_modified,
@@ -294,6 +306,7 @@ function query_atividades($polos) {
 function query_quiz($polos){
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
     return "SELECT u.id as userid,
+                   u.polo,
                    qg.grade,
                    qg.timemodified as grade_date,
                    qa.timefinish as submission_date
