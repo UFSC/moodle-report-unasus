@@ -467,6 +467,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
+        $agrupar_relatorio_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
+
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
@@ -476,7 +478,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         }
 
         $dados_method = "get_dados_{$this->report}";
-        $dados_atividades = $dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw);
+        $dados_atividades = $dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw, $agrupar_relatorio_por_polos);
 
 
 

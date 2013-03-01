@@ -588,9 +588,9 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
  * @param $tutores
  * @return array
  */
-function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
+function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos)
 {
-    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, 'estudante_sem_atividade_postada');
+    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos, 'estudante_sem_atividade_postada');
 }
 
 /* -----------------
@@ -609,9 +609,9 @@ function get_dados_estudante_sem_atividade_postada($curso_ufsc, $curso_moodle, $
  * @param array $tutores
  * @return array
  */
-function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
+function get_dados_estudante_sem_atividade_avaliada($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos)
 {
-    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, 'estudante_sem_atividade_avaliada');
+    return get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos, 'estudante_sem_atividade_avaliada');
 }
 
 /* -----------------
@@ -1087,10 +1087,11 @@ function get_header_estudante_sem_atividade_postada($size)
  *
  * Dados para os relatórios Lista: Atividades não postadas e Lista: Atividades não avaliadas
  */
-function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $relatorio)
+function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos, $relatorio)
 {
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+    $nomes_polos = get_polos($curso_ufsc);
     $foruns_modulo = query_forum_courses(array_keys($modulos));
 
     $listagem_forum = new GroupArray();
@@ -1144,7 +1145,8 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $pol
 
             if (!empty($ativ_mod)) {
 
-                $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
+                                        $id_aluno, $curso_moodle, $aluno[0]->polo);
 
                 foreach ($ativ_mod as $key => $modulo) {
                     $lista_atividades[] = new dado_modulo($key, $modulo[0]['atividade']->source_activity->course_name);
@@ -1153,12 +1155,18 @@ function get_todo_list_data($curso_ufsc, $curso_moodle, $modulos, $tutores, $pol
                     }
                 }
 
-
                 $estudantes[] = $lista_atividades;
+                // Unir os alunos de acordo com o polo deles
+                if($agrupar_relatorio_por_polos){
+                    $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
+                }
             }
             $lista_atividades = null;
         }
-        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        // Ou unir os alunos de acordo com o tutor dele
+        if(!$agrupar_relatorio_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        }
     }
     return $dados;
 }
