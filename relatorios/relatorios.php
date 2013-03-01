@@ -785,7 +785,7 @@ function get_table_header_atividades_nota_atribuida($modulos)
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores, $polos)
+function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores)
 {
     $middleware = Middleware::singleton();
     $lista_tutores = get_tutores_menu($curso_ufsc);
@@ -860,7 +860,7 @@ function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores, $polo
 
 function get_table_header_uso_sistema_tutor()
 {
-    $double_header = get_time_interval_com_meses('P120D', 'P1D', 'm/d');
+    $double_header = get_time_interval_com_meses('P120D', 'P1D', 'd/m');
     $double_header[''] = array('Media');
     $double_header[' '] = array('Total');
     return $double_header;
@@ -869,13 +869,13 @@ function get_table_header_uso_sistema_tutor()
 /**
  * @FIXME a data adicionada é do tipo Mes/dia, num futuro caso exiba mais de um ano tem de modificar para mostrar ano/mes/dia
  */
-function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc, $polos)
+function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc)
 {
     $tutores = get_tutores_menu($curso_ufsc);
     $tempo_intervalo = 120;
     $dia_mes = get_time_interval("P{$tempo_intervalo}D", 'P1D', 'd/m');
 
-    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $tutores, $polos);
+    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $tutores);
 
     $dados_grafico = array();
     foreach ($dados['Tutores'] as $tutor) {
@@ -901,7 +901,7 @@ function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc, $po
  * -----------------
  */
 
-function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
+function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores)
 {
     $middleware = Middleware::singleton();
 
@@ -975,7 +975,7 @@ function get_table_header_acesso_tutor()
  * -----------------
  */
 
-function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos)
+function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorio_por_polos = false)
 {
     global $CFG;
 
@@ -987,6 +987,7 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+    $nomes_polos = get_polos($curso_ufsc);
 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc, $modulos,
         $tutores, $query_alunos_atividades, $query_forum, $query_quiz);
@@ -999,7 +1000,8 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
             $dados_modulos = array();
-            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
+                                    $id_aluno, $curso_moodle, $aluno[0]->polo);
             foreach ($aluno as $atividade) {
 
                 //para cada novo modulo ele cria uma entrada de dado_potenciais_evasoes com o maximo de atividades daquele modulo
@@ -1022,11 +1024,20 @@ function get_dados_potenciais_evasoes($curso_ufsc, $curso_moodle, $modulos, $tut
 
             if ($atividades_nao_realizadas_do_estudante > $CFG->report_unasus_tolerancia_potencial_evasao) {
                 $estudantes[] = $lista_atividades;
+                // Unir os alunos de acordo com o polo deles
+                if($agrupar_relatorio_por_polos){
+                    $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
+                }
             }
+
+
             $lista_atividades = null;
         }
 
-        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        // Ou unir os alunos de acordo com o tutor dele
+        if(!$agrupar_relatorio_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        }
     }
     return $dados;
 }
