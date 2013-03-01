@@ -124,48 +124,6 @@ function query_postagens_forum($polos) {
 
 
 /**
- * Query para o relatório atividades vs notas
- *
- * @polos array(int) polos para filtrar os alunos
- *
- * Colunas:
- *
- * - user_id
- * - submission_date -> unixtime de envio da atividade,
- * - timemodified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
- * - grade -> nota
- * - grupo_id -> grupo de tutoria a qual o usuário pertence
- * - nosubmissions -> atividade offline
- *
- * @return string
- *
- */
-function query_atividades_vs_notas($polos) {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
-
-    return "SELECT u.id as user_id,
-                   u.polo,
-                      sub.timecreated as submission_date,
-                      gr.timemodified,
-                      gr.grade, grupo_id,
-                      ass.nosubmissions
-                 FROM (
-
-                    {$alunos_grupo_tutoria}
-
-                 ) u
-            LEFT JOIN {assign_submission} sub
-            ON (u.id=sub.userid AND sub.assignment=:assignmentid AND sub.status LIKE 'submitted')
-            LEFT JOIN {assign_grades} gr
-            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-            LEFT JOIN {assign} ass
-            ON (ass.id=:assignmentid3)
-            ORDER BY grupo_id, u.firstname, u.lastname
-    ";
-}
-
-
-/**
  * Query para o relatorio de acesso tutor
  *
  * @return string
