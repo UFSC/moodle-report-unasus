@@ -198,6 +198,7 @@ function query_acesso_tutor($tutores = null) {
  * @return string
  */
 function query_uso_sistema_tutor() {
+
     return "SELECT userid, dia , count(*) /2  as horas
             FROM (
 

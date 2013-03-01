@@ -919,12 +919,12 @@ function get_table_header_atividades_nota_atribuida($modulos)
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores)
+function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores)
 {
     $middleware = Middleware::singleton();
     $lista_tutores = get_tutores_menu($curso_ufsc);
 
-    $query = query_uso_sistema_tutor($tutores);
+    $query = query_uso_sistema_tutor();
 
     //Query
     $dados = array();
@@ -932,12 +932,15 @@ function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $tutores)
     $timenow = time();
     $tempo_pesquisa = strtotime('-120 day', $timenow);
 
-    foreach ($lista_tutores as $id => $tutor) {
-        $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $tempo_pesquisa));
 
-        foreach ($result as $r) {
-            $dados[$id][$r['dia']] = $r;
+    foreach ($lista_tutores as $id => $tutor) {
+        if(is_null($tutores) || in_array($id, $tutores)){
+            $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $tempo_pesquisa));
+            foreach ($result as $r) {
+                $dados[$id][$r['dia']] = $r;
+            }
         }
+
     }
 
 
