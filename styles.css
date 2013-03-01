@@ -141,6 +141,10 @@
     background: #fff;
 }
 
+/* Light blue */
+.relatorio-unasus.atividades_vs_notas .nota_atribuida_atraso{
+    background: #d8f9fc;
+}
 
 /* Bold */
 .relatorio-unasus.estudante_sem_atividade_postada .modulo {
