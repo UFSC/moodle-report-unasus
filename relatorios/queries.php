@@ -26,21 +26,17 @@ function query_alunos_grupo_tutoria($polos) {
     $polos = int_array_to_sql($polos);
 
     if(!is_null($polos)){
-        $query_polo = "  AND vd.polo IN ({$polos}) ";
+        $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vd.polo
+    return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vga.polo
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
                          JOIN {table_GruposTutoria} gt
                            ON (gt.id=pg.grupo)
-                         JOIN {View_Usuarios_Dados_Adicionais} vd
-                           ON (vd.username = u.username
-
-                              {$query_polo}
-
-                             )
+                         JOIN {Geral_Alunos_Ativos} vga
+                           ON (vga.matricula = u.username {$query_polo})
                         WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno";
 }
 
