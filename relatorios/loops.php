@@ -6,7 +6,7 @@
  */
 function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                                                $cursos_ids, $tutores,
-                                               $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_course = true) {
+                                               $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
@@ -92,6 +92,26 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
 
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($q->userid, $data);
+                    }
+                }
+            }
+
+            // Query de notas finais, somente para o relatório Boletim
+            if(!is_null($query_nota_final)){
+                $params =  array(
+                    'courseid' => $courseid,
+                    'curso_ufsc' => $curso_ufsc,
+                    'grupo_tutoria' => $grupo->id,
+                    'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+
+                $result = $middleware->get_records_sql($query_nota_final, $params);
+                if($result != false){
+                    foreach ($result as $nf){
+                        /** @var report_unasus_data_nota_final $data  */
+                        $data = new report_unasus_data_nota_final($nf);
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($nf->userid, $data);
                     }
                 }
             }

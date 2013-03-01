@@ -165,7 +165,7 @@ function get_tutores_menu($curso_ufsc) {
  * @param array $courses array de ids dos cursos moodle, padrão null, retornando todos os modulos
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses = null) {
+function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
@@ -182,6 +182,14 @@ function get_atividades_cursos($courses = null) {
 
     foreach ($quizes as $quiz){
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
+    }
+
+    if($mostrar_nota_final){
+        $cursos_com_nota_final = query_courses_com_nota_final($courses);
+        foreach($cursos_com_nota_final as $nota_final){
+            $group_array->add($nota_final->course_id, $nota_final->itemname);
+        }
+
     }
 
     return $group_array->get_assoc();
@@ -225,7 +233,7 @@ function query_assign_courses($courses) {
  * @return moodle_recordset
  */
 function query_quiz_courses($courses){
-    global $DB, $SITE;
+    global $DB;
 
     $string_courses = get_modulos_validos($courses);
 
@@ -242,7 +250,7 @@ function query_quiz_courses($courses){
                WHERE c.id IN ({$string_courses})
             ORDER BY c.id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
+    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
 function query_forum_courses($courses){
@@ -268,6 +276,22 @@ function query_forum_courses($courses){
                  ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+}
+
+function query_courses_com_nota_final($courses){
+    global $DB;
+
+    $string_courses = get_modulos_validos($courses);
+
+    $query = "SELECT gi.id,
+                     gi.courseid as course_id,
+                     gi.itemname
+            FROM {grade_items} gi
+            WHERE (gi.itemtype LIKE 'course' AND itemmodule IS NULL AND gi.courseid IN ({$string_courses}))
+            ORDER BY gi.id";
+
+    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+
 }
 
 

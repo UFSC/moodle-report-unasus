@@ -616,6 +616,7 @@ function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polo
     $query_alunos_grupo_tutoria = query_atividades($polos);
     $query_quiz = query_quiz($polos);
     $query_forum = query_postagens_forum($polos);
+    $query_nota_final = query_nota_final($polos);
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
@@ -625,11 +626,10 @@ function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polo
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-        $modulos, $tutores,
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz, false);
+                            $modulos, $tutores, $query_alunos_grupo_tutoria,
+                            $query_forum, $query_quiz, false, $query_nota_final);
 
     $dados = array();
-    $timenow = time();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
@@ -645,7 +645,11 @@ function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polo
                     $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
                 }
 
-                $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota);
+                if(is_a($atividade, 'report_unasus_data_nota_final')){
+                    $lista_atividades[] = new dado_nota_final($tipo, $nota);
+                }else{
+                    $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota);
+                }
             }
             $estudantes[] = $lista_atividades;
             $lista_atividades = null;
@@ -657,7 +661,7 @@ function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polo
 }
 
 function get_table_header_boletim($modulos = array()){
-    return get_table_header_modulos_atividades($modulos);
+    return get_table_header_modulos_atividades($modulos, true);
 }
 
 function get_dados_grafico_boletim($curso_ufsc, $modulos, $tutores, $polos){
@@ -1196,10 +1200,9 @@ function get_table_header_potenciais_evasoes($modulos)
  * /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
  */
 
-function get_table_header_modulos_atividades($modulos = array())
+function get_table_header_modulos_atividades($modulos = array(), $mostrar_nota_final = false)
 {
-    $atividades_cursos = get_atividades_cursos($modulos);
-
+    $atividades_cursos = get_atividades_cursos($modulos, true);
     $header = array();
 
     foreach ($atividades_cursos as $course_id => $atividades) {

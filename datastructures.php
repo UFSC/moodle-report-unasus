@@ -293,7 +293,53 @@ class dado_boletim extends unasus_data{
     public function get_css_class() {
         switch($this->tipo){
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return 'com_nota';
+                return ($this->nota >= 7)? 'na_media' :  'abaixo_media_nota';
+                break;
+            case dado_boletim::ATIVIDADE_SEM_NOTA:
+                return 'sem_nota';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+        $legend = array();
+        $legend['na_media'] = 'Atividade avaliada com nota acima de 7';
+        $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 7';
+        $legend['abaixo_media'] = 'Média final abaixo de 7';
+        $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
+        return $legend;
+    }
+
+
+}
+
+class dado_nota_final extends unasus_data{
+    const ATIVIDADE_COM_NOTA = 0;
+    const ATIVIDADE_SEM_NOTA = 1;
+
+    private $tipo;
+    private $nota;
+
+    function __construct($tipo, $nota = 0) {
+        $this->tipo = $tipo;
+        $this->nota = $nota;
+    }
+
+    public function __toString() {
+        switch ($this->tipo) {
+            case dado_boletim::ATIVIDADE_COM_NOTA:
+                return (String) $this->format_grade($this->nota);
+                break;
+            case dado_boletim::ATIVIDADE_SEM_NOTA:
+                return '';
+                break;
+        }
+    }
+
+    public function get_css_class() {
+        switch($this->tipo){
+            case dado_boletim::ATIVIDADE_COM_NOTA:
+                return ($this->nota >= 7)? 'na_media' :  'abaixo_media';
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
@@ -307,8 +353,6 @@ class dado_boletim extends unasus_data{
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
         return $legend;
     }
-
-
 }
 
 class dado_historico_atribuicao_notas extends unasus_data {

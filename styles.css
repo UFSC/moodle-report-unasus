@@ -116,9 +116,16 @@
 .relatorio-unasus.entrega_de_atividades .muito_atraso,
 .relatorio-unasus.historico_atribuicao_notas .muito_atraso,
 .relatorio-unasus.uso_sistema_tutor .nao_acessou,
-.relatorio-unasus.potenciais_evasoes .nao_concluido {
+.relatorio-unasus.potenciais_evasoes .nao_concluido,
+.relatorio-unasus.boletim .abaixo_media{
     color: #fff;
     background: #ff7777;
+}
+
+/* Rosa */
+.relatorio-unasus.boletim .abaixo_media_nota{
+    color: #fff;
+    background: #ffc1c0;
 }
 
 /* Amarelo */
@@ -137,7 +144,7 @@
 .relatorio-unasus.acesso_tutor .acessou,
 .relatorio-unasus.uso_sistema_tutor .acessou,
 .relatorio-unasus.potenciais_evasoes .concluido,
-.relatorio-unasus.boletim .com_nota{
+.relatorio-unasus.boletim .na_media{
     background: #fff;
 }
 

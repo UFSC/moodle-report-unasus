@@ -242,6 +242,53 @@ function query_atividades($polos) {
     ";
 }
 
+/**
+ * Query para a nota final dos alunos em um dado modulo
+ *
+ * @polos array(int) polos para filtrar os alunos
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - grade -> nota
+ * @return string
+ *
+ */
+function query_nota_final($polos) {
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
+
+    return "SELECT u.id as userid,
+                   u.polo,
+                   gradeitemid as gradeitemid,
+                   courseid,
+                   finalgrade as grade
+            FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                 ) u
+
+            LEFT JOIN
+
+            (
+
+                SELECT gi.id as gradeitemid,
+                        gi.courseid,
+                        gg.userid as userid,
+                        gg.id as gradegradeid,
+                        gg.finalgrade
+                 FROM {grade_items} gi
+                 JOIN {grade_grades} gg
+                 ON (gi.id = gg.itemid AND gi.itemtype LIKE 'course' AND itemmodule IS NULL)
+                 WHERE (gi.courseid=:courseid)
+
+            ) grade
+            ON (grade.userid=u.id)
+            ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+}
+
+
 
 /**
  * Query para os relatórios

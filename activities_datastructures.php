@@ -369,3 +369,25 @@ class report_unasus_data_quiz extends report_unasus_data{
     }
 }
 
+class report_unasus_data_nota_final{
+    public $userid;
+    public $polo;
+    public $grade;
+
+    public function __construct($db_model){
+        $this->userid = $db_model->userid;
+        $this->polo = $db_model->polo;
+        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+            $this->grade = (float)$db_model->grade;
+        }
+    }
+
+    /**
+     * Modulo possui nota final?
+     * @return bool true se tiver ou false se não
+     */
+    public function has_grade() {
+        return !is_null($this->grade);
+    }
+}
+
