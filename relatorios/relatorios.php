@@ -609,9 +609,7 @@ function get_dados_grafico_historico_atribuicao_notas($curso_ufsc, $modulos, $tu
  * -----------------
  */
 
-function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos){
-    global $CFG;
-
+function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupamento_polos = false){
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades($polos);
     $query_quiz = query_quiz($polos);
@@ -620,6 +618,7 @@ function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polo
 
     // Recupera dados auxiliares
     $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($curso_ufsc);
+    $nomes_polos = get_polos($curso_ufsc);
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
      *
@@ -633,7 +632,7 @@ function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polo
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new pessoa($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle);
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $curso_moodle, $aluno[0]->polo);
 
             foreach ($aluno as $atividade) {
                 $nota = null;
@@ -652,9 +651,18 @@ function get_dados_boletim($curso_ufsc, $curso_moodle, $modulos, $tutores, $polo
                 }
             }
             $estudantes[] = $lista_atividades;
+
+            // Agrupamento dos estudantes pelo seu polo
+            if($agrupamento_polos){
+                $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
+            }
+
             $lista_atividades = null;
         }
-        $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        // Ou pelo grupo de tutoria do estudante
+        if(!$agrupamento_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($curso_ufsc, $grupo_id)] = $estudantes;
+        }
     }
 
     return $dados;
@@ -664,7 +672,7 @@ function get_table_header_boletim($modulos = array()){
     return get_table_header_modulos_atividades($modulos, true);
 }
 
-function get_dados_grafico_boletim($curso_ufsc, $modulos, $tutores, $polos){
+function get_dados_grafico_boletim($curso_ufsc, $modulos, $tutores, $polos, $agrupamento_polos = false){
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades($polos);
     $query_quiz = query_quiz($polos);
