@@ -369,6 +369,22 @@ class report_unasus_data_quiz extends report_unasus_data{
     }
 }
 
+class report_unasus_final_grade {
+
+    public $name;
+    public $course_id;
+
+    public function __construct($db_model) {
+        $this->name = $db_model->itemname;
+        $this->course_id = $db_model->course_id;
+    }
+
+    public function __toString() {
+        $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id));
+        return html_writer::link($gradebook_url, $this->name);
+    }
+}
+
 class report_unasus_data_nota_final{
     public $userid;
     public $polo;

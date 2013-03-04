@@ -184,10 +184,10 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
-    if($mostrar_nota_final){
+    if ($mostrar_nota_final) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
-        foreach($cursos_com_nota_final as $nota_final){
-            $group_array->add($nota_final->course_id, $nota_final->itemname);
+        foreach ($cursos_com_nota_final as $nota_final) {
+            $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
         }
 
     }
