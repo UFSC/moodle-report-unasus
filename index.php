@@ -25,6 +25,7 @@ if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
     $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
 
     require_login($courseid);
+    /** @var $renderer report_unasus_renderer */
     $renderer = $PAGE->get_renderer('report_unasus');
 
     if (in_array($relatorio, report_unasus_relatorios_restritos_list())) {
@@ -52,11 +53,12 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_page(false);
             break;
         case 'acesso_tutor' :
-            //nao mostrar botao de grafico, nem grafico de bolas,  nem filtro de polo nem filtragem por modulo
             echo $renderer->build_page(false, false, false, false, true);
+            $PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
             break;
         case 'uso_sistema_tutor' :
             echo $renderer->build_page(false, true, false, false, true);
+            $PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
             break;
         default:
             print_error('unknow_report', 'report_unasus');
@@ -65,6 +67,8 @@ if ($relatorio != null && $modo_exibicao == null) {
 
 
 } else if ($relatorio != null && ($modo_exibicao === 'tabela' || $modo_exibicao == null)) {
+    var_dump($_POST);
+
     switch ($relatorio) {
 
         // - relatório desativado segundo o ticket #4460  case 'historico_atribuicao_notas':
@@ -85,10 +89,12 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_report(false,false,'Tutores');
             break;
         case 'acesso_tutor' :
-            echo $renderer->build_report(false,false,'Tutores', false);
+            echo $renderer->build_report(false,false,'Tutores', false, false, true);
+            $PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_report(false, true, null, false);
+            echo $renderer->build_report(false, true, null, false, false, true);
+            $PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
             break;
         default:
             print_error('unknow_report', 'report_unasus');

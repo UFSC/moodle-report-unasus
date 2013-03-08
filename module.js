@@ -63,6 +63,33 @@ function select_all(target, select){
     }
 }
 
+M.report_unasus.init_date_picker = YUI().use('calendar', function (Y) {
+    var hoje = new Date();
+    var mes_passado = new Date();
+    mes_passado.setMonth( mes_passado.getMonth() - 1 );
+
+    // Create a new instance of Calendar, setting its width
+    // and height, allowing the dates from the previous
+    // and next month to be visible and setting the initial
+    // date to be November, 1982.
+    var calendar = new Y.Calendar({
+        contentBox: "#calendario_inicio",
+        height:'225px',
+        width:'100%',
+        showPrevMonth: true,
+        showNextMonth: true,
+        date: mes_passado,
+        maximumDate: hoje}).render();
+
+    var calendarfim = new Y.Calendar({
+        contentBox: "#calendario_fim",
+        height:'225px',
+        width:'100%',
+        showPrevMonth: true,
+        showNextMonth: true,
+        maximumDate: hoje}).render();
+
+});
 
 var chart1;
 /**

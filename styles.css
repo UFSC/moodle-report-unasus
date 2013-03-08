@@ -18,9 +18,13 @@
     vertical-align: top;
 }
 
+.relatorio-unasus.fieldset .calendar-full{
+    width: 100%;
+}
+
 .relatorio-unasus.fieldset .multiple_list select{
     width: 100%;
-    height: 200px;
+    height: 225px;
 }
 
 /* Radio buttons da barra de filtros */

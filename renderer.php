@@ -1,6 +1,8 @@
 <?php
 
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->libdir . '/form/dateselector.php');
+require_once($CFG->libdir . '/formslib.php');
 
 class report_unasus_renderer extends plugin_renderer_base {
 
@@ -208,17 +210,24 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         if($show_time_filter){
 
-            $time_filter = html_writer::start_tag('div', array('class' => 'time_filter'));
-                $time_filter .= html_writer::tag('h4', 'Intervalo do Relatório');
-                $time_filter .= html_writer::label('Data Inicio:', 'data_inicio');
-                $data_inicio = new date_picker_moodle_form();
-                $time_filter .= get_form_display($data_inicio);
-                $data_fim = new date_picker_moodle_form();
-                $time_filter .= html_writer::label('Data Fim:', null);
-                $time_filter .= get_form_display($data_fim);
-            $time_filter .= html_writer::end_tag('div');
+            $output .= html_writer::start_tag('div', array('class' => 'time_filter'));
+                $output .= html_writer::label('Data Inicio:', 'data_inicio');
+                    $output .= html_writer::start_tag('div', array('class'=>'yui3-skin-sam yui3-g'));
+                        $output .= html_writer::start_tag('div', array('id'=>'leftcolumn', 'class'=>'yui3-u calendar-full'));
+                        $output .= html_writer::tag('div', '', array('id'=>'calendario_inicio'));
+                        $output .= html_writer::end_tag('div');
+                $output .= html_writer::end_tag('div');
+            $output .= html_writer::end_tag('div');
+            $output .= html_writer::start_tag('div', array('class' => 'time_filter'));
+                $output .= html_writer::label('Data Inicio:', 'data_inicio');
+                    $output .= html_writer::start_tag('div', array('class'=>'yui3-skin-sam yui3-g'));
+                        $output .= html_writer::start_tag('div', array('id'=>'leftcolumn', 'class'=>'yui3-u calendar-full'));
+                        $output .= html_writer::tag('div', '', array('id'=>'calendario_fim'));
+                        $output .= html_writer::end_tag('div');
+                $output .= html_writer::end_tag('div');
+            $output .= html_writer::end_tag('div');
 
-            $output .= $time_filter;
+
         }
 
         $output .= html_writer::end_tag('div');
