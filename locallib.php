@@ -529,3 +529,21 @@ function get_time_interval_com_meses($dias_atras, $tempo_pulo, $date_format){
 
     return $meses;
 }
+
+//moodleform is defined in formslib.php
+require_once("$CFG->libdir/formslib.php");
+
+class date_picker_moodle_form extends moodleform {
+
+    function definition(){
+        global $CFG;
+        $mform =& $this->_form;
+
+        $mform->addElement('date_selector', 'assesstimefinish', $this->label);
+        $mform->setAttributes(array('class'=> ''));
+    }
+
+    function validation($data, $files){
+        return array();
+    }
+}

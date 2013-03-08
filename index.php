@@ -52,11 +52,11 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_page(false);
             break;
         case 'acesso_tutor' :
-            //nao mostrar botao de grafico, nem grafico de bolas e nem filtro de polo
-            echo $renderer->build_page(false, false, false);
+            //nao mostrar botao de grafico, nem grafico de bolas,  nem filtro de polo nem filtragem por modulo
+            echo $renderer->build_page(false, false, false, false, true);
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_page(false, true, false);
+            echo $renderer->build_page(false, true, false, false, true);
             break;
         default:
             print_error('unknow_report', 'report_unasus');
