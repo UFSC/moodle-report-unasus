@@ -230,14 +230,23 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         if($show_time_filter){
 
-            $now = date('d/m/Y');
-            $month_ago = date('d/m/Y', strtotime('-1 months'));
+            $data_fim = date('d/m/Y');
+            $data_inicio = date('d/m/Y', strtotime('-1 months'));
+
+            $data_inicio_param = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_fim_param = optional_param('data_fim', null, PARAM_TEXT);
+
+            if(!is_null($data_inicio_param))
+                 $data_inicio = $data_inicio_param;
+
+            if(!is_null($data_fim_param))
+                $data_fim = $data_fim_param;
 
             $output .= html_writer::start_tag('div', array('class'=> 'time_filter'));
             $output .= html_writer::tag('h3', 'Data Inicio:');
-            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_inicio', 'value'=>$month_ago));
+            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_inicio', 'value'=>$data_inicio));
             $output .= html_writer::tag('h3', 'Data Fim:');
-            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_fim', 'value'=>$now ));
+            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_fim', 'value'=>$data_fim ));
             $output .= html_writer::end_tag('div');
         }
 
@@ -609,14 +618,16 @@ class report_unasus_renderer extends plugin_renderer_base {
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.raphael-min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.dotufsc.js"));
 
-        $output .= $this->build_filter(true, false, true, false, false);
+        $output .= $this->build_filter(true, false, true, false, false, true);
 
         $dados_method = "get_dados_grafico_{$this->report}";
 
         $modulos = optional_param_array('modulos', null, PARAM_INT);
         $tutores = optional_param_array('tutores', null, PARAM_INT);
+        $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+        $data_fim = optional_param('data_fim', null, PARAM_TEXT);
 
-        $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method($modulos, $tutores, $this->curso_ufsc)));
+        $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method($modulos, $tutores, $this->curso_ufsc, $data_inicio, $data_fim)));
 
         $output .= '<div id="container" class="container relatorio-wrapper"></div>';
         $output .= $this->default_footer();

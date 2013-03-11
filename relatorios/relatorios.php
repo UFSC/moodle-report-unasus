@@ -1005,7 +1005,6 @@ function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $modulos, $tuto
         }
         $retorno[] = $dados;
     }
-
     return array('Tutores' => $retorno);
 }
 
@@ -1021,19 +1020,22 @@ function get_table_header_uso_sistema_tutor($modulos, $data_inicio, $data_fim)
 /**
  * @FIXME a data adicionada é do tipo Mes/dia, num futuro caso exiba mais de um ano tem de modificar para mostrar ano/mes/dia
  */
-function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc)
+function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc, $data_inicio, $data_fim)
 {
-    $tutores = get_tutores_menu($curso_ufsc);
-    $tempo_intervalo = 120;
-    $dia_mes = get_time_interval("P{$tempo_intervalo}D", 'P1D', 'd/m');
+    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $modulo, $tutores, false, false, $data_inicio, $data_fim);
 
-    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $modulo, $tutores);
+    //Converte a string data pra um DateTime e depois pra Unixtime
+    $data_inicio = date_create_from_format('d/m/Y', $data_inicio);
+    $data_fim = date_create_from_format('d/m/Y', $data_fim);
+
+    // Intervalo de dias no formato d/m
+    $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
 
     $dados_grafico = array();
     foreach ($dados['Tutores'] as $tutor) {
         $dados_tutor = array();
         $count_dias = 1;
-        foreach ($dia_mes as $dia) {
+        foreach ($dias_meses as $dia) {
             $dados_tutor[$dia] = $tutor[$count_dias]->__toString();
             $count_dias++;
 
@@ -1053,7 +1055,7 @@ function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc)
  * -----------------
  */
 
-function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorios_por_polo,$data_inicio, $data_fim)
 {
     $middleware = Middleware::singleton();
 
@@ -1068,16 +1070,22 @@ function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores)
     foreach ($result as $r) {
         $dia = $r['calendar_day'];
         $mes = $r['calendar_month'];
+        $ano = $r['calendar_year'];
         if ($dia < 10)
             $dia = '0' . $dia;
         if ($mes < 10)
             $mes = '0' . $mes;
-        $group_array->add($r['userid'], $dia . '/' . $mes);
+        $group_array->add($r['userid'], $dia . '/' . $mes . '/' . $ano);
     }
     $dados = $group_array->get_assoc();
 
-    // Intervalo de dias no formato d/m
-    $dias_meses = get_time_interval('P120D', 'P1D', 'd/m');
+
+    //Converte a string data pra um DateTime
+    $data_inicio = date_create_from_format('d/m/Y', $data_inicio);
+    $data_fim = date_create_from_format('d/m/Y', $data_fim);
+
+    // Intervalo de dias no formato d/m/Y
+    $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
 
 
     //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
@@ -1115,9 +1123,9 @@ function get_dados_acesso_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores)
 /*
  * Cabeçalho para o relatorio de uso do sistema do tutor, cria um intervalo de tempo de 60 dias atras
  */
-function get_table_header_acesso_tutor()
+function get_table_header_acesso_tutor($modulos, $data_inicio, $data_fim)
 {
-    return get_time_interval_com_meses('P120D', 'P1D', 'd/m');
+    return get_time_interval_com_meses($data_inicio, $data_fim, 'P1D', 'd/m/Y');
 }
 
 /* -----------------

@@ -562,3 +562,18 @@ function date_is_valid($str) {
     return false;
 }
 
+/**
+ * Verifica se um intervalo de datas são validos, compara se a data de inicio é menor que a de fim e se as strings são datas validas
+ * @param $datainicio String data
+ * @param $datafim String data
+ */
+function date_interval_is_valid($data_inicio, $data_fim){
+    if(date_is_valid($data_inicio) && date_is_valid($data_fim)){
+        $diferenca_datas = date_diff(date_create_from_format('d/m/Y', $data_inicio), date_create_from_format('d/m/Y',$data_fim));
+        //intervalo de data de inicio menor que a de fim
+        if($diferenca_datas->invert == 0){
+            return true;
+        }
+    }
+    return false;
+}

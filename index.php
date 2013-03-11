@@ -89,22 +89,24 @@ if ($relatorio != null && $modo_exibicao == null) {
         case 'acesso_tutor' :
             $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
             $data_fim = optional_param('data_fim', null, PARAM_TEXT);
-
-            //As strings informadas sao datas validas
-            if(date_is_valid($data_inicio) && date_is_valid($data_fim)){
-                $diferenca_datas = date_diff(date_create_from_format('d/m/Y', $data_inicio), date_create_from_format('d/m/Y',$data_fim));
-                //intervalo de data de inicio menor que a de fim
-                if($diferenca_datas->invert == 0){
+            //As strings informadas sao datas validas?
+            if(date_interval_is_valid($data_inicio, $data_fim)){
                     echo $renderer->build_report(false,false,'Tutores', false, false, true);
                     //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
                     break;
-                }
             }
             echo $renderer->build_page(false, false, false, false, true, true);
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_report(false, true, null, false, false, true);
-            //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            //As strings informadas sao datas validas?
+            if(date_interval_is_valid($data_inicio, $data_fim)){
+                echo $renderer->build_report(false, true, null, false, false, true);
+                //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+                break;
+            }
+            echo $renderer->build_page(false, false, false, false, true, true);
             break;
         default:
             print_error('unknow_report', 'report_unasus');
@@ -124,10 +126,20 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_graph($porcentagem);
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_dot_graph();
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            //As strings informadas sao datas validas?
+            if(date_interval_is_valid($data_inicio, $data_fim)){
+                echo $renderer->build_dot_graph();
+                break;
+            }
+            echo $renderer->build_page(false, false, false, false, true, true);
+            break;
+
             break;
         default:
             print_error('unknow_report', 'report_unasus');
             break;
     }
 }
+
