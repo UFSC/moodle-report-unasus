@@ -160,13 +160,14 @@ function query_uso_sistema_tutor() {
     return "SELECT userid, dia , count(*) /2  as horas
             FROM (
 
-                SELECT date_format( (FROM_UNIXTIME(time))  , '%Y/%m/%d') AS dia,
+                SELECT date_format( (FROM_UNIXTIME(time))  , '%d/%m/%Y') AS dia,
                        date_format( (FROM_UNIXTIME(time))  , '%H') AS hora,
                        ROUND (date_format( (FROM_UNIXTIME(time))  , '%i') / 30) *30 AS min,
                        userid
                 FROM {log}
+
                 WHERE time > :tempominimo
-                      AND time < UNIX_TIMESTAMP(DATE_SUB(NOW(),INTERVAL 30 MINUTE)) AND userid=:userid
+                      AND time < UNIX_TIMESTAMP(DATE_SUB(:tempomaximo,INTERVAL 30 MINUTE)) AND userid=:userid
                       AND action != 'login' AND action != 'logout'
                 GROUP BY dia, hora, min
 

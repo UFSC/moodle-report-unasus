@@ -66,6 +66,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         $polos_raw = optional_param_array('polos', null, PARAM_INT);
         $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
 
+        $data_inicio = null;
+        $data_fim  = null;
+        if($show_time_filter){
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+        }
+
         $agrupar_relatorio_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
 
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
@@ -76,7 +83,17 @@ class report_unasus_renderer extends plugin_renderer_base {
             $tutores_raw = array($USER->id);
         }
 
-        $table = $this->default_table($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw, $agrupar_relatorio_por_polos), $header_method($modulos_raw), $tipo_cabecalho);
+        $table = $this->default_table(
+            $dados_method($this->curso_ufsc,
+                          $this->curso_ativo,
+                          $modulos,
+                          $tutores_raw,
+                          $polos_raw,
+                          $agrupar_relatorio_por_polos,
+                          $data_inicio,
+                          $data_fim),
+            $header_method($modulos_raw, $data_inicio, $data_fim),
+            $tipo_cabecalho);
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -91,9 +108,12 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param boolean $dot_chart
      * @return String
      */
-    public function build_page($graficos = true, $dot_chart = false, $show_polo_filter = true, $show_modulos_filter = true, $show_time_filter = false) {
+    public function build_page($graficos = true, $dot_chart = false, $show_polo_filter = true, $show_modulos_filter = true, $show_time_filter = false, $show_time_warning = false) {
         $output = $this->default_header();
         $output .= $this->build_filter(false, $graficos, $dot_chart, $show_polo_filter, $show_modulos_filter, $show_time_filter);
+        if($show_time_warning){
+           $output .= $this->build_warning('Intervalo de Tempo incorreto ou Formato de data inválido ');
+        }
         $output .= $this->default_footer();
         return $output;
     }
@@ -210,24 +230,15 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         if($show_time_filter){
 
-            $output .= html_writer::start_tag('div', array('class' => 'time_filter'));
-                $output .= html_writer::label('Data Inicio:', 'data_inicio');
-                    $output .= html_writer::start_tag('div', array('class'=>'yui3-skin-sam yui3-g'));
-                        $output .= html_writer::start_tag('div', array('id'=>'leftcolumn', 'class'=>'yui3-u calendar-full'));
-                        $output .= html_writer::tag('div', '', array('id'=>'calendario_inicio'));
-                        $output .= html_writer::end_tag('div');
-                $output .= html_writer::end_tag('div');
-            $output .= html_writer::end_tag('div');
-            $output .= html_writer::start_tag('div', array('class' => 'time_filter'));
-                $output .= html_writer::label('Data Inicio:', 'data_inicio');
-                    $output .= html_writer::start_tag('div', array('class'=>'yui3-skin-sam yui3-g'));
-                        $output .= html_writer::start_tag('div', array('id'=>'leftcolumn', 'class'=>'yui3-u calendar-full'));
-                        $output .= html_writer::tag('div', '', array('id'=>'calendario_fim'));
-                        $output .= html_writer::end_tag('div');
-                $output .= html_writer::end_tag('div');
-            $output .= html_writer::end_tag('div');
+            $now = date('d/m/Y');
+            $month_ago = date('d/m/Y', strtotime('-1 months'));
 
-
+            $output .= html_writer::start_tag('div', array('class'=> 'time_filter'));
+            $output .= html_writer::tag('h3', 'Data Inicio:');
+            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_inicio', 'value'=>$month_ago));
+            $output .= html_writer::tag('h3', 'Data Fim:');
+            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_fim', 'value'=>$now ));
+            $output .= html_writer::end_tag('div');
         }
 
         $output .= html_writer::end_tag('div');
@@ -613,4 +624,18 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    /**
+     * Constroi um fieldset de warning de erro nos filtros
+     * @param $msg Texto de aviso
+     */
+    public function build_warning($msg){
+        $output = html_writer::start_tag('fieldset', array('class'=>'relatorio-unasus fieldset warning'));
+        $output .= html_writer::tag('legend', 'Erro', array('class' => 'legend'));
+        $output .= $msg;
+        $output .= html_writer::end_tag('fieldset');
+        return $output;
+    }
+
 }
+
+

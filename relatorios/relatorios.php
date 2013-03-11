@@ -931,40 +931,43 @@ function get_table_header_atividades_nota_atribuida($modulos)
 /**
  * @TODO arrumar media
  */
-function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores)
+function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $modulos, $tutores, $polos, $agrupar_relatorios_por_polo,$data_inicio, $data_fim)
 {
     $middleware = Middleware::singleton();
     $lista_tutores = get_tutores_menu($curso_ufsc);
 
     $query = query_uso_sistema_tutor();
 
+    //Converte a string data pra um DateTime e depois pra Unixtime
+    $data_inicio = date_create_from_format('d/m/Y', $data_inicio);
+    $data_inicio_unix = strtotime($data_inicio->format('d/m/Y'));
+    $data_fim = date_create_from_format('d/m/Y', $data_fim);
+    $data_fim_query = $data_fim->format('Y-m-d h:i:s');
+    $data_fim_unix = strtotime($data_fim->format('d/m/Y'));
+
     //Query
     $dados = array();
-
-    $timenow = time();
-    $tempo_pesquisa = strtotime('-120 day', $timenow);
-
-
     foreach ($lista_tutores as $id => $tutor) {
         if(is_null($tutores) || in_array($id, $tutores)){
-            $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $tempo_pesquisa));
+            $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $data_inicio_unix, 'tempomaximo'=> $data_fim_query));
+            /** @FIXME incluir na biblioteca do middleware a implementação da contagem de resultados, sem utilizar o ADORecordSet_myqsli*/
+            if($result->MaxRecordCount() == 0){
+                $dados[$id][''] = array();
+            }
             foreach ($result as $r) {
                 $dados[$id][$r['dia']] = $r;
             }
         }
-
     }
 
 
     // Intervalo de dias no formato d/m
-    $intervalo_tempo = 120;
-    $dias_meses = get_time_interval("P{$intervalo_tempo}D", 'P1D', 'Y/m/d');
+    $intervalo_tempo = $data_fim->diff($data_inicio)->days;
+    $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
 
     //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
     //date interval acima
     $result = new GroupArray();
-
-
     foreach ($dados as $id_user => $datas) {
 
         //quanto tempo ele ficou logado
@@ -1007,9 +1010,9 @@ function get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle, $modulos, $tuto
 }
 
 
-function get_table_header_uso_sistema_tutor()
+function get_table_header_uso_sistema_tutor($modulos, $data_inicio, $data_fim)
 {
-    $double_header = get_time_interval_com_meses('P120D', 'P1D', 'd/m');
+    $double_header = get_time_interval_com_meses($data_inicio, $data_fim, 'P1D', 'd/m/Y');
     $double_header[''] = array('Media');
     $double_header[' '] = array('Total');
     return $double_header;
@@ -1024,7 +1027,7 @@ function get_dados_grafico_uso_sistema_tutor($modulo, $tutores, $curso_ufsc)
     $tempo_intervalo = 120;
     $dia_mes = get_time_interval("P{$tempo_intervalo}D", 'P1D', 'd/m');
 
-    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $tutores);
+    $dados = get_dados_uso_sistema_tutor($curso_ufsc, $curso_moodle = 0, $modulo, $tutores);
 
     $dados_grafico = array();
     foreach ($dados['Tutores'] as $tutor) {

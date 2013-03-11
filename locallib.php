@@ -485,16 +485,15 @@ function get_cursos_ativos_list() {
  * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
  * @date_format formato da data em DateTime()
  */
-function get_time_interval($dias_atras, $tempo_pulo, $date_format){
+function get_time_interval($data_inicio, $data_fim, $tempo_pulo, $date_format){
     // Intervalo de dias no formato d/m
-    $end = new DateTime();
-    $interval = new DateInterval($dias_atras);
+    $interval = $data_inicio->diff($data_fim);
 
-    $begin = clone $end;
+    $begin = clone $data_fim;
     $begin->sub($interval);
 
     $increment = new DateInterval($tempo_pulo);
-    $daterange = new DatePeriod($begin, $increment, $end);
+    $daterange = new DatePeriod($begin, $increment, $data_fim);
 
     $dias_meses = array();
     foreach ($daterange as $date) {
@@ -508,15 +507,16 @@ function get_time_interval($dias_atras, $tempo_pulo, $date_format){
  * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
  * @date_format formato da data em DateTime()
  */
-function get_time_interval_com_meses($dias_atras, $tempo_pulo, $date_format){
-    $end = new DateTime();
-    $interval = new DateInterval($dias_atras);
+function get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date_format){
+    $data_inicio = date_create_from_format($date_format, $data_inicio);
+    $data_fim = date_create_from_format($date_format, $data_fim);
+    $interval = $data_inicio->diff($data_fim);
 
-    $begin = clone $end;
+    $begin = clone $data_fim;
     $begin->sub($interval);
 
     $increment = new DateInterval($tempo_pulo);
-    $daterange = new DatePeriod($begin, $increment, $end);
+    $daterange = new DatePeriod($begin, $increment, $data_fim);
 
     $meses = array();
     foreach ($daterange as $date) {
@@ -547,3 +547,18 @@ class date_picker_moodle_form extends moodleform {
         return array();
     }
 }
+
+/**
+ * Verifica se a string informada é uma data valida, EX: 22/10/1988
+ * @param $str String data
+ * @return bool
+ */
+function date_is_valid($str) {
+    if (substr_count($str, '/') == 2) {
+        list($d, $m, $y) = explode('/', $str);
+        return checkdate($m, $d, sprintf('%04u', $y));
+    }
+
+    return false;
+}
+

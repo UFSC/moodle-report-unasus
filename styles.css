@@ -88,6 +88,16 @@
     margin-bottom: 2em;
 }
 
+.relatorio-unasus.fieldset.warning{
+    color: #004E95;
+    border-color: #87C7E2;
+    background-color: #efcfcf;
+    border-width: 1px 0;
+    border-style: dotted;
+    padding: 0.5em 1em;
+    margin-bottom: 2em;
+}
+
 .relatorio-unasus.fieldset legend{
     color: #004E95;
     font-size: 16pt;
