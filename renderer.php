@@ -66,6 +66,9 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $agrupar_relatorio_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
 
+        if(is_null($modulos_raw)){
+            $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
+        }
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
