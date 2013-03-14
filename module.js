@@ -3,49 +3,52 @@ M.report_unasus = {};
 M.report_unasus.init = function(Y) {
 
     // Se javascript for executado ele mostra o botão ocultar/mostrar filtros
-    if(YAHOO.util.Dom.hasClass('button-mostrar-filtro', 'visible')){
-        YAHOO.util.Dom.removeClass('button-mostrar-filtro','hidden');
-        YAHOO.util.Dom.addClass('div_filtro','hidden');
-    }else{
-        YAHOO.util.Dom.addClass('div_filtro','visible');
+    var $filter_button = Y.one('#button-mostrar-filtro');
+    var $filter_div = Y.one('#div_filtro');
+
+    if ($filter_button.hasClass('visible')) {
+        $filter_button.removeClass('hidden');
+        $filter_div.addClass('hidden');
+    } else {
+        $filter_div.addClass('visible');
     }
 
     // Ao clicar no botao mostrar/ocultar filtros ele esconde/mostra a barra e troca o seu texto
     Y.delegate('click', function(e) {
-        if(YAHOO.util.Dom.hasClass('div_filtro', 'visible')){
-            YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Mostrar Filtro';
-            YAHOO.util.Dom.addClass('div_filtro','hidden');
-            YAHOO.util.Dom.removeClass('div_filtro','visible');
-        }else{
-            YAHOO.util.Dom.get('button-mostrar-filtro').firstChild.data = 'Ocultar Filtro';
-            YAHOO.util.Dom.addClass('div_filtro','visible');
-            YAHOO.util.Dom.removeClass('div_filtro','hidden');
+        if ($filter_div.hasClass('visible')) {
+            $filter_button.firstChild.data = 'Mostrar Filtro';
+            $filter_div.addClass('hidden');
+            $filter_div.removeClass('visible');
+        } else {
+            $filter_button.firstChild.data = 'Ocultar Filtro';
+            $filter_div.addClass('visible');
+            $filter_div.removeClass('hidden');
         }
     }, document, '#button-mostrar-filtro');
 
     //Botoes de selecionar todos e limpar seleção
     Y.delegate('click', function(e) {
-        select_all('multiple_modulo',true);
+        select_all('#multiple_modulo', true);
     }, document, '#select_all_modulo');
 
     Y.delegate('click', function(e) {
-        select_all('multiple_modulo',false);
+        select_all('#multiple_modulo', false);
     }, document, '#select_none_modulo');
 
     Y.delegate('click', function(e) {
-        select_all('multiple_polo',true);
+        select_all('#multiple_polo', true);
     }, document, '#select_all_polo');
 
     Y.delegate('click', function(e) {
-        select_all('multiple_polo',false);
+        select_all('#multiple_polo', false);
     }, document, '#select_none_polo');
 
     Y.delegate('click', function(e) {
-        select_all('multiple_tutor',true);
+        select_all('#multiple_tutor', true);
     }, document, '#select_all_tutor');
 
     Y.delegate('click', function(e) {
-        select_all('multiple_tutor',false);
+        select_all('#multiple_tutor', false);
     }, document, '#select_none_tutor');
 
 };
@@ -56,11 +59,16 @@ M.report_unasus.init = function(Y) {
  * @param select boolean -- true para selecionar todos, false para descelecionar
  *
  */
-function select_all(target, select){
-    var multiple = YAHOO.util.Dom.get(target);
-    for(item in multiple){
-        multiple[item].selected = select;
-    }
+function select_all(target, select) {
+    var multiple = Y.one(target);
+    multiple.get('options').each(function() {
+        if (select) {
+            this.setAttribute('selected', true);
+        } else {
+            this.removeAttribute('selected');
+        }
+    });
+    multiple.focus();
 }
 
 //M.report_unasus.init_date_picker = YUI().use('calendar', function (Y) {
@@ -104,7 +112,7 @@ var chart1;
 M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentagem) {
     var size = Object.keys(dados_grafico).length;
     var stack_option = 'normal';
-    if(porcentagem)
+    if (porcentagem)
         stack_option = 'percent';
 
     var options = {
@@ -112,7 +120,7 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
             // ID da div para colocar o gráfico
             renderTo: 'container',
             type: 'bar',
-            height: 200 + (60*size)
+            height: 200 + (60 * size)
         },
         title: {
             text: title
@@ -126,7 +134,7 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
             }
         },
         legend: {
-            reversed:true,
+            reversed: true,
             layout: 'vertical'
         },
         plotOptions: {
@@ -140,34 +148,34 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
     };
 
     // se for um gráfico de porcentagem cria uma legenda específica
-    if(porcentagem){
+    if (porcentagem) {
         options['tooltip'] = {
-            formatter:  function(){
-                return '<b>'+this.x+'</b>'  +'<br><span style="color:'+ this.series.color + '">' + this.series.name +'</span>: ' + Math.round(this.percentage*100)/100 +' % (quantidade: '+this.y + ' de ' + this.total+ ')';
+            formatter: function() {
+                return '<b>' + this.x + '</b>' + '<br><span style="color:' + this.series.color + '">' + this.series.name + '</span>: ' + Math.round(this.percentage * 100) / 100 + ' % (quantidade: ' + this.y + ' de ' + this.total + ')';
             }
         }
     }
 
     // Cria um item no array data para cada tipo de informação
     var data = [];
-    for(tipo in tipos){
+    for (tipo in tipos) {
         data[tipo] = [];
     }
 
-    for(tutor in dados_grafico){
+    for (tutor in dados_grafico) {
         //Plota uma nova linha no gráfico para cada tutor
         options.xAxis.categories.push(tutor);
 
         //Para cada informacao de um tutor ele adiciona um novo item no array data
         //data = [tipo1] => [dado_tipo1_tutor1, dado_tipo1_tutor2, dado_tipo1_tutor3],
         //       [tipo2] => [dado_tipo2_tutor1, dado_tipo2_tutor2, dado_tipo2_tutor3]
-        for(d in data){
+        for (d in data) {
             data[d].push(dados_grafico[tutor][d]);
         }
 
     }
 
-    for(tipo in tipos){
+    for (tipo in tipos) {
         options.series.push({
             name: tipos[tipo],
             data: data[tipo]
@@ -184,7 +192,7 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
  *               'tutor 2'=> ('sem1'=> 12,'sem2'=>8, 'sem3'=>20 ))
  *
  */
-M.report_unasus.init_dot_graph = function (Y, dados){
+M.report_unasus.init_dot_graph = function(Y, dados) {
     // Contadores de dados
     // xs = vai de 0 a numero de semanas, repetindo isto para cada tutor
     // EX: 3 tutores, 4 semanas xs = [0,1,2,3,0,1,2,3,0,1,2,3]
@@ -205,17 +213,17 @@ M.report_unasus.init_dot_graph = function (Y, dados){
 
 
     var count_tutor = objectLength(dados);
-    var ysize = count_tutor-1;
+    var ysize = count_tutor - 1;
     var count_semana;
     // A legenda do eixo X é pega com os dados correspondentes do promeiro tutor iterado
     var primeira_vez = true;
 
-    for(tutor in dados){
+    for (tutor in dados) {
         count_semana = 0;
         axisy.push(tutor);
 
-        for(dias in dados[tutor]){
-            if(primeira_vez){
+        for (dias in dados[tutor]) {
+            if (primeira_vez) {
                 axisx.push(dias);
             }
             data.push(dados[tutor][dias]);
@@ -238,28 +246,28 @@ M.report_unasus.init_dot_graph = function (Y, dados){
         heat: true,
         //aonde serao renderizados os eixos, cima, direita, baixo, esquerda
         axis: "0 0 1 1",
-        axisxstep: count_semana-1,
+        axisxstep: count_semana - 1,
         axisystep: ysize,
         axisxlabels: axisx,
         //Modo como serão renderizados a ligação entre legenda - linha divisória, neste caso um "+"
         axisxtype: "+",
         axisytype: "+",
         axisylabels: axisy
-    }).hover(function () {
-        this.marker = this.marker || r.tag(this.x, this.y, this.value, 0, this.r + 2).insertBefore(this);
-        this.marker.show();
-    }, function () {
-        this.marker && this.marker.hide();
-    });
+    }).hover(function() {
+            this.marker = this.marker || r.tag(this.x, this.y, this.value, 0, this.r + 2).insertBefore(this);
+            this.marker.show();
+        }, function() {
+            this.marker && this.marker.hide();
+        });
 };
 
 /**
-* @param obj array(array())
-* @return int quantidade de itens pai no array, utilizado para saber quantos tutores foram enviados
+ * @param obj array(array())
+ * @return int quantidade de itens pai no array, utilizado para saber quantos tutores foram enviados
  **/
 function objectLength(obj) {
     var result = 0;
-    for(var prop in obj) {
+    for (var prop in obj) {
         if (obj.hasOwnProperty(prop)) {
             result++;
         }
