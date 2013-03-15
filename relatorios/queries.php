@@ -322,6 +322,7 @@ function query_quiz($polos){
                 FROM (
                     SELECT *
                     FROM {quiz_attempts}
+                    WHERE (quiz=:assignmentid AND timefinish != 0)
                     ORDER BY attempt DESC
                 ) qa
                 GROUP BY qa.userid, qa.quiz
@@ -330,7 +331,7 @@ function query_quiz($polos){
             LEFT JOIN {quiz_grades} qg
             ON (u.id = qg.userid AND qg.quiz=qa.quiz)
             LEFT JOIN {quiz} q
-            ON (q.course=:courseid AND q.id =:assignmentid AND qa.quiz = q.id AND qg.quiz = q.id)
+            ON (q.course=:courseid AND q.id =:assignmentid2 AND qa.quiz = q.id AND qg.quiz = q.id)
             ORDER BY grupo_id, u.firstname, u.lastname
      ";
 }

@@ -76,6 +76,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
 
                     $params =  array(
                         'assignmentid' => $atividade->id,
+                        'assignmentid2' => $atividade->id,
                         'courseid' => $courseid,
                         'curso_ufsc' => $curso_ufsc,
                         'grupo_tutoria' => $grupo->id,
