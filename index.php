@@ -5,6 +5,7 @@ require('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
 require_once($CFG->dirroot . '/report/unasus/lib.php');
+require_once($CFG->dirroot . '/report/unasus/factory.php');
 
 $courseid = get_course_id();
 $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);

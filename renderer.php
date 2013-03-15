@@ -8,6 +8,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     private $curso_ativo;
     private $report;
     private $context;
+    private $factory;
 
     public function __construct(moodle_page $page, $target) {
         parent::__construct($page, $target);
@@ -28,6 +29,11 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Contexto
         $courseid = get_course_id();
         $this->context = context_course::instance($courseid);
+
+        $this->factory = Factory::singleton();
+        var_dump($this->factory->banana);
+        $this->factory->banana = 'Maçã';
+        var_dump($this->factory->banana);
     }
 
     /*
