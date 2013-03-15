@@ -202,6 +202,7 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
 
                     $params =  array(
                         'assignmentid' => $atividade->id,
+                        'assignmentid2' => $atividade->id,
                         'courseid' => $modulo,
                         'curso_ufsc' => $curso_ufsc,
                         'grupo_tutoria' => $grupo->id,
