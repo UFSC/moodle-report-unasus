@@ -84,7 +84,7 @@ abstract class unasus_data {
      */
     public function dia_toString($num_dias) {
         if ($num_dias == 0) {
-            return 'mesmo dia';
+            return 'entregue hoje';
         } elseif ($num_dias == 1) {
             return '1 dia';
         } else {
