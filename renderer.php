@@ -69,14 +69,14 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
         if (has_capability('report/unasus:view_tutoria', $FACTORY->get_context()) && !has_capability('report/unasus:view_all', $FACTORY->get_context())) {
-            $tutores_raw = array($USER->id);
+            $FACTORY->tutores_selecionados = array($USER->id);
         }
 
- $dados_method = $FACTORY->get_dados_relatorio();
- $header_method = $FACTORY->get_table_header_relatorio();
+        $dados_method = $FACTORY->get_dados_relatorio();
+        $header_method = $FACTORY->get_table_header_relatorio();
         $table = $this->default_table($dados_method(), $header_method());
 
-                $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
+        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
         return $output;
@@ -89,11 +89,13 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function build_page() {
+        /** @var $FACTORY Factory */
+        $FACTORY = Factory::singleton();
+
         $output = $this->default_header();
         $output .= $this->build_filter();
 
-// @TODO ADICIONAR A FACTORY
-if($show_time_warning){
+        if($FACTORY->mostrar_aviso_intervalo_tempo){
            $output .= $this->build_warning('Intervalo de Tempo incorreto ou Formato de data inválido ');
         }
         $output .= $this->default_footer();
@@ -182,16 +184,16 @@ if($show_time_warning){
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
 
         // Filtro de modulo
-	if($FACTORY->mostrar_filtro_modulos)
-	
-        $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '' ;
-        $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
-        $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-        $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post,'', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
-        $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
-        $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
-        $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
-}
+        if($FACTORY->mostrar_filtro_modulos){
+
+            $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '' ;
+            $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
+            $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
+            $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post,'', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
+            $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
+            $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
+            $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
+        }
 
         if (has_capability('report/unasus:view_all', $FACTORY->get_context())) {
 
@@ -215,7 +217,7 @@ if($show_time_warning){
         }
 
 //@ TODO facoty
-        if($show_time_filter){
+        if($FACTORY->mostrar_filtro_intervalo_tempo){
 
             $data_fim = date('d/m/Y');
             $data_inicio = date('d/m/Y', strtotime('-1 months'));

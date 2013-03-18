@@ -94,43 +94,40 @@ if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) 
             echo $renderer->build_report();
             break;
         case 'acesso_tutor' :
-            
-	
-$data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
             $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            $FACTORY->mostrar_botoes_grafico = false;
+            $FACTORY->mostrar_filtro_polos = false;
+            $FACTORY->mostrar_filtro_intervalo_tempo = true;
             //As strings informadas sao datas validas?
             if(date_interval_is_valid($data_inicio, $data_fim)){
-                $FACTORY->mostrar_botoes_grafico = false;    
-	$FACTORY->texto_cabecalho = 'Tutores';
-            $FACTORY->mostrar_filtro_polos = false;		
-echo $renderer->build_report();
+	            $FACTORY->texto_cabecalho = 'Tutores';
+                echo $renderer->build_report();
                     //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
-                    break;
+                break;
             }
-$FACTORY->mostrar_botoes_grafico = false;
-            $FACTORY->mostrar_filtro_polos = false;
+            $FACTORY->mostrar_aviso_intervalo_tempo = true;
             echo $renderer->build_page();
             break;
             
         case 'uso_sistema_tutor' :
-		
-$data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
             $data_fim = optional_param('data_fim', null, PARAM_TEXT);
-            //As strings informadas sao datas validas?
-            if(date_interval_is_valid($data_inicio, $data_fim)){
-                $FACTORY->mostrar_botoes_grafico = false;
-            $FACTORY->mostrar_botoes_dot_chart = true;
-            $FACTORY->texto_cabecalho = null;
-            $FACTORY->mostrar_filtro_polos = false;
-            echo $renderer->build_report();
-                //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
-                break;
-            }
+
             $FACTORY->mostrar_botoes_grafico = false;
             $FACTORY->mostrar_botoes_dot_chart = true;
             $FACTORY->mostrar_filtro_polos = false;
+            $FACTORY->mostrar_filtro_intervalo_tempo = true;
+            //As strings informadas sao datas validas?
+            if(date_interval_is_valid($data_inicio, $data_fim)){
+                $FACTORY->texto_cabecalho = null;
+                echo $renderer->build_report();
+                //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+                break;
+            }
+            $FACTORY->mostrar_aviso_intervalo_tempo = true;
             echo $renderer->build_page();
-break;	
+            break;
         default:
             print_error('unknow_report', 'report_unasus');
             break;
@@ -151,16 +148,20 @@ break;
         case 'uso_sistema_tutor' :
             $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
             $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+
+            $FACTORY->mostrar_botoes_grafico = false;
+            $FACTORY->mostrar_botoes_dot_chart = true;
+            $FACTORY->mostrar_filtro_polos = false;
+            $FACTORY->mostrar_filtro_intervalo_tempo = true;
             //As strings informadas sao datas validas?
             if(date_interval_is_valid($data_inicio, $data_fim)){
                 echo $renderer->build_dot_graph();
                 break;
             }
-$FACTORY->mostrar_botoes_grafico = false;
-            $FACTORY->mostrar_botoes_dot_chart = true;
-            $FACTORY->mostrar_filtro_polos = false;
+
+            $FACTORY->mostrar_aviso_intervalo_tempo = true;
             echo $renderer->build_page();
-break;
+            break;
 
         default:
             print_error('unknow_report', 'report_unasus');

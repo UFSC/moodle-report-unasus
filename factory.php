@@ -17,6 +17,9 @@ class Factory{
     public $mostrar_botoes_grafico;
     public $mostrar_botoes_dot_chart;
     public $mostrar_filtro_polos;
+    public $mostrar_filtro_modulos;
+    public $mostrar_filtro_intervalo_tempo;
+    public $mostrar_aviso_intervalo_tempo;
 
     //Atributos para os gráficos
     public $modulos_selecionados;
@@ -40,6 +43,9 @@ class Factory{
         $this->mostrar_botoes_grafico = true;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_modulos = true;
+        $this->mostrar_filtro_intervalo_tempo = false;
+        $this->mostrar_aviso_intervalo_tempo = false;
 
         //Atributos para os gráficos
         //Por default os módulos selecionados são os módulos que o curso escolhido possui
