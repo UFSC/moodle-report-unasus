@@ -4,36 +4,22 @@ defined('MOODLE_INTERNAL') || die();
 
 class report_unasus_renderer extends plugin_renderer_base {
 
-    private $cursos;
-    private $curso_ativo;
     private $report;
-    private $context;
-    private $factory;
 
     public function __construct(moodle_page $page, $target) {
         parent::__construct($page, $target);
 
+        /** @var $FACTORY Factory */
+        $FACTORY = Factory::singleton();
+
         // Carrega tipo de renderização (relatório ou gráfico)
-        $relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+        $relatorio = $FACTORY->get_relatorio();
         if (!empty($relatorio)) {
             $this->report = $relatorio;
         } else {
-            $this->report = optional_param('grafico', null, PARAM_ALPHANUMEXT);
+            $this->report = $FACTORY->get_modo_exibicao();
         }
 
-        // Carrega informações sobre cursos UFSC
-        $this->cursos = get_cursos_ativos_list();
-        $this->curso_ativo = get_course_id();
-        $this->curso_ufsc = get_curso_ufsc_id();
-
-        // Contexto
-        $courseid = get_course_id();
-        $this->context = context_course::instance($courseid);
-
-        $this->factory = Factory::singleton();
-        var_dump($this->factory->banana);
-        $this->factory->banana = 'Maçã';
-        var_dump($this->factory->banana);
     }
 
     /*
@@ -52,38 +38,40 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String $output
      */
 
-    public function build_report($graficos = true, $dot_chart = false, $tipo_cabecalho = 'Estudantes', $show_polo_filter = true) {
+    public function build_report() {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
-        $output = $this->default_header();
-        $output .= $this->build_filter(true, $graficos, $dot_chart, $show_polo_filter);
+        /** @var $FACTORY Factory */
+        $FACTORY = Factory::singleton();
 
-        $data_class = "dado_{$this->report}";
+        $output = $this->default_header();
+        $output .= $this->build_filter();
+
+        $data_class = $FACTORY->get_estrutura_dados_relatorio();
 
         $output .= html_writer::tag('div', $this->build_legend(call_user_func("{$data_class}::get_legend")), array('class' => 'relatorio-unasus right_legend'));
 
-        $dados_method = "get_dados_{$this->report}";
-        $header_method = "get_table_header_{$this->report}";
-
+        // Configurações dos filtros, o que o usuário escolheu para filtrar
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
-        $polos_raw = optional_param_array('polos', null, PARAM_INT);
-        $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
-
-        $agrupar_relatorio_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
-
         if(is_null($modulos_raw)){
             $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
         }
         $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
+        $FACTORY->modulos_selecionados = $modulos;
+        $FACTORY->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
+        $FACTORY->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
+        $FACTORY->agrupar_relatorios_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $this->context) && !has_capability('report/unasus:view_all', $this->context)) {
+        if (has_capability('report/unasus:view_tutoria', $FACTORY->get_context()) && !has_capability('report/unasus:view_all', $FACTORY->get_context())) {
             $tutores_raw = array($USER->id);
         }
 
-        $table = $this->default_table($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw, $agrupar_relatorio_por_polos), $header_method($modulos_raw), $tipo_cabecalho);
+        $dados_method = $FACTORY->get_dados_relatorio();
+        $header_method = $FACTORY->get_table_header_relatorio();
+        $table = $this->default_table($dados_method(), $header_method());
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -94,13 +82,11 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página sem os gráficos, para que o usuário possa filtrar sua busca antes de
      * gerar a tabela
      *
-     * @param boolean $graficos
-     * @param boolean $dot_chart
      * @return String
      */
-    public function build_page($graficos = true, $dot_chart = false, $show_polo_filter = true) {
+    public function build_page() {
         $output = $this->default_header();
-        $output .= $this->build_filter(false, $graficos, $dot_chart, $show_polo_filter);
+        $output .= $this->build_filter();
         $output .= $this->default_footer();
         return $output;
     }
@@ -150,13 +136,16 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a barra de Filtros
      * @return string $output
      */
-    public function build_filter($hide_filter = false, $grafico = true, $dot_chart = false, $show_polo_filter = true) {
+    public function build_filter() {
         global $CFG, $_POST;
+
+        /** @var $FACTORY Factory */
+        $FACTORY = Factory::singleton();
 
         //$dados_tutores = grupos_tutoria::get_chave_valor_grupos_tutoria($this->curso_ufsc);
 
         // Inicio do Form
-        $url_filtro = new moodle_url('/report/unasus/index.php', array('relatorio' => $this->report, 'course' => $this->curso_ativo));
+        $url_filtro = new moodle_url('/report/unasus/index.php', $FACTORY->get_page_params());
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
                   'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
@@ -165,15 +154,15 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
 
         // Botao de ocultar/mostrar filtros, só aparece com javascript carregado
-        $css_class = ($hide_filter == true) ? 'visible hidden' : 'hidden';
+        $css_class = ($FACTORY->ocultar_barra_filtragem == true) ? 'visible hidden' : 'hidden';
         $output .= html_writer::nonempty_tag('button', 'Mostrar Filtros', array('id' => 'button-mostrar-filtro', 'type' => 'button', 'class' => "relatorio-unasus botao-ocultar {$css_class}"));
 
         // Filtros
         $output .= html_writer::start_tag('div', array('class' => "relatorio-unasus conteudo-filtro", 'id' => 'div_filtro'));
 
-        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => "$this->report"));
+        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => $FACTORY->get_relatorio()));
 
-        if($show_polo_filter){
+        if($FACTORY->mostrar_filtro_polos){
             // Dropdown list
             $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
             $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
@@ -186,20 +175,20 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Filtro de modulo
 
         $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '' ;
-        $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
+        $nome_modulos = get_id_nome_modulos($FACTORY->get_curso_ufsc());
         $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
         $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post,'', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
         $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
         $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
         $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
 
-        if (has_capability('report/unasus:view_all', $this->context)) {
+        if (has_capability('report/unasus:view_all', $FACTORY->get_context())) {
 
-            if($show_polo_filter){
+            if($FACTORY->mostrar_filtro_polos){
             // Filtro de Polo
                 $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '' ;
                 $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-                $filter_polos .= html_writer::select(get_polos($this->curso_ufsc), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+                $filter_polos .= html_writer::select(get_polos($FACTORY->get_curso_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
                 $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
                 $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
                 $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
@@ -208,7 +197,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             // Filtro de Tutores
             $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '' ;
             $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-            $filter_tutores .= html_writer::select(get_tutores_menu($this->curso_ufsc), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+            $filter_tutores .= html_writer::select(get_tutores_menu($FACTORY->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
             $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
             $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
             $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
@@ -220,14 +209,14 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'tabela', 'id' => 'radio_tabela', 'checked' => true));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela', true, array('class' => 'radio'));
 
-        if ($grafico) {
+        if ($FACTORY->mostrar_botoes_grafico) {
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_valores', 'id' => 'radio_valores'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores', true, array('class' => 'radio'));
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_porcentagens', 'id' => 'radio_porcentagem'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'radio'));
         }
 
-        if ($dot_chart) {
+        if ($FACTORY->mostrar_botoes_dot_chart) {
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_pontos', 'id' => 'radio_dot'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'radio'));
         }
