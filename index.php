@@ -25,6 +25,7 @@ if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
     $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
 
     require_login($courseid);
+    /** @var $renderer report_unasus_renderer */
     $renderer = $PAGE->get_renderer('report_unasus');
 
     if (in_array($relatorio, report_unasus_relatorios_restritos_list())) {
@@ -52,11 +53,12 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_page(false);
             break;
         case 'acesso_tutor' :
-            //nao mostrar botao de grafico, nem grafico de bolas e nem filtro de polo
-            echo $renderer->build_page(false, false, false);
+            echo $renderer->build_page(false, false, false, false, true);
+            //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_page(false, true, false);
+            echo $renderer->build_page(false, true, false, false, true);
+            //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
             break;
         default:
             print_error('unknow_report', 'report_unasus');
@@ -85,10 +87,26 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_report(false,false,'Tutores');
             break;
         case 'acesso_tutor' :
-            echo $renderer->build_report(false,false,'Tutores', false);
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            //As strings informadas sao datas validas?
+            if(date_interval_is_valid($data_inicio, $data_fim)){
+                    echo $renderer->build_report(false,false,'Tutores', false, false, true);
+                    //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+                    break;
+            }
+            echo $renderer->build_page(false, false, false, false, true, true);
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_report(false, true, null, false);
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            //As strings informadas sao datas validas?
+            if(date_interval_is_valid($data_inicio, $data_fim)){
+                echo $renderer->build_report(false, true, null, false, false, true);
+                //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+                break;
+            }
+            echo $renderer->build_page(false, false, false, false, true, true);
             break;
         default:
             print_error('unknow_report', 'report_unasus');
@@ -108,10 +126,20 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_graph($porcentagem);
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_dot_graph();
+            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            //As strings informadas sao datas validas?
+            if(date_interval_is_valid($data_inicio, $data_fim)){
+                echo $renderer->build_dot_graph();
+                break;
+            }
+            echo $renderer->build_page(false, false, false, false, true, true);
+            break;
+
             break;
         default:
             print_error('unknow_report', 'report_unasus');
             break;
     }
 }
+

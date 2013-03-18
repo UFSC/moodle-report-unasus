@@ -9,9 +9,22 @@
     margin-top: 1em;
 }
 
+.relatorio-unasus.fieldset .time_filter{
+    display: inline-block;
+    width: 32%;
+    margin-left: 1%;
+    margin-bottom: 1em;
+    margin-top: 1em;
+    vertical-align: top;
+}
+
+.relatorio-unasus.fieldset .calendar-full{
+    width: 100%;
+}
+
 .relatorio-unasus.fieldset .multiple_list select{
     width: 100%;
-    height: 200px;
+    height: 225px;
 }
 
 /* Radio buttons da barra de filtros */
@@ -69,6 +82,16 @@
     color: #004E95;
     border-color: #87C7E2;
     background-color: #FEF9EC;
+    border-width: 1px 0;
+    border-style: dotted;
+    padding: 0.5em 1em;
+    margin-bottom: 2em;
+}
+
+.relatorio-unasus.fieldset.warning{
+    color: #004E95;
+    border-color: #87C7E2;
+    background-color: #efcfcf;
     border-width: 1px 0;
     border-style: dotted;
     padding: 0.5em 1em;
