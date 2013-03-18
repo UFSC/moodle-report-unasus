@@ -381,7 +381,8 @@ class report_unasus_final_grade {
 
     public function __toString() {
         $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id));
-        return html_writer::link($gradebook_url, $this->name);
+        $text = (is_null($this->name) || $this->name == '') ? 'Média Final ' : $this->name;
+        return html_writer::link($gradebook_url, $text);
     }
 }
 
