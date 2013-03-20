@@ -152,7 +152,7 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
         $group_array_do_grupo = new GroupArray();
         $array_das_atividades = array();
 
-        foreach ($modulos as $modulo => $atividades) {
+        foreach ($FACTORY->modulos_selecionados as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
 
                 if (is_a($atividade, 'report_unasus_assign_activity')) {

@@ -54,18 +54,6 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::tag('div', $this->build_legend(call_user_func("{$data_class}::get_legend")), array('class' => 'relatorio-unasus right_legend'));
 
-        // Configurações dos filtros, o que o usuário escolheu para filtrar
-        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
-        
-        if(is_null($modulos_raw)){
-            $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
-        }
-        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
-        $FACTORY->modulos_selecionados = $modulos;
-        $FACTORY->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
-        $FACTORY->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
-        $FACTORY->agrupar_relatorios_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
-
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
         if (has_capability('report/unasus:view_tutoria', $FACTORY->get_context()) && !has_capability('report/unasus:view_all', $FACTORY->get_context())) {
@@ -462,29 +450,22 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
+        /** @var $FACTORY Factory */
+        $FACTORY = Factory::singleton();
+
         $output = $this->default_header();
-        $output .= $this->build_filter(true, false);
+        $output .= $this->build_filter();
 
-        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
-        $polos_raw = optional_param_array('polos', null, PARAM_INT);
-        $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
-
-        if(is_null($modulos_raw)){
-            $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
-        }
-        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
-
-        
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $this->context) && !has_capability('report/unasus:view_all', $this->context)) {
-            $tutores_raw = array($USER->id);
+        if (has_capability('report/unasus:view_tutoria', $FACTORY->get_context()) && !has_capability('report/unasus:view_all', $FACTORY->get_context())) {
+            $FACTORY->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = "get_dados_{$this->report}";
-        $header_method = "get_table_header_{$this->report}";
+        $dados_method = $FACTORY->get_dados_relatorio();
+        $header_method = $FACTORY->get_table_header_relatorio();
 
-        $table = $this->table_tutores($dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw, $agrupar_relatorio_por_polos), $header_method($modulos_raw));
+        $table = $this->table_tutores($dados_method(), $header_method());
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -499,30 +480,21 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
+        /** @var $FACTORY Factory */
+        $FACTORY = Factory::singleton();
+
         $output = $this->default_header();
-        $output .= $this->build_filter(false, false);
+        $output .= $this->build_filter();
 
-        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
-        $polos_raw = optional_param_array('polos', null, PARAM_INT);
-        $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
-
-        $agrupar_relatorio_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
-
-        if(is_null($modulos_raw)){
-            $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
-        }
-        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $this->context) && !has_capability('report/unasus:view_all', $this->context)) {
-            $tutores_raw = array($USER->id);
+        if (has_capability('report/unasus:view_tutoria', $FACTORY->get_context()) && !has_capability('report/unasus:view_all', $FACTORY->get_context())) {
+            $FACTORY->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = "get_dados_{$this->report}";
-        $dados_atividades = $dados_method($this->curso_ufsc, $this->curso_ativo, $modulos, $tutores_raw, $polos_raw, $agrupar_relatorio_por_polos);
-
-
+        $dados_method = $FACTORY->get_dados_relatorio();
+        $dados_atividades = $dados_method();
 
         // Varre os dados em busca do estudante com maior numero de atividades não feitas
         // Isso é utilizado para definir o tamanho do cabeçalho e da divisao por tutor.
@@ -554,6 +526,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         global $PAGE, $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
+        /** @var $FACTORY Factory */
+        $FACTORY = Factory::singleton();
+
         $output = $this->default_header();
 
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
@@ -574,23 +549,14 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $legend = call_user_func("$dados_class::get_legend");
 
-        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
-        $polos_raw = optional_param_array('polos', null, PARAM_INT);
-        $tutores_raw = optional_param_array('tutores', null, PARAM_INT);
-
-        if(is_null($modulos_raw)){
-            $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
-        }
-        $modulos = get_atividades_cursos(get_modulos_validos($modulos_raw));
-
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $this->context) && !has_capability('report/unasus:view_all', $this->context)) {
-            $tutores_raw = array($USER->id);
+        if (has_capability('report/unasus:view_tutoria', $FACTORY->get_context()) && !has_capability('report/unasus:view_all', $FACTORY->get_context())) {
+            $FACTORY->tutores_selecionados = array($USER->id);
         }
 
         $PAGE->requires->js_init_call('M.report_unasus.init_graph', array(
-            $dados_method($this->curso_ufsc, $modulos, $tutores_raw, $polos_raw),
+            $dados_method(),
             array_values($legend),
             get_string($this->report, 'report_unasus'), $porcentagem));
 

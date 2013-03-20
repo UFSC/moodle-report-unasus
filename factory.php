@@ -28,6 +28,10 @@ class Factory{
     public $agrupar_relatorios_por_polos;
     public $texto_cabecalho;
 
+    //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
+    public $data_inicio;
+    public $data_fim;
+
     //Singleton
     private static $instance;
 
@@ -49,12 +53,26 @@ class Factory{
 
         //Atributos para os gráficos
         //Por default os módulos selecionados são os módulos que o curso escolhido possui
-        $this->modulos_selecionados = array_keys(get_id_nome_modulos($this->curso_ufsc));
         $this->ocultar_barra_filtragem = true;
-        $this->polos_selecionados = null;
-        $this->tutores_selecionados = null;
-        $this->agrupar_relatorios_por_polos = false;
         $this->texto_cabecalho = 'Estudantes';
+
+        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
+        if(is_null($modulos_raw)){
+            $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
+        }
+        $this->modulos_selecionados = get_atividades_cursos(get_modulos_validos($modulos_raw));
+        $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
+        $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
+        $this->agrupar_relatorios_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
+
+        //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
+        $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
+        $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+        if(date_interval_is_valid($data_inicio,$data_fim)){
+            $this->data_inicio = $data_inicio;
+            $this->data_fim = $data_fim;
+        }
+
     }
 
     // Criação do objeto unico
@@ -165,6 +183,19 @@ class Factory{
         return array('relatorio' => $this->get_relatorio(), 'course' => $this->get_curso_moodle());
     }
 
+    /**
+     * @return array array com as ids dos modulos
+     */
+    public function get_modulos_ids(){
+        return array_keys($this->modulos_selecionados);
+    }
+
+    /**
+     * @return bool se as datas foram setadas no construtor, passando pelo date_interval_is_valid elas são validas
+     */
+    public function datas_validas(){
+        return (!is_null($this->data_inicio) && !is_null($this->data_fim));
+    }
 
 
 }
