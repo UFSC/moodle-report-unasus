@@ -174,14 +174,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Filtro de modulo
         if($FACTORY->mostrar_filtro_modulos){
 
-            $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '' ;
-            $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
-            $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-            $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post,'', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
-            $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
-            $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
-            $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
-        }
+        $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '' ;
+        $nome_modulos = get_id_nome_modulos($FACTORY->get_curso_ufsc());
+        $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
+        $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post,'', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
+        $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
+        $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
+        $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
 
         if (has_capability('report/unasus:view_all', $FACTORY->get_context())) {
 

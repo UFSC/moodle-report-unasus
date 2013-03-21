@@ -32,7 +32,8 @@ $PAGE->set_pagelayout('report');
 $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
 
 
-    $renderer = $PAGE->get_renderer('report_unasus');
+/** @var $renderer report_unasus_renderer */
+$renderer = $PAGE->get_renderer('report_unasus');
 
 // Renderiza os relatórios
 if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) {
