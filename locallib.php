@@ -549,20 +549,6 @@ class date_picker_moodle_form extends moodleform {
 }
 
 /**
- * Verifica se a string informada é uma data valida, EX: 22/10/1988
- * @param $str String data
- * @return bool
- */
-function date_is_valid($str) {
-    if (substr_count($str, '/') == 2) {
-        list($d, $m, $y) = explode('/', $str);
-        return checkdate($m, $d, sprintf('%04u', $y));
-    }
-
-    return false;
-}
-
-/**
  * Verifica se um intervalo de datas são validos, compara se a data de inicio é menor que a de fim e se as strings são datas validas
  * @param $datainicio String data
  * @param $datafim String data
@@ -575,5 +561,19 @@ function date_interval_is_valid($data_inicio, $data_fim){
             return true;
         }
     }
+    return false;
+}
+
+/**
+ * Verifica se a string informada é uma data valida, EX: 22/10/1988
+ * @param $str String data
+ * @return bool
+ */
+function date_is_valid($str) {
+    if (substr_count($str, '/') == 2) {
+        list($d, $m, $y) = explode('/', $str);
+        return checkdate($m, $d, sprintf('%04u', $y));
+    }
+
     return false;
 }

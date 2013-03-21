@@ -3,16 +3,18 @@
 /*
  * Loop para a criação do array associativo com as atividades e foruns de um dado aluno fazendo as queries SQLs
  *
+ * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
-function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
-                                               $cursos_ids, $tutores,
-                                               $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
+function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
+    /** @var $FACTORY Factory */
+    $FACTORY = Factory::singleton();
+
 
     // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($FACTORY->get_curso_ufsc(), $FACTORY->tutores_selecionados);
 
     /* Array associativo que irá armazenar para cada grupo de tutoria as atividades e foruns de um aluno num dado modulo
      * A atividade pode ser tanto uma avaliação de um dado módulo ou um fórum com sistema de avaliação
@@ -26,7 +28,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
         $group_array_do_grupo = new GroupArray();
 
         // Para cada modulo e suas atividades
-        foreach ($cursos_ids as $courseid => $atividades) {
+        foreach ($FACTORY->modulos_selecionados as $courseid => $atividades) {
 
             // Num módulo existem várias atividades, numa dada atividade ele irá pesquisar todas as notas dos alunos daquele
             // grupo de tutoria
@@ -35,7 +37,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                 if (is_a($atividade, 'report_unasus_assign_activity')) {
                     $params = array('assignmentid' => $atividade->id,
                                     'assignmentid2' => $atividade->id,
-                                    'curso_ufsc' => $curso_ufsc,
+                                    'curso_ufsc' => $FACTORY->get_curso_ufsc(),
                                     'grupo_tutoria' => $grupo->id,
                                     'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
                     if($query_course){
@@ -56,7 +58,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
 
                     $params =  array(
                         'courseid' => $courseid,
-                        'curso_ufsc' => $curso_ufsc,
+                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
@@ -78,7 +80,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $courseid,
-                        'curso_ufsc' => $curso_ufsc,
+                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
@@ -101,7 +103,7 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
             if(!is_null($query_nota_final)){
                 $params =  array(
                     'courseid' => $courseid,
-                    'curso_ufsc' => $curso_ufsc,
+                    'curso_ufsc' => $FACTORY->get_curso_ufsc(),
                     'grupo_tutoria' => $grupo->id,
                     'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
@@ -124,24 +126,37 @@ function loop_atividades_e_foruns_de_um_modulo($curso_ufsc,
 
 }
 
-// TODO: alterar este loop para utilizar a nova estrutura de dados
-function loop_atividades_e_foruns_sintese($curso_ufsc,
-                                          $modulos, $tutores,
-                                          $query_alunos_grupo_tutoria, $query_forum, $query_quiz)
+/**
+ * @param $query_alunos_grupo_tutoria
+ * @param $query_forum
+ * @param $query_quiz
+ * @return array (
+ *
+ *      'total_alunos' => array( 'polo' => total_alunos_no_polo ),
+ *      'total_atividades' => int numero total de atividades,
+ *      'lista_atividade' => array( 'modulo' => array( 'dado_atividade_nota_atribuida', 'dado_atividade_nota_atribuida' )),
+ *      'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
+ *
+ * )
+ */
+function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz)
 {
     $middleware = Middleware::singleton();
 
+    /** @var $FACTORY Factory */
+    $FACTORY = Factory::singleton();
+
     // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($curso_ufsc, $tutores);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($FACTORY->get_curso_ufsc(), $FACTORY->tutores_selecionados);
 
 
     $associativo_atividade = array();
     $lista_atividade = array();
     // Listagem da atividades por tutor
-    $total_alunos = get_count_estudantes($curso_ufsc);
+    $total_alunos = get_count_estudantes($FACTORY->get_curso_ufsc());
     $total_atividades = 0;
 
-    foreach ($modulos as $atividades) {
+    foreach ($FACTORY->modulos_selecionados as $atividades) {
         $total_atividades += count($atividades);
     }
 
@@ -150,7 +165,7 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
         $group_array_do_grupo = new GroupArray();
         $array_das_atividades = array();
 
-        foreach ($modulos as $modulo => $atividades) {
+        foreach ($FACTORY->modulos_selecionados as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
 
                 if (is_a($atividade, 'report_unasus_assign_activity')) {
@@ -162,7 +177,7 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'assignmentid3' => $atividade->id,
-                        'curso_ufsc' => $curso_ufsc,
+                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
@@ -181,7 +196,7 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
 
                     $params = array(
                         'courseid' => $modulo,
-                        'curso_ufsc' => $curso_ufsc,
+                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
@@ -204,7 +219,7 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $modulo,
-                        'curso_ufsc' => $curso_ufsc,
+                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
@@ -231,6 +246,5 @@ function loop_atividades_e_foruns_sintese($curso_ufsc,
                  'total_atividades' => $total_atividades,
                  'lista_atividade' => $lista_atividade,
                  'associativo_atividade' => $associativo_atividade);
-
 }
 
