@@ -128,6 +128,13 @@ class Factory{
         return "get_table_header_{$this->relatorio}";
     }
 
+    /**
+     * @return string nome de um metodo
+     */
+    public function get_dados_grafico_relatorio(){
+        return "get_dados_grafico_{$this->relatorio}";
+    }
+
 
     /**
      * @param $relatorio string nome do relatorio

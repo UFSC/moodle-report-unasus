@@ -58,12 +58,14 @@ if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) 
             $FACTORY->mostrar_filtro_modulos = false;
             $FACTORY->mostrar_botoes_grafico = false;
             $FACTORY->mostrar_filtro_polos = false;
+            $FACTORY->mostrar_filtro_intervalo_tempo = true;
             echo $renderer->build_page();
             break;
         case 'uso_sistema_tutor' :
             $FACTORY->mostrar_filtro_modulos = false;
             $FACTORY->mostrar_botoes_grafico = false;
             $FACTORY->mostrar_botoes_dot_chart = true;
+            $FACTORY->mostrar_filtro_intervalo_tempo = true;
             $FACTORY->mostrar_filtro_polos = false;
             echo $renderer->build_page();
             break;
@@ -150,6 +152,7 @@ if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) 
             $FACTORY->mostrar_botoes_grafico = false;
             $FACTORY->mostrar_botoes_dot_chart = true;
             $FACTORY->mostrar_filtro_polos = false;
+            $FACTORY->mostrar_filtro_modulos = false;
             $FACTORY->mostrar_filtro_intervalo_tempo = true;
             //As strings informadas sao datas validas?
             if($FACTORY->datas_validas()){

@@ -3,6 +3,7 @@
 /*
  * Loop para a criação do array associativo com as atividades e foruns de um dado aluno fazendo as queries SQLs
  *
+ * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
 function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
     // Middleware para as queries sql
@@ -125,7 +126,19 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
 
 }
 
-// TODO: alterar este loop para utilizar a nova estrutura de dados
+/**
+ * @param $query_alunos_grupo_tutoria
+ * @param $query_forum
+ * @param $query_quiz
+ * @return array (
+ *
+ *      'total_alunos' => array( 'polo' => total_alunos_no_polo ),
+ *      'total_atividades' => int numero total de atividades,
+ *      'lista_atividade' => array( 'modulo' => array( 'dado_atividade_nota_atribuida', 'dado_atividade_nota_atribuida' )),
+ *      'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
+ *
+ * )
+ */
 function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz)
 {
     $middleware = Middleware::singleton();
@@ -233,6 +246,5 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
                  'total_atividades' => $total_atividades,
                  'lista_atividade' => $lista_atividade,
                  'associativo_atividade' => $associativo_atividade);
-
 }
 
