@@ -4,6 +4,29 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/form/dateselector.php');
 require_once($CFG->libdir . '/formslib.php');
 
+/**
+ * Class report_unasus_renderer
+ *
+ * Essa classe tem como objetivo renderizar as telas dos relatórios de acordo com o que foi
+ * selecionado no arquivo index.php. Quando necessário renderizar uma tabela ou gráfico o
+ * relatório é encaminhado para o arquivo /relatorios/relatorios.php
+ *
+ * build_page() -> tela inicial do relatorio
+ * build_legend -> cria a legenda das tabelas
+ * default_header -> cabeçalho da pagina, com ou sem o botao de ajuda
+ * build_filter -> constroi a barra de filtragem
+ * default_footer -> rodapé do moodle
+ * default_table -> tabela para os relatorios
+ * table_tutores -> tabela de sintese dos tutores
+ * table_todo_list -> tabela dos relatorios de tarefas em atraso
+ * page_atividades_nao_avaliadas -> renderizacao para os relatorio de Atividades Postadas e não Avaliadas
+ * page_todo_list -> renderizacao para os relatorios de tarefas em atraso
+ * build_report -> renderizacao padrão, utilizada na maioria dos relatorios
+ * build_graph -> renderizacao dos gráficos de barra
+ * build_dot_graph -> renderizacao dos gráficos de pontos (uso sistema do tutor)
+ * build_warning -> barra de aviso caso alguma filtragem seja inválida
+ *
+ */
 class report_unasus_renderer extends plugin_renderer_base {
 
     private $report;
@@ -25,7 +48,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Cria a página sem os gráficos, para que o usuário possa filtrar sua busca antes de
+     * Cria a página sem os gráficos, tela inicial, para que o usuário possa filtrar sua busca antes de
      * gerar a tabela
      *
      * @return String

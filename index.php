@@ -1,5 +1,33 @@
 <?php
 
+/**
+ * Relatórios UNASUS
+ *
+ * Este plugin tem como objetivo gerar relatórios, sobre a forma de tabelas e gráficos,
+ * do desemprenho de alunos e tutores dentro de um curso moodle. Existem vários tipos de relatórios
+ *
+ * 'estudante_sem_atividade_avaliada'
+ * 'estudante_sem_atividade_postada'
+ * 'atividades_nao_avaliadas'
+ * 'atividades_nota_atribuida'
+ * 'entrega_de_atividades'
+ * 'atividades_vs_notas'
+ * 'boletim',
+ * 'acesso_tutor'
+ * 'uso_sistema_tutor
+ * 'potenciais_evasoes'
+ *
+ * O caminho básico para a renderização de um relatório é
+ *
+ * index.php (aonde é construida a FACTORY com os parametros via GET e POST e do que vai ser
+ * renderizado (tela inicial - somente filtro, tabela - filtro e tabela ou gráfico - filtro e gráfico)
+ *
+ * Após esta seleção no index.php o relatório segue para o
+ * renderer.php (aonde são construidos os filtros, com os parametros setados na FACTORY) e caso necessário
+ * são chamadas as funçoes de geração de tabelas e gráficos no arquivo /relatorios/relatorios.php
+ */
+
+
 // Bibiotecas minimas necessarias para ser um plugin da area administrativa
 require('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -36,6 +64,8 @@ $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module
 $renderer = $PAGE->get_renderer('report_unasus');
 
 // Renderiza os relatórios
+
+// Somente barra de filtragem, ou seja, tela inicial do relatório
 if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) {
     $FACTORY->ocultar_barra_filtragem = false;
 
@@ -74,7 +104,7 @@ if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) 
             break;
     }
 
-
+// Construção da tabela de dados
 } else if ($FACTORY->get_relatorio() != null && ($FACTORY->get_modo_exibicao() === 'tabela' || $FACTORY->get_modo_exibicao() == null)) {
     switch ($FACTORY->get_relatorio()) {
 
@@ -135,6 +165,8 @@ if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) 
             print_error('unknow_report', 'report_unasus');
             break;
     }
+
+// Construção dos gráficos
 } elseif ($FACTORY->get_modo_exibicao() === 'grafico_valores' || $FACTORY->get_modo_exibicao() === 'grafico_porcentagens' || $FACTORY->get_modo_exibicao() === 'grafico_pontos') {
     $porcentagem = false;
     if ($FACTORY->get_modo_exibicao() === 'grafico_porcentagens') {

@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * Class Factory
+ *
+ * Esta classe tem como objetivo ser uma central de informações para os filtros e gráficos
+ * durante o processo de geração deste plugin.
+ *
+ * Ela é uma classe singleton para que em qualquer escopo deste plugin as variáveis setadas sejam as mesmas.
+ *
+ * Esta opção se mostrou altamente eficiente já que a quantidade de parametros passados a cada função
+ * estavam crescendo de acordo com a complexidade dos gráficos e a utilização destas variáveis só são
+ * invocadas quando realmente necessárias.
+ *
+ * Os atributos setados no construtor da classe são os valores padrão de filtragem e parametros pegos via
+ * GET e POST, alguns parametros são protected para evitar sua alteração desnecessária.
+ *
+ * Os atributos da barra de filtragem, que variam de relatório em relatório são setados no arquivo
+ * index.php de acordo com o relatório selecionado.
+ */
 class Factory{
 
     //Atributos globais
@@ -75,7 +93,11 @@ class Factory{
 
     }
 
-    // Criação do objeto unico
+    /**
+     * Singleton class, garantia de uma unica instancia da classe
+     *
+     * @return Factory
+     */
     public static function singleton(){
         if (!isset(self::$instance)) {
             $c = __CLASS__;
@@ -137,7 +159,9 @@ class Factory{
 
 
     /**
-     * @param $relatorio string nome do relatorio
+     * Verifica se é um relatório válido e o seta
+     *
+     * @param string $relatorio nome do relatorio
      */
     public function set_relatorio($relatorio){
         $options = report_unasus_relatorios_validos_list();
@@ -156,7 +180,9 @@ class Factory{
     }
 
     /**
-     * @param $modo_exibicao string tipo de relatorio a ser exibido
+     * Verifica se é um modo de exibição válido e o seta
+     *
+     * @param string $modo_exibicao tipo de relatorio a ser exibido
      */
     public function set_modo_exibicao($modo_exibicao){
         $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_pontos');
