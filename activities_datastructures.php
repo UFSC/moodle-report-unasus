@@ -94,7 +94,7 @@ class report_unasus_quiz_activity extends report_unasus_activity{
 
         $this->id = $db_model->quiz_id;
         $this->name = $db_model->quiz_name;
-        $this->deadline = $db_model->timeclose;
+        $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
     }

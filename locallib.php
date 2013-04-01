@@ -240,13 +240,17 @@ function query_quiz_courses($courses){
     $query = "SELECT q.id as quiz_id,
                      q.name as quiz_name,
                      q.timeopen,
-                     q.timeclose,
+                     cm.completionexpected,
                      q.grade,
                      c.id as course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
                 FROM {course} as c
                 JOIN {quiz} as q
                   ON (c.id = q.course AND c.id != :siteid)
+                JOIN {course_modules} cm
+                  ON (cm.course = c.id AND cm.instance=q.id)
+                JOIN {modules} m
+                  ON (m.id = cm.module AND m.name LIKE 'quiz')
                WHERE c.id IN ({$string_courses})
             ORDER BY c.id";
 
@@ -263,15 +267,16 @@ function query_forum_courses($courses){
                      cm.completionexpected,
                      c.id as course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
-                     FROM course as c
-                LEFT JOIN forum as f
+                     FROM {course} as c
+                LEFT JOIN {forum} as f
                        ON (c.id = f.course AND c.id != :siteid)
-                     JOIN grade_items as gi
+                     JOIN {grade_items} as gi
                        ON (gi.courseid=c.id AND gi.itemtype = 'mod' AND
                            gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
-                     JOIN course_modules cm
+                     JOIN {course_modules} cm
                        ON (cm.course=c.id AND cm.instance=f.id)
-                       -- TODO: é preciso adicionar o cm.module na linha acima pra ficar 100%
+                     JOIN {modules} m
+                       ON (m.id = cm.module AND m.name LIKE 'forum')
                     WHERE c.id IN ({$string_courses})
                  ORDER BY c.id";
 
