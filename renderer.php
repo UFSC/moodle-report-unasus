@@ -130,7 +130,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
 
         // Botao de ocultar/mostrar filtros, só aparece com javascript carregado
-        $css_class = ($FACTORY->ocultar_barra_filtragem == true) ? 'visible hidden' : 'hidden';
+        $css_class = ($FACTORY->mostrar_barra_filtragem == true) ? 'hidden' : 'visible hidden'; // FIX-ME: GAMBIARRA!
         $output .= html_writer::nonempty_tag('button', 'Mostrar Filtros', array('id' => 'button-mostrar-filtro', 'type' => 'button', 'class' => "relatorio-unasus botao-ocultar {$css_class}"));
 
         // Filtros

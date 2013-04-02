@@ -23,7 +23,7 @@ class Factory{
     //Atributos globais
     protected $curso_ufsc;
     protected $curso_moodle;
-    protected $cursos;
+    protected $cursos_ativos;
 
     // Relatório a ser mostrado
     protected $relatorio;
@@ -31,7 +31,7 @@ class Factory{
     protected $modo_exibicao;
 
     //Atributos para os filtros
-    public $ocultar_barra_filtragem;
+    public $mostrar_barra_filtragem;
     public $mostrar_botoes_grafico;
     public $mostrar_botoes_dot_chart;
     public $mostrar_filtro_polos;
@@ -39,7 +39,7 @@ class Factory{
     public $mostrar_filtro_intervalo_tempo;
     public $mostrar_aviso_intervalo_tempo;
 
-    //Atributos para os gráficos
+    //Atributos para os gráficos e tabelas
     public $modulos_selecionados;
     public $polos_selecionados;
     public $tutores_selecionados;
@@ -54,14 +54,14 @@ class Factory{
     private static $instance;
 
     // Setar os valores defaults para os relatórios e filtros
-    private function __construct(){
+    private function __construct() {
         //Atributos globais
         $this->curso_ufsc = get_curso_ufsc_id();
         $this->curso_moodle = get_course_id();
-        $this->cursos = get_cursos_ativos_list();
+        $this->cursos_ativos = get_cursos_ativos_list();
 
         //Atributos para os filtros
-        $this->ocultar_barra_filtragem = false;
+        $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = true;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
@@ -71,7 +71,6 @@ class Factory{
 
         //Atributos para os gráficos
         //Por default os módulos selecionados são os módulos que o curso escolhido possui
-        $this->ocultar_barra_filtragem = true;
         $this->texto_cabecalho = 'Estudantes';
 
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
@@ -86,11 +85,16 @@ class Factory{
         //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
         $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
         $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+
         if(date_interval_is_valid($data_inicio,$data_fim)){
             $this->data_inicio = $data_inicio;
             $this->data_fim = $data_fim;
         }
 
+        // Verifica se é um relatorio valido
+        $this->set_relatorio(optional_param('relatorio', null, PARAM_ALPHANUMEXT));
+        // Verifica se é um modo de exibicao valido
+        $this->set_modo_exibicao(optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT));
     }
 
     /**

@@ -37,11 +37,6 @@ require_once($CFG->dirroot . '/report/unasus/factory.php'); // fabrica de relato
 
 /** @var $FACTORY Factory */
 $FACTORY = Factory::singleton();
-// Verifica se é um relatorio valido
-$FACTORY->set_relatorio(optional_param('relatorio', null, PARAM_ALPHANUMEXT));
-// Verifica se é um modo de exibicao valido
-$FACTORY->set_modo_exibicao(optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT));
-
 
 // Usuário tem de estar logado no curso moodle
 require_login($FACTORY->get_curso_moodle());
@@ -54,7 +49,7 @@ if (in_array($FACTORY->get_relatorio(), report_unasus_relatorios_restritos_list(
     require_capability('report/unasus:view_all', $FACTORY->get_context());
 }
 
-// Confurações da pagina HTML
+// Configurações da pagina HTML
 $PAGE->set_url('/report/unasus/index.php', $FACTORY->get_page_params());
 $PAGE->set_pagelayout('report');
 $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
@@ -67,7 +62,7 @@ $renderer = $PAGE->get_renderer('report_unasus');
 
 // Somente barra de filtragem, ou seja, tela inicial do relatório
 if ($FACTORY->get_relatorio() != null && $FACTORY->get_modo_exibicao() == null) {
-    $FACTORY->ocultar_barra_filtragem = false;
+    $FACTORY->mostrar_barra_filtragem = true;
 
     switch ($FACTORY->get_relatorio()) {
         // - relatório desativado segundo o ticket #4460 case 'historico_atribuicao_notas':
