@@ -22,11 +22,11 @@
  * @return string
  */
 function query_alunos_grupo_tutoria() {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     $query_polo = ' ';
-    $polos = int_array_to_sql($FACTORY->polos_selecionados);
+    $polos = int_array_to_sql($factory->polos_selecionados);
 
     if(!is_null($polos)){
         $query_polo = "  AND vga.polo IN ({$polos}) ";
@@ -74,9 +74,9 @@ function query_alunos_grupo_tutoria() {
  * @return string
  */
 function query_postagens_forum() {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($FACTORY->polos_selecionados);
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return " SELECT u.id as userid,
                     u.polo,
@@ -134,12 +134,12 @@ function query_postagens_forum() {
  * @return string
  */
 function query_acesso_tutor() {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     $filtro_tutor = '';
-    if(!is_null($FACTORY->tutores_selecionados)){
-        $tutores = int_array_to_sql($FACTORY->tutores_selecionados);
+    if(!is_null($factory->tutores_selecionados)){
+        $tutores = int_array_to_sql($factory->tutores_selecionados);
        $filtro_tutor = "AND u.id IN ({$tutores}) ";
     }
 
@@ -191,9 +191,9 @@ function query_uso_sistema_tutor() {
  * @return string
  */
 function query_potenciais_evasoes() {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($FACTORY->polos_selecionados);
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return "SELECT u.id as user_id,
                       u.polo,
@@ -232,9 +232,9 @@ function query_potenciais_evasoes() {
  *
  */
 function query_atividades() {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($FACTORY->polos_selecionados);
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return "SELECT u.id as userid,
                    u.polo,
@@ -270,9 +270,9 @@ function query_atividades() {
  *
  */
 function query_nota_final() {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($FACTORY->polos_selecionados);
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return "SELECT u.id as userid,
                    u.polo,
@@ -322,9 +322,9 @@ function query_nota_final() {
  *
  */
 function query_quiz(){
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($FACTORY->polos_selecionados);
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return "SELECT u.id as userid,
                    u.polo,

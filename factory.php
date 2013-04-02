@@ -141,24 +141,27 @@ class Factory{
 
 
     /**
-     * @return string nome de um metodo
+     * @return chamada de metodo
      */
     public function get_dados_relatorio(){
-        return "get_dados_{$this->relatorio}";
+        $method =  "get_dados_{$this->relatorio}";
+        return $method();
     }
 
     /**
-     * @return string nome de um metodo
+     * @return chamada de metodo
      */
     public function get_table_header_relatorio(){
-        return "get_table_header_{$this->relatorio}";
+        $method =  "get_table_header_{$this->relatorio}";
+        return $method();
     }
 
     /**
-     * @return string nome de um metodo
+     * @return chamada de metodo
      */
     public function get_dados_grafico_relatorio(){
-        return "get_dados_grafico_{$this->relatorio}";
+        $method = "get_dados_grafico_{$this->relatorio}";
+        return $method();
     }
 
 

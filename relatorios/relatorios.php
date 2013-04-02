@@ -20,12 +20,12 @@ defined('MOODLE_INTERNAL') || die;
  */
 function get_dados_atividades_vs_notas()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Dado Auxiliar
-    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($FACTORY->get_curso_ufsc());
-    $nomes_polos = get_polos($FACTORY->get_curso_ufsc());
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+    $nomes_polos = get_polos($factory->get_curso_ufsc());
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades();
@@ -45,7 +45,7 @@ function get_dados_atividades_vs_notas()
         foreach ($array_dados as $id_aluno => $aluno) {
 
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
-                                    $id_aluno, $FACTORY->get_curso_moodle(), $aluno[0]->polo);
+                                    $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo);
 
 
             foreach ($aluno as $atividade) {
@@ -93,15 +93,15 @@ function get_dados_atividades_vs_notas()
             }
             $estudantes[] = $lista_atividades;
             // Unir os alunos de acordo com o polo deles
-            if($FACTORY->agrupar_relatorios_por_polos){
+            if($factory->agrupar_relatorios_por_polos){
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
 
             $lista_atividades = null;
         }
         // Ou unir os alunos de acordo com o tutor dele
-        if(!$FACTORY->agrupar_relatorios_por_polos){
-            $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] = $estudantes;
+        if(!$factory->agrupar_relatorios_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
     }
 
@@ -124,8 +124,8 @@ function get_dados_grafico_atividades_vs_notas()
 {
     global $CFG;
 
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades();
@@ -202,7 +202,7 @@ function get_dados_grafico_atividades_vs_notas()
             }
         }
 
-        $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] =
+        $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] =
             array($count_nota_atribuida,
                 $count_nota_atribuida_atraso,
                 $count_pouco_atraso,
@@ -230,8 +230,8 @@ function get_dados_grafico_atividades_vs_notas()
  */
 function get_dados_entrega_de_atividades()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades();
@@ -239,8 +239,8 @@ function get_dados_entrega_de_atividades()
     $query_forum = query_postagens_forum();
 
     // Recupera dados auxiliares
-    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($FACTORY->get_curso_ufsc());
-    $nomes_polos = get_polos($FACTORY->get_curso_ufsc());
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+    $nomes_polos = get_polos($factory->get_curso_ufsc());
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
      *
@@ -254,7 +254,7 @@ function get_dados_entrega_de_atividades()
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
-                                    $id_aluno, $FACTORY->get_curso_moodle(), $aluno[0]->polo);
+                                    $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo);
 
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
@@ -289,14 +289,14 @@ function get_dados_entrega_de_atividades()
             }
             $estudantes[] = $lista_atividades;
             // Unir os alunos de acordo com o polo deles
-            if($FACTORY->agrupar_relatorios_por_polos){
+            if($factory->agrupar_relatorios_por_polos){
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
             $lista_atividades = null;
         }
         // Ou unir os alunos de acordo com o tutor dele
-        if(!$FACTORY->agrupar_relatorios_por_polos){
-            $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] = $estudantes;
+        if(!$factory->agrupar_relatorios_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
     }
 
@@ -317,8 +317,8 @@ function get_table_header_entrega_de_atividades()
 function get_dados_grafico_entrega_de_atividades()
 {
     global $CFG;
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades();
@@ -381,7 +381,7 @@ function get_dados_grafico_entrega_de_atividades()
                 }
             }
         }
-        $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] =
+        $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] =
             array($count_nao_entregue_mas_no_prazo,
                 $count_nao_entregue_fora_prazo,
                 $count_sem_prazo,
@@ -409,8 +409,8 @@ function get_dados_grafico_entrega_de_atividades()
 function get_dados_historico_atribuicao_notas()
 {
     global $CFG;
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades();
@@ -418,8 +418,8 @@ function get_dados_historico_atribuicao_notas()
     $query_forum = query_postagens_forum();
 
     // Recupera dados auxiliares
-    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($FACTORY->get_curso_ufsc());
-    $nomes_polos = get_polos($FACTORY->get_curso_ufsc());
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+    $nomes_polos = get_polos($factory->get_curso_ufsc());
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
      *
@@ -433,7 +433,7 @@ function get_dados_historico_atribuicao_notas()
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
-                                    $id_aluno, $FACTORY->get_curso_moodle(), $aluno[0]->polo);
+                                    $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo);
 
             foreach ($aluno as $atividade) {
 
@@ -472,15 +472,15 @@ function get_dados_historico_atribuicao_notas()
             }
             $estudantes[] = $lista_atividades;
             // Unir os alunos de acordo com o polo deles
-            if($FACTORY->agrupar_relatorios_por_polos){
+            if($factory->agrupar_relatorios_por_polos){
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
 
             $lista_atividades = null;
         }
         // Ou unir os alunos de acordo com o tutor dele
-        if(!$FACTORY->agrupar_relatorios_por_polos){
-            $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] = $estudantes;
+        if(!$factory->agrupar_relatorios_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
     }
 
@@ -502,8 +502,8 @@ function get_dados_grafico_historico_atribuicao_notas()
 {
     global $CFG;
 
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consultas
     $query_alunos_grupo_tutoria = query_historico_atribuicao_notas();
@@ -578,7 +578,7 @@ function get_dados_grafico_historico_atribuicao_notas()
                 }
             }
         }
-        $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] = array(
+        $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = array(
             $count_nao_entregue,
             $count_nao_avaliada,
             $count_no_prazo,
@@ -597,8 +597,8 @@ function get_dados_grafico_historico_atribuicao_notas()
  */
 
 function get_dados_boletim(){
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades();
@@ -607,8 +607,8 @@ function get_dados_boletim(){
     $query_nota_final = query_nota_final();
 
     // Recupera dados auxiliares
-    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($FACTORY->get_curso_ufsc());
-    $nomes_polos = get_polos($FACTORY->get_curso_ufsc());
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+    $nomes_polos = get_polos($factory->get_curso_ufsc());
 
     /*  associativo_atividades[modulo][id_aluno][atividade]
      *
@@ -621,7 +621,7 @@ function get_dados_boletim(){
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $FACTORY->get_curso_moodle(), $aluno[0]->polo);
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo);
 
             foreach ($aluno as $atividade) {
                 $nota = null;
@@ -642,15 +642,15 @@ function get_dados_boletim(){
             $estudantes[] = $lista_atividades;
 
             // Agrupamento dos estudantes pelo seu polo
-            if($FACTORY->agrupar_relatorios_por_polos){
+            if($factory->agrupar_relatorios_por_polos){
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
 
             $lista_atividades = null;
         }
         // Ou pelo grupo de tutoria do estudante
-        if(!$FACTORY->agrupar_relatorios_por_polos){
-            $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] = $estudantes;
+        if(!$factory->agrupar_relatorios_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
     }
 
@@ -662,8 +662,8 @@ function get_table_header_boletim(){
 }
 
 function get_dados_grafico_boletim(){
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consultas
     $query_alunos_grupo_tutoria = query_atividades();
@@ -699,7 +699,7 @@ function get_dados_grafico_boletim(){
 
             }
         }
-        $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] =
+        $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] =
             array($count_com_nota,$count_sem_nota);
 
     }
@@ -752,8 +752,8 @@ function get_dados_estudante_sem_atividade_avaliada()
  */
 function get_dados_atividades_nao_avaliadas()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades();
@@ -798,7 +798,7 @@ function get_dados_atividades_nao_avaliadas()
     $dados = array();
     foreach ($lista_atividade as $grupo_id => $grupo) {
         $data = array();
-        $data[] = grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id);
+        $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
             $data[] = $atividades;
         }
@@ -830,8 +830,8 @@ function get_table_header_atividades_nao_avaliadas()
 
 function get_dados_atividades_nota_atribuida()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Consulta
     $query_alunos_grupo_tutoria = query_atividades();
@@ -877,7 +877,7 @@ function get_dados_atividades_nota_atribuida()
     $dados = array();
     foreach ($lista_atividade as $grupo_id => $grupo) {
         $data = array();
-        $data[] = grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id);
+        $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
             $data[] = $atividades;
         }
@@ -905,25 +905,25 @@ function get_table_header_atividades_nota_atribuida()
 
 function get_dados_uso_sistema_tutor()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     $middleware = Middleware::singleton();
-    $lista_tutores = get_tutores_menu($FACTORY->get_curso_ufsc());
+    $lista_tutores = get_tutores_menu($factory->get_curso_ufsc());
 
     $query = query_uso_sistema_tutor();
 
     //Converte a string data pra um DateTime e depois pra Unixtime
-    $data_inicio = date_create_from_format('d/m/Y', $FACTORY->data_inicio);
+    $data_inicio = date_create_from_format('d/m/Y', $factory->data_inicio);
     $data_inicio_unix = strtotime($data_inicio->format('d/m/Y'));
-    $data_fim = date_create_from_format('d/m/Y', $FACTORY->data_fim);
+    $data_fim = date_create_from_format('d/m/Y', $factory->data_fim);
     $data_fim_query = $data_fim->format('Y-m-d h:i:s');
     $data_fim_unix = strtotime($data_fim->format('d/m/Y'));
 
     //Query
     $dados = array();
     foreach ($lista_tutores as $id => $tutor) {
-        if(is_null($FACTORY->tutores_selecionados) || in_array($id, $FACTORY->tutores_selecionados)){
+        if(is_null($factory->tutores_selecionados) || in_array($id, $factory->tutores_selecionados)){
             $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $data_inicio_unix, 'tempomaximo'=> $data_fim_query));
             /** @FIXME incluir na biblioteca do middleware a implementação da contagem de resultados, sem utilizar o ADORecordSet_myqsli*/
             if($result->MaxRecordCount() == 0){
@@ -966,7 +966,7 @@ function get_dados_uso_sistema_tutor()
     $result = $result->get_assoc();
 
 
-    $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($FACTORY->get_curso_ufsc());
+    $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($factory->get_curso_ufsc());
 
     //para cada resultado que estava no formato [id]=>[dados_acesso]
     // ele transforma para [tutor,dado_acesso1,dado_acesso2]
@@ -974,7 +974,7 @@ function get_dados_uso_sistema_tutor()
     foreach ($result as $id => $values) {
         $dados = array();
         $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-        array_push($dados, new pessoa($nome, $id, $FACTORY->get_curso_moodle()));
+        array_push($dados, new pessoa($nome, $id, $factory->get_curso_moodle()));
         foreach ($values as $value) {
             array_push($dados, $value);
         }
@@ -986,10 +986,10 @@ function get_dados_uso_sistema_tutor()
 
 function get_table_header_uso_sistema_tutor()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
-    $double_header = get_time_interval_com_meses($FACTORY->data_inicio, $FACTORY->data_fim, 'P1D', 'd/m/Y');
+    $double_header = get_time_interval_com_meses($factory->data_inicio, $factory->data_fim, 'P1D', 'd/m/Y');
     $double_header[''] = array('Media');
     $double_header[' '] = array('Total');
     return $double_header;
@@ -997,14 +997,14 @@ function get_table_header_uso_sistema_tutor()
 
 function get_dados_grafico_uso_sistema_tutor()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     $dados = get_dados_uso_sistema_tutor();
 
     //Converte a string data pra um DateTime e depois pra Unixtime
-    $data_inicio = date_create_from_format('d/m/Y', $FACTORY->data_inicio);
-    $data_fim = date_create_from_format('d/m/Y', $FACTORY->data_fim);
+    $data_inicio = date_create_from_format('d/m/Y', $factory->data_inicio);
+    $data_fim = date_create_from_format('d/m/Y', $factory->data_fim);
 
     // Intervalo de dias no formato d/m
     $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
@@ -1035,13 +1035,13 @@ function get_dados_grafico_uso_sistema_tutor()
 
 function get_dados_acesso_tutor()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     $middleware = Middleware::singleton();
 
     // Consulta
-    $query = query_acesso_tutor($FACTORY->tutores_selecionados);
+    $query = query_acesso_tutor($factory->tutores_selecionados);
 
     $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR, 'curso_ufsc' => get_curso_ufsc_id());
     $result = $middleware->get_recordset_sql($query, $params);
@@ -1062,8 +1062,8 @@ function get_dados_acesso_tutor()
 
 
     //Converte a string data pra um DateTime
-    $data_inicio = date_create_from_format('d/m/Y', $FACTORY->data_inicio);
-    $data_fim = date_create_from_format('d/m/Y', $FACTORY->data_fim);
+    $data_inicio = date_create_from_format('d/m/Y', $factory->data_inicio);
+    $data_fim = date_create_from_format('d/m/Y', $factory->data_fim);
 
     // Intervalo de dias no formato d/m/Y
     $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
@@ -1082,7 +1082,7 @@ function get_dados_acesso_tutor()
     }
     $result = $result->get_assoc();
 
-    $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($FACTORY->get_curso_ufsc());
+    $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($factory->get_curso_ufsc());
 
     //para cada resultado que estava no formato [id]=>[dados_acesso]
     // ele transforma para [tutor,dado_acesso1,dado_acesso2]
@@ -1090,7 +1090,7 @@ function get_dados_acesso_tutor()
     foreach ($result as $id => $values) {
         $dados = array();
         $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-        array_push($dados, new pessoa($nome, $id, $FACTORY->get_curso_moodle()));
+        array_push($dados, new pessoa($nome, $id, $factory->get_curso_moodle()));
         foreach ($values as $value) {
             array_push($dados, $value);
         }
@@ -1106,10 +1106,10 @@ function get_dados_acesso_tutor()
  */
 function get_table_header_acesso_tutor()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
-    return get_time_interval_com_meses($FACTORY->data_inicio, $FACTORY->data_fim, 'P1D', 'd/m/Y');
+    return get_time_interval_com_meses($factory->data_inicio, $factory->data_fim, 'P1D', 'd/m/Y');
 }
 
 /* -----------------
@@ -1122,10 +1122,10 @@ function get_table_header_acesso_tutor()
 function get_dados_potenciais_evasoes()
 {
     global $CFG;
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
-    $modulos = $FACTORY->modulos_selecionados;
+    $modulos = $factory->modulos_selecionados;
     // Consulta
     $query_alunos_atividades = query_atividades();
     $query_quiz = query_quiz();
@@ -1133,8 +1133,8 @@ function get_dados_potenciais_evasoes()
 
 
     // Recupera dados auxiliares
-    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($FACTORY->get_curso_ufsc());
-    $nomes_polos = get_polos($FACTORY->get_curso_ufsc());
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+    $nomes_polos = get_polos($factory->get_curso_ufsc());
 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_alunos_atividades, $query_forum, $query_quiz);
 
@@ -1147,7 +1147,7 @@ function get_dados_potenciais_evasoes()
         foreach ($array_dados as $id_aluno => $aluno) {
             $dados_modulos = array();
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
-                                    $id_aluno, $FACTORY->get_curso_moodle(), $aluno[0]->polo);
+                                    $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo);
             foreach ($aluno as $atividade) {
 
                 //para cada novo modulo ele cria uma entrada de dado_potenciais_evasoes com o maximo de atividades daquele modulo
@@ -1170,7 +1170,7 @@ function get_dados_potenciais_evasoes()
             if ($atividades_nao_realizadas_do_estudante >= $CFG->report_unasus_tolerancia_potencial_evasao) {
                 $estudantes[] = $lista_atividades;
                 // Unir os alunos de acordo com o polo deles
-                if($FACTORY->agrupar_relatorios_por_polos){
+                if($factory->agrupar_relatorios_por_polos){
                     $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
                 }
             }
@@ -1178,8 +1178,8 @@ function get_dados_potenciais_evasoes()
         }
 
         // Ou unir os alunos de acordo com o tutor dele
-        if(!$FACTORY->agrupar_relatorios_por_polos){
-            $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] = $estudantes;
+        if(!$factory->agrupar_relatorios_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
     }
     return $dados;
@@ -1187,13 +1187,13 @@ function get_dados_potenciais_evasoes()
 
 function get_table_header_potenciais_evasoes()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
-    $modulos = $FACTORY->get_modulos_ids();
+    $modulos = $factory->get_modulos_ids();
 
     $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
-    if (is_null($FACTORY->modulos_selecionados)) {
+    if (is_null($factory->modulos_selecionados)) {
         $modulos = get_id_modulos();
     }
 
@@ -1212,10 +1212,10 @@ function get_table_header_potenciais_evasoes()
 
 function get_table_header_modulos_atividades($mostrar_nota_final = false)
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
-    $atividades_cursos = get_atividades_cursos($FACTORY->get_modulos_ids(),$mostrar_nota_final);
+    $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(),$mostrar_nota_final);
     $header = array();
 
     foreach ($atividades_cursos as $course_id => $atividades) {
@@ -1242,13 +1242,13 @@ function get_header_estudante_sem_atividade_postada($size)
  */
 function get_todo_list_data()
 {
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Recupera dados auxiliares
-    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($FACTORY->get_curso_ufsc());
-    $nomes_polos = get_polos($FACTORY->get_curso_ufsc());
-    $foruns_modulo = query_forum_courses($FACTORY->get_modulos_ids());
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+    $nomes_polos = get_polos($factory->get_curso_ufsc());
+    $foruns_modulo = query_forum_courses($factory->get_modulos_ids());
 
     $listagem_forum = new GroupArray();
     foreach ($foruns_modulo as $forum) {
@@ -1277,11 +1277,11 @@ function get_todo_list_data()
                 $nome_atividade = null;
                 $atividade_sera_listada = false;
 
-                if ($FACTORY->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted()) {
+                if ($factory->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted()) {
                     $atividade_sera_listada = true;
                 }
 
-                if ($FACTORY->get_relatorio() == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade() && $atividade->is_grade_needed()) {
+                if ($factory->get_relatorio() == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade() && $atividade->is_grade_needed()) {
                     $atividade_sera_listada = true;
                 }
 
@@ -1302,7 +1302,7 @@ function get_todo_list_data()
             if (!empty($ativ_mod)) {
 
                 $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno],
-                                        $id_aluno, $FACTORY->get_curso_moodle(), $aluno[0]->polo);
+                                        $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo);
 
                 foreach ($ativ_mod as $key => $modulo) {
                     $lista_atividades[] = new dado_modulo($key, $modulo[0]['atividade']->source_activity->course_name);
@@ -1313,15 +1313,15 @@ function get_todo_list_data()
 
                 $estudantes[] = $lista_atividades;
                 // Unir os alunos de acordo com o polo deles
-                if($FACTORY->agrupar_relatorios_por_polos){
+                if($factory->agrupar_relatorios_por_polos){
                     $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
                 }
             }
             $lista_atividades = null;
         }
         // Ou unir os alunos de acordo com o tutor dele
-        if(!$FACTORY->agrupar_relatorios_por_polos){
-            $dados[grupos_tutoria::grupo_tutoria_to_string($FACTORY->get_curso_ufsc(), $grupo_id)] = $estudantes;
+        if(!$factory->agrupar_relatorios_por_polos){
+            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
     }
     return $dados;

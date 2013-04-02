@@ -9,12 +9,12 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
 
     // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($FACTORY->get_curso_ufsc(), $FACTORY->tutores_selecionados);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
     /* Array associativo que irá armazenar para cada grupo de tutoria as atividades e foruns de um aluno num dado modulo
      * A atividade pode ser tanto uma avaliação de um dado módulo ou um fórum com sistema de avaliação
@@ -28,7 +28,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
         $group_array_do_grupo = new GroupArray();
 
         // Para cada modulo e suas atividades
-        foreach ($FACTORY->modulos_selecionados as $courseid => $atividades) {
+        foreach ($factory->modulos_selecionados as $courseid => $atividades) {
 
             // Num módulo existem várias atividades, numa dada atividade ele irá pesquisar todas as notas dos alunos daquele
             // grupo de tutoria
@@ -37,7 +37,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
                 if (is_a($atividade, 'report_unasus_assign_activity')) {
                     $params = array('assignmentid' => $atividade->id,
                                     'assignmentid2' => $atividade->id,
-                                    'curso_ufsc' => $FACTORY->get_curso_ufsc(),
+                                    'curso_ufsc' => $factory->get_curso_ufsc(),
                                     'grupo_tutoria' => $grupo->id,
                                     'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
                     if($query_course){
@@ -58,7 +58,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
 
                     $params =  array(
                         'courseid' => $courseid,
-                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
+                        'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
@@ -80,7 +80,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $courseid,
-                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
+                        'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
@@ -103,7 +103,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
             if(!is_null($query_nota_final)){
                 $params =  array(
                     'courseid' => $courseid,
-                    'curso_ufsc' => $FACTORY->get_curso_ufsc(),
+                    'curso_ufsc' => $factory->get_curso_ufsc(),
                     'grupo_tutoria' => $grupo->id,
                     'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
@@ -143,20 +143,20 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
 {
     $middleware = Middleware::singleton();
 
-    /** @var $FACTORY Factory */
-    $FACTORY = Factory::singleton();
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
     // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($FACTORY->get_curso_ufsc(), $FACTORY->tutores_selecionados);
+    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
 
     $associativo_atividade = array();
     $lista_atividade = array();
     // Listagem da atividades por tutor
-    $total_alunos = get_count_estudantes($FACTORY->get_curso_ufsc());
+    $total_alunos = get_count_estudantes($factory->get_curso_ufsc());
     $total_atividades = 0;
 
-    foreach ($FACTORY->modulos_selecionados as $atividades) {
+    foreach ($factory->modulos_selecionados as $atividades) {
         $total_atividades += count($atividades);
     }
 
@@ -165,7 +165,7 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
         $group_array_do_grupo = new GroupArray();
         $array_das_atividades = array();
 
-        foreach ($FACTORY->modulos_selecionados as $modulo => $atividades) {
+        foreach ($factory->modulos_selecionados as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
 
                 if (is_a($atividade, 'report_unasus_assign_activity')) {
@@ -177,7 +177,7 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'assignmentid3' => $atividade->id,
-                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
+                        'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
@@ -196,7 +196,7 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
 
                     $params = array(
                         'courseid' => $modulo,
-                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
+                        'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
@@ -219,7 +219,7 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $modulo,
-                        'curso_ufsc' => $FACTORY->get_curso_ufsc(),
+                        'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
