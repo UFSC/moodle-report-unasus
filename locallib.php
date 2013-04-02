@@ -210,7 +210,7 @@ function query_assign_courses($courses) {
 
     $query = "SELECT a.id as assign_id,
                          a.name as assign_name,
-                         a.duedate,
+                         cm.completionexpected,
                          a.nosubmissions,
                          a.grade,
                          c.id as course_id,
@@ -218,6 +218,10 @@ function query_assign_courses($courses) {
                     FROM {course} as c
                LEFT JOIN {assign} as a
                       ON (c.id = a.course AND c.id != :siteid)
+                    JOIN {course_modules} cm
+                      ON (cm.course = c.id AND cm.instance=a.id)
+                    JOIN {modules} m
+                      ON (m.id = cm.module AND m.name LIKE 'assign')
                    WHERE c.id IN ({$string_courses})
                ORDER BY c.id";
 
