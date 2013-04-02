@@ -18,18 +18,22 @@
  * - firstname
  * - lastname
  * - grupo_id
+ *
  * @param array $polos array(int) polos para filtrar os alunos
  * @return string
  */
-function query_alunos_grupo_tutoria($polos) {
-    $query_polo = ' ';
-    $polos = int_array_to_sql($polos);
+function query_alunos_grupo_tutoria() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
 
-    if(!is_null($polos)){
+    $query_polo = ' ';
+    $polos = int_array_to_sql($factory->polos_selecionados);
+
+    if (!is_null($polos)) {
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vga.polo
+    return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vga.polo
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
@@ -70,8 +74,10 @@ function query_alunos_grupo_tutoria($polos) {
  *
  * @return string
  */
-function query_postagens_forum($polos) {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
+function query_postagens_forum() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return " SELECT u.id as userid,
                     u.polo,
@@ -128,11 +134,14 @@ function query_postagens_forum($polos) {
  *
  * @return string
  */
-function query_acesso_tutor($tutores = null) {
+function query_acesso_tutor() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+
     $filtro_tutor = '';
-    if(!is_null($tutores)){
-        $tutores = int_array_to_sql($tutores);
-       $filtro_tutor = "AND u.id IN ({$tutores}) ";
+    if (!is_null($factory->tutores_selecionados)) {
+        $tutores = int_array_to_sql($factory->tutores_selecionados);
+        $filtro_tutor = "AND u.id IN ({$tutores}) ";
     }
 
     return " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
@@ -182,8 +191,11 @@ function query_uso_sistema_tutor() {
  *
  * @return string
  */
-function query_potenciais_evasoes($polos) {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
+function query_potenciais_evasoes() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
+
     return "SELECT u.id as user_id,
                       u.polo,
                       sub.timecreated as submission_date,
@@ -220,8 +232,10 @@ function query_potenciais_evasoes($polos) {
  * @return string
  *
  */
-function query_atividades($polos) {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
+function query_atividades() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return "SELECT u.id as userid,
                    u.polo,
@@ -256,8 +270,10 @@ function query_atividades($polos) {
  * @return string
  *
  */
-function query_nota_final($polos) {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
+function query_nota_final() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
     return "SELECT u.id as userid,
                    u.polo,
@@ -291,7 +307,6 @@ function query_nota_final($polos) {
 }
 
 
-
 /**
  * Query para os relatórios
  *
@@ -306,8 +321,11 @@ function query_nota_final($polos) {
  * @return string
  *
  */
-function query_quiz($polos){
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($polos);
+function query_quiz() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
+
     return "SELECT u.id as userid,
                    u.polo,
                    qg.grade,

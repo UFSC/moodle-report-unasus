@@ -47,7 +47,7 @@ class pessoa {
 }
 
 // Estudante possui um polo para poder fazer agrupamento dos relatorios
-class estudante extends pessoa{
+class estudante extends pessoa {
 
     public $polo;
 
@@ -58,7 +58,6 @@ class estudante extends pessoa{
 
 
 }
-
 
 
 //
@@ -79,6 +78,7 @@ abstract class unasus_data {
 
     /**
      * Função para auxiliar na renderização dos relatórios, concordância para o caso de "um dia" e "mesmo dia"
+     *
      * @param int $num_dias
      * @return string
      */
@@ -94,6 +94,7 @@ abstract class unasus_data {
 
     /**
      * Formata uma nota para exibição
+     *
      * @param $grade
      */
     protected function format_grade($grade) {
@@ -133,10 +134,10 @@ class dado_atividades_vs_notas extends unasus_data {
                 return $this->dia_toString($this->atraso);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO:
-                return (String) $this->format_grade($this->nota);
+                return (String)$this->format_grade($this->nota);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO:
-                return (String) $this->format_grade($this->nota);
+                return (String)$this->format_grade($this->nota);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'no prazo';
@@ -169,10 +170,10 @@ class dado_atividades_vs_notas extends unasus_data {
     public static function get_legend() {
 
         $legend = array();
-        $legend['nota_atribuida'] = 'Nota atribuída no prazo (até '. get_prazo_avaliacao()*24 . 'hs)';
-        $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de '. get_prazo_avaliacao()*24 .'hs)';
-        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até ". get_prazo_avaliacao() ." dias após data de entrega)";
-        $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após ". get_prazo_maximo_avaliacao() ." dias da data de entrega)";
+        $legend['nota_atribuida'] = 'Nota atribuída no prazo (até ' . get_prazo_avaliacao() * 24 . 'hs)';
+        $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de ' . get_prazo_avaliacao() * 24 . 'hs)';
+        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até " . get_prazo_avaliacao() . " dias após data de entrega)";
+        $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após " . get_prazo_maximo_avaliacao() . " dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperado';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
@@ -180,7 +181,7 @@ class dado_atividades_vs_notas extends unasus_data {
         return $legend;
     }
 
-    public function get_atividade_id(){
+    public function get_atividade_id() {
         return $this->atividade_id;
     }
 
@@ -259,13 +260,13 @@ class dado_entrega_de_atividades extends unasus_data {
         return $legend;
     }
 
-    public function get_atividade_id(){
+    public function get_atividade_id() {
         return $this->atividade_id;
     }
 
 }
 
-class dado_boletim extends unasus_data{
+class dado_boletim extends unasus_data {
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
 
@@ -282,7 +283,7 @@ class dado_boletim extends unasus_data{
     public function __toString() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return (String) $this->format_grade($this->nota);
+                return (String)$this->format_grade($this->nota);
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return '';
@@ -291,9 +292,9 @@ class dado_boletim extends unasus_data{
     }
 
     public function get_css_class() {
-        switch($this->tipo){
+        switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return ($this->nota >= 7)? 'na_media' :  'abaixo_media_nota';
+                return ($this->nota >= 7) ? 'na_media' : 'abaixo_media_nota';
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
@@ -313,7 +314,7 @@ class dado_boletim extends unasus_data{
 
 }
 
-class dado_nota_final extends unasus_data{
+class dado_nota_final extends unasus_data {
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
 
@@ -328,7 +329,7 @@ class dado_nota_final extends unasus_data{
     public function __toString() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return (String) $this->format_grade($this->nota);
+                return (String)$this->format_grade($this->nota);
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return '';
@@ -337,9 +338,9 @@ class dado_nota_final extends unasus_data{
     }
 
     public function get_css_class() {
-        switch($this->tipo){
+        switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return ($this->nota >= 7)? 'na_media' :  'abaixo_media';
+                return ($this->nota >= 7) ? 'na_media' : 'abaixo_media';
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
@@ -417,7 +418,7 @@ class dado_historico_atribuicao_notas extends unasus_data {
         return $legend;
     }
 
-    public function get_atividade_id(){
+    public function get_atividade_id() {
         return $this->atividade_id;
     }
 
@@ -434,8 +435,8 @@ class dado_avaliacao_em_atraso extends unasus_data {
     }
 
     public function __toString() {
-        $porcentagem = ($this->count_atrasos/$this->total_alunos) * 100;
-        return $this->format_grade($porcentagem)."%";
+        $porcentagem = ($this->count_atrasos / $this->total_alunos) * 100;
+        return $this->format_grade($porcentagem) . "%";
     }
 
     public function get_css_class() {
@@ -446,7 +447,7 @@ class dado_avaliacao_em_atraso extends unasus_data {
         return false;
     }
 
-    public function incrementar_atraso(){
+    public function incrementar_atraso() {
         $this->count_atrasos++;
     }
 
@@ -457,7 +458,7 @@ class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
 }
 
 /**
- *  @TODO media deve se auto-calcular.
+ * @TODO media deve se auto-calcular.
  */
 class dado_media extends unasus_data {
 
@@ -468,7 +469,7 @@ class dado_media extends unasus_data {
     }
 
     public function __toString() {
-        return $this->format_grade($this->media)."%";
+        return $this->format_grade($this->media) . "%";
     }
 
     public function value() {
@@ -579,13 +580,13 @@ class dado_potenciais_evasoes extends unasus_data {
         switch ($this->estado) {
             case 0:
                 return "Não";
-                //return "Não {$total}/{$this->total_atividades}";
+            //return "Não {$total}/{$this->total_atividades}";
             case 1:
                 return "Sim";
-                //return "Sim {$total}/{$this->total_atividades}";
+            //return "Sim {$total}/{$this->total_atividades}";
             case 2:
                 return "Parcial";
-                //return "Parcial {$total}/{$this->total_atividades}";
+            //return "Parcial {$total}/{$this->total_atividades}";
             default:
                 return false;
                 break;
@@ -606,17 +607,17 @@ class dado_potenciais_evasoes extends unasus_data {
         }
     }
 
-    public function add_atividade_nao_realizada(){
+    public function add_atividade_nao_realizada() {
         $this->atividades_nao_realizadas++;
-        if($this->atividades_nao_realizadas == 1){
+        if ($this->atividades_nao_realizadas == 1) {
             $this->estado = dado_potenciais_evasoes::MODULO_PARCIALMENTE_CONCLUIDO;
         }
-        if($this->atividades_nao_realizadas == $this->total_atividades){
+        if ($this->atividades_nao_realizadas == $this->total_atividades) {
             $this->estado = dado_potenciais_evasoes::MODULO_NAO_CONCLUIDO;
         }
     }
 
-    public function get_total_atividades_nao_realizadas(){
+    public function get_total_atividades_nao_realizadas() {
         return $this->atividades_nao_realizadas;
     }
 
@@ -657,11 +658,11 @@ class dado_atividade extends unasus_data {
     private $atividade;
 
     function __construct($atividade) {
-        $this->atividade=$atividade;
+        $this->atividade = $atividade;
     }
 
     public function __toString() {
-        return ''.$this->atividade->source_activity->__toString();
+        return '' . $this->atividade->source_activity->__toString();
     }
 
     public function get_css_class() {

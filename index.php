@@ -1,44 +1,70 @@
 <?php
 
+/**
+ * Relatórios UNASUS
+ *
+ * Este plugin tem como objetivo gerar relatórios, sobre a forma de tabelas e gráficos,
+ * do desemprenho de alunos e tutores dentro de um curso moodle. Existem vários tipos de relatórios
+ *
+ * 'estudante_sem_atividade_avaliada'
+ * 'estudante_sem_atividade_postada'
+ * 'atividades_nao_avaliadas'
+ * 'atividades_nota_atribuida'
+ * 'entrega_de_atividades'
+ * 'atividades_vs_notas'
+ * 'boletim',
+ * 'acesso_tutor'
+ * 'uso_sistema_tutor
+ * 'potenciais_evasoes'
+ *
+ * O caminho básico para a renderização de um relatório é
+ *
+ * index.php (aonde é construida a FACTORY com os parametros via GET e POST e do que vai ser
+ * renderizado (tela inicial - somente filtro, tabela - filtro e tabela ou gráfico - filtro e gráfico)
+ *
+ * Após esta seleção no index.php o relatório segue para o
+ * renderer.php (aonde são construidos os filtros, com os parametros setados na FACTORY) e caso necessário
+ * são chamadas as funçoes de geração de tabelas e gráficos no arquivo /relatorios/relatorios.php
+ */
+
+
 // Bibiotecas minimas necessarias para ser um plugin da area administrativa
 require('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
-require_once($CFG->dirroot . '/report/unasus/lib.php');
+require_once($CFG->dirroot . '/report/unasus/lib.php'); // biblioteca global
+require_once($CFG->dirroot . '/report/unasus/factory.php'); // fabrica de relatorios
 
-$courseid = get_course_id();
-$relatorio = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
-$modo_exibicao = optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT);
+/** @var $factory Factory */
+$factory = Factory::singleton();
 
-$params = array('relatorio' => $relatorio, 'course' => $courseid);
-
-$context = context_course::instance($courseid);
-require_login($courseid);
-require_capability('report/unasus:view', $context);
+// Usuário tem de estar logado no curso moodle
+require_login($factory->get_curso_moodle());
+// Usuário tem de ter a permissão para ver o relatório?
+require_capability('report/unasus:view', $factory->get_context());
 
 
-// verificar se o relatório é válido e inicializar página
-// caso contrário, mostrar erro.
-if (in_array($relatorio, report_unasus_relatorios_validos_list())) {
-    $PAGE->set_url('/report/unasus/index.php', $params);
-    $PAGE->set_pagelayout('report');
-    $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
-
-    require_login($courseid);
-    /** @var $renderer report_unasus_renderer */
-    $renderer = $PAGE->get_renderer('report_unasus');
-
-    if (in_array($relatorio, report_unasus_relatorios_restritos_list())) {
-        require_capability('report/unasus:view_all', $context);
-    }
-
-} else {
-    print_error('unknow_report', 'report_unasus');
+// Usuário tem permissão para ver os relatorios restritos
+if (in_array($factory->get_relatorio(), report_unasus_relatorios_restritos_list())) {
+    require_capability('report/unasus:view_all', $factory->get_context());
 }
 
+// Configurações da pagina HTML
+$PAGE->set_url('/report/unasus/index.php', $factory->get_page_params());
+$PAGE->set_pagelayout('report');
+$PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
+
+
+/** @var $renderer report_unasus_renderer */
+$renderer = $PAGE->get_renderer('report_unasus');
+
 // Renderiza os relatórios
-if ($relatorio != null && $modo_exibicao == null) {
-    switch ($relatorio) {
+
+// Somente barra de filtragem, ou seja, tela inicial do relatório
+if ($factory->get_relatorio() != null && $factory->get_modo_exibicao() == null) {
+    $factory->mostrar_barra_filtragem = true;
+
+    switch ($factory->get_relatorio()) {
         // - relatório desativado segundo o ticket #4460 case 'historico_atribuicao_notas':
         case 'atividades_vs_notas':
         case 'entrega_de_atividades':
@@ -50,24 +76,32 @@ if ($relatorio != null && $modo_exibicao == null) {
         case 'estudante_sem_atividade_avaliada':
         case 'atividades_nota_atribuida' :
         case 'potenciais_evasoes' :
-            echo $renderer->build_page(false);
+            $factory->mostrar_botoes_grafico = false;
+            echo $renderer->build_page();
             break;
         case 'acesso_tutor' :
-            echo $renderer->build_page(false, false, false, false, true);
-            //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+            $factory->mostrar_filtro_modulos = false;
+            $factory->mostrar_botoes_grafico = false;
+            $factory->mostrar_filtro_polos = false;
+            $factory->mostrar_filtro_intervalo_tempo = true;
+            echo $renderer->build_page();
             break;
         case 'uso_sistema_tutor' :
-            echo $renderer->build_page(false, true, false, false, true);
-            //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+            $factory->mostrar_filtro_modulos = false;
+            $factory->mostrar_botoes_grafico = false;
+            $factory->mostrar_botoes_dot_chart = true;
+            $factory->mostrar_filtro_intervalo_tempo = true;
+            $factory->mostrar_filtro_polos = false;
+            echo $renderer->build_page();
             break;
         default:
             print_error('unknow_report', 'report_unasus');
             break;
     }
 
-
-} else if ($relatorio != null && ($modo_exibicao === 'tabela' || $modo_exibicao == null)) {
-    switch ($relatorio) {
+// Construção da tabela de dados
+} else if ($factory->get_relatorio() != null && ($factory->get_modo_exibicao() === 'tabela' || $factory->get_modo_exibicao() == null)) {
+    switch ($factory->get_relatorio()) {
 
         // - relatório desativado segundo o ticket #4460  case 'historico_atribuicao_notas':
         case 'atividades_vs_notas':
@@ -81,43 +115,59 @@ if ($relatorio != null && $modo_exibicao == null) {
             break;
         case 'estudante_sem_atividade_postada':
         case 'estudante_sem_atividade_avaliada':
+            $factory->mostrar_botoes_grafico = false;
             echo $renderer->page_todo_list();
             break;
         case 'potenciais_evasoes' :
-            echo $renderer->build_report(false,false,'Tutores');
+            $factory->mostrar_botoes_grafico = false;
+            $factory->texto_cabecalho = 'Tutores';
+            echo $renderer->build_report();
             break;
         case 'acesso_tutor' :
-            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
-            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            $factory->mostrar_botoes_grafico = false;
+            $factory->mostrar_filtro_polos = false;
+            $factory->mostrar_filtro_modulos = false;
+            $factory->mostrar_filtro_intervalo_tempo = true;
             //As strings informadas sao datas validas?
-            if(date_interval_is_valid($data_inicio, $data_fim)){
-                    echo $renderer->build_report(false,false,'Tutores', false, false, true);
-                    //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
-                    break;
-            }
-            echo $renderer->build_page(false, false, false, false, true, true);
-            break;
-        case 'uso_sistema_tutor' :
-            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
-            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
-            //As strings informadas sao datas validas?
-            if(date_interval_is_valid($data_inicio, $data_fim)){
-                echo $renderer->build_report(false, true, null, false, false, true);
+            if ($factory->datas_validas()) {
+                $factory->texto_cabecalho = 'Tutores';
+                echo $renderer->build_report();
                 //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
                 break;
             }
-            echo $renderer->build_page(false, false, false, false, true, true);
+            $factory->mostrar_aviso_intervalo_tempo = true;
+            echo $renderer->build_page();
+            break;
+
+        case 'uso_sistema_tutor' :
+            $factory->mostrar_botoes_grafico = false;
+            $factory->mostrar_botoes_dot_chart = true;
+            $factory->mostrar_filtro_polos = false;
+            $factory->mostrar_filtro_modulos = false;
+            $factory->mostrar_filtro_intervalo_tempo = true;
+
+            //As strings informadas sao datas validas?
+            if ($factory->datas_validas()) {
+                $factory->texto_cabecalho = null;
+                echo $renderer->build_report();
+                //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+                break;
+            }
+            $factory->mostrar_aviso_intervalo_tempo = true;
+            echo $renderer->build_page();
             break;
         default:
             print_error('unknow_report', 'report_unasus');
             break;
     }
-} elseif ($modo_exibicao === 'grafico_valores' || $modo_exibicao === 'grafico_porcentagens' || $modo_exibicao === 'grafico_pontos') {
+
+// Construção dos gráficos
+} elseif ($factory->get_modo_exibicao() === 'grafico_valores' || $factory->get_modo_exibicao() === 'grafico_porcentagens' || $factory->get_modo_exibicao() === 'grafico_pontos') {
     $porcentagem = false;
-    if ($modo_exibicao === 'grafico_porcentagens') {
+    if ($factory->get_modo_exibicao() === 'grafico_porcentagens') {
         $porcentagem = true;
     }
-    switch ($relatorio) {
+    switch ($factory->get_relatorio()) {
 
         // - relatório desativado segundo o ticket #4460 case 'historico_atribuicao_notas':
         case 'atividades_vs_notas':
@@ -126,17 +176,20 @@ if ($relatorio != null && $modo_exibicao == null) {
             echo $renderer->build_graph($porcentagem);
             break;
         case 'uso_sistema_tutor' :
-            $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
-            $data_fim = optional_param('data_fim', null, PARAM_TEXT);
+            $factory->mostrar_botoes_grafico = false;
+            $factory->mostrar_botoes_dot_chart = true;
+            $factory->mostrar_filtro_polos = false;
+            $factory->mostrar_filtro_modulos = false;
+            $factory->mostrar_filtro_intervalo_tempo = true;
             //As strings informadas sao datas validas?
-            if(date_interval_is_valid($data_inicio, $data_fim)){
+            if ($factory->datas_validas()) {
                 echo $renderer->build_dot_graph();
                 break;
             }
-            echo $renderer->build_page(false, false, false, false, true, true);
+            $factory->mostrar_aviso_intervalo_tempo = true;
+            echo $renderer->build_page();
             break;
 
-            break;
         default:
             print_error('unknow_report', 'report_unasus');
             break;
