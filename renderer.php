@@ -60,8 +60,8 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header();
         $output .= $this->build_filter();
 
-        if($factory->mostrar_aviso_intervalo_tempo){
-           $output .= $this->build_warning('Intervalo de Tempo incorreto ou Formato de data inválido ');
+        if ($factory->mostrar_aviso_intervalo_tempo) {
+            $output .= $this->build_warning('Intervalo de Tempo incorreto ou Formato de data inválido ');
         }
         $output .= $this->default_footer();
         return $output;
@@ -69,6 +69,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a barra de legenda para os relatórios
+     *
      * @param array $legend itens da legenda, é do tipo ["classe_css"]=>["Descricao da legenda"]
      * @return String
      */
@@ -92,6 +93,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria o cabeçalho padrão para os relatórios
+     *
      * @return String cabeçalho, título da página e barra de filtragem
      */
     public function default_header() {
@@ -110,6 +112,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a barra de Filtros
+     *
      * @return string $output
      */
     public function build_filter() {
@@ -123,7 +126,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Inicio do Form
         $url_filtro = new moodle_url('/report/unasus/index.php', $factory->get_page_params());
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
-                  'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
+            'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
         // Fieldset
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
@@ -138,7 +141,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => $factory->get_relatorio()));
 
-        if($factory->mostrar_filtro_polos){
+        if ($factory->mostrar_filtro_polos) {
             // Dropdown list
             $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
             $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
@@ -149,11 +152,11 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
 
         // Filtro de modulo
-        if($factory->mostrar_filtro_modulos){
-            $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '' ;
+        if ($factory->mostrar_filtro_modulos) {
+            $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '';
             $nome_modulos = get_id_nome_modulos($factory->get_curso_ufsc());
             $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-            $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post,'', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
+            $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post, '', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
             $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
             $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
             $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
@@ -161,18 +164,18 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         if (has_capability('report/unasus:view_all', $factory->get_context())) {
 
-            if($factory->mostrar_filtro_polos){
-            // Filtro de Polo
-                $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '' ;
+            if ($factory->mostrar_filtro_polos) {
+                // Filtro de Polo
+                $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '';
                 $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
                 $filter_polos .= html_writer::select(get_polos($factory->get_curso_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
-                $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id'=>'select_all_polo','href'=>'#'));
-                $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id'=>'select_none_polo','href'=>'#'));
-                $output .= html_writer::tag('div', $filter_polos.$polos_all.' / '.$polos_none, array('class' => 'multiple_list'));
+                $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
+                $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
+                $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'multiple_list'));
             }
 
             // Filtro de Tutores
-            $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '' ;
+            $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
             $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
             $filter_tutores .= html_writer::select(get_tutores_menu($factory->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
             $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
@@ -180,7 +183,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
         }
 
-        if($factory->mostrar_filtro_intervalo_tempo){
+        if ($factory->mostrar_filtro_intervalo_tempo) {
 
             $data_fim = date('d/m/Y');
             $data_inicio = date('d/m/Y', strtotime('-1 months'));
@@ -188,17 +191,17 @@ class report_unasus_renderer extends plugin_renderer_base {
             $data_inicio_param = $factory->data_inicio;
             $data_fim_param = $factory->data_fim;
 
-            if(!is_null($data_inicio_param))
-                 $data_inicio = $data_inicio_param;
+            if (!is_null($data_inicio_param))
+                $data_inicio = $data_inicio_param;
 
-            if(!is_null($data_fim_param))
+            if (!is_null($data_fim_param))
                 $data_fim = $data_fim_param;
 
-            $output .= html_writer::start_tag('div', array('class'=> 'time_filter'));
+            $output .= html_writer::start_tag('div', array('class' => 'time_filter'));
             $output .= html_writer::tag('h3', 'Data Inicio:');
-            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_inicio', 'value'=>$data_inicio));
+            $output .= html_writer::tag('input', null, array('type' => 'text', 'name' => 'data_inicio', 'value' => $data_inicio));
             $output .= html_writer::tag('h3', 'Data Fim:');
-            $output .= html_writer::tag('input', null, array('type'=> 'text', 'name'=>'data_fim', 'value'=>$data_fim ));
+            $output .= html_writer::tag('input', null, array('type' => 'text', 'name' => 'data_fim', 'value' => $data_fim));
             $output .= html_writer::end_tag('div');
         }
 
@@ -239,6 +242,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     /**
      * Cria a tabela dos relatorios, a aplicacao do css irá depender de qual foi
      * o relatório que invocou esta funcao
+     *
      * @TODO construir uma simple table que não necessita ter divisões de tutor/polo barra azul
      * @param Array $dadostabela dados para alimentar a tabela
      * @param Array $header header para a tabela, pode ser um
@@ -363,6 +367,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     /**
      * Cria a tabela dos relatorios, a aplicacao do css irá depender de qual foi
      * o relatório que invocou esta funcao
+     *
      * @TODO construir uma simple table que não necessita ter divisões de tutor/polo barra azul
      * @param Array $dadostabela dados para alimentar a tabela
      * @param Array $header header para a tabela, pode ser um
@@ -418,6 +423,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao relatorio de Atividades Postadas e não Avaliadas
+     *
      * @TODO esse metodo não necessita de uma legenda e usa uma tabela diferente
      * @return String
      */
@@ -449,6 +455,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
+     *
      * @return String
      */
     public function page_todo_list() {
@@ -618,10 +625,11 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Constroi um fieldset de warning de erro nos filtros
+     *
      * @param $msg Texto de aviso
      */
-    public function build_warning($msg){
-        $output = html_writer::start_tag('fieldset', array('class'=>'relatorio-unasus fieldset warning'));
+    public function build_warning($msg) {
+        $output = html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset warning'));
         $output .= html_writer::tag('legend', 'Erro', array('class' => 'legend'));
         $output .= $msg;
         $output .= html_writer::end_tag('fieldset');

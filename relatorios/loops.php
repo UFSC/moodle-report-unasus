@@ -36,11 +36,11 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
 
                 if (is_a($atividade, 'report_unasus_assign_activity')) {
                     $params = array('assignmentid' => $atividade->id,
-                                    'assignmentid2' => $atividade->id,
-                                    'curso_ufsc' => $factory->get_curso_ufsc(),
-                                    'grupo_tutoria' => $grupo->id,
-                                    'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-                    if($query_course){
+                        'assignmentid2' => $atividade->id,
+                        'curso_ufsc' => $factory->get_curso_ufsc(),
+                        'grupo_tutoria' => $grupo->id,
+                        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                    if ($query_course) {
                         $params['courseid'] = $courseid;
                     }
 
@@ -48,7 +48,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
 
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
-                        /** @var report_unasus_data_activity $data  */
+                        /** @var report_unasus_data_activity $data */
                         $data = new report_unasus_data_activity($atividade, $r);
 
                         // Agrupa os dados por usuário
@@ -56,7 +56,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
                     }
                 } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
 
-                    $params =  array(
+                    $params = array(
                         'courseid' => $courseid,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
@@ -66,17 +66,17 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
                     $result = $middleware->get_records_sql($query_forum, $params);
 
                     // para cada aluno adiciona a listagem de atividades
-                    foreach($result as $f) {
-                        /** @var report_unasus_data_forum $data  */
+                    foreach ($result as $f) {
+                        /** @var report_unasus_data_forum $data */
                         $data = new report_unasus_data_forum($atividade, $f);
 
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($f->userid, $data);
                     }
 
-                } elseif (is_a($atividade, 'report_unasus_quiz_activity')){
+                } elseif (is_a($atividade, 'report_unasus_quiz_activity')) {
 
-                    $params =  array(
+                    $params = array(
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $courseid,
@@ -88,9 +88,9 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
                     $result = $middleware->get_records_sql($query_quiz, $params);
 
                     // para cada aluno adiciona a listagem de atividades
-                    foreach($result as $q){
+                    foreach ($result as $q) {
 
-                        /** @var report_unasus_data_forum $data  */
+                        /** @var report_unasus_data_forum $data */
                         $data = new report_unasus_data_quiz($atividade, $q);
 
                         // Agrupa os dados por usuário
@@ -100,17 +100,17 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
             }
 
             // Query de notas finais, somente para o relatório Boletim
-            if(!is_null($query_nota_final)){
-                $params =  array(
+            if (!is_null($query_nota_final)) {
+                $params = array(
                     'courseid' => $courseid,
                     'curso_ufsc' => $factory->get_curso_ufsc(),
                     'grupo_tutoria' => $grupo->id,
                     'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
                 $result = $middleware->get_records_sql($query_nota_final, $params);
-                if($result != false){
-                    foreach ($result as $nf){
-                        /** @var report_unasus_data_nota_final $data  */
+                if ($result != false) {
+                    foreach ($result as $nf) {
+                        /** @var report_unasus_data_nota_final $data */
                         $data = new report_unasus_data_nota_final($nf);
 
                         // Agrupa os dados por usuário
@@ -139,8 +139,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz)
-{
+function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz) {
     $middleware = Middleware::singleton();
 
     /** @var $factory Factory */
@@ -192,7 +191,7 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
                     }
                 } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
 
-                    $array_das_atividades['forum_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['forum_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'courseid' => $modulo,
@@ -211,11 +210,11 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($f->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_quiz_activity')){
+                } elseif (is_a($atividade, 'report_unasus_quiz_activity')) {
 
-                    $array_das_atividades['quiz_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['quiz_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
-                    $params =  array(
+                    $params = array(
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $modulo,
@@ -227,9 +226,9 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
                     $result = $middleware->get_records_sql($query_quiz, $params);
 
                     // para cada aluno adiciona a listagem de atividades
-                    foreach($result as $q){
+                    foreach ($result as $q) {
 
-                        /** @var report_unasus_data_forum $data  */
+                        /** @var report_unasus_data_forum $data */
                         $data = new report_unasus_data_quiz($atividade, $q);
 
                         // Agrupa os dados por usuário
@@ -243,8 +242,8 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
     }
 
     return array('total_alunos' => $total_alunos,
-                 'total_atividades' => $total_atividades,
-                 'lista_atividade' => $lista_atividade,
-                 'associativo_atividade' => $associativo_atividade);
+        'total_atividades' => $total_atividades,
+        'lista_atividade' => $lista_atividade,
+        'associativo_atividade' => $associativo_atividade);
 }
 

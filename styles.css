@@ -1,7 +1,7 @@
 /* Filtros */
 
 /* Regra para os 3 itens da barra de filtros */
-.relatorio-unasus.fieldset .multiple_list{
+.relatorio-unasus.fieldset .multiple_list {
     display: inline-block;
     width: 32%;
     margin-left: 1%;
@@ -9,7 +9,7 @@
     margin-top: 1em;
 }
 
-.relatorio-unasus.fieldset .time_filter{
+.relatorio-unasus.fieldset .time_filter {
     display: inline-block;
     width: 32%;
     margin-left: 1%;
@@ -18,28 +18,28 @@
     vertical-align: top;
 }
 
-.relatorio-unasus.fieldset .calendar-full{
+.relatorio-unasus.fieldset .calendar-full {
     width: 100%;
 }
 
-.relatorio-unasus.fieldset .multiple_list select{
+.relatorio-unasus.fieldset .multiple_list select {
     width: 100%;
     height: 225px;
 }
 
 /* Radio buttons da barra de filtros */
-.relatorio-unasus.fieldset .radio{
+.relatorio-unasus.fieldset .radio {
     margin-right: 3%;
 }
 
-.relatorio-unasus.fieldset .radio img{
+.relatorio-unasus.fieldset .radio img {
     height: 16px;
     width: 16px;
     margin-right: 3px;
     margin-bottom: -3px;
 }
 
-.relatorio-unasus.fieldset p{
+.relatorio-unasus.fieldset p {
     margin-bottom: 0;
 }
 
@@ -59,13 +59,12 @@
 }
 
 .relatorio-unasus.fieldset dl dd,
-.relatorio-unasus.fieldset dl dt{
+.relatorio-unasus.fieldset dl dt {
     margin: 0;
     padding: 0;
     line-height: 20px;
 
 }
-
 
 .relatorio-unasus.fieldset dl dt {
     width: 2em;
@@ -76,9 +75,7 @@
     margin-right: 0.5em;
 }
 
-
-
-.relatorio-unasus.fieldset{
+.relatorio-unasus.fieldset {
     color: #004E95;
     border-color: #87C7E2;
     background-color: #FEF9EC;
@@ -88,7 +85,7 @@
     margin-bottom: 2em;
 }
 
-.relatorio-unasus.fieldset.warning{
+.relatorio-unasus.fieldset.warning {
     color: #004E95;
     border-color: #87C7E2;
     background-color: #efcfcf;
@@ -98,7 +95,7 @@
     margin-bottom: 2em;
 }
 
-.relatorio-unasus.fieldset legend{
+.relatorio-unasus.fieldset legend {
     color: #004E95;
     font-size: 16pt;
     font-weight: normal;
@@ -111,7 +108,7 @@
 /* Cinza Claro */
 .relatorio-unasus.atividades_vs_notas .sem_prazo,
 .relatorio-unasus.entrega_de_atividades .sem_prazo,
-.relatorio-unasus.boletim .sem_nota{
+.relatorio-unasus.boletim .sem_nota {
     color: #fff;
     background: #ddd;
 }
@@ -119,7 +116,7 @@
 /* Cinza */
 .relatorio-unasus.atividades_vs_notas .nao_realizada,
 .relatorio-unasus.historico_atribuicao_notas .nao_avaliada,
-.relatorio-unasus.entrega_de_atividades .nao_entregue_fora_do_prazo{
+.relatorio-unasus.entrega_de_atividades .nao_entregue_fora_do_prazo {
     color: #fff;
     background: #ccc;
 
@@ -140,13 +137,13 @@
 .relatorio-unasus.historico_atribuicao_notas .muito_atraso,
 .relatorio-unasus.uso_sistema_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes .nao_concluido,
-.relatorio-unasus.boletim .abaixo_media{
+.relatorio-unasus.boletim .abaixo_media {
     color: #fff;
     background: #ff7777;
 }
 
 /* Rosa */
-.relatorio-unasus.boletim .abaixo_media_nota{
+.relatorio-unasus.boletim .abaixo_media_nota {
     color: #fff;
     background: #ffc1c0;
 }
@@ -167,12 +164,12 @@
 .relatorio-unasus.acesso_tutor .acessou,
 .relatorio-unasus.uso_sistema_tutor .acessou,
 .relatorio-unasus.potenciais_evasoes .concluido,
-.relatorio-unasus.boletim .na_media{
+.relatorio-unasus.boletim .na_media {
     background: #fff;
 }
 
 /* Light Orange */
-.relatorio-unasus.atividades_vs_notas .nota_atribuida_atraso{
+.relatorio-unasus.atividades_vs_notas .nota_atribuida_atraso {
     background: #FFE3CD;
 }
 
@@ -195,8 +192,6 @@
     padding-left: 3em;
 }
 
-
-
 /* TODO: mover para o tema ufsc: th.cell */
 .relatorio-unasus th.estudante,
 .relatorio-unasus td.somatorio {
@@ -213,7 +208,7 @@
 }
 
 table.relatorio-unasus.estudante_sem_atividade_postada,
-table.relatorio-unasus.estudante_sem_atividade_avaliada{
+table.relatorio-unasus.estudante_sem_atividade_avaliada {
     background: #FAFAFA !important;
 }
 
@@ -228,10 +223,10 @@ table.relatorio-unasus.estudante_sem_atividade_avaliada{
     border-left: 1px solid #004E95 !important;
     border-right: 1px solid #004E95 !important;
 }
+
 .relatorio-wrapper {
     overflow: auto;
 }
-
 
 /* Regras para o botao de ocultar, mostrar conteudo do filtro, só é posto em pratica
    se o javascript carregar  */
@@ -249,7 +244,7 @@ table.relatorio-unasus.estudante_sem_atividade_avaliada{
     display: none;
 }
 
-#div-multiple{
+#div-multiple {
     clear: both;
 }
 

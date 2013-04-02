@@ -18,7 +18,7 @@
  * Os atributos da barra de filtragem, que variam de relatório em relatório são setados no arquivo
  * index.php de acordo com o relatório selecionado.
  */
-class Factory{
+class Factory {
 
     //Atributos globais
     protected $curso_ufsc;
@@ -74,7 +74,7 @@ class Factory{
         $this->texto_cabecalho = 'Estudantes';
 
         $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
-        if(is_null($modulos_raw)){
+        if (is_null($modulos_raw)) {
             $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
         }
         $this->modulos_selecionados = get_atividades_cursos(get_modulos_validos($modulos_raw));
@@ -86,7 +86,7 @@ class Factory{
         $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
         $data_fim = optional_param('data_fim', null, PARAM_TEXT);
 
-        if(date_interval_is_valid($data_inicio,$data_fim)){
+        if (date_interval_is_valid($data_inicio, $data_fim)) {
             $this->data_inicio = $data_inicio;
             $this->data_fim = $data_fim;
         }
@@ -102,7 +102,7 @@ class Factory{
      *
      * @return Factory
      */
-    public static function singleton(){
+    public static function singleton() {
         if (!isset(self::$instance)) {
             $c = __CLASS__;
             self::$instance = new $c;
@@ -112,8 +112,7 @@ class Factory{
     }
 
     // Previne que o usuário clone a instância
-    public function __clone()
-    {
+    public function __clone() {
         trigger_error('Clone is not allowed.', E_USER_ERROR);
     }
 
@@ -121,21 +120,21 @@ class Factory{
     /**
      * @return int curso ufsc
      */
-    public function get_curso_ufsc(){
+    public function get_curso_ufsc() {
         return $this->curso_ufsc;
     }
 
     /**
      * @return int curso ufsc
      */
-    public function get_curso_moodle(){
+    public function get_curso_moodle() {
         return $this->curso_moodle;
     }
 
     /**
      * @return string nome de uma classe
      */
-    public function get_estrutura_dados_relatorio(){
+    public function get_estrutura_dados_relatorio() {
         return "dado_{$this->relatorio}";
     }
 
@@ -143,23 +142,23 @@ class Factory{
     /**
      * @return chamada de metodo
      */
-    public function get_dados_relatorio(){
-        $method =  "get_dados_{$this->relatorio}";
+    public function get_dados_relatorio() {
+        $method = "get_dados_{$this->relatorio}";
         return $method();
     }
 
     /**
      * @return chamada de metodo
      */
-    public function get_table_header_relatorio(){
-        $method =  "get_table_header_{$this->relatorio}";
+    public function get_table_header_relatorio() {
+        $method = "get_table_header_{$this->relatorio}";
         return $method();
     }
 
     /**
      * @return chamada de metodo
      */
-    public function get_dados_grafico_relatorio(){
+    public function get_dados_grafico_relatorio() {
         $method = "get_dados_grafico_{$this->relatorio}";
         return $method();
     }
@@ -170,11 +169,11 @@ class Factory{
      *
      * @param string $relatorio nome do relatorio
      */
-    public function set_relatorio($relatorio){
+    public function set_relatorio($relatorio) {
         $options = report_unasus_relatorios_validos_list();
-        if(in_array($relatorio, $options)){
+        if (in_array($relatorio, $options)) {
             $this->relatorio = $relatorio;
-        }else{
+        } else {
             print_error('unknow_report', 'report_unasus');
         }
     }
@@ -182,7 +181,7 @@ class Factory{
     /**
      * @return string nome do relatorio
      */
-    public function get_relatorio(){
+    public function get_relatorio() {
         return $this->relatorio;
     }
 
@@ -191,11 +190,11 @@ class Factory{
      *
      * @param string $modo_exibicao tipo de relatorio a ser exibido
      */
-    public function set_modo_exibicao($modo_exibicao){
+    public function set_modo_exibicao($modo_exibicao) {
         $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_pontos');
-        if(in_array($modo_exibicao, $options)){
+        if (in_array($modo_exibicao, $options)) {
             $this->modo_exibicao = $modo_exibicao;
-        }else{
+        } else {
             print_error('unknow_report', 'report_unasus');
         }
     }
@@ -203,37 +202,38 @@ class Factory{
     /**
      * @return string tipo de relatorio a ser exibido
      */
-    public function get_modo_exibicao(){
+    public function get_modo_exibicao() {
         return $this->modo_exibicao;
     }
 
 
     /**
      * Returns course context instance.
+     *
      * @return context_course
      */
-    public function get_context(){
+    public function get_context() {
         return context_course::instance($this->get_curso_moodle());
     }
 
     /**
      * @return array Parametros para o GET da pagina HTML
      */
-    public function get_page_params(){
+    public function get_page_params() {
         return array('relatorio' => $this->get_relatorio(), 'course' => $this->get_curso_moodle());
     }
 
     /**
      * @return array array com as ids dos modulos
      */
-    public function get_modulos_ids(){
+    public function get_modulos_ids() {
         return array_keys($this->modulos_selecionados);
     }
 
     /**
      * @return bool se as datas foram setadas no construtor, passando pelo date_interval_is_valid elas são validas
      */
-    public function datas_validas(){
+    public function datas_validas() {
         return (!is_null($this->data_inicio) && !is_null($this->data_fim));
     }
 

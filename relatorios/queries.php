@@ -18,6 +18,7 @@
  * - firstname
  * - lastname
  * - grupo_id
+ *
  * @param array $polos array(int) polos para filtrar os alunos
  * @return string
  */
@@ -28,11 +29,11 @@ function query_alunos_grupo_tutoria() {
     $query_polo = ' ';
     $polos = int_array_to_sql($factory->polos_selecionados);
 
-    if(!is_null($polos)){
+    if (!is_null($polos)) {
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return  "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vga.polo
+    return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vga.polo
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
@@ -138,9 +139,9 @@ function query_acesso_tutor() {
     $factory = Factory::singleton();
 
     $filtro_tutor = '';
-    if(!is_null($factory->tutores_selecionados)){
+    if (!is_null($factory->tutores_selecionados)) {
         $tutores = int_array_to_sql($factory->tutores_selecionados);
-       $filtro_tutor = "AND u.id IN ({$tutores}) ";
+        $filtro_tutor = "AND u.id IN ({$tutores}) ";
     }
 
     return " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
@@ -306,7 +307,6 @@ function query_nota_final() {
 }
 
 
-
 /**
  * Query para os relatórios
  *
@@ -321,7 +321,7 @@ function query_nota_final() {
  * @return string
  *
  */
-function query_quiz(){
+function query_quiz() {
     /** @var $factory Factory */
     $factory = Factory::singleton();
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);

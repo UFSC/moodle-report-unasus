@@ -33,7 +33,7 @@ function report_unasus_extend_navigation_course($navigation, $course, $context) 
     if ($course->id != SITEID && has_capability('report/unasus:view', $context)) {
         $reports = report_unasus_relatorios_validos_list();
 
-        foreach($reports as $report) {
+        foreach ($reports as $report) {
             if (in_array($report, $restricted_list) && !has_capability('report/unasus:view_all', $context)) {
                 continue;
             }

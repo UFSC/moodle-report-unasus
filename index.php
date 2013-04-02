@@ -129,16 +129,16 @@ if ($factory->get_relatorio() != null && $factory->get_modo_exibicao() == null) 
             $factory->mostrar_filtro_modulos = false;
             $factory->mostrar_filtro_intervalo_tempo = true;
             //As strings informadas sao datas validas?
-            if($factory->datas_validas()){
-	            $factory->texto_cabecalho = 'Tutores';
+            if ($factory->datas_validas()) {
+                $factory->texto_cabecalho = 'Tutores';
                 echo $renderer->build_report();
-                    //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
+                //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
                 break;
             }
             $factory->mostrar_aviso_intervalo_tempo = true;
             echo $renderer->build_page();
             break;
-            
+
         case 'uso_sistema_tutor' :
             $factory->mostrar_botoes_grafico = false;
             $factory->mostrar_botoes_dot_chart = true;
@@ -147,7 +147,7 @@ if ($factory->get_relatorio() != null && $factory->get_modo_exibicao() == null) 
             $factory->mostrar_filtro_intervalo_tempo = true;
 
             //As strings informadas sao datas validas?
-            if($factory->datas_validas()){
+            if ($factory->datas_validas()) {
                 $factory->texto_cabecalho = null;
                 echo $renderer->build_report();
                 //$PAGE->requires->js_init_call('M.report_unasus.init_date_picker');
@@ -182,7 +182,7 @@ if ($factory->get_relatorio() != null && $factory->get_modo_exibicao() == null) 
             $factory->mostrar_filtro_modulos = false;
             $factory->mostrar_filtro_intervalo_tempo = true;
             //As strings informadas sao datas validas?
-            if($factory->datas_validas()){
+            if ($factory->datas_validas()) {
                 echo $renderer->build_dot_graph();
                 break;
             }
