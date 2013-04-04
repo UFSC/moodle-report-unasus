@@ -196,3 +196,4 @@ if ($factory->get_relatorio() != null && $factory->get_modo_exibicao() == null) 
     }
 }
 
+
