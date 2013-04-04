@@ -160,10 +160,15 @@ class Factory {
      */
     public function get_dados_grafico_relatorio() {
         $method = "get_dados_grafico_{$this->relatorio}";
-        if (!function_exists($method))
-            return null;
-
         return $method();
+    }
+
+
+    public function relatorio_possui_grafico(){
+        $method = "get_dados_grafico_{$this->relatorio}";
+        if (function_exists($method) && ($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))
+            return true;
+        return false;
     }
 
 

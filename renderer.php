@@ -564,15 +564,15 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= $this->build_filter(true);
 
-        $dados_method = $factory->get_dados_grafico_relatorio();
-        $dados_class = $factory->get_estrutura_dados_relatorio();
-
         // verifica se o gráfico foi implementado
-        if (is_null($dados_method)) {
+        if (!$factory->relatorio_possui_grafico()) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;
         }
+
+        $dados_method = $factory->get_dados_grafico_relatorio();
+        $dados_class = $factory->get_estrutura_dados_relatorio();
 
         $legend = call_user_func("$dados_class::get_legend");
 
@@ -613,11 +613,25 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= $this->build_filter();
 
+        // verifica se o gráfico foi implementado
+        if (!$factory->relatorio_possui_grafico()) {
+            $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
+            $output .= $this->default_footer();
+            return $output;
+        }
+
         $dados_method = $factory->get_dados_grafico_relatorio();
 
-        $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method));
+        // Se algum tutor logou ele gera o gráfico
+        if(dot_chart_com_tutores_com_acesso($dados_method)){
+            $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method));
+            $output .= '<div id="container" class="container relatorio-wrapper"></div>';
+        }else{
+            // Se nenhum tutor logou ele informa um erro em vez de gerar um gráfico vazio
+            $output .= $this->build_warning('Nenhum tutor logou no moodle no intervalo de tempo selecionado');
+        }
 
-        $output .= '<div id="container" class="container relatorio-wrapper"></div>';
+
         $output .= $this->default_footer();
 
         return $output;

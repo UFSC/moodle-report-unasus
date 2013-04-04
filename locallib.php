@@ -581,3 +581,22 @@ function date_is_valid($str) {
 
     return false;
 }
+
+/**
+ * @FIXME bug grafael não aceita um grafico de dot chart com todos os varores de entradas nulos
+ * Devido a um bug no grafael que não aceita todos os valores no gráfico serem igual a zero
+ * faz-se necessário a criacao desta funcao para verificar se, no array informado, todos os valores
+ * são ou não iguais a zero.
+ *
+ * @param $dados array( tutores => datas => quantidade de acesso)
+ * @return bool
+ */
+function dot_chart_com_tutores_com_acesso($dados){
+    foreach($dados as $tutor){
+        foreach($tutor as $dia){
+            if($dia[0] != 0)
+                return true;
+        }
+    }
+    return false;
+}
