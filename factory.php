@@ -160,6 +160,9 @@ class Factory {
      */
     public function get_dados_grafico_relatorio() {
         $method = "get_dados_grafico_{$this->relatorio}";
+        if (!function_exists($method))
+            return null;
+
         return $method();
     }
 

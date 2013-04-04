@@ -568,7 +568,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_class = $factory->get_estrutura_dados_relatorio();
 
         // verifica se o gráfico foi implementado
-        if (!function_exists($dados_method)) {
+        if (is_null($dados_method)) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;

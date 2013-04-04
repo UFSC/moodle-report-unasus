@@ -698,7 +698,6 @@ function get_dados_grafico_boletim() {
                 array($count_com_nota, $count_sem_nota);
 
     }
-    var_dump($dados);
     return ($dados);
 
 }
