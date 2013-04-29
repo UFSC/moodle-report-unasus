@@ -16,11 +16,11 @@ M.report_unasus.init = function(Y) {
     // Ao clicar no botao mostrar/ocultar filtros ele esconde/mostra a barra e troca o seu texto
     Y.delegate('click', function(e) {
         if ($filter_div.hasClass('visible')) {
-            $filter_button.firstChild.data = 'Mostrar Filtro';
+            $filter_button.set('text','Mostrar Filtro');
             $filter_div.addClass('hidden');
             $filter_div.removeClass('visible');
         } else {
-            $filter_button.firstChild.data = 'Ocultar Filtro';
+            $filter_button.set('text','Ocultar Filtro');
             $filter_div.addClass('visible');
             $filter_div.removeClass('hidden');
         }
