@@ -19,7 +19,6 @@
  * - lastname
  * - grupo_id
  *
- * @param array $polos array(int) polos para filtrar os alunos
  * @return string
  */
 function query_alunos_grupo_tutoria() {
@@ -33,7 +32,7 @@ function query_alunos_grupo_tutoria() {
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id as grupo_id, vga.polo
+    return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id AS grupo_id, vga.polo
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
@@ -79,14 +78,14 @@ function query_postagens_forum() {
     $factory = Factory::singleton();
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
-    return " SELECT u.id as userid,
+    return " SELECT u.id AS userid,
                     u.polo,
                     fp.submission_date,
                     fp.forum_name,
                     gg.grade,
                     gg.timemodified,
                     gg.itemid,
-                    userid_posts IS NOT NULL as has_post
+                    userid_posts IS NOT NULL AS has_post
                      FROM (
 
                         {$alunos_grupo_tutoria}
@@ -94,7 +93,7 @@ function query_postagens_forum() {
                      ) u
                      LEFT JOIN
                      (
-                        SELECT fp.userid as userid_posts, fp.created as submission_date, fd.name as forum_name
+                        SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name
                           FROM {forum} f
                           JOIN {forum_discussions} fd
                             ON (fd.forum=f.id)
@@ -107,7 +106,7 @@ function query_postagens_forum() {
                     ON (fp.userid_posts=u.id)
                     LEFT JOIN
                     (
-                        SELECT gg.userid, gg.rawgrade as grade, gg.timemodified, gg.itemid
+                        SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid
                         FROM {forum} f
                         JOIN {grade_items} gi
                           ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
@@ -166,7 +165,7 @@ function query_acesso_tutor() {
  */
 function query_uso_sistema_tutor() {
 
-    return "SELECT userid, dia , count(*) /2  as horas
+    return "SELECT userid, dia , count(*) /2  AS horas
             FROM (
 
                 SELECT date_format( (FROM_UNIXTIME(time))  , '%d/%m/%Y') AS dia,
@@ -175,12 +174,12 @@ function query_uso_sistema_tutor() {
                        userid
                 FROM {log}
 
-                WHERE time > :tempominimo
-                      AND time < UNIX_TIMESTAMP(DATE_SUB(:tempomaximo,INTERVAL 30 MINUTE)) AND userid=:userid
-                      AND action != 'login' AND action != 'logout'
+                WHERE TIME > :tempominimo
+                      AND TIME < UNIX_TIMESTAMP(DATE_SUB(:tempomaximo,INTERVAL 30 MINUTE)) AND userid=:userid
+                      AND ACTION != 'login' AND ACTION != 'logout'
                 GROUP BY dia, hora, min
 
-            )as report
+            )AS report
             GROUP BY report.dia";
 }
 
@@ -196,9 +195,9 @@ function query_potenciais_evasoes() {
     $factory = Factory::singleton();
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
-    return "SELECT u.id as user_id,
+    return "SELECT u.id AS user_id,
                       u.polo,
-                      sub.timecreated as submission_date,
+                      sub.timecreated AS submission_date,
                       gr.timemodified,
                       gr.grade
                  FROM (
@@ -233,17 +232,18 @@ function query_potenciais_evasoes() {
  *
  */
 function query_atividades() {
+
     /** @var $factory Factory */
     $factory = Factory::singleton();
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
-    return "SELECT u.id as userid,
+    return "SELECT u.id AS userid,
                    u.polo,
                    gr.grade,
-                   sub.timecreated as submission_date,
-                   sub.timemodified as submission_modified,
-                   gr.timemodified as grade_modified,
-                   gr.timecreated as grade_created,
+                   sub.timecreated AS submission_date,
+                   sub.timemodified AS submission_modified,
+                   gr.timemodified AS grade_modified,
+                   gr.timecreated AS grade_created,
                    sub.status
                  FROM (
 
@@ -275,11 +275,11 @@ function query_nota_final() {
     $factory = Factory::singleton();
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
-    return "SELECT u.id as userid,
+    return "SELECT u.id AS userid,
                    u.polo,
-                   gradeitemid as gradeitemid,
+                   gradeitemid AS gradeitemid,
                    courseid,
-                   finalgrade as grade
+                   finalgrade AS grade
             FROM (
 
                     {$alunos_grupo_tutoria}
@@ -290,10 +290,10 @@ function query_nota_final() {
 
             (
 
-                SELECT gi.id as gradeitemid,
+                SELECT gi.id AS gradeitemid,
                         gi.courseid,
-                        gg.userid as userid,
-                        gg.id as gradegradeid,
+                        gg.userid AS userid,
+                        gg.id AS gradegradeid,
                         gg.finalgrade
                  FROM {grade_items} gi
                  JOIN {grade_grades} gg
@@ -326,11 +326,11 @@ function query_quiz() {
     $factory = Factory::singleton();
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
 
-    return "SELECT u.id as userid,
+    return "SELECT u.id AS userid,
                    u.polo,
                    qg.grade,
-                   qg.timemodified as grade_date,
-                   qa.timefinish as submission_date
+                   qg.timemodified AS grade_date,
+                   qa.timefinish AS submission_date
             FROM (
 
                 {$alunos_grupo_tutoria}
