@@ -73,10 +73,32 @@ function get_count_estudantes($curso_ufsc) {
     $result = $middleware->get_records_sql_menu($query, $params);
 
     foreach ($result as $key => $value) {
-        $result[$key] = (int)$value;
+        $result[$key] = (int) $value;
     }
 
     return $result;
+}
+
+/**
+ * Dado que alimenta a lista do filtro cohort
+ * 
+ * @param type $curso_ufsc
+ * @return array (nome dos cohorts)
+ */
+function get_nomes_cohorts($curso_ufsc) {
+    global $DB, $SITE;
+    $modulos = $DB->get_records_sql_menu(
+        "SELECT DISTINCT(cohort.id), cohort.name
+           FROM {cohort} cohort
+           JOIN {context} context
+             ON (cohort.contextid = context.id) 
+           JOIN {course} c
+             ON (context.instanceid = c.category AND context.contextlevel = 40) 
+           JOIN {course_categories} cc
+             ON ( (c.category = cc.id OR cc.path LIKE CONCAT('/', c.category, '/%')) AND cc.idnumber = :curso_ufsc)
+          WHERE c.id != :siteid
+            AND c.visible=true", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+    return $modulos;
 }
 
 /**

@@ -145,7 +145,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             // Dropdown list
             $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
             $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
-            $output .= html_writer::select(array('Tutores', 'Polos'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+            $output .= html_writer::select(array('Tutores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
         }
 
         // Div para os 3 filtros
@@ -181,8 +181,16 @@ class report_unasus_renderer extends plugin_renderer_base {
             $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
             $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
             $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
-        }
 
+            // Filtro de Cohorts
+            $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '' ;
+            $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
+            $filter_cohorts .= html_writer::select(get_nomes_cohorts($this->curso_ufsc), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohorts'));
+            $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
+            $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohorts', 'href' => '#'));
+            $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
+        }
+        
         if ($factory->mostrar_filtro_intervalo_tempo) {
 
             $data_fim = date('d/m/Y');

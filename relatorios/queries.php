@@ -22,13 +22,22 @@
  * @return string
  */
 function query_alunos_grupo_tutoria() {
+
     /** @var $factory Factory */
     $factory = Factory::singleton();
-
+    $query_cohort = ' ';
     $query_polo = ' ';
-    $polos = int_array_to_sql($factory->polos_selecionados);
+
+    if (!is_null($cohorts)) {
+        $cohorts = int_array_to_sql($factory->cohorts_selecionados);
+        $query_cohort = " JOIN {cohort_members} cm
+                            ON (cm.userid=u.id)
+                          JOIN {cohort} co
+                            ON (cm.cohortid=co.id AND co.id IN ({$cohorts})) ";
+    }
 
     if (!is_null($polos)) {
+        $polos = int_array_to_sql($factory->polos_selecionados);
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
@@ -40,6 +49,7 @@ function query_alunos_grupo_tutoria() {
                            ON (gt.id=pg.grupo)
                          JOIN {Geral_Alunos_Ativos} vga
                            ON (vga.matricula = u.username {$query_polo})
+                         {$query_cohort}
                         WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno";
 }
 
@@ -174,9 +184,9 @@ function query_uso_sistema_tutor() {
                        userid
                 FROM {log}
 
-                WHERE TIME > :tempominimo
-                      AND TIME < UNIX_TIMESTAMP(DATE_SUB(:tempomaximo,INTERVAL 30 MINUTE)) AND userid=:userid
-                      AND ACTION != 'login' AND ACTION != 'logout'
+                WHERE time > :tempominimo
+                      AND time < UNIX_TIMESTAMP(DATE_SUB(:tempomaximo,INTERVAL 30 MINUTE)) AND userid=:userid
+                      AND action != 'login' AND action != 'logout'
                 GROUP BY dia, hora, min
 
             )AS report
