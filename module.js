@@ -17,13 +17,13 @@ M.report_unasus.init = function(Y) {
     Y.delegate('click', function(e) {
         var $filter_button = Y.one('#button-mostrar-filtro');
         var $filter_div = Y.one('#div_filtro');
-        
+
         if ($filter_div.hasClass('visible')) {
-            $filter_button.set('text','Mostrar Filtro');
+            $filter_button.set('text', 'Mostrar Filtro');
             $filter_div.addClass('hidden');
             $filter_div.removeClass('visible');
         } else {
-            $filter_button.set('text','Ocultar Filtro');
+            $filter_button.set('text', 'Ocultar Filtro');
             $filter_div.addClass('visible');
             $filter_div.removeClass('hidden');
         }
@@ -64,11 +64,12 @@ M.report_unasus.init = function(Y) {
  */
 function select_all(target, select) {
     var multiple = Y.one(target);
+
     multiple.get('options').each(function() {
         if (select) {
-            this.setAttribute('selected', true);
+            this.set('selected', true);
         } else {
-            this.removeAttribute('selected');
+            this.set('selected', false);
         }
     });
     multiple.focus();
