@@ -1257,7 +1257,7 @@ function get_todo_list_data() {
                 $nome_atividade = null;
                 $atividade_sera_listada = false;
 
-                if ($factory->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted()) {
+                if ($factory->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted() && $atividade->source_activity->has_submission()) {
                     $atividade_sera_listada = true;
                 }
 
