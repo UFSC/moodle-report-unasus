@@ -181,7 +181,7 @@ function get_tutores_menu($curso_ufsc) {
     $middleware = Middleware::singleton();
 
     $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) AS fullname
-              FROM {USER} u
+              FROM {user} u
               JOIN {table_PessoasGruposTutoria} pg
                 ON (pg.matricula=u.username AND pg.tipo=:tipo)
               JOIN {table_GruposTutoria} gt
