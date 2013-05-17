@@ -33,11 +33,11 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql(
-            "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) as fullname
-         FROM {course} c
-         JOIN {assign} a
-           ON (c.id = a.course)
-        WHERE c.id != :siteid");
+        "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
+           FROM {course} c
+           JOIN {assign} a
+             ON (c.id = a.course)
+          WHERE c.id != :siteid");
     return array_keys($modulos, array('siteid' => $SITE->id));
 }
 
@@ -50,13 +50,13 @@ function get_nomes_modulos() {
 function get_nomes_tutores() {
     global $DB;
     $tutores = $DB->get_records_sql(
-            "SELECT distinct CONCAT(firstname,' ',lastname) as fullname
-           FROM {role_assignments} as ra
-           JOIN {role} as r
+        "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
+           FROM {role_assignments} AS ra
+           JOIN {role} AS r
              ON (r.id=ra.roleid)
-           JOIN {context} as c
+           JOIN {context} AS c
              ON (c.id=ra.contextid)
-           JOIN {user} as u
+           JOIN {user} AS u
              ON (u.id=ra.userid)
           WHERE c.contextlevel=40;");
     return array_keys($tutores);
@@ -64,12 +64,13 @@ function get_nomes_tutores() {
 
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
-    $query = "SELECT pg.grupo as grupo_id, COUNT(DISTINCT pg.matricula)
-                         FROM {table_PessoasGruposTutoria} pg
-                         JOIN {table_GruposTutoria} gt
-                           ON (gt.id=pg.grupo)
-                        WHERE gt.curso=:curso_ufsc AND pg.tipo=:tipo_aluno
-                        GROUP BY pg.grupo";
+
+    $query = "SELECT pg.grupo AS grupo_id, COUNT(DISTINCT pg.matricula)
+                FROM {table_PessoasGruposTutoria} pg
+                JOIN {table_GruposTutoria} gt
+                  ON (gt.id=pg.grupo)
+               WHERE gt.curso=:curso_ufsc AND pg.tipo=:tipo_aluno
+               GROUP BY pg.grupo";
     $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
 
     $result = $middleware->get_records_sql_menu($query, $params);
@@ -83,35 +84,36 @@ function get_count_estudantes($curso_ufsc) {
 
 /**
  * Dado que alimenta a lista do filtro cohort
- * 
+ *
  * @param type $curso_ufsc
  * @return array (nome dos cohorts)
  */
 function get_nomes_cohorts($curso_ufsc) {
-    global $DB, $SITE;
+    global $DB;
 
     $ufsc_category_sql = "
         SELECT cc.id 
           FROM {course_categories} cc 
          WHERE cc.idnumber=:curso_ufsc";
-             
+
     $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
-    
+
     $modulos = $DB->get_records_sql_menu(
         "SELECT DISTINCT(cohort.id), cohort.name
            FROM {cohort} cohort
-           JOIN {context} context
-             ON (cohort.contextid = context.id AND context.contextlevel = 40) 
+           JOIN {context} ctx
+             ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
            JOIN {course_categories} cc
-             ON (context.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))", 
-                     array('curso_ufsc' => "curso_{$curso_ufsc}"));
+             ON (ctx.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))",
+        array('curso_ufsc' => "curso_{$curso_ufsc}"));
     return $modulos;
 }
 
 /**
  * Dado que alimenta a lista do filtro polos
  *
- * @return array(Strings)
+ * @param $curso_ufsc
+ * @return array
  */
 function get_polos($curso_ufsc) {
     $academico = Middleware::singleton();
@@ -135,50 +137,51 @@ function get_polos($curso_ufsc) {
 
 function get_id_nome_modulos($curso_ufsc) {
     global $DB, $SITE;
+
     $modulos = $DB->get_records_sql_menu(
-            "SELECT DISTINCT(c.id),
-              REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
-         FROM {course} c
-         JOIN {course_categories} cc
-           ON ( (c.category = cc.id OR cc.path LIKE CONCAT('/', c.category, '/%')) AND cc.idnumber = :curso_ufsc)
-         JOIN {assign} a
-           ON (c.id = a.course)
-        WHERE c.id != :siteid
-          AND c.visible=true", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+        "SELECT DISTINCT(c.id),
+                REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname
+           FROM {course} c
+           JOIN {course_categories} cc
+             ON ( (c.category = cc.id OR cc.path LIKE CONCAT('/', c.category, '/%')) AND cc.idnumber = :curso_ufsc)
+           JOIN {assign} a
+             ON (c.id = a.course)
+          WHERE c.id != :siteid
+            AND c.visible=TRUE", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
     return $modulos;
 }
 
 function get_id_modulos() {
     global $DB, $SITE;
+
     $modulos = $DB->get_records_sql_menu(
-            "SELECT DISTINCT(c.id)
-         FROM {course} c
-         JOIN {assign} a
-           ON (c.id = a.course)
-        WHERE c.id != :siteid
-          AND c.visible=true", array('siteid' => $SITE->id));
+        "SELECT DISTINCT(c.id)
+           FROM {course} c
+           JOIN {assign} a
+             ON (c.id = a.course)
+          WHERE c.id != :siteid
+            AND c.visible=TRUE", array('siteid' => $SITE->id));
     return array_keys($modulos);
 }
 
 function get_id_nome_atividades() {
     global $DB;
-    $modulos = $DB->get_records_sql_menu(
-            "SELECT a.id,
-              a.name
-         FROM {assign} a");
+
+    $modulos = $DB->get_records_sql_menu("SELECT a.id, a.name FROM {assign} a");
     return $modulos;
 }
 
 /**
  * Dado que alimenta a lista do filtro tutores
  *
- * @return array(Strings)
+ * @param $curso_ufsc
+ * @return array
  */
 function get_tutores_menu($curso_ufsc) {
     $middleware = Middleware::singleton();
 
-    $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) as fullname
-              FROM {user} u
+    $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) AS fullname
+              FROM {USER} u
               JOIN {table_PessoasGruposTutoria} pg
                 ON (pg.matricula=u.username AND pg.tipo=:tipo)
               JOIN {table_GruposTutoria} gt
@@ -236,15 +239,15 @@ function query_assign_courses($courses) {
 
     $string_courses = get_modulos_validos($courses);
 
-    $query = "SELECT a.id as assign_id,
-                         a.name as assign_name,
+    $query = "SELECT a.id AS assign_id,
+                         a.name AS assign_name,
                          cm.completionexpected,
                          a.nosubmissions,
                          a.grade,
-                         c.id as course_id,
-                         REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
-                    FROM {course} as c
-               LEFT JOIN {assign} as a
+                         c.id AS course_id,
+                         REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
+                    FROM {course} AS c
+               LEFT JOIN {assign} AS a
                       ON (c.id = a.course AND c.id != :siteid)
                     JOIN {course_modules} cm
                       ON (cm.course = c.id AND cm.instance=a.id)
@@ -269,15 +272,15 @@ function query_quiz_courses($courses) {
 
     $string_courses = get_modulos_validos($courses);
 
-    $query = "SELECT q.id as quiz_id,
-                     q.name as quiz_name,
+    $query = "SELECT q.id AS quiz_id,
+                     q.name AS quiz_name,
                      q.timeopen,
                      cm.completionexpected,
                      q.grade,
-                     c.id as course_id,
-                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
-                FROM {course} as c
-                JOIN {quiz} as q
+                     c.id AS course_id,
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
+                FROM {course} AS c
+                JOIN {quiz} AS q
                   ON (c.id = q.course AND c.id != :siteid)
                 JOIN {course_modules} cm
                   ON (cm.course = c.id AND cm.instance=q.id)
@@ -294,15 +297,15 @@ function query_forum_courses($courses) {
 
     $string_courses = get_modulos_validos($courses);
 
-    $query = "SELECT f.id as forum_id,
-                     f.name as forum_name,
+    $query = "SELECT f.id AS forum_id,
+                     f.name AS forum_name,
                      cm.completionexpected,
-                     c.id as course_id,
-                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') as course_name
-                     FROM {course} as c
-                LEFT JOIN {forum} as f
+                     c.id AS course_id,
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
+                     FROM {course} AS c
+                LEFT JOIN {forum} AS f
                        ON (c.id = f.course AND c.id != :siteid)
-                     JOIN {grade_items} as gi
+                     JOIN {grade_items} AS gi
                        ON (gi.courseid=c.id AND gi.itemtype = 'mod' AND
                            gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
                      JOIN {course_modules} cm
@@ -321,7 +324,7 @@ function query_courses_com_nota_final($courses) {
     $string_courses = get_modulos_validos($courses);
 
     $query = "SELECT gi.id,
-                     gi.courseid as course_id,
+                     gi.courseid AS course_id,
                      gi.itemname
             FROM {grade_items} gi
             WHERE (gi.itemtype LIKE 'course' AND itemmodule IS NULL AND gi.courseid IN ({$string_courses}))
@@ -496,15 +499,15 @@ function get_curso_ufsc_id() {
 
     $course = $DB->get_record('course', array('id' => get_course_id()), 'category', MUST_EXIST);
     $category = $DB->get_record('course_categories', array('id' => $course->category), 'id, idnumber, depth, path', MUST_EXIST);
-    
+
     if ($category->depth > 1) {
         // Pega o primeiro id do caminho
         preg_match('/^\/([0-9]+)\//', $category->path, $matches);
         $root_category = $matches[1];
 
         $category = $DB->get_record('course_categories', array('id' => $root_category), 'id, idnumber, depth, path', MUST_EXIST);
-    } 
-    
+    }
+
     $curso_ufsc_id = str_replace('curso_', '', $category->idnumber, $count);
     return ($count) ? $curso_ufsc_id : false;
 }

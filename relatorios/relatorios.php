@@ -37,7 +37,7 @@ function get_dados_atividades_vs_notas() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -238,7 +238,7 @@ function get_dados_entrega_de_atividades() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -324,7 +324,7 @@ function get_dados_grafico_entrega_de_atividades() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
@@ -381,8 +381,7 @@ function get_dados_grafico_entrega_de_atividades() {
                     $count_entregue_no_prazo,
                     $count_pouco_atraso,
                     $count_muito_atraso,
-        );
-        ;
+                );
     }
 
     return ($dados);
@@ -420,7 +419,7 @@ function get_dados_historico_atribuicao_notas() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -511,7 +510,7 @@ function get_dados_grafico_historico_atribuicao_notas() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -676,7 +675,7 @@ function get_dados_grafico_boletim() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
@@ -756,7 +755,7 @@ function get_dados_atividades_nao_avaliadas() {
     $query_forum = query_postagens_forum();
 
     $result_array = loop_atividades_e_foruns_sintese(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -831,7 +830,7 @@ function get_dados_atividades_nota_atribuida() {
     $query_forum = query_postagens_forum();
 
     $result_array = loop_atividades_e_foruns_sintese(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -1057,8 +1056,8 @@ function get_dados_acesso_tutor() {
     foreach ($dados as $id => $datas) {
         foreach ($dias_meses as $dia) {
             (in_array($dia, $datas)) ?
-                            $result->add($id, new dado_acesso_tutor(true)) :
-                            $result->add($id, new dado_acesso_tutor(false));
+                    $result->add($id, new dado_acesso_tutor(true)) :
+                    $result->add($id, new dado_acesso_tutor(false));
         }
     }
     $result = $result->get_assoc();
@@ -1242,7 +1241,7 @@ function get_todo_list_data() {
     $query_forum = query_postagens_forum();
 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();

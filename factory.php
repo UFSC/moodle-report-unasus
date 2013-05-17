@@ -29,9 +29,14 @@ class Factory {
     protected $curso_moodle;
     protected $cursos_ativos;
 
-    // Relatório a ser mostrado
+    /**
+     * @var string $relatorio relatório atual que será mostrado
+     */
     protected $relatorio;
-    // Tipo de exibição - null, tabela, grafico_valores, grafico_porcentagens, grafico_pontos
+
+    /**
+     * @var mixed $modo_exibicao valores possíveis: null, tabela, grafico_valores, grafico_porcentagens, grafico_pontos
+     */
     protected $modo_exibicao;
 
     //Atributos para os filtros
@@ -48,14 +53,13 @@ class Factory {
     public $modulos_selecionados;
     public $polos_selecionados;
     public $tutores_selecionados;
-    public $agrupar_relatorios_por_polos;
     public $agrupar_relatorios;
     public $texto_cabecalho;
 
     //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
     public $data_inicio;
     public $data_fim;
-    
+
     //Singleton
     private static $instance;
 
@@ -88,8 +92,7 @@ class Factory {
         $this->modulos_selecionados = get_atividades_cursos(get_modulos_validos($modulos_raw));
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
-        $this->agrupar_relatorios_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
-        
+
         //AGRUPAMENTO DO RELATORIO
         $agrupar_relatorio = optional_param('agrupar_tutor_polo_select', null, PARAM_INT);
         switch ($agrupar_relatorio) {
@@ -103,7 +106,7 @@ class Factory {
                 $this->agrupar_relatorios = AGRUPAR_TUTORES;
                 break;
         }
-        
+
         //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
         $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
         $data_fim = optional_param('data_fim', null, PARAM_TEXT);
@@ -186,7 +189,7 @@ class Factory {
     }
 
 
-    public function relatorio_possui_grafico(){
+    public function relatorio_possui_grafico() {
         $method = "get_dados_grafico_{$this->relatorio}";
         if (function_exists($method) && ($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))
             return true;

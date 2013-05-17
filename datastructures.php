@@ -46,12 +46,24 @@ class pessoa {
 
 }
 
-// Estudante possui um polo para poder fazer agrupamento dos relatorios
+/**
+ * Estrutura de dados que representa um estudante
+ */
 class estudante extends pessoa {
 
     public $cohort;
     public $polo;
 
+    /**
+     * Estudantes - Possuem polo e cohort para poderem fazer o agrupamento nos relatórios
+     *
+     * @todo Refatorar agrupamentos, para não precisar passar tantos parâmetros, passar apenas aquilo que está sendo utilizado
+     * @param $name
+     * @param $id
+     * @param $courseid
+     * @param $polo
+     * @param null $cohort
+     */
     function __construct($name, $id, $courseid, $polo, $cohort = null) {
         parent::__construct($name, $id, $courseid);
         $this->polo = $polo;
