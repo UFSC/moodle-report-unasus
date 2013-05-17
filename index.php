@@ -76,12 +76,14 @@ if ($factory->get_relatorio() != null) {
             $factory->mostrar_botoes_grafico = false;
             break;
         case 'acesso_tutor' :
+            $factory->mostrar_filtro_cohorts = false;
             $factory->mostrar_filtro_modulos = false;
             $factory->mostrar_botoes_grafico = false;
             $factory->mostrar_filtro_polos = false;
             $factory->mostrar_filtro_intervalo_tempo = true;
             break;
         case 'uso_sistema_tutor' :
+            $factory->mostrar_filtro_cohorts = false;
             $factory->mostrar_botoes_dot_chart = true;
             $factory->mostrar_botoes_grafico = false;
             $factory->mostrar_filtro_modulos = false;
