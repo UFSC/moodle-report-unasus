@@ -25,23 +25,28 @@ function query_alunos_grupo_tutoria() {
 
     /** @var $factory Factory */
     $factory = Factory::singleton();
-    $query_cohort = ' ';
     $query_polo = ' ';
+    
+    $cohorts = int_array_to_sql($factory->cohorts_selecionados);
+    $polos = int_array_to_sql($factory->polos_selecionados);
 
     if (!is_null($cohorts)) {
-        $cohorts = int_array_to_sql($factory->cohorts_selecionados);
         $query_cohort = " JOIN {cohort_members} cm
                             ON (cm.userid=u.id)
                           JOIN {cohort} co
                             ON (cm.cohortid=co.id AND co.id IN ({$cohorts})) ";
+    } else {
+        $query_cohort = " LEFT JOIN {cohort_members} cm
+                            ON (u.id = cm.userid)
+                          LEFT JOIN {cohort} co
+                            ON (cm.cohortid=co.id)";
     }
 
     if (!is_null($polos)) {
-        $polos = int_array_to_sql($factory->polos_selecionados);
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id AS grupo_id, vga.polo
+    return "SELECT DISTINCT u.id, u.firstname, u.lastname, gt.id AS grupo_id, vga.polo, co.id as cohort
                          FROM {user} u
                          JOIN {table_PessoasGruposTutoria} pg
                            ON (pg.matricula=u.username)
@@ -90,6 +95,7 @@ function query_postagens_forum() {
 
     return " SELECT u.id AS userid,
                     u.polo,
+                    u.cohort,
                     fp.submission_date,
                     fp.forum_name,
                     gg.grade,
@@ -207,6 +213,7 @@ function query_potenciais_evasoes() {
 
     return "SELECT u.id AS user_id,
                       u.polo,
+                      u.cohort,
                       sub.timecreated AS submission_date,
                       gr.timemodified,
                       gr.grade
@@ -249,6 +256,8 @@ function query_atividades() {
 
     return "SELECT u.id AS userid,
                    u.polo,
+                   u.cohort,
+                   u.polo,
                    gr.grade,
                    sub.timecreated AS submission_date,
                    sub.timemodified AS submission_modified,
@@ -287,6 +296,7 @@ function query_nota_final() {
 
     return "SELECT u.id AS userid,
                    u.polo,
+                   u.cohort,
                    gradeitemid AS gradeitemid,
                    courseid,
                    finalgrade AS grade
@@ -338,6 +348,7 @@ function query_quiz() {
 
     return "SELECT u.id AS userid,
                    u.polo,
+                   u.cohort,
                    qg.grade,
                    qg.timemodified AS grade_date,
                    qa.timefinish AS submission_date

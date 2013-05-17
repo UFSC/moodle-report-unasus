@@ -18,6 +18,10 @@
  * Os atributos da barra de filtragem, que variam de relatório em relatório são setados no arquivo
  * index.php de acordo com o relatório selecionado.
  */
+define('AGRUPAR_TUTORES', 'TUTORES');
+define('AGRUPAR_POLOS', 'POLOS');
+define('AGRUPAR_COHORTS', 'COHORTS');
+
 class Factory {
 
     //Atributos globais
@@ -40,16 +44,18 @@ class Factory {
     public $mostrar_aviso_intervalo_tempo;
 
     //Atributos para os gráficos e tabelas
+    public $cohorts_selecionados;
     public $modulos_selecionados;
     public $polos_selecionados;
     public $tutores_selecionados;
     public $agrupar_relatorios_por_polos;
+    public $agrupar_relatorios;
     public $texto_cabecalho;
 
     //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
     public $data_inicio;
     public $data_fim;
-
+    
     //Singleton
     private static $instance;
 
@@ -65,6 +71,7 @@ class Factory {
         $this->mostrar_botoes_grafico = true;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_cohorts = true;
         $this->mostrar_filtro_modulos = true;
         $this->mostrar_filtro_intervalo_tempo = false;
         $this->mostrar_aviso_intervalo_tempo = false;
@@ -77,11 +84,26 @@ class Factory {
         if (is_null($modulos_raw)) {
             $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
         }
+        $this->cohorts_selecionados = optional_param_array('cohorts', null, PARAM_INT);
         $this->modulos_selecionados = get_atividades_cursos(get_modulos_validos($modulos_raw));
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
         $this->agrupar_relatorios_por_polos = optional_param('agrupar_tutor_polo_select', null, PARAM_BOOL);
-
+        
+        //AGRUPAMENTO DO RELATORIO
+        $agrupar_relatorio = optional_param('agrupar_tutor_polo_select', null, PARAM_INT);
+        switch ($agrupar_relatorio) {
+            case 1:
+                $this->agrupar_relatorios = AGRUPAR_POLOS;
+                break;
+            case 2:
+                $this->agrupar_relatorios = AGRUPAR_COHORTS;
+                break;
+            default:
+                $this->agrupar_relatorios = AGRUPAR_TUTORES;
+                break;
+        }
+        
         //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
         $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
         $data_fim = optional_param('data_fim', null, PARAM_TEXT);

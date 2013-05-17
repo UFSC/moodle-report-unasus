@@ -110,6 +110,7 @@ abstract class report_unasus_data {
 
     public $source_activity;
     public $userid;
+    public $cohort;
     public $polo;
     public $grade;
     public $submission_date;
@@ -305,6 +306,7 @@ class report_unasus_data_activity extends report_unasus_data {
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
+        $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
         $this->polo = $db_model->polo;
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float)$db_model->grade;

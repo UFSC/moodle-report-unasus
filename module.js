@@ -32,6 +32,14 @@ M.report_unasus.init = function(Y) {
 
     //Botoes de selecionar todos e limpar seleção
     Y.delegate('click', function(e) {
+        select_all('#multiple_cohort', true);
+    }, document, '#select_all_cohort');
+    
+    Y.delegate('click', function(e) {
+        select_all('#multiple_cohort', false);
+    }, document, '#select_none_cohort');
+    
+    Y.delegate('click', function(e) {
         select_all('#multiple_modulo', true);
     }, document, '#select_all_modulo');
 

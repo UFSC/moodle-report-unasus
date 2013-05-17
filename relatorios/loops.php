@@ -5,7 +5,7 @@
  *
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
-function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
+function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
@@ -44,7 +44,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
                         $params['courseid'] = $courseid;
                     }
 
-                    $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
+                    $result = $middleware->get_records_sql($query_conjunto_alunos, $params);
 
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
@@ -127,7 +127,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
 }
 
 /**
- * @param $query_alunos_grupo_tutoria
+ * @param $query_conjunto_alunos
  * @param $query_forum
  * @param $query_quiz
  * @return array (
@@ -139,7 +139,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_alunos_grupo_tutoria, $que
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz) {
+function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz) {
     $middleware = Middleware::singleton();
 
     /** @var $factory Factory */
@@ -180,7 +180,7 @@ function loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_fo
                         'grupo_tutoria' => $grupo->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
-                    $result = $middleware->get_records_sql($query_alunos_grupo_tutoria, $params);
+                    $result = $middleware->get_records_sql($query_conjunto_alunos, $params);
 
                     foreach ($result as $r) {
                         /** @var report_unasus_data_activity $data */

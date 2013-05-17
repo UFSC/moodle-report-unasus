@@ -44,7 +44,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         } else {
             $this->report = $factory->get_modo_exibicao();
         }
-
     }
 
     /**
@@ -122,11 +121,10 @@ class report_unasus_renderer extends plugin_renderer_base {
         $factory = Factory::singleton();
 
         //$dados_tutores = grupos_tutoria::get_chave_valor_grupos_tutoria($this->curso_ufsc);
-
         // Inicio do Form
         $url_filtro = new moodle_url('/report/unasus/index.php', $factory->get_page_params());
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
-            'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
+                    'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
         // Fieldset
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
@@ -174,6 +172,18 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'multiple_list'));
             }
 
+            $output .= html_writer::tag('div', '', array('class' => 'clear'));
+
+            if ($factory->mostrar_filtro_cohorts) {
+                // Filtro de Cohorts
+                $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '';
+                $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
+                $filter_cohorts .= html_writer::select(get_nomes_cohorts($factory->get_curso_ufsc()), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
+                $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
+                $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
+                $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
+            }
+
             // Filtro de Tutores
             $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
             $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
@@ -181,16 +191,8 @@ class report_unasus_renderer extends plugin_renderer_base {
             $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
             $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
             $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
-
-            // Filtro de Cohorts
-            $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '' ;
-            $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
-            $filter_cohorts .= html_writer::select(get_nomes_cohorts($this->curso_ufsc), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohorts'));
-            $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
-            $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohorts', 'href' => '#'));
-            $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
         }
-        
+
         if ($factory->mostrar_filtro_intervalo_tempo) {
 
             $data_fim = date('d/m/Y');
@@ -631,10 +633,10 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = $factory->get_dados_grafico_relatorio();
 
         // Se algum tutor logou ele gera o gráfico
-        if(dot_chart_com_tutores_com_acesso($dados_method)){
+        if (dot_chart_com_tutores_com_acesso($dados_method)) {
             $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method));
             $output .= '<div id="container" class="container relatorio-wrapper"></div>';
-        }else{
+        } else {
             // Se nenhum tutor logou ele informa um erro em vez de gerar um gráfico vazio
             $output .= $this->build_warning('Nenhum tutor logou no moodle no intervalo de tempo selecionado');
         }
@@ -659,5 +661,4 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
 }
-
 

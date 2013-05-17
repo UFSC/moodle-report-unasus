@@ -49,16 +49,16 @@ class pessoa {
 // Estudante possui um polo para poder fazer agrupamento dos relatorios
 class estudante extends pessoa {
 
+    public $cohort;
     public $polo;
 
-    function __construct($name, $id, $courseid, $polo) {
+    function __construct($name, $id, $courseid, $polo, $cohort = null) {
         parent::__construct($name, $id, $courseid);
         $this->polo = $polo;
+        $this->cohort = $cohort;
     }
 
-
 }
-
 
 //
 // Relatórios
@@ -134,10 +134,10 @@ class dado_atividades_vs_notas extends unasus_data {
                 return $this->dia_toString($this->atraso);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO:
-                return (String)$this->format_grade($this->nota);
+                return (String) $this->format_grade($this->nota);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO:
-                return (String)$this->format_grade($this->nota);
+                return (String) $this->format_grade($this->nota);
                 break;
             case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'no prazo';
@@ -267,6 +267,7 @@ class dado_entrega_de_atividades extends unasus_data {
 }
 
 class dado_boletim extends unasus_data {
+
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
 
@@ -283,7 +284,7 @@ class dado_boletim extends unasus_data {
     public function __toString() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return (String)$this->format_grade($this->nota);
+                return (String) $this->format_grade($this->nota);
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return '';
@@ -311,10 +312,10 @@ class dado_boletim extends unasus_data {
         return $legend;
     }
 
-
 }
 
 class dado_nota_final extends unasus_data {
+
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
 
@@ -329,7 +330,7 @@ class dado_nota_final extends unasus_data {
     public function __toString() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return (String)$this->format_grade($this->nota);
+                return (String) $this->format_grade($this->nota);
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return '';
@@ -354,6 +355,7 @@ class dado_nota_final extends unasus_data {
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
         return $legend;
     }
+
 }
 
 class dado_historico_atribuicao_notas extends unasus_data {
@@ -372,7 +374,6 @@ class dado_historico_atribuicao_notas extends unasus_data {
         $this->tipo = $tipo;
         $this->atraso = $atraso;
         $this->atividade_id = $atividade_id;
-
     }
 
     public function __toString() {
@@ -454,7 +455,7 @@ class dado_avaliacao_em_atraso extends unasus_data {
 }
 
 class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
-
+    
 }
 
 /**

@@ -2,6 +2,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+define('REPORT_UNASUS_COHORT_EMPTY', 'Sem cohort'); // estudantes sem cohort
+
 require_once("{$CFG->dirroot}/local/tutores/middlewarelib.php");
 require_once("{$CFG->dirroot}/local/tutores/lib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
@@ -31,7 +33,7 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql(
-        "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) as fullname
+            "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) as fullname
          FROM {course} c
          JOIN {assign} a
            ON (c.id = a.course)
@@ -48,7 +50,7 @@ function get_nomes_modulos() {
 function get_nomes_tutores() {
     global $DB;
     $tutores = $DB->get_records_sql(
-        "SELECT distinct CONCAT(firstname,' ',lastname) as fullname
+            "SELECT distinct CONCAT(firstname,' ',lastname) as fullname
            FROM {role_assignments} as ra
            JOIN {role} as r
              ON (r.id=ra.roleid)
@@ -87,17 +89,22 @@ function get_count_estudantes($curso_ufsc) {
  */
 function get_nomes_cohorts($curso_ufsc) {
     global $DB, $SITE;
+
+    $ufsc_category_sql = "
+        SELECT cc.id 
+          FROM {course_categories} cc 
+         WHERE cc.idnumber=:curso_ufsc";
+             
+    $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
+    
     $modulos = $DB->get_records_sql_menu(
         "SELECT DISTINCT(cohort.id), cohort.name
            FROM {cohort} cohort
            JOIN {context} context
-             ON (cohort.contextid = context.id) 
-           JOIN {course} c
-             ON (context.instanceid = c.category AND context.contextlevel = 40) 
+             ON (cohort.contextid = context.id AND context.contextlevel = 40) 
            JOIN {course_categories} cc
-             ON ( (c.category = cc.id OR cc.path LIKE CONCAT('/', c.category, '/%')) AND cc.idnumber = :curso_ufsc)
-          WHERE c.id != :siteid
-            AND c.visible=true", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+             ON (context.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))", 
+                     array('curso_ufsc' => "curso_{$curso_ufsc}"));
     return $modulos;
 }
 
@@ -129,7 +136,7 @@ function get_polos($curso_ufsc) {
 function get_id_nome_modulos($curso_ufsc) {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(c.id),
+            "SELECT DISTINCT(c.id),
               REPLACE(fullname, CONCAT(shortname, ' - '), '') as fullname
          FROM {course} c
          JOIN {course_categories} cc
@@ -144,7 +151,7 @@ function get_id_nome_modulos($curso_ufsc) {
 function get_id_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(c.id)
+            "SELECT DISTINCT(c.id)
          FROM {course} c
          JOIN {assign} a
            ON (c.id = a.course)
@@ -156,7 +163,7 @@ function get_id_modulos() {
 function get_id_nome_atividades() {
     global $DB;
     $modulos = $DB->get_records_sql_menu(
-        "SELECT a.id,
+            "SELECT a.id,
               a.name
          FROM {assign} a");
     return $modulos;
@@ -211,7 +218,6 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
         foreach ($cursos_com_nota_final as $nota_final) {
             $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
         }
-
     }
 
     return $group_array->get_assoc();
@@ -322,9 +328,7 @@ function query_courses_com_nota_final($courses) {
             ORDER BY gi.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
-
 }
-
 
 // TODO: remover esta função, não é mais necessária com as novas consultas.
 function query_forum_duedate($forum_id) {
@@ -358,14 +362,13 @@ function get_modulos_validos($modulos) {
 
 function get_prazo_avaliacao() {
     global $CFG;
-    return (int)$CFG->report_unasus_prazo_avaliacao;
+    return (int) $CFG->report_unasus_prazo_avaliacao;
 }
 
 function get_prazo_maximo_avaliacao() {
     global $CFG;
-    return (int)$CFG->report_unasus_prazo_maximo_avaliacao;
+    return (int) $CFG->report_unasus_prazo_maximo_avaliacao;
 }
-
 
 /**
  * Classe que constroi a tabela para os relatorios, extende a html_table
@@ -492,9 +495,17 @@ function get_curso_ufsc_id() {
     global $DB;
 
     $course = $DB->get_record('course', array('id' => get_course_id()), 'category', MUST_EXIST);
-    $category = $DB->get_record('course_categories', array('id' => $course->category), 'idnumber', MUST_EXIST);
-    $curso_ufsc_id = str_replace('curso_', '', $category->idnumber, $count);
+    $category = $DB->get_record('course_categories', array('id' => $course->category), 'id, idnumber, depth, path', MUST_EXIST);
+    
+    if ($category->depth > 1) {
+        // Pega o primeiro id do caminho
+        preg_match('/^\/([0-9]+)\//', $category->path, $matches);
+        $root_category = $matches[1];
 
+        $category = $DB->get_record('course_categories', array('id' => $root_category), 'id, idnumber, depth, path', MUST_EXIST);
+    } 
+    
+    $curso_ufsc_id = str_replace('curso_', '', $category->idnumber, $count);
     return ($count) ? $curso_ufsc_id : false;
 }
 
@@ -518,6 +529,7 @@ function get_cursos_ativos_list() {
  * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
  * @date_format formato da data em DateTime()
  */
+
 function get_time_interval($data_inicio, $data_fim, $tempo_pulo, $date_format) {
     // Intervalo de dias no formato d/m
     $interval = $data_inicio->diff($data_fim);
@@ -540,6 +552,7 @@ function get_time_interval($data_inicio, $data_fim, $tempo_pulo, $date_format) {
  * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
  * @date_format formato da data em DateTime()
  */
+
 function get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date_format) {
     $data_inicio = date_create_from_format($date_format, $data_inicio);
     $data_fim = date_create_from_format($date_format, $data_fim);
@@ -570,7 +583,7 @@ class date_picker_moodle_form extends moodleform {
 
     function definition() {
         global $CFG;
-        $mform =& $this->_form;
+        $mform = & $this->_form;
 
         $mform->addElement('date_selector', 'assesstimefinish', $this->label);
         $mform->setAttributes(array('class' => ''));
@@ -579,6 +592,7 @@ class date_picker_moodle_form extends moodleform {
     function validation($data, $files) {
         return array();
     }
+
 }
 
 /**
@@ -622,10 +636,10 @@ function date_is_valid($str) {
  * @param $dados array( tutores => datas => quantidade de acesso)
  * @return bool
  */
-function dot_chart_com_tutores_com_acesso($dados){
-    foreach($dados as $tutor){
-        foreach($tutor as $dia){
-            if($dia[0] != 0)
+function dot_chart_com_tutores_com_acesso($dados) {
+    foreach ($dados as $tutor) {
+        foreach ($tutor as $dia) {
+            if ($dia[0] != 0)
                 return true;
         }
     }
