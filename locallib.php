@@ -195,6 +195,7 @@ function get_tutores_menu($curso_ufsc) {
  * Função que busca todas as atividades (assign, forum) dentro de um modulo (course)
  *
  * @param array $courses array de ids dos cursos moodle, padrão null, retornando todos os modulos
+ * @param bool $mostrar_nota_final
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
 function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
@@ -240,23 +241,23 @@ function query_assign_courses($courses) {
     $string_courses = get_modulos_validos($courses);
 
     $query = "SELECT a.id AS assign_id,
-                         a.name AS assign_name,
-                         cm.completionexpected,
-                         a.nosubmissions,
-                         a.grade,
-                         c.id AS course_id,
-                         REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
-                    FROM {course} AS c
-               LEFT JOIN {assign} AS a
-                      ON (c.id = a.course AND c.id != :siteid)
-                    JOIN {course_modules} cm
-                      ON (cm.course = c.id AND cm.instance=a.id)
-                    JOIN {modules} m
-                      ON (m.id = cm.module AND m.name LIKE 'assign')
-                   WHERE c.id IN ({$string_courses})
-               ORDER BY c.id";
+                     a.name AS assign_name,
+                     cm.completionexpected,
+                     a.nosubmissions,
+                     a.grade,
+                     c.id AS course_id,
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
+                FROM {course} AS c
+           LEFT JOIN {assign} AS a
+                  ON (c.id = a.course AND c.id != :siteid)
+                JOIN {course_modules} cm
+                  ON (cm.course = c.id AND cm.instance=a.id)
+                JOIN {modules} m
+                  ON (m.id = cm.module AND m.name LIKE 'assign')
+               WHERE c.id IN ({$string_courses})
+           ORDER BY c.id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
+  return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
 
 /**
@@ -302,18 +303,18 @@ function query_forum_courses($courses) {
                      cm.completionexpected,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
-                     FROM {course} AS c
-                LEFT JOIN {forum} AS f
-                       ON (c.id = f.course AND c.id != :siteid)
-                     JOIN {grade_items} AS gi
-                       ON (gi.courseid=c.id AND gi.itemtype = 'mod' AND
-                           gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
-                     JOIN {course_modules} cm
-                       ON (cm.course=c.id AND cm.instance=f.id)
-                     JOIN {modules} m
-                       ON (m.id = cm.module AND m.name LIKE 'forum')
-                    WHERE c.id IN ({$string_courses})
-                 ORDER BY c.id";
+                FROM {course} AS c
+           LEFT JOIN {forum} AS f
+                  ON (c.id = f.course AND c.id != :siteid)
+                JOIN {grade_items} AS gi
+                  ON (gi.courseid=c.id AND gi.itemtype = 'mod' AND
+                      gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
+                JOIN {course_modules} cm
+                  ON (cm.course=c.id AND cm.instance=f.id)
+                JOIN {modules} m
+                  ON (m.id = cm.module AND m.name LIKE 'forum')
+               WHERE c.id IN ({$string_courses})
+            ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -326,25 +327,11 @@ function query_courses_com_nota_final($courses) {
     $query = "SELECT gi.id,
                      gi.courseid AS course_id,
                      gi.itemname
-            FROM {grade_items} gi
-            WHERE (gi.itemtype LIKE 'course' AND itemmodule IS NULL AND gi.courseid IN ({$string_courses}))
+                FROM {grade_items} gi
+               WHERE (gi.itemtype LIKE 'course' AND itemmodule IS NULL AND gi.courseid IN ({$string_courses}))
             ORDER BY gi.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
-}
-
-// TODO: remover esta função, não é mais necessária com as novas consultas.
-function query_forum_duedate($forum_id) {
-    global $DB;
-    $query = "SELECT cm.*
-              FROM {course_modules} cm
-              JOIN {forum} f
-              ON (f.id=cm.instance AND cm.id=:forumid)";
-
-    $query = $DB->get_recordset_sql($query, array('forumid' => $forum_id));
-    foreach ($query as $row) {
-        return $row;
-    }
 }
 
 /**
@@ -354,12 +341,8 @@ function query_forum_duedate($forum_id) {
  * @return array
  */
 function get_modulos_validos($modulos) {
-    $string_modulos = '';
-    if ($modulos) {
-        $string_modulos = int_array_to_sql($modulos);
-    } else {
-        $string_modulos = int_array_to_sql(get_id_modulos());
-    }
+
+    $string_modulos = empty($modulos) ? int_array_to_sql(get_id_modulos()) : int_array_to_sql($modulos);
     return $string_modulos;
 }
 
@@ -550,12 +533,15 @@ function get_time_interval($data_inicio, $data_fim, $tempo_pulo, $date_format) {
     return $dias_meses;
 }
 
-/*
- * @dias_atras quantos dias antes da data atual no formato (P120D)
- * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
- * @date_format formato da data em DateTime()
+/**
+ * Retorna um intervalo entre duas datas com meses
+ *
+ * @param string $data_inicio data no formato informado em $date_format
+ * @param string $data_fim data no formato informado em $date_format
+ * @param string $tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)
+ * @param string $date_format formato da data em DateTime()
+ * @return array
  */
-
 function get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date_format) {
     $data_inicio = date_create_from_format($date_format, $data_inicio);
     $data_fim = date_create_from_format($date_format, $data_fim);
@@ -599,10 +585,12 @@ class date_picker_moodle_form extends moodleform {
 }
 
 /**
- * Verifica se um intervalo de datas são validos, compara se a data de inicio é menor que a de fim e se as strings são datas validas
+ * Verifica se um intervalo de datas são validos
  *
- * @param $datainicio String data
- * @param $datafim String data
+ * Compara se a data de inicio é menor que a de fim e se as strings são datas validas
+ * @param string $data_inicio data
+ * @param string $data_fim data
+ * @return bool
  */
 function date_interval_is_valid($data_inicio, $data_fim) {
     if (date_is_valid($data_inicio) && date_is_valid($data_fim)) {
