@@ -152,7 +152,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Filtro de modulo
         if ($factory->mostrar_filtro_modulos) {
             $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '';
-            $nome_modulos = get_id_nome_modulos($factory->get_curso_ufsc());
+            $nome_modulos = get_nome_modulos($factory->get_curso_ufsc());
             $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
             $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post, '', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
             $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
