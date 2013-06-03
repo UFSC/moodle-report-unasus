@@ -85,18 +85,13 @@ function get_count_estudantes($curso_ufsc) {
 /**
  * Dado que alimenta a lista do filtro cohort
  *
- * @param type $curso_ufsc
+ * @param int $curso_ufsc
  * @return array (nome dos cohorts)
  */
 function get_nomes_cohorts($curso_ufsc) {
     global $DB;
 
-    $ufsc_category_sql = "
-        SELECT cc.id 
-          FROM {course_categories} cc 
-         WHERE cc.idnumber=:curso_ufsc";
-
-    $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
+    $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
 
     $modulos = $DB->get_records_sql_menu(
         "SELECT DISTINCT(cohort.id), cohort.name
@@ -134,15 +129,27 @@ function get_polos($curso_ufsc) {
     return $polos;
 }
 
+/**
+ * Localiza uma categoria com base no curso UFSC informado
+ *
+ * @param int $curso_ufsc Código do Curso UFSC
+ * @return mixed
+ */
+function get_category_from_curso_ufsc($curso_ufsc) {
+    global $DB;
+
+    $ufsc_category_sql = "
+        SELECT cc.id
+          FROM {course_categories} cc
+         WHERE cc.idnumber=:curso_ufsc";
+
+    return $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
+}
+
 function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
     global $DB, $SITE;
 
-    $ufsc_category_sql = "
-        SELECT cc.id 
-          FROM {course_categories} cc 
-         WHERE cc.idnumber=:curso_ufsc";
-
-    $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
+    $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
 
     $modulos = $DB->$method(
         "SELECT DISTINCT(c.id),
