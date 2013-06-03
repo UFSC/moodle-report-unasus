@@ -4,8 +4,8 @@ defined('MOODLE_INTERNAL') || die;
 
 define('REPORT_UNASUS_COHORT_EMPTY', 'Sem cohort'); // estudantes sem cohort
 
-require_once("{$CFG->dirroot}/local/tutores/middlewarelib.php");
-require_once("{$CFG->dirroot}/local/tutores/lib.php");
+require_once($CFG->dirroot . '/local/tutores/middlewarelib.php');
+require_once($CFG->dirroot . '/local/tutores/lib.php');
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/relatorios.php');
@@ -33,7 +33,7 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql(
-            "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
+        "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -50,7 +50,7 @@ function get_nomes_modulos() {
 function get_nomes_tutores() {
     global $DB;
     $tutores = $DB->get_records_sql(
-            "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
+        "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
            FROM {role_assignments} AS ra
            JOIN {role} AS r
              ON (r.id=ra.roleid)
@@ -99,7 +99,7 @@ function get_nomes_cohorts($curso_ufsc) {
     $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
 
     $modulos = $DB->get_records_sql_menu(
-            "SELECT DISTINCT(cohort.id), cohort.name
+        "SELECT DISTINCT(cohort.id), cohort.name
            FROM {cohort} cohort
            JOIN {context} ctx
              ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
@@ -143,11 +143,11 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
          WHERE cc.idnumber=:curso_ufsc";
 
     $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
-    
+
     $modulos = $DB->$method(
-            "SELECT DISTINCT(c.id),
+        "SELECT DISTINCT(c.id),
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname,
-                c.category as categoryid, cc.name AS category, cc.depth
+                c.category AS categoryid, cc.name AS category, cc.depth
            FROM {course} c
            JOIN {course_categories} cc
              ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
@@ -166,6 +166,7 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
  *       5 => 'lista principal 1',
  *       6 => 'lista principal 2',
  *   );
+ *
  * @global moodle_database $DB
  * @global type $SITE
  * @param string $curso_ufsc
@@ -173,7 +174,7 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
  */
 function get_nome_modulos($curso_ufsc) {
     $modulos = get_id_nome_modulos($curso_ufsc, 'get_records_sql');
-    
+
     // Interar para criar array dos modulos separados por grupos
     $listall = array();
     $list = array();
@@ -195,7 +196,7 @@ function get_id_modulos() {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
-            "SELECT DISTINCT(c.id)
+        "SELECT DISTINCT(c.id)
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -295,7 +296,7 @@ function query_assign_courses($courses) {
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'assign')
                WHERE c.id IN ({$string_courses})
-           ORDER BY c.id";
+            ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
@@ -368,7 +369,9 @@ function query_courses_com_nota_final($courses) {
                      gi.courseid AS course_id,
                      gi.itemname
                 FROM {grade_items} gi
-               WHERE (gi.itemtype LIKE 'course' AND itemmodule IS NULL AND gi.courseid IN ({$string_courses}))
+               WHERE (gi.itemtype LIKE 'course'
+                 AND itemmodule IS NULL
+                 AND gi.courseid IN ({$string_courses}))
             ORDER BY gi.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -628,6 +631,7 @@ class date_picker_moodle_form extends moodleform {
  * Verifica se um intervalo de datas são validos
  *
  * Compara se a data de inicio é menor que a de fim e se as strings são datas validas
+ *
  * @param string $data_inicio data
  * @param string $data_fim data
  * @return bool
