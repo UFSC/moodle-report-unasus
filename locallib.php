@@ -4,8 +4,8 @@ defined('MOODLE_INTERNAL') || die;
 
 define('REPORT_UNASUS_COHORT_EMPTY', 'Sem cohort'); // estudantes sem cohort
 
-require_once("{$CFG->dirroot}/local/tutores/middlewarelib.php");
-require_once("{$CFG->dirroot}/local/tutores/lib.php");
+require_once($CFG->dirroot . '/local/tutores/middlewarelib.php');
+require_once($CFG->dirroot . '/local/tutores/lib.php');
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/relatorios.php');
@@ -85,18 +85,13 @@ function get_count_estudantes($curso_ufsc) {
 /**
  * Dado que alimenta a lista do filtro cohort
  *
- * @param type $curso_ufsc
+ * @param int $curso_ufsc
  * @return array (nome dos cohorts)
  */
 function get_nomes_cohorts($curso_ufsc) {
     global $DB;
 
-    $ufsc_category_sql = "
-        SELECT cc.id 
-          FROM {course_categories} cc 
-         WHERE cc.idnumber=:curso_ufsc";
-
-    $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
+    $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
 
     $modulos = $DB->get_records_sql_menu(
         "SELECT DISTINCT(cohort.id), cohort.name
@@ -104,8 +99,7 @@ function get_nomes_cohorts($curso_ufsc) {
            JOIN {context} ctx
              ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
            JOIN {course_categories} cc
-             ON (ctx.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))",
-        array('curso_ufsc' => "curso_{$curso_ufsc}"));
+             ON (ctx.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))", array('curso_ufsc' => "curso_{$curso_ufsc}"));
     return $modulos;
 }
 
@@ -135,20 +129,76 @@ function get_polos($curso_ufsc) {
     return $polos;
 }
 
-function get_id_nome_modulos($curso_ufsc) {
+/**
+ * Localiza uma categoria com base no curso UFSC informado
+ *
+ * @param int $curso_ufsc Código do Curso UFSC
+ * @return mixed
+ */
+function get_category_from_curso_ufsc($curso_ufsc) {
+    global $DB;
+
+    $ufsc_category_sql = "
+        SELECT cc.id
+          FROM {course_categories} cc
+         WHERE cc.idnumber=:curso_ufsc";
+
+    return $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
+}
+
+function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
     global $DB, $SITE;
 
-    $modulos = $DB->get_records_sql_menu(
+    $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
+
+    $modulos = $DB->$method(
         "SELECT DISTINCT(c.id),
-                REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname
+                REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname,
+                c.category AS categoryid, cc.name AS category, cc.depth
            FROM {course} c
            JOIN {course_categories} cc
-             ON ( (c.category = cc.id OR cc.path LIKE CONCAT('/', c.category, '/%')) AND cc.idnumber = :curso_ufsc)
+             ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
            JOIN {assign} a
              ON (c.id = a.course)
           WHERE c.id != :siteid
-            AND c.visible=TRUE", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+            AND c.visible=TRUE
+       ORDER BY cc.depth, cc.name, c.fullname", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+
     return $modulos;
+}
+
+/**
+ * Lista de modulos separados por categoria
+ * Estrutura =   $array = array(
+ *      array('Odd' => array(1 => 'Item 1 do grupo 1', 2 => 'Item 2 do grupo 1')),
+ *       array('Even' => array(3 => 'Item 1 do grupo 2', 4 => 'Item 2 do grupo 2')),
+ *       5 => 'lista principal 1',
+ *       6 => 'lista principal 2',
+ *   );
+ *
+ * @param string $curso_ufsc
+ * @return array
+ */
+function get_nome_modulos($curso_ufsc) {
+    $modulos = get_id_nome_modulos($curso_ufsc, 'get_records_sql');
+
+    // Interar para criar array dos modulos separados por grupos
+    $listall = array();
+    $list = array();
+
+    foreach ($modulos as $key => $modulo) {
+        if ($modulo->depth == 1) {
+            $listall[$key] = $modulo->fullname;
+        } else {
+            $list[$modulo->category][$key] = $modulo->fullname;
+        }
+    }
+
+    foreach ($list as $key => $l) {
+        array_push($listall, array($key => $l));
+    }
+
+    return $listall;
 }
 
 function get_id_modulos() {
@@ -255,9 +305,9 @@ function query_assign_courses($courses) {
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'assign')
                WHERE c.id IN ({$string_courses})
-           ORDER BY c.id";
+            ORDER BY c.id";
 
-  return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
+    return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
 
 /**
@@ -328,7 +378,9 @@ function query_courses_com_nota_final($courses) {
                      gi.courseid AS course_id,
                      gi.itemname
                 FROM {grade_items} gi
-               WHERE (gi.itemtype LIKE 'course' AND itemmodule IS NULL AND gi.courseid IN ({$string_courses}))
+               WHERE (gi.itemtype LIKE 'course'
+                 AND itemmodule IS NULL
+                 AND gi.courseid IN ({$string_courses}))
             ORDER BY gi.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -588,6 +640,7 @@ class date_picker_moodle_form extends moodleform {
  * Verifica se um intervalo de datas são validos
  *
  * Compara se a data de inicio é menor que a de fim e se as strings são datas validas
+ *
  * @param string $data_inicio data
  * @param string $data_fim data
  * @return bool
