@@ -871,7 +871,6 @@ function get_dados_atividades_nota_atribuida() {
         foreach ($grupo as $atividades) {
             $data[] = $atividades;
         }
-//        $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
         $dados[] = $data;
     }
 
