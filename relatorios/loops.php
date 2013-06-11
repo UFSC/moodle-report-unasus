@@ -5,6 +5,7 @@
  *
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
+
 function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
@@ -73,7 +74,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($f->userid, $data);
                     }
-
                 } elseif (is_a($atividade, 'report_unasus_quiz_activity')) {
 
                     $params = array(
@@ -123,7 +123,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
     }
 
     return $associativo_atividades;
-
 }
 
 /**
@@ -148,7 +147,11 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
     // Recupera dados auxiliares
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
-
+    $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz);
+    $atividades_alunos_grupos = atividades_alunos_grupos($loop['associativo_atividade']);
+    
+    die(print_r($atividades_alunos_grupos));
+    
     $associativo_atividade = array();
     $lista_atividade = array();
     // Listagem da atividades por tutor
@@ -236,6 +239,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                     }
                 }
             }
+//            $array_das_atividades['modulo_' . $modulo] = new dado_atividades_nota_atribuida_alunos($modulo);
         }
         $lista_atividade[$grupo->id] = $array_das_atividades;
         $associativo_atividade[$grupo->id] = $group_array_do_grupo->get_assoc();

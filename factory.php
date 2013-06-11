@@ -115,16 +115,54 @@ class Factory {
             $this->data_inicio = $data_inicio;
             $this->data_fim = $data_fim;
         }
-
+        
         // Verifica se é um relatorio valido
         $this->set_relatorio(optional_param('relatorio', null, PARAM_ALPHANUMEXT));
+        
         // Verifica se é um modo de exibicao valido
         $this->set_modo_exibicao(optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT));
+    }
+    
+    
+    /**
+     * Fabrica um objeto com as definições dos relatórios que também é um singleton
+     * 
+     * @global type $CFG
+     * @return Factory
+     * @throws Exception
+     */
+    public static function singleton_report() {
+        global $CFG;
+        
+        $report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
+        $valid_reports = report_unasus_relatorios_validos_list();
+        
+        // Verifica se é um relatório válido
+        if (!in_array($report, $valid_reports)) {
+            print_error('unknow_report', 'report_unasus');
+            return false;
+        }
+        
+        $class_name = "report_{$report}";
+    
+        // carrega arquivo de definição do relatório
+        require_once $CFG->dirroot . "/report/unasus/reports/{$class_name}.php";
+        
+        if (!class_exists($class_name)) {
+            throw new Exception('Missing format class.');
+        }
+        
+        if (!isset($class_name::$instace)) {
+            $class_name::$instance = new $class_name;
+        }
+        
+        return $class_name::$instance;
     }
 
     /**
      * Singleton class, garantia de uma unica instancia da classe
-     *
+     * 
+     * @deprecated utilizar get_report
      * @return Factory
      */
     public static function singleton() {
@@ -134,6 +172,20 @@ class Factory {
         }
 
         return self::$instance;
+    }
+    
+    /**
+     * Verifica se é um relatório válido e o seta
+     * @deprecated 
+     * @param string $relatorio nome do relatorio
+     */
+    public function set_relatorio($relatorio) {
+        $options = report_unasus_relatorios_validos_list();
+        if (in_array($relatorio, $options)) {
+            $this->relatorio = $relatorio;
+        } else {
+            print_error('unknow_report', 'report_unasus');
+        }
     }
 
     // Previne que o usuário clone a instância
@@ -194,21 +246,6 @@ class Factory {
         if (function_exists($method) && ($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))
             return true;
         return false;
-    }
-
-
-    /**
-     * Verifica se é um relatório válido e o seta
-     *
-     * @param string $relatorio nome do relatorio
-     */
-    public function set_relatorio($relatorio) {
-        $options = report_unasus_relatorios_validos_list();
-        if (in_array($relatorio, $options)) {
-            $this->relatorio = $relatorio;
-        } else {
-            print_error('unknow_report', 'report_unasus');
-        }
     }
 
     /**

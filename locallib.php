@@ -33,7 +33,7 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql(
-        "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
+            "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -50,7 +50,7 @@ function get_nomes_modulos() {
 function get_nomes_tutores() {
     global $DB;
     $tutores = $DB->get_records_sql(
-        "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
+            "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
            FROM {role_assignments} AS ra
            JOIN {role} AS r
              ON (r.id=ra.roleid)
@@ -99,13 +99,12 @@ function get_nomes_cohorts($curso_ufsc) {
     $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
 
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(cohort.id), cohort.name
+            "SELECT DISTINCT(cohort.id), cohort.name
            FROM {cohort} cohort
            JOIN {context} ctx
              ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
            JOIN {course_categories} cc
-             ON (ctx.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))",
-        array('curso_ufsc' => "curso_{$curso_ufsc}"));
+             ON (ctx.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))", array('curso_ufsc' => "curso_{$curso_ufsc}"));
     return $modulos;
 }
 
@@ -139,7 +138,7 @@ function get_id_nome_modulos($curso_ufsc) {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(c.id),
+            "SELECT DISTINCT(c.id),
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname
            FROM {course} c
            JOIN {course_categories} cc
@@ -155,7 +154,7 @@ function get_id_modulos() {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(c.id)
+            "SELECT DISTINCT(c.id)
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -198,7 +197,7 @@ function get_tutores_menu($curso_ufsc) {
  * @param bool $mostrar_nota_final
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
+function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mostrar_total = false) {
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
@@ -221,6 +220,13 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
         foreach ($cursos_com_nota_final as $nota_final) {
             $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
+        }
+    }
+    
+    if ($mostrar_total) {
+        $cursos_com_nota_final = query_courses_com_nota_final($courses);
+        foreach ($cursos_com_nota_final as $nota_final) {
+            $group_array->add($nota_final->course_id, new report_unasus_total_atividades_concluidas($nota_final));
         }
     }
 
@@ -257,7 +263,7 @@ function query_assign_courses($courses) {
                WHERE c.id IN ({$string_courses})
            ORDER BY c.id";
 
-  return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
+    return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
 
 /**

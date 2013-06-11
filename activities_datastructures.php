@@ -392,6 +392,23 @@ class report_unasus_final_grade {
     }
 }
 
+class report_unasus_total_atividades_concluidas {
+
+    public $name;
+    public $course_id;
+    public $total;
+
+    public function __construct($total) {
+        $this->total = $total;
+    }
+
+    public function __toString() {
+        $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id));
+        $text = (is_null($this->name) || $this->name == '') ? 'Atividades Concluidas' : 'Atividades Concluidas';
+        return html_writer::link($gradebook_url, $text);
+    }
+}
+
 class report_unasus_data_nota_final {
     public $userid;
     public $polo;

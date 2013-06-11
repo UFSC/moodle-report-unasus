@@ -375,3 +375,30 @@ function query_quiz() {
             ORDER BY grupo_id, u.firstname, u.lastname
      ";
 }
+
+function query_alunos_modulos($modulo) {
+
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria($factory->polos_selecionados);
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   gr.grade,
+                   sub.timecreated AS submission_date,
+                   sub.timemodified AS submission_modified,
+                   gr.timemodified AS grade_modified,
+                   gr.timecreated AS grade_created,
+                   sub.status
+                 FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                 ) u
+            LEFT JOIN {assign_submission} sub
+            ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+            LEFT JOIN {assign_grades} gr
+            ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+            ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+}

@@ -37,7 +37,7 @@ function get_dados_atividades_vs_notas() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -238,7 +238,7 @@ function get_dados_entrega_de_atividades() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -324,7 +324,7 @@ function get_dados_grafico_entrega_de_atividades() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
@@ -381,7 +381,7 @@ function get_dados_grafico_entrega_de_atividades() {
                     $count_entregue_no_prazo,
                     $count_pouco_atraso,
                     $count_muito_atraso,
-                );
+        );
     }
 
     return ($dados);
@@ -419,7 +419,7 @@ function get_dados_historico_atribuicao_notas() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -486,6 +486,7 @@ function get_dados_historico_atribuicao_notas() {
 /*
  * Cabeçalho do relatorio historico atribuicao de notas
  */
+
 function get_table_header_historico_atribuicao_notas() {
     return get_table_header_modulos_atividades();
 }
@@ -493,6 +494,7 @@ function get_table_header_historico_atribuicao_notas() {
 /*
  * Dados para o gráfico de historico atribuicao de notas
  */
+
 function get_dados_grafico_historico_atribuicao_notas() {
     global $CFG;
 
@@ -510,7 +512,7 @@ function get_dados_grafico_historico_atribuicao_notas() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -675,7 +677,7 @@ function get_dados_grafico_boletim() {
      * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
@@ -755,7 +757,7 @@ function get_dados_atividades_nao_avaliadas() {
     $query_forum = query_postagens_forum();
 
     $result_array = loop_atividades_e_foruns_sintese(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -807,9 +809,9 @@ function get_dados_atividades_nao_avaliadas() {
  * Cabeçalho para o sintese: avaliacoes em atraso
  */
 
-function get_table_header_atividades_nao_avaliadas() {
-    $header = get_table_header_modulos_atividades();
-    $header[''] = array('Média');
+function get_table_header_atividades_nao_avaliadas($mostrar_nota_final = false, $mostrar_total = false) {
+    $header = get_table_header_modulos_atividades($mostrar_nota_final, $mostrar_total);
+    $header[] = array('Média');
     return $header;
 }
 
@@ -830,23 +832,28 @@ function get_dados_atividades_nota_atribuida() {
     $query_forum = query_postagens_forum();
 
     $result_array = loop_atividades_e_foruns_sintese(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
     $lista_atividade = $result_array['lista_atividade'];
     $associativo_atividade = $result_array['associativo_atividade'];
 
-
     $somatorio_total_atrasos = array();
+    $somatorio_total_atividades = array();
+    $somatorio_total_atividades_concluidas = array();
+    $total_atividades_concluidas = $total_atividades = 0;
+
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
+
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
+                    $somatorio_total_atividades_concluidas[$grupo_id] = 0;
+                    $somatorio_total_atividades[$grupo_id] = 0;
                 }
-
 
                 if ($atividade->has_grade() && $atividade->is_grade_needed()) {
 
@@ -860,22 +867,74 @@ function get_dados_atividades_nota_atribuida() {
 
                     $somatorio_total_atrasos[$grupo_id]++;
                 }
+
+                if ($atividade->has_grade() && !$atividade->is_submission_due()) {
+                    $somatorio_total_atividades_concluidas[$grupo_id]++;
+                    $total_atividades_concluidas++;
+                }
+
+                $somatorio_total_atividades[$grupo_id]++;
+                $total_atividades++;
             }
         }
     }
 
+    //soma atividades concluidas
     $dados = array();
     foreach ($lista_atividade as $grupo_id => $grupo) {
         $data = array();
+        $total_concluidas_da_atividade = 0;
+
         $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
             $data[] = $atividades;
         }
+
         $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
+        $data[] = $somatorio_total_atividades_concluidas[$grupo_id] . '/' . $somatorio_total_atividades[$grupo_id];
         $dados[] = $data;
     }
 
+    $dados[] = $data;
+
+    /* TODO: linha total atividades concluidas  */
+    $count = count($data) - 2;
+    $data2 = array('Alunos com atividade concluida / total alunos');
+    for ($i = 0; $i < $count; $i++) {
+        $data2[] = '';
+    }
+    $data2[] = "$total_atividades_concluidas/$total_atividades";
+    $dados[] = $data2;
+
     return $dados;
+}
+
+function atividades_alunos_grupos($associativo_atividade) {
+    $factory = Factory::singleton();
+    $somatorio_total_grupo = array();
+
+    foreach ($associativo_atividade as $grupo_id => $array_dados) {
+        foreach ($array_dados as $aluno) {
+            $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($aluno);
+        }
+    }
+
+    foreach ($alunos_grupo as $grupo_id => $alunos_por_grupo) {
+        $somatorio_total_grupo[$grupo_id] = array();
+
+        foreach ($alunos_por_grupo as $aluno) {
+            foreach ($factory->modulos_selecionados as $course_id => $activities) {
+                if (!array_key_exists($course_id, $somatorio_total_grupo[$grupo_id])) {
+                    $somatorio_total_grupo[$grupo_id][$course_id] = 0;
+                }
+                if ($aluno->is_complete_activities($course_id)) {
+                    $somatorio_total_grupo[$grupo_id][$course_id]++;
+                }
+            }
+        }
+    }
+
+    return $somatorio_total_grupo;
 }
 
 /*
@@ -883,7 +942,9 @@ function get_dados_atividades_nota_atribuida() {
  */
 
 function get_table_header_atividades_nota_atribuida() {
-    return get_table_header_atividades_nao_avaliadas();
+    $header = get_table_header_atividades_nao_avaliadas(false, true);
+    $header[] = array('Alunos com atividades concluídas');
+    return $header;
 }
 
 /* -----------------
@@ -1056,8 +1117,8 @@ function get_dados_acesso_tutor() {
     foreach ($dados as $id => $datas) {
         foreach ($dias_meses as $dia) {
             (in_array($dia, $datas)) ?
-                    $result->add($id, new dado_acesso_tutor(true)) :
-                    $result->add($id, new dado_acesso_tutor(false));
+                            $result->add($id, new dado_acesso_tutor(true)) :
+                            $result->add($id, new dado_acesso_tutor(false));
         }
     }
     $result = $result->get_assoc();
@@ -1193,11 +1254,11 @@ function get_table_header_potenciais_evasoes() {
  * /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
  */
 
-function get_table_header_modulos_atividades($mostrar_nota_final = false) {
+function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
     /** @var $factory Factory */
     $factory = Factory::singleton();
 
-    $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final);
+    $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
     $header = array();
 
     foreach ($atividades_cursos as $course_id => $atividades) {
@@ -1241,7 +1302,7 @@ function get_todo_list_data() {
     $query_forum = query_postagens_forum();
 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
