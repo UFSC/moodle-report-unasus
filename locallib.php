@@ -161,7 +161,9 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
            JOIN {assign} a
              ON (c.id = a.course)
           WHERE c.id != :siteid
-            AND c.visible=TRUE", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+            AND c.visible=TRUE
+       ORDER BY cc.depth, cc.name, c.fullname", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+
     return $modulos;
 }
 
@@ -174,8 +176,6 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
  *       6 => 'lista principal 2',
  *   );
  *
- * @global moodle_database $DB
- * @global type $SITE
  * @param string $curso_ufsc
  * @return array
  */
@@ -185,6 +185,7 @@ function get_nome_modulos($curso_ufsc) {
     // Interar para criar array dos modulos separados por grupos
     $listall = array();
     $list = array();
+
     foreach ($modulos as $key => $modulo) {
         if ($modulo->depth == 1) {
             $listall[$key] = $modulo->fullname;
@@ -192,8 +193,9 @@ function get_nome_modulos($curso_ufsc) {
             $list[$modulo->category][$key] = $modulo->fullname;
         }
     }
+
     foreach ($list as $key => $l) {
-        array_unshift($listall, array($key => $l));
+        array_push($listall, array($key => $l));
     }
 
     return $listall;
