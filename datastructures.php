@@ -470,6 +470,20 @@ class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
     
 }
 
+class dado_atividades_alunos extends dado_avaliacao_em_atraso {
+    
+    private $alunos_concluiram;
+            
+    function __construct($alunos_concluiram, $total_alunos) {
+        $this->alunos_concluiram = $alunos_concluiram;
+        $this->total_alunos = $total_alunos;
+    }
+    
+    public function __toString() {
+        return "$this->alunos_concluiram/$this->total_alunos";
+    }
+}
+
 class dado_atividades_nota_atribuida_alunos {
 
     private $atividades_concluidas = array();
@@ -509,10 +523,6 @@ class dado_atividades_nota_atribuida_alunos {
             }
         }
         return true;
-    }
-
-    public function __toString() {
-        return '//';
     }
 }
 

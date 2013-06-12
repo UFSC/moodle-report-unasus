@@ -840,9 +840,7 @@ function get_dados_atividades_nota_atribuida() {
     $associativo_atividade = $result_array['associativo_atividade'];
 
     $somatorio_total_atrasos = array();
-    $somatorio_total_atividades = array();
-    $somatorio_total_atividades_concluidas = array();
-    $total_atividades_concluidas = $total_atividades = 0;
+    $atividades_alunos_grupos = atividades_alunos_grupos($associativo_atividade)->somatorio_grupos;
 
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
@@ -851,8 +849,6 @@ function get_dados_atividades_nota_atribuida() {
                 /** @var report_unasus_data $atividade */
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                     $somatorio_total_atrasos[$grupo_id] = 0;
-                    $somatorio_total_atividades_concluidas[$grupo_id] = 0;
-                    $somatorio_total_atividades[$grupo_id] = 0;
                 }
 
                 if ($atividade->has_grade() && $atividade->is_grade_needed()) {
@@ -868,12 +864,6 @@ function get_dados_atividades_nota_atribuida() {
                     $somatorio_total_atrasos[$grupo_id]++;
                 }
 
-                if ($atividade->has_grade() && !$atividade->is_submission_due()) {
-                    $somatorio_total_atividades_concluidas[$grupo_id]++;
-                    $total_atividades_concluidas++;
-                }
-
-                $somatorio_total_atividades[$grupo_id]++;
                 $total_atividades++;
             }
         }
@@ -881,9 +871,11 @@ function get_dados_atividades_nota_atribuida() {
 
     //soma atividades concluidas
     $dados = array();
+    $somatorio_total_alunos = 0;
+    $somatorio_total_alunos_atividades_concluidas = 0;
+
     foreach ($lista_atividade as $grupo_id => $grupo) {
         $data = array();
-        $total_concluidas_da_atividade = 0;
 
         $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
@@ -891,26 +883,30 @@ function get_dados_atividades_nota_atribuida() {
         }
 
         $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
-        $data[] = $somatorio_total_atividades_concluidas[$grupo_id] . '/' . $somatorio_total_atividades[$grupo_id];
+        $data[] = $atividades_alunos_grupos[$grupo_id] . '/' . $total_alunos[$grupo_id];
         $dados[] = $data;
+
+        $somatorio_total_alunos_atividades_concluidas += $atividades_alunos_grupos[$grupo_id];
+        $somatorio_total_alunos += $total_alunos[$grupo_id];
     }
 
     $dados[] = $data;
 
     /* TODO: linha total atividades concluidas  */
+    $data_total = array('Total alunos com atividade concluida / Total alunos');
     $count = count($data) - 2;
-    $data2 = array('Alunos com atividade concluida / total alunos');
     for ($i = 0; $i < $count; $i++) {
-        $data2[] = '';
+        $data_total[] = '';
     }
-    $data2[] = "$total_atividades_concluidas/$total_atividades";
-    $dados[] = $data2;
+    $data_total[] = "$somatorio_total_alunos_atividades_concluidas / $somatorio_total_alunos";
+    $dados[] = $data_total;
 
     return $dados;
 }
 
 function atividades_alunos_grupos($associativo_atividade) {
     $factory = Factory::singleton();
+    $somatorio_total_modulo = array();
     $somatorio_total_grupo = array();
 
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
@@ -920,21 +916,31 @@ function atividades_alunos_grupos($associativo_atividade) {
     }
 
     foreach ($alunos_grupo as $grupo_id => $alunos_por_grupo) {
-        $somatorio_total_grupo[$grupo_id] = array();
+        $somatorio_total_modulo[$grupo_id] = array();
 
         foreach ($alunos_por_grupo as $aluno) {
             foreach ($factory->modulos_selecionados as $course_id => $activities) {
-                if (!array_key_exists($course_id, $somatorio_total_grupo[$grupo_id])) {
-                    $somatorio_total_grupo[$grupo_id][$course_id] = 0;
+                if (!array_key_exists($course_id, $somatorio_total_modulo[$grupo_id])) {
+                    $somatorio_total_modulo[$grupo_id][$course_id] = 0;
                 }
                 if ($aluno->is_complete_activities($course_id)) {
-                    $somatorio_total_grupo[$grupo_id][$course_id]++;
+                    $somatorio_total_modulo[$grupo_id][$course_id]++;
                 }
+            }
+            if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
+                $somatorio_total_grupo[$grupo_id] = 0;
+            }
+            if ($aluno->is_complete_all_activities()) {
+                $somatorio_total_grupo[$grupo_id]++;
             }
         }
     }
 
-    return $somatorio_total_grupo;
+    $somatorio = new stdClass();
+    $somatorio->somatorio_modulos = $somatorio_total_modulo;
+    $somatorio->somatorio_grupos = $somatorio_total_grupo;
+
+    return $somatorio;
 }
 
 /*

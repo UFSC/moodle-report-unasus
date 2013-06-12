@@ -138,7 +138,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz) {
+function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, $loop = null) {
     $middleware = Middleware::singleton();
 
     /** @var $factory Factory */
@@ -147,10 +147,10 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
     // Recupera dados auxiliares
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
-    $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz);
-    $atividades_alunos_grupos = atividades_alunos_grupos($loop['associativo_atividade']);
-    
-    die(print_r($atividades_alunos_grupos));
+    if(is_null($loop)) {
+        $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, true);
+        $atividades_alunos_grupos = atividades_alunos_grupos($loop['associativo_atividade'])->somatorio_modulos;
+    }
     
     $associativo_atividade = array();
     $lista_atividade = array();
@@ -239,7 +239,10 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                     }
                 }
             }
-//            $array_das_atividades['modulo_' . $modulo] = new dado_atividades_nota_atribuida_alunos($modulo);
+            if(isset($atividades_alunos_grupos)) {
+                $total = $atividades_alunos_grupos[$grupo->id][$modulo];
+                $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total, $total_alunos[$grupo->id]);
+            }
         }
         $lista_atividade[$grupo->id] = $array_das_atividades;
         $associativo_atividade[$grupo->id] = $group_array_do_grupo->get_assoc();
