@@ -147,7 +147,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
     // Recupera dados auxiliares
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
-    if(is_null($loop)) {
+    if(is_null($loop) && $factory->get_relatorio() == 'atividades_nota_atribuida') {
         $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, true);
         $atividades_alunos_grupos = atividades_alunos_grupos($loop['associativo_atividade'])->somatorio_modulos;
     }
