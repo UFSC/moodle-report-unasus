@@ -240,7 +240,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                 }
             }
             if(isset($atividades_alunos_grupos)) {
-                $total = $atividades_alunos_grupos[$grupo->id][$modulo];
+                $total = isset($atividades_alunos_grupos[$grupo->id][$modulo]) ? $atividades_alunos_grupos[$grupo->id][$modulo] : 0;
                 $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total, $total_alunos[$grupo->id]);
             }
         }

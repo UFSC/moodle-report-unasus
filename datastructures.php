@@ -110,7 +110,7 @@ abstract class unasus_data {
      * @param $grade
      */
     protected function format_grade($grade) {
-        return format_float($grade, 2);
+        return format_float($grade, 1);
     }
 
 }
@@ -480,7 +480,8 @@ class dado_atividades_alunos extends dado_avaliacao_em_atraso {
     }
     
     public function __toString() {
-        return "$this->alunos_concluiram/$this->total_alunos";
+        $result = "$this->alunos_concluiram/$this->total_alunos - ". new dado_media(($this->alunos_concluiram * 100) / $this->total_alunos);
+        return html_writer::tag('strong', $result);
     }
 }
 
@@ -543,6 +544,35 @@ class dado_media extends unasus_data {
 
     public function value() {
         return "{$this->media}";
+    }
+
+    public function get_css_class() {
+        return 'media';
+    }
+
+}
+
+/**
+ * @TODO media deve se auto-calcular.
+ */
+class dado_somatorio_media extends unasus_data {
+
+    private $somatorio;
+    private $total;
+
+    function __construct($somatorio, $total) {
+        $this->somatorio = $somatorio;
+        $this->total = $total;
+    }
+
+    public function __toString() {
+        $soma = "$this->somatorio/$this->total";
+        $media = $this->somatorio * 100 / $this->total;
+        return $soma . " - " . $this->format_grade($media) . "%";
+    }
+
+    public function value() {
+        return "{$this->somatorio}";
     }
 
     public function get_css_class() {

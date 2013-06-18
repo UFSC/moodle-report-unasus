@@ -882,30 +882,38 @@ function get_dados_atividades_nota_atribuida() {
         }
         
         /* ColunaMédia  */    
-        $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
+//        $somatorioatrasos = isset($somatorio_total_atrasos[$grupo_id]) ? $somatorio_total_atrasos[$grupo_id] : 0;
+//        $data[] = new dado_media(($somatorioatrasos * 100) / ($total_alunos[$grupo_id] * $total_atividades));
 
         /* Coluna  N° Alunos com atividades concluídas */
-        $data[] = $atividades_alunos_grupos[$grupo_id] . '/' . $total_alunos[$grupo_id] . '  -  ' .
-                  new dado_media(($atividades_alunos_grupos[$grupo_id] * 100) / $total_alunos[$grupo_id]);
+        $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
+        $data[] = new dado_somatorio_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
         
         $dados[] = $data;
-        $somatorio_total_alunos_atividades_concluidas += $atividades_alunos_grupos[$grupo_id];
+        $somatorio_total_alunos_atividades_concluidas += $somatorioalunosgrupos;
         $somatorio_total_alunos += $total_alunos[$grupo_id];
     }
 
     /* Linha total alunos com atividades concluidas  */
-    $data_total = array('<b>Total alunos com atividade concluida / Total alunos</b>');
+    $data_total = array(html_writer::tag('strong', 'Total alunos com atividade concluida / Total alunos'));
     $count = count($data) - 2;
     for ($i = 0; $i < $count; $i++) {
         $data_total[] = '';
     }
-    $data_total[] = "$somatorio_total_alunos_atividades_concluidas / $somatorio_total_alunos  - " . 
-                    new dado_media(($somatorio_total_alunos_atividades_concluidas * 100) / $somatorio_total_alunos);
+    $data_total[] = new dado_somatorio_media($somatorio_total_alunos_atividades_concluidas, $somatorio_total_alunos);
 
     $dados[] = $data_total;
     return $dados;
 }
 
+/**
+ * Numero de Alunos que concluiram todas Atividades de um modulo, 
+ * e n° de alunos que concluiram todas atividades de um curso
+ * @param $associativo_atividade
+ * @return array
+ * 
+ *  
+ */
 function atividades_alunos_grupos($associativo_atividade) {
     $factory = Factory::singleton();
     $somatorio_total_modulo = array();
@@ -950,8 +958,8 @@ function atividades_alunos_grupos($associativo_atividade) {
  */
 
 function get_table_header_atividades_nota_atribuida() {
-    $header = get_table_header_atividades_nao_avaliadas(false, true);
-    $header[' '] = array('N° Alunos com atividades concluídas');
+    $header = get_table_header_modulos_atividades(false, true);
+    $header[''] = array('N° Alunos com atividades concluídas');
     return $header;
 }
 
