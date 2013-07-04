@@ -660,5 +660,247 @@ class report_unasus_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    public function build_fixed_report() {
+        global $USER, $OUTPUT, $PAGE;
+
+        /** @var $factory Factory */
+        $factory = Factory::singleton();
+
+        $output = $this->default_header();
+//        $output .= $this->build_filter();
+
+        $table = $this->table_test2();
+
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery-powertable.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/demo.js"));
+
+        $output .= $OUTPUT->container_start('yui3-g');
+        $output .= $OUTPUT->container_start('yui3-u-1');
+        $output .= html_writer::tag('div', $table, array('id' => 'tablewrapper', 'class' => 'relatorio-wrapper tablewrapper'));
+        $output .= $OUTPUT->container_end();
+        $output .= $OUTPUT->container_end();
+
+        $output .= $this->default_footer();
+        return $output;
+    }
+
+    public function table_test() {
+        $table = "<table class='fancyTable' id='myTable05' cellpadding='0' cellspacing='0'>
+                    <thead>
+                        <tr>
+                            <th>Browser</th>
+                            <th>Visits</th>
+                            <th>Pages/Visit</th>
+                            <th>Avg. Time on Site</th>
+                            <th>% New Visits</th>
+                            <th>Bounce Rate</th>
+                            <th>Avg. Time on Site</th>
+                            <th>% New Visits</th>
+                            <th>Bounce Rate</th>
+                            
+                            <th>Browser</th>
+                            <th>Visits</th>
+                            <th>Pages/Visit</th>
+                            <th>Avg. Time on Site</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Browser</th>
+                            <th>Visits</th>
+                            <th>Pages/Visit</th>
+                            <th>Avg. Time on Site</th>
+                            <th>% New Visits</th>
+                            <th>Bounce Rate</th>
+                            <th>Avg. Time on Site</th>
+                            <th>% New Visits</th>
+                            <th>Bounce Rate</th>
+                            
+                            <th>Browser</th>
+                            <th>Visits</th>
+                            <th>Pages/Visit</th>
+                            <th>Avg. Time on Site</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>";
+
+        for ($index = 0; $index < 45; $index++) {
+            $table .="<tr>
+                                 <td>Firefox first</td>
+                                 <td class='numeric'>1,990</td>
+                                 <td class='numeric'>3.11</td>
+                                 <td class='numeric'>00:04:22</td>
+                                 <td class='numeric'>70.00%</td>
+                                 <td class='numeric'>32.61%</td>
+                                 <td class='numeric'>00:04:22</td>
+                                 <td class='numeric'>70.00%</td>
+                                 <td class='numeric'>32.61%</td>
+                                 
+                                 <td class='numeric'>1,990</td>
+                                 <td class='numeric'>3.11</td>
+                                 <td class='numeric'>00:04:22</td>
+                                 <td class='numeric'>70.00%</td>
+                             </tr>";
+        }
+
+        $table .= "</tbody></table>";
+
+        return $table;
+    }
+
+    public function table_test2() {
+
+        $table = "<table id='listingsTable1' cellpadding='0' cellspacing='0' border='0' class='relatorio-unasus entrega_de_atividades generaltable divisao-por-modulos boxaligncenter'>
+                    <thead>
+                        <tr class='r0'>
+                            <th data-ptcolumn='description' class='blank cell c0' style=''></th>
+                            <th data-ptcolumn='type' class='modulo_header cell c1' style='' colspan='5' scope='row'><a href='http://localhost/moodle/course/view.php?id=68'>Módulo 2 - Saúde e Sociedade</a></th>
+                            <th data-ptcolumn='purchased' class='modulo_header cell c2' style='' colspan='2' scope='row'><a href='http://localhost/moodle/course/view.php?id=69'>Módulo 3 - Conceitos e Ferramentas da Epidemiologia</a></th>
+                            <th data-ptcolumn='condition' class='modulo_header cell c3' style='' colspan='2' scope='row'><a href='http://localhost/moodle/course/view.php?id=70'>Módulo 4 - Processo de Trabalho e Planejamento na ESF</a></th>
+                            <th data-ptcolumn='modelnum' class='modulo_header cell c4' style='' colspan='2' scope='row'><a href='http://localhost/moodle/course/view.php?id=71'>Módulo 5 - Saúde da Criança</a></th>
+                            <th data-ptcolumn='serial num' class='modulo_header cell c5 lastcol' style='' colspan='2' scope='row'><a href='http://localhost/moodle/course/view.php?id=72'>Módulo 6 - Saúde da Mulher</a></th>
+                        </tr>
+                        <tr class='r1'>
+                            <th class='ultima_atividade cell c0' style='' scope='row'>Estudante</th>
+                            <th class='cell c1' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=893'>DIÁRIO</a></th>
+                            <th class='cell c2' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=894'>Avaliação presencial</a></th>
+                            <th class='cell c3' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=1302'>Curso teste 2</a></th>
+                            <th class='cell c4' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=1303'>Tarefa versionada</a></th>
+                            <th class='ultima_atividade cell c5' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=1304'>Tarefa texto version</a></th>
+                            <th class='cell c6' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=917'>DIÁRIO</a></th>
+                            <th class='ultima_atividade cell c7' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=918'>Avaliação presencial</a></th>
+                            <th class='cell c8' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=939'>DIÁRIO</a></th>
+                            <th class='ultima_atividade cell c9' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=940'>Avaliação Presencial</a></th>
+                            <th class='cell c10' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=1044'>DIÁRIO</a></th>
+                            <th class='ultima_atividade cell c11' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=1045'>Avaliação presencial</a></th>
+                            <th class='cell c12' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=903'>Envio de Sintese</a></th>
+                            <th class='ultima_atividade cell c13 lastcol' style='' scope='row'><a href='http://localhost/moodle/mod/assign/view.php?id=1266'>Diário</a></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr class='r0'>
+                            <td class='tutor cell c0 lastcol' style='' colspan='14'><strong>Grupo Tutor José Luis</strong> - Fernando Mendes Massignam </td>
+                        </tr>";
+             for ($index = 0; $index < 4; $index++) {
+                 $table .= "<tr class='r1'>
+                            <th class='estudante ultima_atividade cell c0' style='' scope='row'><a target='_blank' href='http://localhost/moodle/message/index.php?id=3998'><img alt='Enviar mensagem' class='smallicon' title='Enviar mensagem' src='http://localhost/moodle/theme/image.php/ufsc/core/1372687399/t/email'></a> <a target='_blank' href='http://localhost/moodle/user/view.php?id=3998&amp;course=67'>Ariane de Almeida (201205554)</a></th>
+                            <td class='no_prazo cell c1' style=''></td>
+                            <td class='no_prazo cell c2' style=''></td>
+                            <td class='sem_prazo cell c3' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c4' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c5' style=''>sem prazo</td>
+                            <td class='no_prazo cell c6' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c7' style=''></td>
+                            <td class='no_prazo cell c8' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c9' style=''></td>
+                            <td class='no_prazo cell c10' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c11' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c12' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c13 lastcol' style=''>sem prazo</td>
+                        </tr>
+                        <tr class='r0'>
+                            <th class='estudante ultima_atividade cell c0' style='' scope='row'><a target='_blank' href='http://localhost/moodle/message/index.php?id=3986'><img alt='Enviar mensagem' class='smallicon' title='Enviar mensagem' src='http://localhost/moodle/theme/image.php/ufsc/core/1372687399/t/email'></a> <a target='_blank' href='http://localhost/moodle/user/view.php?id=3986&amp;course=67'>Jaqueline Coelho (201205355)</a></th>
+                            <td class='no_prazo cell c1' style=''></td>
+                            <td class='sem_prazo cell c2' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c3' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c4' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c5' style=''>sem prazo</td>
+                            <td class='no_prazo cell c6' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c7' style=''>sem prazo</td>
+                            <td class='no_prazo cell c8' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c9' style=''>sem prazo</td>
+                            <td class='no_prazo cell c10' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c11' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c12' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c13 lastcol' style=''>sem prazo</td>
+                        </tr>
+                        <tr class='r1'>
+                            <th class='estudante ultima_atividade cell c0' style='' scope='row'><a target='_blank' href='http://localhost/moodle/message/index.php?id=3944'><img alt='Enviar mensagem' class='smallicon' title='Enviar mensagem' src='http://localhost/moodle/theme/image.php/ufsc/core/1372687399/t/email'></a> <a target='_blank' href='http://localhost/moodle/user/view.php?id=3944&amp;course=67'>Jeanine Gladys Rolim (201205292)</a></th>
+                            <td class='no_prazo cell c1' style=''></td>
+                            <td class='no_prazo cell c2' style=''></td>
+                            <td class='sem_prazo cell c3' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c4' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c5' style=''>sem prazo</td>
+                            <td class='no_prazo cell c6' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c7' style=''></td>
+                            <td class='no_prazo cell c8' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c9' style=''></td>
+                            <td class='no_prazo cell c10' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c11' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c12' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c13 lastcol' style=''>sem prazo</td>
+                        </tr>
+                        <tr class='r0'>
+                            <th class='estudante ultima_atividade cell c0' style='' scope='row'><a target='_blank' href='http://localhost/moodle/message/index.php?id=3951'><img alt='Enviar mensagem' class='smallicon' title='Enviar mensagem' src='http://localhost/moodle/theme/image.php/ufsc/core/1372687399/t/email'></a> <a target='_blank' href='http://localhost/moodle/user/view.php?id=3951&amp;course=67'>Jessica Danubia Schwerz (201205255)</a></th>
+                            <td class='no_prazo cell c1' style=''></td>
+                            <td class='sem_prazo cell c2' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c3' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c4' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c5' style=''>sem prazo</td>
+                            <td class='nao_entregue_fora_do_prazo cell c6' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c7' style=''>sem prazo</td>
+                            <td class='no_prazo cell c8' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c9' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c10' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c11' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c12' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c13 lastcol' style=''>sem prazo</td>
+                        </tr>
+                        <tr class='r1'>
+                            <th class='estudante ultima_atividade cell c0' style='' scope='row'><a target='_blank' href='http://localhost/moodle/message/index.php?id=3945'><img alt='Enviar mensagem' class='smallicon' title='Enviar mensagem' src='http://localhost/moodle/theme/image.php/ufsc/core/1372687399/t/email'></a> <a target='_blank' href='http://localhost/moodle/user/view.php?id=3945&amp;course=67'>Juliane Denise Kumm Koguchi (201205293)</a></th>
+                            <td class='no_prazo cell c1' style=''></td>
+                            <td class='no_prazo cell c2' style=''></td>
+                            <td class='sem_prazo cell c3' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c4' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c5' style=''>sem prazo</td>
+                            <td class='no_prazo cell c6' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c7' style=''></td>
+                            <td class='no_prazo cell c8' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c9' style=''></td>
+                            <td class='no_prazo cell c10' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c11' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c12' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c13 lastcol' style=''>sem prazo</td>
+                        </tr>
+                        <tr class='r0'>
+                            <th class='estudante ultima_atividade cell c0' style='' scope='row'><a target='_blank' href='http://localhost/moodle/message/index.php?id=3869'><img alt='Enviar mensagem' class='smallicon' title='Enviar mensagem' src='http://localhost/moodle/theme/image.php/ufsc/core/1372687399/t/email'></a> <a target='_blank' href='http://localhost/moodle/user/view.php?id=3869&amp;course=67'>Priscilla Vianna de Souza (201204869)</a></th>
+                            <td class='no_prazo cell c1' style=''></td>
+                            <td class='no_prazo cell c2' style=''></td>
+                            <td class='sem_prazo cell c3' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c4' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c5' style=''>sem prazo</td>
+                            <td class='no_prazo cell c6' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c7' style=''></td>
+                            <td class='no_prazo cell c8' style=''></td>
+                            <td class='no_prazo ultima_atividade cell c9' style=''></td>
+                            <td class='no_prazo cell c10' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c11' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c12' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c13 lastcol' style=''>sem prazo</td>
+                        </tr>
+                        <tr class='r1 lastrow'>
+                            <th class='estudante ultima_atividade cell c0' style='' scope='row'><a target='_blank' href='http://localhost/moodle/message/index.php?id=3871'><img alt='Enviar mensagem' class='smallicon' title='Enviar mensagem' src='http://localhost/moodle/theme/image.php/ufsc/core/1372687399/t/email'></a> <a target='_blank' href='http://localhost/moodle/user/view.php?id=3871&amp;course=67'>Tatiana Miyuki Iida (201204871)</a></th>
+                            <td class='no_prazo cell c1' style=''></td>
+                            <td class='sem_prazo cell c2' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c3' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c4' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c5' style=''>sem prazo</td>
+                            <td class='no_prazo cell c6' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c7' style=''>sem prazo</td>
+                            <td class='no_prazo cell c8' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c9' style=''>sem prazo</td>
+                            <td class='no_prazo cell c10' style=''></td>
+                            <td class='sem_prazo ultima_atividade cell c11' style=''>sem prazo</td>
+                            <td class='sem_prazo cell c12' style=''>sem prazo</td>
+                            <td class='sem_prazo ultima_atividade cell c13 lastcol' style=''>sem prazo</td>
+                        </tr>";
+             }
+             $table .= "</tbody></table>";
+
+        return $table;
+    }
+
 }
 

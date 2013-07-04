@@ -882,8 +882,8 @@ function get_dados_atividades_nota_atribuida() {
         }
         
         /* ColunaMédia  */    
-//        $somatorioatrasos = isset($somatorio_total_atrasos[$grupo_id]) ? $somatorio_total_atrasos[$grupo_id] : 0;
-//        $data[] = new dado_media(($somatorioatrasos * 100) / ($total_alunos[$grupo_id] * $total_atividades));
+        // $somatorioatrasos = isset($somatorio_total_atrasos[$grupo_id]) ? $somatorio_total_atrasos[$grupo_id] : 0;
+        // $data[] = new dado_media(($somatorioatrasos * 100) / ($total_alunos[$grupo_id] * $total_atividades));
 
         /* Coluna  N° Alunos com atividades concluídas */
         $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
