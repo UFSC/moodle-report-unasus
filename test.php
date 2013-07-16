@@ -10,6 +10,7 @@ require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
 require_once($CFG->dirroot . '/report/unasus/lib.php'); // biblioteca global
 require_once($CFG->dirroot . '/report/unasus/factory.php'); // fabrica de relatorios
+require_once($CFG->dirroot . '/report/unasus/sistematcc.php'); // fabrica de relatorios
 
 /** @var $factory Factory */
 $factory = Factory::singleton();
@@ -34,4 +35,4 @@ $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module
 /** @var $renderer report_unasus_renderer */
 $renderer = $PAGE->get_renderer('report_unasus');
 
-echo $renderer->build_fixed_report();
+echo $renderer->build_json();

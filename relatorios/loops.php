@@ -55,6 +55,9 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($r->userid, $data);
                     }
+                    
+                    $lti_activities = get_lti_activities($query_conjunto_alunos);
+                    
                 } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
 
                     $params = array(
@@ -123,6 +126,36 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
     }
 
     return $associativo_atividades;
+}
+
+function get_lti_activities($query_conjunto_alunos) {
+    global $DB;
+    
+    // Middleware para as queries sql
+    $middleware = Middleware::singleton();
+    
+    // WS Client
+    $client = new SistemaTccBase();
+    
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+
+    $lti = $DB->get_records('lti', array('course' => $factory->get_context()->instanceid));
+    
+    $query_alunos = query_alunos_grupo_tutoria();
+    $params = array('curso_ufsc' => $factory->get_curso_ufsc(),
+                    'grupo_tutoria' => 15,
+                    'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+    
+    $alunos = $middleware->get_records_sql($query_alunos, $params);
+    
+    foreach ($lti as $atividade) {
+        $id = $atividade->id;
+        
+        $json = $client->post('reports.view', array('ok'));
+        die(print_r($json));
+        
+    }
 }
 
 /**

@@ -659,6 +659,16 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::end_tag('fieldset');
         return $output;
     }
+    
+    public function build_json() {
+        global $USER, $OUTPUT, $PAGE;
+        
+        $output = $this->default_header();
+        $json = new SistemaTccBase();
+        $get = $json->get('reports.json');
+        
+        die(var_dump($get));
+    }
 
     public function build_fixed_report() {
         global $USER, $OUTPUT, $PAGE;
@@ -683,70 +693,6 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= $this->default_footer();
         return $output;
-    }
-
-    public function table_test() {
-        $table = "<table class='fancyTable' id='myTable05' cellpadding='0' cellspacing='0'>
-                    <thead>
-                        <tr>
-                            <th>Browser</th>
-                            <th>Visits</th>
-                            <th>Pages/Visit</th>
-                            <th>Avg. Time on Site</th>
-                            <th>% New Visits</th>
-                            <th>Bounce Rate</th>
-                            <th>Avg. Time on Site</th>
-                            <th>% New Visits</th>
-                            <th>Bounce Rate</th>
-                            
-                            <th>Browser</th>
-                            <th>Visits</th>
-                            <th>Pages/Visit</th>
-                            <th>Avg. Time on Site</th>
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <th>Browser</th>
-                            <th>Visits</th>
-                            <th>Pages/Visit</th>
-                            <th>Avg. Time on Site</th>
-                            <th>% New Visits</th>
-                            <th>Bounce Rate</th>
-                            <th>Avg. Time on Site</th>
-                            <th>% New Visits</th>
-                            <th>Bounce Rate</th>
-                            
-                            <th>Browser</th>
-                            <th>Visits</th>
-                            <th>Pages/Visit</th>
-                            <th>Avg. Time on Site</th>
-                        </tr>
-                    </tfoot>
-                    <tbody>";
-
-        for ($index = 0; $index < 45; $index++) {
-            $table .="<tr>
-                                 <td>Firefox first</td>
-                                 <td class='numeric'>1,990</td>
-                                 <td class='numeric'>3.11</td>
-                                 <td class='numeric'>00:04:22</td>
-                                 <td class='numeric'>70.00%</td>
-                                 <td class='numeric'>32.61%</td>
-                                 <td class='numeric'>00:04:22</td>
-                                 <td class='numeric'>70.00%</td>
-                                 <td class='numeric'>32.61%</td>
-                                 
-                                 <td class='numeric'>1,990</td>
-                                 <td class='numeric'>3.11</td>
-                                 <td class='numeric'>00:04:22</td>
-                                 <td class='numeric'>70.00%</td>
-                             </tr>";
-        }
-
-        $table .= "</tbody></table>";
-
-        return $table;
     }
 
     public function table_test2() {
