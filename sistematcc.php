@@ -15,4 +15,11 @@ class SistemaTccBase extends Redmine\Client {
         parent::__construct($this->url, $this->api_key);
     }
     
+    function _construct($url, $api_key){
+        $this->url = $url;
+        $this->api_key = $url;
+        
+        parent::__construct($this->url, $this->api_key);
+    }
+    
 }

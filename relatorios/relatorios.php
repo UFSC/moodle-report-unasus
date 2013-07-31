@@ -239,13 +239,13 @@ function get_dados_entrega_de_atividades() {
      */
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
             $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
-
+    
     $dados = array();
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
-
+            
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
                 $atraso = null;
@@ -859,6 +859,8 @@ function get_dados_atividades_nota_atribuida() {
                         $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                         $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_lti')) {
+                        $lista_atividade[$grupo_id]['lti_' . $atividade->source_activity->id]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -1273,7 +1275,7 @@ function get_table_header_potenciais_evasoes() {
 function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
     /** @var $factory Factory */
     $factory = Factory::singleton();
-
+    
     $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
     $header = array();
 

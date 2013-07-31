@@ -55,9 +55,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($r->userid, $data);
                     }
-                    
-                    $lti_activities = get_lti_activities($query_conjunto_alunos);
-                    
                 } elseif (is_a($atividade, 'report_unasus_forum_activity')) {
 
                     $params = array(
@@ -102,6 +99,9 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                 }
             }
 
+            $lit_activities = get_lti_activities($query_conjunto_alunos, $grupo->id, $group_array_do_grupo);
+            $lit_activities = $lit_activities['lista_grupos'];
+
             // Query de notas finais, somente para o relatório Boletim
             if (!is_null($query_nota_final)) {
                 $params = array(
@@ -128,36 +128,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
     return $associativo_atividades;
 }
 
-function get_lti_activities($query_conjunto_alunos) {
-    global $DB;
-    
-    // Middleware para as queries sql
-    $middleware = Middleware::singleton();
-    
-    // WS Client
-    $client = new SistemaTccBase();
-    
-    /** @var $factory Factory */
-    $factory = Factory::singleton();
-
-    $lti = $DB->get_records('lti', array('course' => $factory->get_context()->instanceid));
-    
-    $query_alunos = query_alunos_grupo_tutoria();
-    $params = array('curso_ufsc' => $factory->get_curso_ufsc(),
-                    'grupo_tutoria' => 15,
-                    'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
-    
-    $alunos = $middleware->get_records_sql($query_alunos, $params);
-    
-    foreach ($lti as $atividade) {
-        $id = $atividade->id;
-        
-        $json = $client->post('reports.view', array('ok'));
-        die(print_r($json));
-        
-    }
-}
-
 /**
  * @param $query_conjunto_alunos
  * @param $query_forum
@@ -180,11 +150,11 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
     // Recupera dados auxiliares
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
-    if(is_null($loop) && $factory->get_relatorio() == 'atividades_nota_atribuida') {
+    if (is_null($loop) && $factory->get_relatorio() == 'atividades_nota_atribuida') {
         $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, true);
         $atividades_alunos_grupos = atividades_alunos_grupos($loop['associativo_atividade'])->somatorio_modulos;
     }
-    
+
     $associativo_atividade = array();
     $lista_atividade = array();
     // Listagem da atividades por tutor
@@ -272,7 +242,11 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                     }
                 }
             }
-            if(isset($atividades_alunos_grupos)) {
+
+            $lit_activities = get_lti_activities($query_conjunto_alunos, $grupo->id, $group_array_do_grupo, $array_das_atividades);
+            $array_das_atividades = $lit_activities['lista_atividades'];
+
+            if (isset($atividades_alunos_grupos)) {
                 $total = isset($atividades_alunos_grupos[$grupo->id][$modulo]) ? $atividades_alunos_grupos[$grupo->id][$modulo] : 0;
                 $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total, $total_alunos[$grupo->id]);
             }
@@ -287,3 +261,100 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
         'associativo_atividade' => $associativo_atividade);
 }
 
+/**
+ * Atividades lit - sistema de tcc
+ * @global type $DB
+ * @param type $query_conjunto_alunos
+ * @param type $grupo_tutoria
+ * @param type $group_array_do_grupo
+ * @param dado_atividades_nota_atribuida $array_das_atividades
+ * @return type
+ */
+function get_lti_activities($query_conjunto_alunos, $grupo_tutoria, $group_array_do_grupo, $array_das_atividades = null) {
+    global $DB;
+
+    // Middleware para as queries sql
+    $middleware = Middleware::singleton();
+
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+
+    /* Lti records */
+    $lti = $DB->get_records_sql(query_lti(), array('course' => $factory->get_context()->instanceid));
+
+    /* Query alunos */
+    $query_alunos = query_alunos_grupo_tutoria();
+    $params = array('curso_ufsc' => $factory->get_curso_ufsc(),
+        'grupo_tutoria' => $grupo_tutoria,
+        'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+
+    $alunos = $middleware->get_records_sql($query_alunos, $params);
+    $user_ids = array();
+    foreach ($alunos as $aluno) {
+        array_push($user_ids, $aluno->id);
+    }
+
+    foreach ($lti as $lti_atividade) {
+        // WS Client
+        $client = new SistemaTccBase($lti_atividade->baseurl, 'consumer_key');
+        $params = array("consumer_key" => "consumer_key", 'user_ids' => $user_ids);
+        $query = preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($params));
+
+        $json = $client->post('reportingservice', $query);
+        $result = json_decode($json);
+        $total_alunos = array();
+        
+        $tcc_definition = get_tcc_definition($lti_atividade->configvalue);
+        $prefix = $tcc_definition['type'] == 'portfolio' ? REPORT_UNASUS_PORTFOLIO_PREFIX : REPORT_UNASUS_TCC_PREFIX;
+
+        if (!is_null($result)) {
+            foreach ($result as $r) {
+                $userid = $r->tcc->user_id;
+
+                //hubs
+                foreach ($r->tcc->hubs as $hub) {
+                    $total_alunos[$hub->position] = isset($total_alunos[$hub->position]) ? $total_alunos[$hub->position]++ : 1;
+                    //criar atividade
+                    $db_model = new stdClass();
+                    $db_model->id = $lti_atividade->id;
+                    $db_model->name = $prefix . $hub->position;
+                    $db_model->deadline = $lti_atividade->completionexpected;
+                    $db_model->course_id = $lti_atividade->course;
+                    $db_model->course_name = $lti_atividade->course; //todo: selecionar nome do curso sql do lti
+                    $atividade = new report_unasus_lti_activity($db_model);
+
+                    $aluno = $alunos[$userid];
+
+                    //criar user
+                    $user = new stdClass();
+                    $user->userid = $userid;
+                    $user->name = $aluno->firstname;
+                    $user->grade = $hub->grade;
+                    $grade_date = new DateTime($hub->grade_date);
+                    $user->grade_date = $grade_date->getTimestamp();
+
+                    $user->status = $hub->state;
+                    $submission_date = new DateTime($hub->state_date);
+                    $user->submission_date = $submission_date->getTimestamp();
+                    $user->cohort = $aluno->cohort;
+                    $user->polo = $aluno->polo;
+
+                    $data = new report_unasus_data_lti($atividade, $user);
+
+                    //Agrupar dados por usuario
+                    $group_array_do_grupo->add($user->userid, $data);
+                }
+            }
+        }
+        if (!is_null($array_das_atividades)) {
+            foreach ($total_alunos as $key => $total) {
+                $array_das_atividades['lti_' . $key] = new dado_atividades_nota_atribuida($total);
+            }
+        }
+    }
+
+    return array(
+        'lista_grupos' => $group_array_do_grupo,
+        'lista_atividades' => $array_das_atividades
+    );
+}

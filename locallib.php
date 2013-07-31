@@ -3,6 +3,8 @@
 defined('MOODLE_INTERNAL') || die;
 
 define('REPORT_UNASUS_COHORT_EMPTY', 'Sem cohort'); // estudantes sem cohort
+define('REPORT_UNASUS_PORTFOLIO_PREFIX', 'Portfólio Eixo '); // estudantes sem cohort
+define('REPORT_UNASUS_TCC_PREFIX', 'TCC'); // estudantes sem cohort
 
 require_once("{$CFG->dirroot}/local/tutores/middlewarelib.php");
 require_once("{$CFG->dirroot}/local/tutores/lib.php");
@@ -216,13 +218,39 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
+    if (!empty($courses)) {
+        if (is_string($courses)) {
+            $courses = array($courses);
+        }
+
+        foreach ($courses as $course) {
+            $ltis = query_lti_courses($course);
+
+            foreach ($ltis as $lti) {
+                foreach ($lti->tcc_definition->hubs_definitions as $hub) {
+                    $hub = $hub->hub_definition;
+                    //atividade
+                    $db_model = new stdClass();
+                    $db_model->id = $hub->id;
+                    $db_model->name = REPORT_UNASUS_PORTFOLIO_PREFIX . $hub->position;
+                    $db_model->deadline = null;
+                    //todo course definition
+                    $db_model->course_id = $course;
+                    $db_model->course_name = $course;
+
+                    $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
+                }
+            }
+        }
+    }
+
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
         foreach ($cursos_com_nota_final as $nota_final) {
             $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
         }
     }
-    
+
     if ($mostrar_total) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
         foreach ($cursos_com_nota_final as $nota_final) {
@@ -297,6 +325,49 @@ function query_quiz_courses($courses) {
             ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+}
+
+/**
+ * Função para buscar atividades de lti
+ * @param type $tcc_definition_id
+ * @return array 
+ */
+function query_lti_courses($course) {
+    global $DB;
+    // WS Client
+    $client = new SistemaTccBase();
+
+    $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
+    $lti_activities = array();
+
+    foreach ($ltis as $lti) {
+        $config = get_tcc_definition($lti->configvalue);
+
+        $params = array("consumer_key" => "consumer_key", 'tcc_definition_id' => $config['tcc_definition']);
+        $json = $client->post('tcc_definition_service', $params);
+
+        array_push($lti_activities, json_decode($json));
+    }
+
+    return $lti_activities;
+}
+
+/**
+ * Retorna definições da lti
+ * @param type $tcc_definition
+ * @return array
+ */
+function get_tcc_definition($tcc_definition) {
+    $tcc_definition = explode(';', $tcc_definition);
+    $arr = array();
+    
+    foreach ($tcc_definition as $value) {
+        $config = explode('=', $value);
+        if (isset($config[0]) && isset($config[1])) {
+            $arr[$config[0]] = $config[1];
+        }
+    }
+    return $arr;
 }
 
 function query_forum_courses($courses) {

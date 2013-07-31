@@ -5,7 +5,6 @@
  * ---------------------------------------
  */
 
-
 /**
  * Query para retornar os alunos pertencentes a um grupo de tutoria
  *
@@ -26,7 +25,7 @@ function query_alunos_grupo_tutoria() {
     /** @var $factory Factory */
     $factory = Factory::singleton();
     $query_polo = ' ';
-    
+
     $cohorts = int_array_to_sql($factory->cohorts_selecionados);
     $polos = int_array_to_sql($factory->polos_selecionados);
 
@@ -57,7 +56,6 @@ function query_alunos_grupo_tutoria() {
                          {$query_cohort}
                         WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno";
 }
-
 
 /**
  * Query para retornar se um dado aluno possui postagens num forum de um dado módulo
@@ -137,12 +135,10 @@ function query_postagens_forum() {
     ";
 }
 
-
 /* ---------------------------------------
  * QUERIES ESPECÍFICAS DE UM RELATÓRIO
  * ---------------------------------------
  */
-
 
 /**
  * Query para o relatorio de acesso tutor
@@ -172,6 +168,30 @@ function query_acesso_tutor() {
                    ON (gt.id=pgt.grupo AND gt.curso=:curso_ufsc)
              GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
              ORDER BY calendar_year, calendar_month, calendar_day";
+}
+
+function query_lti() {
+
+    return  "SELECT l.id,
+                    l.course,
+                    l.name,
+                    l.timecreated,
+                    l.timemodified,
+                    l.grade,
+                    l.typeid,
+                    t.name AS typename,
+                    t.baseurl,
+                    c.name AS configname,
+                    c.value as configvalue,
+                    cm.completionexpected
+                 FROM {lti} l
+                 JOIN {lti_types} t
+                   ON (l.typeid=t.id )
+                 JOIN {lti_types_config} c
+                   ON (l.typeid=c.typeid AND c.name = 'customparameters')
+                 JOIN {course_modules} cm
+                   ON (l.course=cm.course AND cm.instance=l.id)
+                WHERE l.course =:course";
 }
 
 /**
@@ -325,7 +345,6 @@ function query_nota_final() {
             ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
-
 
 /**
  * Query para os relatórios
