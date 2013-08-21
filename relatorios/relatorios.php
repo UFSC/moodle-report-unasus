@@ -871,7 +871,6 @@ function get_dados_atividades_nota_atribuida() {
         foreach ($grupo as $atividades) {
             $data[] = $atividades;
         }
-        $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
         $dados[] = $data;
     }
 
@@ -883,7 +882,7 @@ function get_dados_atividades_nota_atribuida() {
  */
 
 function get_table_header_atividades_nota_atribuida() {
-    return get_table_header_atividades_nao_avaliadas();
+    return get_table_header_modulos_atividades();
 }
 
 /* -----------------
