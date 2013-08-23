@@ -442,7 +442,7 @@ class report_unasus_total_atividades_concluidas {
 
     public function __toString() {
         $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id));
-        $text = (is_null($this->name) || $this->name == '') ? 'Atividades Concluidas' : 'Atividades Concluidas';
+        $text = get_string('atividades_concluidas', 'report_unasus');
         return html_writer::link($gradebook_url, $text);
     }
 

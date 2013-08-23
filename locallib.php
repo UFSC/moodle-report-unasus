@@ -2,10 +2,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-define('REPORT_UNASUS_COHORT_EMPTY', 'Sem cohort'); // estudantes sem cohort
-define('REPORT_UNASUS_PORTFOLIO_PREFIX', 'Portfólio Eixo '); // estudantes sem cohort
-define('REPORT_UNASUS_TCC_PREFIX', 'TCC'); // estudantes sem cohort
-
 require_once("{$CFG->dirroot}/local/tutores/middlewarelib.php");
 require_once("{$CFG->dirroot}/local/tutores/lib.php");
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
@@ -35,7 +31,7 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql(
-            "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
+        "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -52,7 +48,7 @@ function get_nomes_modulos() {
 function get_nomes_tutores() {
     global $DB;
     $tutores = $DB->get_records_sql(
-            "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
+        "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
            FROM {role_assignments} AS ra
            JOIN {role} AS r
              ON (r.id=ra.roleid)
@@ -101,7 +97,7 @@ function get_nomes_cohorts($curso_ufsc) {
     $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
 
     $modulos = $DB->get_records_sql_menu(
-            "SELECT DISTINCT(cohort.id), cohort.name
+        "SELECT DISTINCT(cohort.id), cohort.name
            FROM {cohort} cohort
            JOIN {context} ctx
              ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
@@ -140,7 +136,7 @@ function get_id_nome_modulos($curso_ufsc) {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
-            "SELECT DISTINCT(c.id),
+        "SELECT DISTINCT(c.id),
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname
            FROM {course} c
            JOIN {course_categories} cc
@@ -156,7 +152,7 @@ function get_id_modulos() {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
-            "SELECT DISTINCT(c.id)
+        "SELECT DISTINCT(c.id)
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -218,12 +214,11 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
+    /* Construir atividades de Lti para cada módulo */
     if (!empty($courses)) {
-        if (is_string($courses)) {
-            $courses = array($courses);
-        }
+        $modulos = is_string($courses) ? explode(',', $courses) : $courses;
 
-        foreach ($courses as $course) {
+        foreach ($modulos as $course) {
             $ltis = query_lti_courses($course);
 
             foreach ($ltis as $lti) {
@@ -232,7 +227,7 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
                     //atividade
                     $db_model = new stdClass();
                     $db_model->id = $hub->id;
-                    $db_model->name = REPORT_UNASUS_PORTFOLIO_PREFIX . $hub->position;
+                    $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->position;
                     $db_model->deadline = null;
                     //todo course definition
                     $db_model->course_id = $course;
@@ -335,15 +330,17 @@ function query_quiz_courses($courses) {
 function query_lti_courses($course) {
     global $DB;
     // WS Client
-    $client = new SistemaTccBase();
 
     $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
     $lti_activities = array();
 
     foreach ($ltis as $lti) {
-        $config = get_tcc_definition($lti->configvalue);
+        $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
+        $customparameters = get_tcc_definition($config['customparameters']);
+        $consumer_key= $config['resourcekey'];
+        $params = array($consumer_key => $consumer_key, 'tcc_definition_id' => $customparameters['tcc_definition']);
 
-        $params = array("consumer_key" => "consumer_key", 'tcc_definition_id' => $config['tcc_definition']);
+        $client = new SistemaTccClient($lti->baseurl, $consumer_key);
         $json = $client->post('tcc_definition_service', $params);
 
         array_push($lti_activities, json_decode($json));
@@ -360,7 +357,7 @@ function query_lti_courses($course) {
 function get_tcc_definition($tcc_definition) {
     $tcc_definition = explode(';', $tcc_definition);
     $arr = array();
-    
+
     foreach ($tcc_definition as $value) {
         $config = explode('=', $value);
         if (isset($config[0]) && isset($config[1])) {

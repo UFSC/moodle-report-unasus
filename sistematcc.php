@@ -6,7 +6,7 @@
  */
 require_once 'client.php';
 
-class SistemaTccBase extends Redmine\Client {
+class SistemaTccClient extends Redmine\Client {
 
     var $api_key = 'consumer_key';
     var $url = 'http://localhost:3000/';
@@ -20,6 +20,15 @@ class SistemaTccBase extends Redmine\Client {
         $this->api_key = $url;
         
         parent::__construct($this->url, $this->api_key);
+    }
+    
+    public function post($path, $data) {
+        /* 
+         * Solução  para enviar via post array do php
+         * http://php.net/manual/pt_BR/function.http-build-query.php
+         */
+        $data = preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($data));
+        return parent::post($path, $data);
     }
     
 }

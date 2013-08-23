@@ -94,7 +94,7 @@ function get_dados_atividades_vs_notas() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
 
@@ -283,7 +283,7 @@ function get_dados_entrega_de_atividades() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
             $lista_atividades = null;
@@ -468,7 +468,7 @@ function get_dados_historico_atribuicao_notas() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
 
@@ -643,7 +643,7 @@ function get_dados_boletim() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
 
@@ -883,10 +883,6 @@ function get_dados_atividades_nota_atribuida() {
             $data[] = $atividades;
         }
         
-        /* ColunaMédia  */    
-        // $somatorioatrasos = isset($somatorio_total_atrasos[$grupo_id]) ? $somatorio_total_atrasos[$grupo_id] : 0;
-        // $data[] = new dado_media(($somatorioatrasos * 100) / ($total_alunos[$grupo_id] * $total_atividades));
-
         /* Coluna  N° Alunos com atividades concluídas */
         $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
         $data[] = new dado_somatorio_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
@@ -1233,7 +1229,7 @@ function get_dados_potenciais_evasoes() {
                 }
                 // Unir os alunos de acordo com o cohort deles
                 if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                     $dados[$key][] = $lista_atividades;
                 }
             }
@@ -1376,7 +1372,7 @@ function get_todo_list_data() {
                 }
                 // Unir os alunos de acordo com o cohort deles
                 if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                     $dados[$key][] = $lista_atividades;
                 }
             }

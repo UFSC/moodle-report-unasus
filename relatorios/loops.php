@@ -99,7 +99,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                 }
             }
 
-            $lit_activities = get_lti_activities($query_conjunto_alunos, $grupo->id, $group_array_do_grupo);
+            $lit_activities = get_lti_activities($courseid, $query_conjunto_alunos, $grupo->id, $group_array_do_grupo);
             $lit_activities = $lit_activities['lista_grupos'];
 
             // Query de notas finais, somente para o relatório Boletim
@@ -243,7 +243,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                 }
             }
 
-            $lit_activities = get_lti_activities($query_conjunto_alunos, $grupo->id, $group_array_do_grupo, $array_das_atividades);
+            $lit_activities = get_lti_activities($modulo, $query_conjunto_alunos, $grupo->id, $group_array_do_grupo, $array_das_atividades);
             $array_das_atividades = $lit_activities['lista_atividades'];
 
             if (isset($atividades_alunos_grupos)) {
@@ -270,7 +270,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
  * @param dado_atividades_nota_atribuida $array_das_atividades
  * @return type
  */
-function get_lti_activities($query_conjunto_alunos, $grupo_tutoria, $group_array_do_grupo, $array_das_atividades = null) {
+function get_lti_activities($courseid, $query_conjunto_alunos, $grupo_tutoria, $group_array_do_grupo, $array_das_atividades = null) {
     global $DB;
 
     // Middleware para as queries sql
@@ -280,7 +280,7 @@ function get_lti_activities($query_conjunto_alunos, $grupo_tutoria, $group_array
     $factory = Factory::singleton();
 
     /* Lti records */
-    $lti = $DB->get_records_sql(query_lti(), array('course' => $factory->get_context()->instanceid));
+    $lti = $DB->get_records_sql(query_lti(), array('course' => $courseid));
 
     /* Query alunos */
     $query_alunos = query_alunos_grupo_tutoria();
@@ -295,17 +295,20 @@ function get_lti_activities($query_conjunto_alunos, $grupo_tutoria, $group_array
     }
 
     foreach ($lti as $lti_atividade) {
+        //config lti
+        $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti_atividade->typeid));
+        $consumer_key = $config['resourcekey'];
+        
         // WS Client
-        $client = new SistemaTccBase($lti_atividade->baseurl, 'consumer_key');
-        $params = array("consumer_key" => "consumer_key", 'user_ids' => $user_ids);
-        $query = preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($params));
+        $client = new SistemaTccClient($lti_atividade->baseurl, $consumer_key);
+        $params = array($consumer_key => $consumer_key, 'user_ids' => $user_ids);
 
-        $json = $client->post('reportingservice', $query);
+        $json = $client->post('reportingservice', $params);
         $result = json_decode($json);
         $total_alunos = array();
         
-        $tcc_definition = get_tcc_definition($lti_atividade->configvalue);
-        $prefix = $tcc_definition['type'] == 'portfolio' ? REPORT_UNASUS_PORTFOLIO_PREFIX : REPORT_UNASUS_TCC_PREFIX;
+        $tcc_definition = get_tcc_definition($config['customparameters']);
+        $prefix = $tcc_definition['type'] == 'portfolio' ? get_string('portfolio_prefix', 'report_unasus') : get_string('tcc_prefix', 'report_unasus');
 
         if (!is_null($result)) {
             foreach ($result as $r) {

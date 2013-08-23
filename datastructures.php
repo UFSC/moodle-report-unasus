@@ -470,19 +470,29 @@ class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
     
 }
 
-class dado_atividades_alunos extends dado_avaliacao_em_atraso {
-    
+/**
+ * Classe para relatorio sintese de atividades concluidas,
+ * N° de alunos de concluiram as atividades
+ */
+class dado_atividades_alunos extends unasus_data {
+
     private $alunos_concluiram;
-            
+
     function __construct($alunos_concluiram, $total_alunos) {
         $this->alunos_concluiram = $alunos_concluiram;
         $this->total_alunos = $total_alunos;
     }
-    
+
     public function __toString() {
-        $result = "$this->alunos_concluiram/$this->total_alunos - ". new dado_media(($this->alunos_concluiram * 100) / $this->total_alunos);
+        $media = new dado_media(($this->alunos_concluiram * 100) / $this->total_alunos);
+        $result = "{$this->alunos_concluiram} / {$this->total_alunos} - {$media}";
         return html_writer::tag('strong', $result);
     }
+
+    public function get_css_class() {
+        return '';
+    }
+
 }
 
 class dado_atividades_nota_atribuida_alunos {
@@ -491,11 +501,11 @@ class dado_atividades_nota_atribuida_alunos {
     private $total_atividades = array();
 
     function __construct($aluno) {
-        
+
         foreach ($aluno as $atividade) {
             $course_id = $atividade->source_activity->course_id;
-            
-            if(!array_key_exists($course_id, $this->atividades_concluidas)) {
+
+            if (!array_key_exists($course_id, $this->atividades_concluidas)) {
                 $this->atividades_concluidas[$course_id] = 0;
                 $this->total_atividades[$course_id] = 0;
             }
@@ -511,12 +521,12 @@ class dado_atividades_nota_atribuida_alunos {
      * @return boolean
      */
     public function is_complete_activities($course_id) {
-        if(array_key_exists($course_id, $this->atividades_concluidas)) {
+        if (array_key_exists($course_id, $this->atividades_concluidas)) {
             return $this->atividades_concluidas[$course_id] == $this->total_atividades[$course_id];
         }
         return false;
     }
-    
+
     public function is_complete_all_activities() {
         foreach ($this->atividades_concluidas as $course_id => $atividade) {
             if (!$this->is_complete_activities($course_id)) {
@@ -525,6 +535,7 @@ class dado_atividades_nota_atribuida_alunos {
         }
         return true;
     }
+
 }
 
 /**
@@ -568,7 +579,7 @@ class dado_somatorio_media extends unasus_data {
     public function __toString() {
         $soma = "$this->somatorio/$this->total";
         $media = $this->somatorio * 100 / $this->total;
-        return $soma . " - " . $this->format_grade($media) . "%";
+        return "{$soma} - {$this->format_grade($media)} %";
     }
 
     public function value() {
