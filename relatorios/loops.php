@@ -316,7 +316,14 @@ function get_lti_activities($courseid, $query_conjunto_alunos, $grupo_tutoria, $
 
                 //hubs
                 foreach ($r->tcc->hubs as $hub) {
-                    $total_alunos[$hub->position] = isset($total_alunos[$hub->position]) ? $total_alunos[$hub->position]++ : 1;
+                    if(isset($hub->hub)) {
+                        $hub = $hub->hub;
+                    }
+                    if (!array_key_exists($hub->position, $total_alunos)) {
+                        $total_alunos[$hub->position] = 0;
+                    }
+                    $total_alunos[$hub->position]++;
+                    
                     //criar atividade
                     $db_model = new stdClass();
                     $db_model->id = $lti_atividade->id;

@@ -222,7 +222,7 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
             $ltis = query_lti_courses($course);
 
             foreach ($ltis as $lti) {
-                foreach ($lti->tcc_definition->hubs_definitions as $hub) {
+                foreach ($lti->tcc_definition->hub_definitions as $hub) {
                     $hub = $hub->hub_definition;
                     //atividade
                     $db_model = new stdClass();

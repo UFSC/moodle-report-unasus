@@ -841,7 +841,7 @@ function get_dados_atividades_nota_atribuida() {
 
     $somatorio_total_atrasos = array();
     $atividades_alunos_grupos = atividades_alunos_grupos($associativo_atividade)->somatorio_grupos;
-
+    
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
 
