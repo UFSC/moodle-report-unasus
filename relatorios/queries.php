@@ -181,6 +181,8 @@ function query_lti() {
                 ON (l.typeid=t.id )
               JOIN {course_modules} cm
                 ON (l.course=cm.course AND cm.instance=l.id)
+              JOIN {modules} m
+                ON (m.id = cm.module AND m.name LIKE 'lti')
              WHERE l.course =:course";
 }
 

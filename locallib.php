@@ -331,8 +331,6 @@ function query_quiz_courses($courses) {
  */
 function query_lti_courses($course) {
     global $DB;
-    // WS Client
-
     $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
     $lti_activities = array();
 
@@ -342,6 +340,7 @@ function query_lti_courses($course) {
         $consumer_key= $config['resourcekey'];
         $params = array($consumer_key => $consumer_key, 'tcc_definition_id' => $customparameters['tcc_definition']);
 
+        // WS Client
         $client = new SistemaTccClient($lti->baseurl, $consumer_key);
         $json = $client->post('tcc_definition_service', $params);
         $object = json_decode($json);

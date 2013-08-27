@@ -495,7 +495,7 @@ class dado_atividades_alunos extends unasus_data {
 
 }
 
-class dado_atividades_nota_atribuida_alunos {
+class dado_atividades_nota_atribuida_alunos extends unasus_data {
 
     private $atividades_concluidas = array();
     private $total_atividades = array();
@@ -536,10 +536,14 @@ class dado_atividades_nota_atribuida_alunos {
         return true;
     }
 
+    public function get_css_class() {
+        return '';
+    }
+
 }
 
 /**
- * @TODO media deve se auto-calcular.
+ * Dado de média formatado
  */
 class dado_media extends unasus_data {
 
@@ -564,7 +568,8 @@ class dado_media extends unasus_data {
 }
 
 /**
- * @TODO media deve se auto-calcular.
+ * Dado somatorio de media para incluir coluna Total de atividades concluídas por módulo
+ * Ticket 5263
  */
 class dado_somatorio_media extends unasus_data {
 
