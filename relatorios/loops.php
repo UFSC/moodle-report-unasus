@@ -99,7 +99,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                 }
             }
 
-            $lit_activities = get_lti_activities($courseid, $query_conjunto_alunos, $grupo->id, $group_array_do_grupo);
+            $lit_activities = get_lti_activities($courseid, $grupo->id, $group_array_do_grupo);
             $lit_activities = $lit_activities['lista_grupos'];
 
             // Query de notas finais, somente para o relatório Boletim
@@ -243,7 +243,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                 }
             }
 
-            $lit_activities = get_lti_activities($modulo, $query_conjunto_alunos, $grupo->id, $group_array_do_grupo, $array_das_atividades);
+            $lit_activities = get_lti_activities($modulo, $grupo->id, $group_array_do_grupo, $array_das_atividades);
             $array_das_atividades = $lit_activities['lista_atividades'];
 
             if (isset($atividades_alunos_grupos)) {
@@ -270,7 +270,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
  * @param dado_atividades_nota_atribuida $array_das_atividades
  * @return type
  */
-function get_lti_activities($courseid, $query_conjunto_alunos, $grupo_tutoria, $group_array_do_grupo, $array_das_atividades = null) {
+function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $array_das_atividades = null) {
     global $DB;
 
     // Middleware para as queries sql
@@ -298,7 +298,7 @@ function get_lti_activities($courseid, $query_conjunto_alunos, $grupo_tutoria, $
         //config lti
         $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti_atividade->typeid));
         $consumer_key = $config['resourcekey'];
-        
+
         // WS Client
         $client = new SistemaTccClient($lti_atividade->baseurl, $consumer_key);
         $params = array($consumer_key => $consumer_key, 'user_ids' => $user_ids);
@@ -306,7 +306,7 @@ function get_lti_activities($courseid, $query_conjunto_alunos, $grupo_tutoria, $
         $json = $client->post('reportingservice', $params);
         $result = json_decode($json);
         $total_alunos = array();
-        
+
         $tcc_definition = get_tcc_definition($config['customparameters']);
         $prefix = $tcc_definition['type'] == 'portfolio' ? get_string('portfolio_prefix', 'report_unasus') : get_string('tcc_prefix', 'report_unasus');
 
@@ -316,21 +316,23 @@ function get_lti_activities($courseid, $query_conjunto_alunos, $grupo_tutoria, $
 
                 //hubs
                 foreach ($r->tcc->hubs as $hub) {
-                    if(isset($hub->hub)) {
+                    if (isset($hub->hub)) {
                         $hub = $hub->hub;
                     }
                     if (!array_key_exists($hub->position, $total_alunos)) {
                         $total_alunos[$hub->position] = 0;
                     }
                     $total_alunos[$hub->position]++;
-                    
+
                     //criar atividade
                     $db_model = new stdClass();
                     $db_model->id = $lti_atividade->id;
                     $db_model->name = $prefix . $hub->position;
+                    $db_model->position = $hub->position;
                     $db_model->deadline = $lti_atividade->completionexpected;
                     $db_model->course_id = $lti_atividade->course;
                     $db_model->course_name = $lti_atividade->course; //todo: selecionar nome do curso sql do lti
+                    $db_model->cm_id = $lti_atividade->cmid;
                     $atividade = new report_unasus_lti_activity($db_model);
 
                     $aluno = $alunos[$userid];
@@ -358,7 +360,7 @@ function get_lti_activities($courseid, $query_conjunto_alunos, $grupo_tutoria, $
         }
         if (!is_null($array_das_atividades)) {
             foreach ($total_alunos as $key => $total) {
-                $array_das_atividades['lti_' . $key] = new dado_atividades_nota_atribuida($total);
+                $array_das_atividades[$lti_atividade->course]['lti_' . $key] = new dado_atividades_nota_atribuida($total);
             }
         }
     }

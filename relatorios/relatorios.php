@@ -775,12 +775,16 @@ function get_dados_atividades_nao_avaliadas() {
                 }
 
                 if (!$atividade->has_grade() && $atividade->is_grade_needed()) {
+                    $course_id = $atividade->source_activity->course_id;
+                    
                     if (is_a($atividade, 'report_unasus_data_activity')) {
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
                         $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                         $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_lti')) {
+                        $lista_atividade[$grupo_id][$course_id]['lti_' . $atividade->source_activity->position]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -795,7 +799,13 @@ function get_dados_atividades_nao_avaliadas() {
         $data = array();
         $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
-            $data[] = $atividades;
+            if (is_array($atividades)) {
+                foreach ($atividades as $atividade) {
+                    $data[] = $atividade;
+                }
+            } else {
+                $data[] = $atividades;
+            }
         }
 
         $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
@@ -844,7 +854,7 @@ function get_dados_atividades_nota_atribuida() {
     
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
-
+            
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
@@ -852,7 +862,8 @@ function get_dados_atividades_nota_atribuida() {
                 }
 
                 if ($atividade->has_grade() && $atividade->is_grade_needed()) {
-
+                    $course_id = $atividade->source_activity->course_id;
+                    
                     if (is_a($atividade, 'report_unasus_data_activity')) {
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
@@ -860,7 +871,7 @@ function get_dados_atividades_nota_atribuida() {
                     } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                         $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_lti')) {
-                        $lista_atividade[$grupo_id]['lti_' . $atividade->source_activity->id]->incrementar_atraso();
+                        $lista_atividade[$grupo_id][$course_id]['lti_' . $atividade->source_activity->position]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -880,7 +891,13 @@ function get_dados_atividades_nota_atribuida() {
         $data = array();
         $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
-            $data[] = $atividades;
+            if (is_array($atividades)) {
+                foreach ($atividades as $atividade) {
+                    $data[] = $atividade;
+                }
+            } else {
+                $data[] = $atividades;
+            }
         }
         
         /* Coluna  N° Alunos com atividades concluídas */

@@ -582,10 +582,6 @@ class dado_somatorio_media extends unasus_data {
         return "{$soma} - {$this->format_grade($media)} %";
     }
 
-    public function value() {
-        return "{$this->somatorio}";
-    }
-
     public function get_css_class() {
         return 'media';
     }

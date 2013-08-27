@@ -229,9 +229,11 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
                     $db_model->id = $hub->id;
                     $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->position;
                     $db_model->deadline = null;
+                    $db_model->position = $hub->position;
                     //todo course definition
                     $db_model->course_id = $course;
                     $db_model->course_name = $course;
+                    $db_model->cm_id = $lti->cm_id; //id course_modules p/ criar link da atividade lti 
 
                     $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
                 }
@@ -342,8 +344,10 @@ function query_lti_courses($course) {
 
         $client = new SistemaTccClient($lti->baseurl, $consumer_key);
         $json = $client->post('tcc_definition_service', $params);
+        $object = json_decode($json);
+        $object->cm_id = $lti->cmid;
 
-        array_push($lti_activities, json_decode($json));
+        array_push($lti_activities, $object);
     }
 
     return $lti_activities;

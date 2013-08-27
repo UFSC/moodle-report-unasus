@@ -175,7 +175,7 @@ function query_lti() {
     return "SELECT l.id,l.course, l.name, l.timecreated,
                    l.timemodified, l.grade, l.typeid,
                    t.name AS typename, t.baseurl,
-                   cm.completionexpected
+                   cm.id as cmid, cm.completionexpected
               FROM {lti} l
               JOIN {lti_types} t
                 ON (l.typeid=t.id )

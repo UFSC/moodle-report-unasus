@@ -117,12 +117,15 @@ class report_unasus_lti_activity extends report_unasus_activity {
         $this->id = $db_model->id;
         $this->name = $db_model->name;
         $this->deadline = $db_model->deadline;
+        $this->position = $db_model->position;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->cm_id = $db_model->cm_id; //usado para criar o link p/ atividade lti
     }
 
     public function __toString() {
-        return html_writer::link("#", $this->name);
+        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->cm_id));
+        return html_writer::link($lti_url, $this->name);
     }
 
 }
