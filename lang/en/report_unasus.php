@@ -72,3 +72,5 @@ $string['atividades_concluidas'] = 'Atividades Concluidas';
 $string['portfolio_prefix'] = 'Portfólio Eixo ';
 
 $string['tcc_prefix'] = 'TCC';
+
+$string['column_aluno_atividade_concluida'] = 'N° Alunos com atividades concluídas';

@@ -974,7 +974,7 @@ function atividades_alunos_grupos($associativo_atividade) {
 
 function get_table_header_atividades_nota_atribuida() {
     $header = get_table_header_modulos_atividades(false, true);
-    $header[''] = array('N° Alunos com atividades concluídas');
+    $header[''] = array(get_string('column_aluno_atividade_concluida', 'report_unasus'));
     return $header;
 }
 

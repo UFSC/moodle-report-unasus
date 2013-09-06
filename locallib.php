@@ -31,7 +31,7 @@ function get_form_display(&$mform) {
 function get_nomes_modulos() {
     global $DB, $SITE;
     $modulos = $DB->get_records_sql(
-        "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
+            "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -48,7 +48,7 @@ function get_nomes_modulos() {
 function get_nomes_tutores() {
     global $DB;
     $tutores = $DB->get_records_sql(
-        "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
+            "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
            FROM {role_assignments} AS ra
            JOIN {role} AS r
              ON (r.id=ra.roleid)
@@ -97,7 +97,7 @@ function get_nomes_cohorts($curso_ufsc) {
     $ufsc_category = $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
 
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(cohort.id), cohort.name
+            "SELECT DISTINCT(cohort.id), cohort.name
            FROM {cohort} cohort
            JOIN {context} ctx
              ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
@@ -136,7 +136,7 @@ function get_id_nome_modulos($curso_ufsc) {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(c.id),
+            "SELECT DISTINCT(c.id),
                 REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname
            FROM {course} c
            JOIN {course_categories} cc
@@ -152,7 +152,7 @@ function get_id_modulos() {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(c.id)
+            "SELECT DISTINCT(c.id)
            FROM {course} c
            JOIN {assign} a
              ON (c.id = a.course)
@@ -196,6 +196,8 @@ function get_tutores_menu($curso_ufsc) {
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
 function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mostrar_total = false) {
+    global $DB;
+    
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
@@ -232,8 +234,7 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
                     $db_model->position = $hub->position;
                     //todo course definition
                     $db_model->course_id = $course;
-                    $db_model->course_name = $course;
-                    $db_model->cm_id = $lti->cm_id; //id course_modules p/ criar link da atividade lti 
+                    $db_model->course_name =  $DB->get_field('course', 'fullname', array('id' => $course));
 
                     $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
                 }
@@ -337,16 +338,21 @@ function query_lti_courses($course) {
     foreach ($ltis as $lti) {
         $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
         $customparameters = get_tcc_definition($config['customparameters']);
-        $consumer_key= $config['resourcekey'];
+        $consumer_key = $config['resourcekey'];
         $params = array($consumer_key => $consumer_key, 'tcc_definition_id' => $customparameters['tcc_definition']);
 
         // WS Client
-        $client = new SistemaTccClient($lti->baseurl, $consumer_key);
-        $json = $client->post('tcc_definition_service', $params);
-        $object = json_decode($json);
-        $object->cm_id = $lti->cmid;
+        try {
+            $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+            $json = $client->post('tcc_definition_service', $params);
+            $object = json_decode($json);
+            $object->cm_id = $lti->cmid;
 
-        array_push($lti_activities, $object);
+            array_push($lti_activities, $object);
+        } catch (Exception $e) {
+            // Falha ao conectar com Webservice
+            continue;
+        }
     }
 
     return $lti_activities;
