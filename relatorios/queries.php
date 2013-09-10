@@ -98,7 +98,7 @@ function query_postagens_forum() {
                     fp.forum_name,
                     gg.grade,
                     gg.timemodified,
-                    gg.itemid,
+                    fp.itemid,
                     userid_posts IS NOT NULL AS has_post
                      FROM (
 
@@ -107,7 +107,7 @@ function query_postagens_forum() {
                      ) u
                      LEFT JOIN
                      (
-                        SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name
+                        SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name, f.id as itemid
                           FROM {forum} f
                           JOIN {forum_discussions} fd
                             ON (fd.forum=f.id)
@@ -120,7 +120,7 @@ function query_postagens_forum() {
                     ON (fp.userid_posts=u.id)
                     LEFT JOIN
                     (
-                        SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid
+                        SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid, f.id as forumid
                         FROM {forum} f
                         JOIN {grade_items} gi
                           ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
@@ -129,7 +129,7 @@ function query_postagens_forum() {
                           ON (gg.itemid=gi.id)
                     GROUP BY gg.userid, gg.itemid
                     ) gg
-                    ON (gg.userid = u.id)
+                    ON (gg.userid = u.id AND fp.itemid=gg.forumid)
                     ORDER BY grupo_id, u.firstname, u.lastname
 
     ";
