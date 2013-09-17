@@ -120,14 +120,14 @@ class report_unasus_lti_activity extends report_unasus_activity {
         $this->position = $db_model->position;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->course_module_id = $db_model->course_module_id;
     }
 
     /**
      * @todo verificar parametro 'lti', tá vindo vazio e dado erro na linha seguinte $cm->id
      */
     public function __toString() {
-        $cm = get_coursemodule_from_instance('lti', $this->id, $this->course_id, null, IGNORE_MISSING);
-        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $cm->id));
+        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->course_module_id));
         return html_writer::link($lti_url, $this->name);
     }
 

@@ -46,16 +46,16 @@ function query_alunos_grupo_tutoria() {
     }
 
     return "SELECT u.id, u.firstname, u.lastname, gt.id AS grupo_id, vga.polo, co.id as cohort
-                         FROM {user} u
-                         JOIN {table_PessoasGruposTutoria} pg
-                           ON (pg.matricula=u.username)
-                         JOIN {table_GruposTutoria} gt
-                           ON (gt.id=pg.grupo)
-                         JOIN {Geral_Alunos_Ativos} vga
-                           ON (vga.matricula = u.username {$query_polo})
-                         {$query_cohort}
-                        WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
-                        GROUP BY u.id";
+              FROM {user} u
+              JOIN {table_PessoasGruposTutoria} pg
+                ON (pg.matricula=u.username)
+              JOIN {table_GruposTutoria} gt
+                ON (gt.id=pg.grupo)
+              JOIN {Geral_Alunos_Ativos} vga
+                ON (vga.matricula = u.username {$query_polo})
+                   {$query_cohort}
+             WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
+             GROUP BY u.id";
 }
 
 /**

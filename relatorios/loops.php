@@ -299,6 +299,13 @@ function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $a
         $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti_atividade->typeid));
         $consumer_key = $config['resourcekey'];
 
+        $tcc_definition = get_tcc_definition($config['customparameters']);
+
+        // Não nos interessa os LTI's com tipo TCC
+        if ($tcc_definition['type'] != 'portfolio') {
+            continue;
+        }
+
         // WS Client
         try {
             $client = new SistemaTccClient($lti_atividade->baseurl, $consumer_key);
@@ -308,8 +315,7 @@ function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $a
             $result = json_decode($json);
             $total_alunos = array();
 
-            $tcc_definition = get_tcc_definition($config['customparameters']);
-            $prefix = $tcc_definition['type'] == 'portfolio' ? get_string('portfolio_prefix', 'report_unasus') : get_string('tcc_prefix', 'report_unasus');
+            $prefix = get_string('portfolio_prefix', 'report_unasus');
 
             if (!is_null($result)) {
                 foreach ($result as $r) {
@@ -325,6 +331,8 @@ function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $a
                         }
                         $total_alunos[$hub->position]++;
 
+                        $cm = get_coursemodule_from_instance('lti', $lti_atividade->id, $lti_atividade->course, null, IGNORE_MISSING);
+
                         //criar atividade
                         $db_model = new stdClass();
                         $db_model->id = $lti_atividade->id;
@@ -333,6 +341,7 @@ function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $a
                         $db_model->deadline = $lti_atividade->completionexpected;
                         $db_model->course_id = $lti_atividade->course;
                         $db_model->course_name =  $DB->get_field('course', 'fullname', array('id' => $lti_atividade->course));
+                        $db_model->course_module_id = $cm->id;
                         $atividade = new report_unasus_lti_activity($db_model);
 
                         $aluno = $alunos[$userid];

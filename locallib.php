@@ -193,6 +193,7 @@ function get_tutores_menu($curso_ufsc) {
  *
  * @param array $courses array de ids dos cursos moodle, padrão null, retornando todos os modulos
  * @param bool $mostrar_nota_final
+ * @param bool $mostrar_total
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
 function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mostrar_total = false) {
@@ -228,7 +229,8 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
                     $hub = $hub->hub_definition;
                     //atividade
                     $db_model = new stdClass();
-                    $db_model->id = $hub->id;
+                    $db_model->id = $lti->id;
+                    $db_model->course_module_id = $lti->course_module_id;
                     $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->position;
                     $db_model->deadline = null;
                     $db_model->position = $hub->position;
@@ -327,8 +329,10 @@ function query_quiz_courses($courses) {
 
 /**
  * Função para buscar atividades de lti
- * @param type $tcc_definition_id
- * @return array 
+ *
+ * @param $course
+ * @internal param \type $tcc_definition_id
+ * @return array
  */
 function query_lti_courses($course) {
     global $DB;
@@ -341,12 +345,18 @@ function query_lti_courses($course) {
         $consumer_key = $config['resourcekey'];
         $params = array($consumer_key => $consumer_key, 'tcc_definition_id' => $customparameters['tcc_definition']);
 
+        // Não nos interessa os LTI's com tipo TCC
+        if ($customparameters['type'] != 'portfolio') {
+            continue;
+        }
+
         // WS Client
         try {
             $client = new SistemaTccClient($lti->baseurl, $consumer_key);
             $json = $client->post('tcc_definition_service', $params);
             $object = json_decode($json);
-            $object->cm_id = $lti->cmid;
+            $object->id = $lti->id;
+            $object->course_module_id = $lti->cmid;
 
             array_push($lti_activities, $object);
         } catch (Exception $e) {
