@@ -204,7 +204,8 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
     $quizes = query_quiz_courses($courses);
 
     $group_array = new GroupArray();
-
+    
+    
     foreach ($assigns as $atividade) {
         $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade));
     }
@@ -273,7 +274,7 @@ function query_assign_courses($courses) {
     global $DB, $SITE;
 
     $string_courses = get_modulos_validos($courses);
-
+    
     $query = "SELECT a.id AS assign_id,
                      a.name AS assign_name,
                      cm.completionexpected,
@@ -288,7 +289,7 @@ function query_assign_courses($courses) {
                   ON (cm.course = c.id AND cm.instance=a.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'assign')
-               WHERE c.id IN ({$string_courses})
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE 
            ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
@@ -321,7 +322,7 @@ function query_quiz_courses($courses) {
                   ON (cm.course = c.id AND cm.instance=q.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'quiz')
-               WHERE c.id IN ({$string_courses})
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
             ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -406,7 +407,7 @@ function query_forum_courses($courses) {
                   ON (cm.course=c.id AND cm.instance=f.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'forum')
-               WHERE c.id IN ({$string_courses})
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
             ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));

@@ -182,7 +182,7 @@ function query_lti() {
                 ON (l.course=cm.course AND cm.instance=l.id)
               JOIN {modules} m
                 ON (m.id = cm.module AND m.name LIKE 'lti')
-             WHERE l.course =:course";
+             WHERE l.course =:course AND cm.visible=TRUE";
 }
 
 function query_lti_config() {
