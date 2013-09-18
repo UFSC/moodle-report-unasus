@@ -7,13 +7,9 @@
 require_once 'client.php';
 
 class SistemaTccClient extends Redmine\Client {
-
-    var $url = '';
     
-    function _construct($url){
-        $this->url = $url;
-
-        parent::__construct($this->url, '');
+    function __construct($url){
+        parent::__construct($url, '');
     }
     
     public function post($path, $data) {

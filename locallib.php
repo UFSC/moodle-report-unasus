@@ -406,7 +406,7 @@ function query_lti_courses($course) {
         // WS Client
         try {
             $client = new SistemaTccClient($lti->baseurl);
-            $json = $client->post('tcc_definition_service', $params);
+            $json = $client->post('tcc_definition_service.json', $params);
             $object = json_decode($json);
             $object->id = $lti->id;
             $object->course_module_id = $lti->cmid;

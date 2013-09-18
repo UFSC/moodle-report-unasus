@@ -311,7 +311,7 @@ function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $a
             $client = new SistemaTccClient($lti_atividade->baseurl);
             $params = array('consumer_key' => $consumer_key, 'user_ids' => $user_ids);
 
-            $json = $client->post('reportingservice', $params);
+            $json = $client->post('reportingservice.json', $params);
             $result = json_decode($json);
             $total_alunos = array();
 
