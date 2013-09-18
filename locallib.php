@@ -396,7 +396,7 @@ function query_lti_courses($course) {
         $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
         $customparameters = get_tcc_definition($config['customparameters']);
         $consumer_key = $config['resourcekey'];
-        $params = array($consumer_key => $consumer_key, 'tcc_definition_id' => $customparameters['tcc_definition']);
+        $params = array('consumer_key' => $consumer_key, 'tcc_definition_id' => $customparameters['tcc_definition']);
 
         // Não nos interessa os LTI's com tipo TCC
         if ($customparameters['type'] != 'portfolio') {
@@ -405,7 +405,7 @@ function query_lti_courses($course) {
 
         // WS Client
         try {
-            $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+            $client = new SistemaTccClient($lti->baseurl);
             $json = $client->post('tcc_definition_service', $params);
             $object = json_decode($json);
             $object->id = $lti->id;

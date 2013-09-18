@@ -8,18 +8,12 @@ require_once 'client.php';
 
 class SistemaTccClient extends Redmine\Client {
 
-    var $api_key = 'consumer_key';
-    var $url = 'http://localhost:3000/';
-
-    function __construct() {
-        parent::__construct($this->url, $this->api_key);
-    }
+    var $url = '';
     
-    function _construct($url, $api_key){
+    function _construct($url){
         $this->url = $url;
-        $this->api_key = $url;
-        
-        parent::__construct($this->url, $this->api_key);
+
+        parent::__construct($this->url, '');
     }
     
     public function post($path, $data) {

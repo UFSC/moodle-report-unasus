@@ -308,8 +308,8 @@ function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $a
 
         // WS Client
         try {
-            $client = new SistemaTccClient($lti_atividade->baseurl, $consumer_key);
-            $params = array($consumer_key => $consumer_key, 'user_ids' => $user_ids);
+            $client = new SistemaTccClient($lti_atividade->baseurl);
+            $params = array('consumer_key' => $consumer_key, 'user_ids' => $user_ids);
 
             $json = $client->post('reportingservice', $params);
             $result = json_decode($json);
