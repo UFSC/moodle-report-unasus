@@ -156,8 +156,8 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
            FROM {course} c
            JOIN {course_categories} cc
              ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
-           JOIN {assign} a
-             ON (c.id = a.course)
+           JOIN {course_modules} cm
+             ON (c.id = cm.course)
           WHERE c.id != :siteid
             AND c.visible=TRUE
        ORDER BY cc.depth, cc.name, c.fullname", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
@@ -388,6 +388,7 @@ function query_quiz_courses($courses) {
  */
 function query_lti_courses($course) {
     global $DB;
+
     $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
     $lti_activities = array();
 
