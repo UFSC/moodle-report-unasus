@@ -6,6 +6,10 @@ global $CFG;
 
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 
+/**
+ * Test Datastructures
+ * @group report_unasus
+ */
 class unasus_datastructures_testcase extends advanced_testcase {
 
     public function test_report_unasus_activity() {
@@ -119,6 +123,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $assign_draft = new stdClass();
         $assign_draft->userid = 1;
         $assign_draft->grade = 5;
+        $assign_draft->polo = null;
         $assign_draft->submission_date = $year_ago;
         $assign_draft->grade_created = $year_ago;
         $assign_draft->status = 'draft';
@@ -140,6 +145,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $assign_draft = new stdClass();
         $assign_draft->userid = 1;
         $assign_draft->grade = null;
+        $assign_draft->polo = null;
         $assign_draft->grade_created = null;
         $assign_draft->grade_modified = null;
         $assign_draft->submission_date = $year_ago;
@@ -162,6 +168,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $assign_submitted = new stdClass();
         $assign_submitted->userid = 1;
         $assign_submitted->grade = 5;
+        $assign_submitted->polo = null;
         $assign_submitted->submission_date = $year_ago;
         $assign_submitted->grade_created = $year_ago;
         $assign_submitted->status = 'submitted';
@@ -187,6 +194,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $assign_offline = new stdClass();
         $assign_offline->userid = 1;
         $assign_offline->grade = null;
+        $assign_offline->polo = null;
         $assign_offline->submission_date = null;
         $assign_offline->submission_modified = null;
         $assign_offline->status = null;

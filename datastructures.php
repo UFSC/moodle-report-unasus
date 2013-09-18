@@ -110,7 +110,7 @@ abstract class unasus_data {
      * @param $grade
      */
     protected function format_grade($grade) {
-        return format_float($grade, 2);
+        return format_float($grade, 1);
     }
 
 }
@@ -439,8 +439,8 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 class dado_avaliacao_em_atraso extends unasus_data {
 
-    private $total_alunos;
-    private $count_atrasos;
+    protected $total_alunos;
+    protected $count_atrasos;
 
     function __construct($total_alunos) {
         $this->total_alunos = $total_alunos;
@@ -471,7 +471,79 @@ class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
 }
 
 /**
- * @TODO media deve se auto-calcular.
+ * Classe para relatorio sintese de atividades concluidas,
+ * N° de alunos de concluiram as atividades
+ */
+class dado_atividades_alunos extends unasus_data {
+
+    private $alunos_concluiram;
+
+    function __construct($alunos_concluiram, $total_alunos) {
+        $this->alunos_concluiram = $alunos_concluiram;
+        $this->total_alunos = $total_alunos;
+    }
+
+    public function __toString() {
+        $media = new dado_media(($this->alunos_concluiram * 100) / $this->total_alunos);
+        $result = "{$this->alunos_concluiram} / {$this->total_alunos} - {$media}";
+        return html_writer::tag('strong', $result);
+    }
+
+    public function get_css_class() {
+        return '';
+    }
+
+}
+
+class dado_atividades_nota_atribuida_alunos extends unasus_data {
+
+    private $atividades_concluidas = array();
+    private $total_atividades = array();
+
+    function __construct($aluno) {
+
+        foreach ($aluno as $atividade) {
+            $course_id = $atividade->source_activity->course_id;
+
+            if (!array_key_exists($course_id, $this->atividades_concluidas)) {
+                $this->atividades_concluidas[$course_id] = 0;
+                $this->total_atividades[$course_id] = 0;
+            }
+            if ($atividade->has_submitted()) {
+                $this->atividades_concluidas[$course_id]++;
+            }
+            $this->total_atividades[$course_id]++;
+        }
+    }
+
+    /**
+     * Retorna se todas atividades de um dados modulo esta completo
+     * @return boolean
+     */
+    public function is_complete_activities($course_id) {
+        if (array_key_exists($course_id, $this->atividades_concluidas)) {
+            return $this->atividades_concluidas[$course_id] == $this->total_atividades[$course_id];
+        }
+        return false;
+    }
+
+    public function is_complete_all_activities() {
+        foreach ($this->atividades_concluidas as $course_id => $atividade) {
+            if (!$this->is_complete_activities($course_id)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function get_css_class() {
+        return '';
+    }
+
+}
+
+/**
+ * Dado de média formatado
  */
 class dado_media extends unasus_data {
 
@@ -487,6 +559,32 @@ class dado_media extends unasus_data {
 
     public function value() {
         return "{$this->media}";
+    }
+
+    public function get_css_class() {
+        return 'media';
+    }
+
+}
+
+/**
+ * Dado somatorio de media para incluir coluna Total de atividades concluídas por módulo
+ * Ticket 5263
+ */
+class dado_somatorio_media extends unasus_data {
+
+    private $somatorio;
+    private $total;
+
+    function __construct($somatorio, $total) {
+        $this->somatorio = $somatorio;
+        $this->total = $total;
+    }
+
+    public function __toString() {
+        $soma = "$this->somatorio/$this->total";
+        $media = $this->somatorio * 100 / $this->total;
+        return "{$soma} - {$this->format_grade($media)} %";
     }
 
     public function get_css_class() {

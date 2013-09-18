@@ -659,6 +659,4 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::end_tag('fieldset');
         return $output;
     }
-
 }
-

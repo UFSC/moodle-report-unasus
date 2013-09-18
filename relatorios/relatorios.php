@@ -94,7 +94,7 @@ function get_dados_atividades_vs_notas() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
 
@@ -283,7 +283,7 @@ function get_dados_entrega_de_atividades() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
             $lista_atividades = null;
@@ -468,7 +468,7 @@ function get_dados_historico_atribuicao_notas() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
 
@@ -641,7 +641,7 @@ function get_dados_boletim() {
             }
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                 $dados[$key][] = $lista_atividades;
             }
 
@@ -773,12 +773,16 @@ function get_dados_atividades_nao_avaliadas() {
                 }
 
                 if (!$atividade->has_grade() && $atividade->is_grade_needed()) {
+                    $course_id = $atividade->source_activity->course_id;
+                    
                     if (is_a($atividade, 'report_unasus_data_activity')) {
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
                         $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                         $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_lti')) {
+                        $lista_atividade[$grupo_id][$course_id]['lti_' . $atividade->source_activity->position]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -793,7 +797,13 @@ function get_dados_atividades_nao_avaliadas() {
         $data = array();
         $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
-            $data[] = $atividades;
+            if (is_array($atividades)) {
+                foreach ($atividades as $atividade) {
+                    $data[] = $atividade;
+                }
+            } else {
+                $data[] = $atividades;
+            }
         }
 
         $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
@@ -807,8 +817,8 @@ function get_dados_atividades_nao_avaliadas() {
  * Cabeçalho para o sintese: avaliacoes em atraso
  */
 
-function get_table_header_atividades_nao_avaliadas() {
-    $header = get_table_header_modulos_atividades();
+function get_table_header_atividades_nao_avaliadas($mostrar_nota_final = false, $mostrar_total = false) {
+    $header = get_table_header_modulos_atividades($mostrar_nota_final, $mostrar_total);
     $header[''] = array('Média');
     return $header;
 }
@@ -839,8 +849,11 @@ function get_dados_atividades_nota_atribuida() {
 
 
     $somatorio_total_atrasos = array();
+    $atividades_alunos_grupos = atividades_alunos_grupos($associativo_atividade)->somatorio_grupos;
+    
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
+            
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
@@ -849,32 +862,110 @@ function get_dados_atividades_nota_atribuida() {
 
 
                 if ($atividade->has_grade() && $atividade->is_grade_needed()) {
-
+                    $course_id = $atividade->source_activity->course_id;
+                    
                     if (is_a($atividade, 'report_unasus_data_activity')) {
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
                         $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                         $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
+                    } elseif (is_a($atividade, 'report_unasus_data_lti')) {
+                        $lista_atividade[$grupo_id][$course_id]['lti_' . $atividade->source_activity->position]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
                 }
+
+                $total_atividades++;
             }
         }
     }
 
+    //soma atividades concluidas
     $dados = array();
+    $somatorio_total_alunos = 0;
+    $somatorio_total_alunos_atividades_concluidas = 0;
+
     foreach ($lista_atividade as $grupo_id => $grupo) {
         $data = array();
         $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
         foreach ($grupo as $atividades) {
-            $data[] = $atividades;
+            if (is_array($atividades)) {
+                foreach ($atividades as $atividade) {
+                    $data[] = $atividade;
+                }
+            } else {
+                $data[] = $atividades;
+            }
         }
+        
+        /* Coluna  N° Alunos com atividades concluídas */
+        $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
+        $data[] = new dado_somatorio_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
+        
         $dados[] = $data;
+        $somatorio_total_alunos_atividades_concluidas += $somatorioalunosgrupos;
+        $somatorio_total_alunos += $total_alunos[$grupo_id];
     }
 
+    /* Linha total alunos com atividades concluidas  */
+    $data_total = array(html_writer::tag('strong', 'Total alunos com atividade concluida / Total alunos'));
+    $count = count($data) - 2;
+    for ($i = 0; $i < $count; $i++) {
+        $data_total[] = '';
+    }
+    $data_total[] = new dado_somatorio_media($somatorio_total_alunos_atividades_concluidas, $somatorio_total_alunos);
+
+    $dados[] = $data_total;
     return $dados;
+}
+
+/**
+ * Numero de Alunos que concluiram todas Atividades de um modulo, 
+ * e n° de alunos que concluiram todas atividades de um curso
+ * @param $associativo_atividade
+ * @return array
+ * 
+ *  
+ */
+function atividades_alunos_grupos($associativo_atividade) {
+    $factory = Factory::singleton();
+    $somatorio_total_modulo = array();
+    $somatorio_total_grupo = array();
+
+    foreach ($associativo_atividade as $grupo_id => $array_dados) {
+        foreach ($array_dados as $aluno) {
+            $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($aluno);
+        }
+    }
+
+    foreach ($alunos_grupo as $grupo_id => $alunos_por_grupo) {
+        $somatorio_total_modulo[$grupo_id] = array();
+
+        foreach ($alunos_por_grupo as $aluno) {
+            foreach ($factory->modulos_selecionados as $course_id => $activities) {
+                if (!array_key_exists($course_id, $somatorio_total_modulo[$grupo_id])) {
+                    $somatorio_total_modulo[$grupo_id][$course_id] = 0;
+                }
+                if ($aluno->is_complete_activities($course_id)) {
+                    $somatorio_total_modulo[$grupo_id][$course_id]++;
+                }
+            }
+            if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
+                $somatorio_total_grupo[$grupo_id] = 0;
+            }
+            if ($aluno->is_complete_all_activities()) {
+                $somatorio_total_grupo[$grupo_id]++;
+            }
+        }
+    }
+
+    $somatorio = new stdClass();
+    $somatorio->somatorio_modulos = $somatorio_total_modulo;
+    $somatorio->somatorio_grupos = $somatorio_total_grupo;
+
+    return $somatorio;
 }
 
 /*
@@ -882,7 +973,9 @@ function get_dados_atividades_nota_atribuida() {
  */
 
 function get_table_header_atividades_nota_atribuida() {
-    return get_table_header_modulos_atividades();
+    $header = get_table_header_modulos_atividades(false, true);
+    $header[''] = array(get_string('column_aluno_atividade_concluida', 'report_unasus'));
+    return $header;
 }
 
 /* -----------------
@@ -1153,7 +1246,7 @@ function get_dados_potenciais_evasoes() {
                 }
                 // Unir os alunos de acordo com o cohort deles
                 if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                     $dados[$key][] = $lista_atividades;
                 }
             }
@@ -1192,11 +1285,11 @@ function get_table_header_potenciais_evasoes() {
  * /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
  */
 
-function get_table_header_modulos_atividades($mostrar_nota_final = false) {
+function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
     /** @var $factory Factory */
     $factory = Factory::singleton();
-
-    $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final);
+    
+    $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
     $header = array();
 
     foreach ($atividades_cursos as $course_id => $atividades) {
@@ -1296,7 +1389,7 @@ function get_todo_list_data() {
                 }
                 // Unir os alunos de acordo com o cohort deles
                 if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
-                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : REPORT_UNASUS_COHORT_EMPTY;
+                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                     $dados[$key][] = $lista_atividades;
                 }
             }

@@ -34,6 +34,7 @@ require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php'); // biblioteca local
 require_once($CFG->dirroot . '/report/unasus/lib.php'); // biblioteca global
 require_once($CFG->dirroot . '/report/unasus/factory.php'); // fabrica de relatorios
+require_once($CFG->dirroot . '/report/unasus/sistematcc.php'); // client ws sistema de tcc
 
 /** @var $factory Factory */
 $factory = Factory::singleton();

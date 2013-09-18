@@ -2,8 +2,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-define('REPORT_UNASUS_COHORT_EMPTY', 'Sem cohort'); // estudantes sem cohort
-
 require_once($CFG->dirroot . '/local/tutores/middlewarelib.php');
 require_once($CFG->dirroot . '/local/tutores/lib.php');
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
@@ -246,15 +244,19 @@ function get_tutores_menu($curso_ufsc) {
  *
  * @param array $courses array de ids dos cursos moodle, padrão null, retornando todos os modulos
  * @param bool $mostrar_nota_final
+ * @param bool $mostrar_total
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
+function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mostrar_total = false) {
+    global $DB;
+    
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
 
     $group_array = new GroupArray();
-
+    
+    
     foreach ($assigns as $atividade) {
         $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade));
     }
@@ -267,10 +269,44 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false) {
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
+    /* Construir atividades de Lti para cada módulo */
+    if (!empty($courses)) {
+        $modulos = is_string($courses) ? explode(',', $courses) : $courses;
+
+        foreach ($modulos as $course) {
+            $ltis = query_lti_courses($course);
+
+            foreach ($ltis as $lti) {
+                foreach ($lti->tcc_definition->hub_definitions as $hub) {
+                    $hub = $hub->hub_definition;
+                    //atividade
+                    $db_model = new stdClass();
+                    $db_model->id = $lti->id;
+                    $db_model->course_module_id = $lti->course_module_id;
+                    $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->position;
+                    $db_model->deadline = null;
+                    $db_model->position = $hub->position;
+                    //todo course definition
+                    $db_model->course_id = $course;
+                    $db_model->course_name =  $DB->get_field('course', 'fullname', array('id' => $course));
+
+                    $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
+                }
+            }
+        }
+    }
+
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
         foreach ($cursos_com_nota_final as $nota_final) {
             $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
+        }
+    }
+
+    if ($mostrar_total) {
+        $cursos_com_nota_final = query_courses_com_nota_final($courses);
+        foreach ($cursos_com_nota_final as $nota_final) {
+            $group_array->add($nota_final->course_id, new report_unasus_total_atividades_concluidas($nota_final));
         }
     }
 
@@ -304,8 +340,8 @@ function query_assign_courses($courses) {
                   ON (cm.course = c.id AND cm.instance=a.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'assign')
-               WHERE c.id IN ({$string_courses})
-            ORDER BY c.id";
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE 
+           ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
@@ -337,10 +373,69 @@ function query_quiz_courses($courses) {
                   ON (cm.course = c.id AND cm.instance=q.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'quiz')
-               WHERE c.id IN ({$string_courses})
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
             ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+}
+
+/**
+ * Função para buscar atividades de lti
+ *
+ * @param $course
+ * @internal param \type $tcc_definition_id
+ * @return array
+ */
+function query_lti_courses($course) {
+    global $DB;
+    $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
+    $lti_activities = array();
+
+    foreach ($ltis as $lti) {
+        $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
+        $customparameters = get_tcc_definition($config['customparameters']);
+        $consumer_key = $config['resourcekey'];
+        $params = array($consumer_key => $consumer_key, 'tcc_definition_id' => $customparameters['tcc_definition']);
+
+        // Não nos interessa os LTI's com tipo TCC
+        if ($customparameters['type'] != 'portfolio') {
+            continue;
+        }
+
+        // WS Client
+        try {
+            $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+            $json = $client->post('tcc_definition_service', $params);
+            $object = json_decode($json);
+            $object->id = $lti->id;
+            $object->course_module_id = $lti->cmid;
+
+            array_push($lti_activities, $object);
+        } catch (Exception $e) {
+            // Falha ao conectar com Webservice
+            continue;
+        }
+    }
+
+    return $lti_activities;
+}
+
+/**
+ * Retorna definições da lti
+ * @param type $tcc_definition
+ * @return array
+ */
+function get_tcc_definition($tcc_definition) {
+    $tcc_definition = explode(';', $tcc_definition);
+    $arr = array();
+
+    foreach ($tcc_definition as $value) {
+        $config = explode('=', $value);
+        if (isset($config[0]) && isset($config[1])) {
+            $arr[$config[0]] = $config[1];
+        }
+    }
+    return $arr;
 }
 
 function query_forum_courses($courses) {
@@ -363,7 +458,7 @@ function query_forum_courses($courses) {
                   ON (cm.course=c.id AND cm.instance=f.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'forum')
-               WHERE c.id IN ({$string_courses})
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
             ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));

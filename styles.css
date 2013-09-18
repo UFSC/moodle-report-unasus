@@ -253,3 +253,25 @@ table.relatorio-unasus.estudante_sem_atividade_avaliada {
 .highcharts-container svg > rect {
     fill: transparent;
 }
+
+/*
+------------------------------
+        powertable
+------------------------------
+/* basic table styles */
+.tablewrapper{ width: 100%; height: 500px; overflow: auto;}
+
+table { width: 100%; font-size: 11px; display: table !important;}
+table th, 
+table td{ padding: 5px 5px 5px 10px; min-width: 80px;}
+table th{ background-color: #f8f8f8; text-align: left; }
+
+/* pt specific styles: ptfixed, ptdragover, ptdraghandle, ptshowhide */
+table tr th.ptfixed,
+table tr td.ptfixed { background-color: #F1F8FA; border-bottom: solid 1px #AAA !important; opacity: 0.95; filter: alpha(95); }
+
+/* a separate ul controller */
+table th.blank{
+    background: transparent;
+    border: 0 solid transparent !important;
+}

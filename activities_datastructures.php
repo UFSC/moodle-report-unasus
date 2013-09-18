@@ -47,10 +47,10 @@ abstract class report_unasus_activity {
 
 class report_unasus_assign_activity extends report_unasus_activity {
 
-    public function  __construct($db_model) {
+    public function __construct($db_model) {
 
         $has_submission = !$db_model->nosubmissions;
-        $has_grade = ((int)$db_model->grade) == 0 ? false : true;
+        $has_grade = ((int) $db_model->grade) == 0 ? false : true;
 
         parent::__construct($has_submission, $has_grade);
 
@@ -66,11 +66,12 @@ class report_unasus_assign_activity extends report_unasus_activity {
         $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
         return html_writer::link($atividade_url, $this->name);
     }
+
 }
 
 class report_unasus_forum_activity extends report_unasus_activity {
 
-    public function  __construct($db_model) {
+    public function __construct($db_model) {
         parent::__construct(true, true);
 
         $this->id = $db_model->forum_id;
@@ -85,6 +86,7 @@ class report_unasus_forum_activity extends report_unasus_activity {
         $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id));
         return html_writer::link($forum_url, $this->name);
     }
+
 }
 
 class report_unasus_quiz_activity extends report_unasus_activity {
@@ -104,6 +106,31 @@ class report_unasus_quiz_activity extends report_unasus_activity {
         $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id));
         return html_writer::link($quiz_url, $this->name);
     }
+
+}
+
+class report_unasus_lti_activity extends report_unasus_activity {
+
+    public function __construct($db_model) {
+        parent::__construct(true, true);
+
+        $this->id = $db_model->id;
+        $this->name = $db_model->name;
+        $this->deadline = $db_model->deadline;
+        $this->position = $db_model->position;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+        $this->course_module_id = $db_model->course_module_id;
+    }
+
+    /**
+     * @todo verificar parametro 'lti', tá vindo vazio e dado erro na linha seguinte $cm->id
+     */
+    public function __toString() {
+        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->course_module_id));
+        return html_writer::link($lti_url, $this->name);
+    }
+
 }
 
 abstract class report_unasus_data {
@@ -117,11 +144,10 @@ abstract class report_unasus_data {
     public $grade_date;
     public $status;
 
-
     /**
      * @param report_unasus_activity $source_activity qual a atividade esta informação se refere
      */
-    public function  __construct(report_unasus_activity &$source_activity) {
+    public function __construct(report_unasus_activity &$source_activity) {
         $this->source_activity = $source_activity;
     }
 
@@ -165,7 +191,7 @@ abstract class report_unasus_data {
             $duediff = $deadline->diff(date_create());
         }
 
-        return (int)$duediff->format("%a");
+        return (int) $duediff->format("%a");
     }
 
     /**
@@ -189,7 +215,6 @@ abstract class report_unasus_data {
             // se a atividade possui entrega ativada
             // o prazo é contato a partir da data de envio
             $deadline = get_datetime_from_unixtime($this->submission_date);
-
         } else {
             // se a atividade não possui entrega ativada
             // o prazo é contato a partir da data esperada de entrega
@@ -207,7 +232,7 @@ abstract class report_unasus_data {
             // usaremos a diferença do deadline com a data atual
             $duediff = $deadline->diff(date_create());
         }
-        return (int)$duediff->format("%a");
+        return (int) $duediff->format("%a");
     }
 
     /**
@@ -295,13 +320,14 @@ abstract class report_unasus_data {
         // Se ele nao tiver nota e sua entrega estiver atrasada ou necessita de nota, não é uma atividade pro futuro
         return false;
     }
+
 }
 
 class report_unasus_data_activity extends report_unasus_data {
 
     public $status;
 
-    public function  __construct(report_unasus_activity &$source_activity, $db_model) {
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
 
         parent::__construct($source_activity);
 
@@ -309,7 +335,7 @@ class report_unasus_data_activity extends report_unasus_data {
         $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
         $this->polo = $db_model->polo;
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float)$db_model->grade;
+            $this->grade = (float) $db_model->grade;
         }
 
         $this->status = $db_model->status;
@@ -345,13 +371,13 @@ class report_unasus_data_activity extends report_unasus_data {
 
 class report_unasus_data_forum extends report_unasus_data {
 
-    public function  __construct(report_unasus_activity &$source_activity, $db_model) {
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float)$db_model->grade;
+            $this->grade = (float) $db_model->grade;
         }
         $this->submission_date = $db_model->submission_date;
         $this->grade_date = $db_model->timemodified;
@@ -361,17 +387,34 @@ class report_unasus_data_forum extends report_unasus_data {
 
 class report_unasus_data_quiz extends report_unasus_data {
 
-    public function  __construct(report_unasus_activity &$source_activity, $db_model) {
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float)$db_model->grade;
+            $this->grade = (float) $db_model->grade;
         }
         $this->submission_date = $db_model->submission_date;
         $this->grade_date = $db_model->grade_date;
+    }
 
+}
+
+class report_unasus_data_lti extends report_unasus_data {
+
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
+        parent::__construct($source_activity);
+
+        $this->userid = $db_model->userid;
+        $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
+        $this->polo = $db_model->polo;
+        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+            $this->grade = (float) $db_model->grade;
+        }
+        $this->submission_date = $db_model->submission_date;
+        $this->grade_date = $db_model->grade_date;
+        $this->status = $db_model->status;
     }
 }
 
@@ -390,9 +433,29 @@ class report_unasus_final_grade {
         $text = (is_null($this->name) || $this->name == '') ? 'Média Final ' : $this->name;
         return html_writer::link($gradebook_url, $text);
     }
+
+}
+
+class report_unasus_total_atividades_concluidas {
+
+    public $name;
+    public $course_id;
+    public $total;
+
+    public function __construct($total) {
+        $this->total = $total;
+    }
+
+    public function __toString() {
+        $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id));
+        $text = get_string('atividades_concluidas', 'report_unasus');
+        return html_writer::link($gradebook_url, $text);
+    }
+
 }
 
 class report_unasus_data_nota_final {
+
     public $userid;
     public $polo;
     public $grade;
@@ -401,7 +464,7 @@ class report_unasus_data_nota_final {
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float)$db_model->grade;
+            $this->grade = (float) $db_model->grade;
         }
     }
 
@@ -413,5 +476,6 @@ class report_unasus_data_nota_final {
     public function has_grade() {
         return !is_null($this->grade);
     }
+
 }
 

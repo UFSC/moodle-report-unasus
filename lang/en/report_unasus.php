@@ -63,3 +63,14 @@ $string['settings_tolerancia_potencial_evasao'] = 'Tolerância para o numero de 
 $string['description_tolerancia_potencial_evasao'] = 'Informe a tolerância no total de atividades não feitas';
 
 $string['unmatched_condition'] = 'Condição de seleção de dados incorreta. Informe o administrador sobre o problema.';
+
+$string['cohort_empty'] = 'Sem cohort';
+
+/* Relatorios de TCC/PORTFOLIO */
+$string['atividades_concluidas'] = 'Atividades Concluidas';
+
+$string['portfolio_prefix'] = 'Portfólio Eixo ';
+
+$string['tcc_prefix'] = 'TCC';
+
+$string['column_aluno_atividade_concluida'] = 'N° Alunos com atividades concluídas';
