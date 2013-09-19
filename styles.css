@@ -3,7 +3,7 @@
 /* Regra para os 3 itens da barra de filtros */
 .relatorio-unasus.fieldset .multiple_list {
     display: inline-block;
-    width: 32%;
+    width: 35%;
     margin-left: 1%;
     margin-bottom: 1em;
     margin-top: 1em;
@@ -11,7 +11,7 @@
 
 .relatorio-unasus.fieldset .time_filter {
     display: inline-block;
-    width: 32%;
+    width: 35%;
     margin-left: 1%;
     margin-bottom: 1em;
     margin-top: 1em;
