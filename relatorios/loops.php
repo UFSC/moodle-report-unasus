@@ -263,11 +263,13 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
 /**
  * Atividades lit - sistema de tcc
- * @global type $DB
- * @param type $query_conjunto_alunos
+ *
+ * @param $courseid
  * @param type $grupo_tutoria
  * @param type $group_array_do_grupo
  * @param dado_atividades_nota_atribuida $array_das_atividades
+ * @global type $DB
+ * @internal param \type $query_conjunto_alunos
  * @return type
  */
 function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $array_das_atividades = null) {
@@ -307,76 +309,73 @@ function get_lti_activities($courseid, $grupo_tutoria, $group_array_do_grupo, $a
         }
 
         // WS Client
-        try {
-            $client = new SistemaTccClient($lti_atividade->baseurl);
-            $params = array('consumer_key' => $consumer_key, 'user_ids' => $user_ids);
+        $client = new SistemaTccClient($lti_atividade->baseurl, $consumer_key);
+        $result = $client->get_report_data($user_ids);
 
-            $json = $client->post('reportingservice.json', $params);
-            $result = json_decode($json);
-            $total_alunos = array();
-
-            $prefix = get_string('portfolio_prefix', 'report_unasus');
-
-            if (!is_null($result)) {
-                foreach ($result as $r) {
-                    $userid = $r->tcc->user_id;
-
-                    //hubs
-                    foreach ($r->tcc->hubs as $hub) {
-                        if (isset($hub->hub)) {
-                            $hub = $hub->hub;
-                        }
-                        if (!array_key_exists($hub->position, $total_alunos)) {
-                            $total_alunos[$hub->position] = 0;
-                        }
-                        $total_alunos[$hub->position]++;
-
-                        $cm = get_coursemodule_from_instance('lti', $lti_atividade->id, $lti_atividade->course, null, IGNORE_MISSING);
-
-                        //criar atividade
-                        $db_model = new stdClass();
-                        $db_model->id = $lti_atividade->id;
-                        $db_model->name = $prefix . $hub->position;
-                        $db_model->position = $hub->position;
-                        $db_model->deadline = $lti_atividade->completionexpected;
-                        $db_model->course_id = $lti_atividade->course;
-                        $db_model->course_name =  $DB->get_field('course', 'fullname', array('id' => $lti_atividade->course));
-                        $db_model->course_module_id = $cm->id;
-                        $atividade = new report_unasus_lti_activity($db_model);
-
-                        $aluno = $alunos[$userid];
-
-                        //criar user
-                        $user = new stdClass();
-                        $user->userid = $userid;
-                        $user->name = $aluno->firstname;
-                        $user->grade = $hub->grade;
-                        $grade_date = new DateTime($hub->grade_date);
-                        $user->grade_date = $grade_date->getTimestamp();
-
-                        $user->status = $hub->state;
-                        $submission_date = new DateTime($hub->state_date);
-                        $user->submission_date = $submission_date->getTimestamp();
-                        $user->cohort = $aluno->cohort;
-                        $user->polo = $aluno->polo;
-
-                        $data = new report_unasus_data_lti($atividade, $user);
-
-                        //Agrupar dados por usuario
-                        $group_array_do_grupo->add($user->userid, $data);
-                    }
-                }
-            }
-            if (!is_null($array_das_atividades)) {
-                foreach ($total_alunos as $key => $total) {
-                    $array_das_atividades[$lti_atividade->course]['lti_' . $key] = new dado_atividades_nota_atribuida($total);
-                }
-            }
-            
-        } catch (Exception $e) {
+        if (!$result) {
             // Falha ao conectar com Webservice
             continue;
         }
+
+
+        $total_alunos = array();
+        $prefix = get_string('portfolio_prefix', 'report_unasus');
+
+        foreach ($result as $r) {
+            $userid = $r->tcc->user_id;
+
+            //hubs
+            foreach ($r->tcc->hubs as $hub) {
+                if (isset($hub->hub)) {
+                    $hub = $hub->hub;
+                }
+                if (!array_key_exists($hub->position, $total_alunos)) {
+                    $total_alunos[$hub->position] = 0;
+                }
+                $total_alunos[$hub->position]++;
+
+                $cm = get_coursemodule_from_instance('lti', $lti_atividade->id, $lti_atividade->course, null, IGNORE_MISSING);
+
+                //criar atividade
+                $db_model = new stdClass();
+                $db_model->id = $lti_atividade->id;
+                $db_model->name = $prefix . $hub->position;
+                $db_model->position = $hub->position;
+                $db_model->deadline = $lti_atividade->completionexpected;
+                $db_model->course_id = $lti_atividade->course;
+                $db_model->course_name = $DB->get_field('course', 'fullname', array('id' => $lti_atividade->course));
+                $db_model->course_module_id = $cm->id;
+                $atividade = new report_unasus_lti_activity($db_model);
+
+                $aluno = $alunos[$userid];
+
+                //criar user
+                $user = new stdClass();
+                $user->userid = $userid;
+                $user->name = $aluno->firstname;
+                $user->grade = $hub->grade;
+                $grade_date = new DateTime($hub->grade_date);
+                $user->grade_date = $grade_date->getTimestamp();
+
+                $user->status = $hub->state;
+                $submission_date = new DateTime($hub->state_date);
+                $user->submission_date = $submission_date->getTimestamp();
+                $user->cohort = $aluno->cohort;
+                $user->polo = $aluno->polo;
+
+                $data = new report_unasus_data_lti($atividade, $user);
+
+                //Agrupar dados por usuario
+                $group_array_do_grupo->add($user->userid, $data);
+            }
+        }
+
+        if (!is_null($array_das_atividades)) {
+            foreach ($total_alunos as $key => $total) {
+                $array_das_atividades[$lti_atividade->course]['lti_' . $key] = new dado_atividades_nota_atribuida($total);
+            }
+        }
+
     }
 
     return array(
