@@ -248,11 +248,10 @@ function get_tutores_menu($curso_ufsc) {
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
 function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mostrar_total = false) {
-    global $DB;
-    
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
+    $ltis = query_lti_courses($courses);
 
     $group_array = new GroupArray();
     
@@ -269,30 +268,23 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
-    /* Construir atividades de Lti para cada módulo */
-    if (!empty($courses)) {
-        $modulos = is_string($courses) ? explode(',', $courses) : $courses;
+    /* A atividade de LTI Portfólio é composta (vai gerar sub-atividades para cada eixo */
+    foreach ($ltis as $lti) {
+        foreach ($lti->tcc_definition->hub_definitions as $hub_definition) {
+            $hub = $hub_definition->hub_definition;
 
-        foreach ($modulos as $course) {
-            $ltis = query_lti_courses($course);
+            // sub-atividade simulada
+            $db_model = new stdClass();
+            $db_model->id = $lti->id;
+            $db_model->course_module_id = $lti->course_module_id;
+            $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->title;
+            $db_model->deadline = $lti->completionexpected;
+            $db_model->position = $hub->position;
+            //todo course definition
+            $db_model->course_id = $lti->course_id;
+            $db_model->course_name = $lti->course_name;
 
-            foreach ($ltis as $lti) {
-                foreach ($lti->tcc_definition->hub_definitions as $hub) {
-                    $hub = $hub->hub_definition;
-                    //atividade
-                    $db_model = new stdClass();
-                    $db_model->id = $lti->id;
-                    $db_model->course_module_id = $lti->course_module_id;
-                    $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->position;
-                    $db_model->deadline = null;
-                    $db_model->position = $hub->position;
-                    //todo course definition
-                    $db_model->course_id = $course;
-                    $db_model->course_name =  $DB->get_field('course', 'fullname', array('id' => $course));
-
-                    $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
-                }
-            }
+            $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
         }
     }
 
@@ -379,47 +371,62 @@ function query_quiz_courses($courses) {
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
+
 /**
  * Função para buscar atividades de lti
  *
- * @param $course
+ * @param $courses
  * @internal param \type $tcc_definition_id
  * @return array
  */
-function query_lti_courses($course) {
+function query_lti_courses($courses) {
     global $DB;
 
-    $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
+
+    if (empty($courses)) {
+        return false;
+    }
+
+    $courses = is_string($courses) ? explode(',', $courses) : $courses;
     $lti_activities = array();
 
-    foreach ($ltis as $lti) {
-        $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
-        $customparameters = get_tcc_definition($config['customparameters']);
-        $consumer_key = $config['resourcekey'];
+    foreach ($courses as $course) {
 
-        // Não nos interessa os LTI's com tipo TCC
-        if ($customparameters['type'] != 'portfolio') {
-            continue;
-        }
+        $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
+        $course_name = $DB->get_field('course', 'fullname', array('id' => $course));
 
-        // WS Client
-        $client = new SistemaTccClient($lti->baseurl, $consumer_key);
-        $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+        foreach ($ltis as $lti) {
+            $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
+            $customparameters = get_tcc_definition($config['customparameters']);
+            $consumer_key = $config['resourcekey'];
 
-        if ($object) {
+            // Não nos interessa os LTI's com tipo TCC
+            if ($customparameters['type'] != 'portfolio') {
+                continue;
+            }
+
+            // WS Client
+            $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+            $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+
+            if (!$object) {
+                // Ocorreu alguma falha
+                continue;
+            }
+
             $object->id = $lti->id;
+            $object->course_id = $course;
+            $object->course_name = $course_name;
             $object->course_module_id = $lti->cmid;
+            $object->config = $config;
+            $object->custom_parameters = $customparameters;
+            $object->completionexpected = $lti->completionexpected;
             array_push($lti_activities, $object);
-        } else {
-            // Ocorreu alguma falha
-            continue;
         }
-
     }
 
     return $lti_activities;
 }
-
 /**
  * Retorna definições da lti
  * @param type $tcc_definition
