@@ -51,6 +51,12 @@ function get_dados_atividades_vs_notas() {
                 /** @var report_unasus_data $atividade */
                 $atraso = null;
 
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    $lista_atividades[] = new dado_nao_aplicado();
+                    continue;
+                }
+
                 //Se atividade não tem data de entrega, não tem entrega e nem nota
                 if (!$atividade->source_activity->has_deadline() && !$atividade->has_submitted() && !$atividade->has_grade()) {
                     $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
@@ -87,11 +93,14 @@ function get_dados_atividades_vs_notas() {
 
                 $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->source_activity->id, $atividade->grade, $atraso);
             }
+
             $estudantes[] = $lista_atividades;
+
             // Unir os alunos de acordo com o polo deles
             if ($factory->agrupar_relatorios == AGRUPAR_POLOS) {
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
+
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
                 $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
@@ -250,6 +259,12 @@ function get_dados_entrega_de_atividades() {
                 /** @var report_unasus_data $atividade */
                 $atraso = null;
 
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    $lista_atividades[] = new dado_nao_aplicado();
+                    continue;
+                }
+
                 // Se a atividade não foi entregue
                 if (!$atividade->has_submitted()) {
 
@@ -297,18 +312,18 @@ function get_dados_entrega_de_atividades() {
     return ($dados);
 }
 
-/*
+/**
  * Cabeçalho da tabela
+ * @return array
  */
-
 function get_table_header_entrega_de_atividades() {
     return get_table_header_modulos_atividades();
 }
 
-/*
+/**
  * Dados para o gráfico do relatorio entrega de atividadas
+ * @return array
  */
-
 function get_dados_grafico_entrega_de_atividades() {
     global $CFG;
     /** @var $factory Factory */
@@ -483,15 +498,17 @@ function get_dados_historico_atribuicao_notas() {
     return $dados;
 }
 
-/*
+/**
  * Cabeçalho do relatorio historico atribuicao de notas
+ * @return array
  */
 function get_table_header_historico_atribuicao_notas() {
     return get_table_header_modulos_atividades();
 }
 
-/*
+/**
  * Dados para o gráfico de historico atribuicao de notas
+ * @return array|bool
  */
 function get_dados_grafico_historico_atribuicao_notas() {
     global $CFG;
@@ -615,10 +632,19 @@ function get_dados_boletim() {
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
+            // FIXME: se o dado for do tipo 'report_unasus_data_nota_final' não possui 'cohort', corrigir a estrutura para suportar cohort.
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
 
             foreach ($aluno as $atividade) {
+                /** @var report_unasus_data $atividade */
                 $nota = null;
+
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    $lista_atividades[] = new dado_nao_aplicado();
+                    continue;
+                }
+
                 //Atividade tem nota
                 if ($atividade->has_grade()) {
                     $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
@@ -639,6 +665,7 @@ function get_dados_boletim() {
             if ($factory->agrupar_relatorios == AGRUPAR_POLOS) {
                 $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
             }
+
             // Unir os alunos de acordo com o cohort deles
             if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
                 $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
@@ -647,6 +674,7 @@ function get_dados_boletim() {
 
             $lista_atividades = null;
         }
+
         // Ou pelo grupo de tutoria do estudante
         if ($factory->agrupar_relatorios == AGRUPAR_TUTORES) {
             $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
@@ -1220,14 +1248,15 @@ function get_dados_potenciais_evasoes() {
             $dados_modulos = array();
             $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
             foreach ($aluno as $atividade) {
+                /** @var report_unasus_data $atividade */
 
-                //para cada novo modulo ele cria uma entrada de dado_potenciais_evasoes com o maximo de atividades daquele modulo
+                // para cada novo modulo ele cria uma entrada de dado_potenciais_evasoes com o maximo de atividades daquele modulo
                 if (!array_key_exists($atividade->source_activity->course_id, $dados_modulos)) {
                     $dados_modulos[$atividade->source_activity->course_id] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->source_activity->course_id]));
                 }
 
-                //para cada atividade nao feita ele adiciona uma nova atividade nao realizada naquele modulo
-                if ($atividade->source_activity->has_submission() && is_null($atividade->submission_date) && !$atividade->is_a_future_due()) {
+                // para cada atividade nao feita ele adiciona uma nova atividade nao realizada naquele modulo
+                if ($atividade->source_activity->has_submission() && !$atividade->has_submitted() && !$atividade->is_a_future_due()) {
                     $dados_modulos[$atividade->source_activity->course_id]->add_atividade_nao_realizada();
                 }
             }
@@ -1337,18 +1366,23 @@ function get_todo_list_data() {
 
 
     $dados = array();
+
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
 
             $atividades_modulos = new GroupArray();
 
-
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
                 $tipo_avaliacao = 'atividade';
                 $nome_atividade = null;
                 $atividade_sera_listada = false;
+
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    continue;
+                }
 
                 if ($factory->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted() && $atividade->source_activity->has_submission()) {
                     $atividade_sera_listada = true;
@@ -1387,6 +1421,7 @@ function get_todo_list_data() {
                 if ($factory->agrupar_relatorios == AGRUPAR_POLOS) {
                     $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
                 }
+
                 // Unir os alunos de acordo com o cohort deles
                 if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
                     $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
@@ -1395,6 +1430,7 @@ function get_todo_list_data() {
             }
             $lista_atividades = null;
         }
+
         // Ou unir os alunos de acordo com o tutor dele
         if ($factory->agrupar_relatorios == AGRUPAR_TUTORES) {
             $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;

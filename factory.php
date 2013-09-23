@@ -39,7 +39,7 @@ class Factory {
      */
     protected $modo_exibicao;
 
-    //Atributos para os filtros
+    // Atributos para construir tela de filtros
     public $mostrar_barra_filtragem;
     public $mostrar_botoes_grafico;
     public $mostrar_botoes_dot_chart;
@@ -48,12 +48,14 @@ class Factory {
     public $mostrar_filtro_intervalo_tempo;
     public $mostrar_aviso_intervalo_tempo;
 
-    //Atributos para os gráficos e tabelas
+    // Armazenamento de valores definidos nos filtros
     public $cohorts_selecionados;
     public $modulos_selecionados;
     public $polos_selecionados;
     public $tutores_selecionados;
     public $agrupar_relatorios;
+
+    // Atributos para os gráficos e tabelas
     public $texto_cabecalho;
 
     //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
@@ -162,7 +164,7 @@ class Factory {
     /**
      * Singleton class, garantia de uma unica instancia da classe
      * 
-     * @deprecated utilizar get_report
+     * @deprecated utilizar singleton_report()
      * @return Factory
      */
     public static function singleton() {

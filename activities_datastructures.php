@@ -116,11 +116,13 @@ class report_unasus_lti_activity extends report_unasus_activity {
 
         $this->id = $db_model->id;
         $this->name = $db_model->name;
-        $this->deadline = $db_model->deadline;
+        $this->deadline = $db_model->completionexpected;
         $this->position = $db_model->position;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->course_module_id = $db_model->course_module_id;
+        $this->baseurl = $db_model->baseurl;
+        $this->consumer_key = $db_model->consumer_key;
     }
 
     /**
@@ -133,6 +135,11 @@ class report_unasus_lti_activity extends report_unasus_activity {
 
 }
 
+/**
+ * Representa dados de usuário a respeito de alguma atividade
+ *
+ * Esta estrutura será utilizada para responder questões como, nome, data de envio, se houve envio, se houve nota, etc.
+ */
 abstract class report_unasus_data {
 
     public $source_activity;
@@ -142,7 +149,6 @@ abstract class report_unasus_data {
     public $grade;
     public $submission_date;
     public $grade_date;
-    public $status;
 
     /**
      * @param report_unasus_activity $source_activity qual a atividade esta informação se refere
@@ -307,9 +313,15 @@ abstract class report_unasus_data {
      */
     public function is_a_future_due() {
         $now = time();
-        //Se atividade ja tiver nota, mesmo que seja uma atividade futura esta tudo ok
+
+        // Se atividade ja tiver nota, mesmo que seja uma atividade futura esta tudo ok
         if ($this->has_grade()) {
             return false;
+        }
+
+        // Se a atividade não tem prazo, a atividade é sempre para o futuro
+        if (!$this->source_activity->has_deadline()) {
+            return true;
         }
 
         // A data de avaliacao é maior do que a data atual
@@ -403,6 +415,9 @@ class report_unasus_data_quiz extends report_unasus_data {
 
 class report_unasus_data_lti extends report_unasus_data {
 
+    public $status;
+    private static $submitted_status = array('sent_to_admin_for_revision', 'sent_to_admin_for_evaluation', 'admin_evaluation_ok', 'terminated');
+
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
 
@@ -416,6 +431,11 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->grade_date = $db_model->grade_date;
         $this->status = $db_model->status;
     }
+
+    public function has_submitted() {
+        return !is_null($this->submission_date) && in_array($this->status, self::$submitted_status);
+    }
+
 }
 
 class report_unasus_final_grade {
@@ -479,3 +499,50 @@ class report_unasus_data_nota_final {
 
 }
 
+/**
+ * Representa um dado relacionado a um estudante que não faz parte da atividad em questão
+ *
+ * Um exemplo de uso é quando existe algum tipo de separação como agrupamentos, em que o estudante faz parte da disciplina
+ * mas não tem acesso a uma determinada atividade.
+ *
+ * Outro caso de uso é no sistema de TCC onde um estudante pode não fazer parte de um Eixo.
+ */
+class report_unasus_data_empty extends report_unasus_data {
+
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
+        parent::__construct($source_activity);
+
+        $this->userid = $db_model->userid;
+        $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
+        $this->polo = $db_model->polo;
+    }
+
+    public function has_submitted() {
+        return false;
+    }
+
+    public function has_grade() {
+        return false;
+    }
+
+    public function submission_due_days() {
+        return false;
+    }
+
+    public function grade_due_days() {
+        return false;
+    }
+
+    public function is_grade_needed() {
+        return false;
+    }
+
+    public function is_submission_due() {
+        return false;
+    }
+
+    public function is_a_future_due() {
+        return false;
+    }
+
+}

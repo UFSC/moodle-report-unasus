@@ -108,6 +108,7 @@ abstract class unasus_data {
      * Formata uma nota para exibição
      *
      * @param $grade
+     * @return string
      */
     protected function format_grade($grade) {
         return format_float($grade, 1);
@@ -518,6 +519,8 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
 
     /**
      * Retorna se todas atividades de um dados modulo esta completo
+     *
+     * @param $course_id
      * @return boolean
      */
     public function is_complete_activities($course_id) {
@@ -780,4 +783,18 @@ class dado_atividade extends unasus_data {
         return '';
     }
 
+}
+
+/**
+ * Representa um dado de cujo estudante não faz parte da atividade
+ */
+class dado_nao_aplicado extends unasus_data {
+
+    public function __toString() {
+        return 'N/A';
+    }
+
+    public function get_css_class() {
+        return 'nao_aplicado';
+    }
 }

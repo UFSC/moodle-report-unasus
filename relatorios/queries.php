@@ -408,3 +408,68 @@ function query_alunos_modulos() {
          ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
+
+class LtiPortfolioQuery {
+
+    private $estudantes_grupo_tutoria;
+
+    function __construct() {
+        $this->estudantes_grupo_tutoria = array();
+    }
+
+    /**
+     * @param $grupo_tutoria
+     * @return array
+     */
+    function &get_estudantes_by_grupo_tutoria($grupo_tutoria) {
+
+        // Se a consulta já foi executada, não é necessário refazê-la
+        if (isset($this->estudantes_grupo_tutoria[$grupo_tutoria])) {
+            return $this->estudantes_grupo_tutoria[$grupo_tutoria];
+        }
+
+        // Middleware para as queries sql
+        $middleware = Middleware::singleton();
+
+        /** @var $factory Factory */
+        $factory = Factory::singleton();
+
+        /* Query alunos */
+        $query_alunos = query_alunos_grupo_tutoria();
+        $params = array(
+            'curso_ufsc' => $factory->get_curso_ufsc(),
+            'grupo_tutoria' => $grupo_tutoria,
+            'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+
+        $this->estudantes_grupo_tutoria[$grupo_tutoria] = $middleware->get_records_sql($query_alunos, $params);
+
+        return $this->estudantes_grupo_tutoria[$grupo_tutoria];
+    }
+
+    /**
+     * @param $grupo_tutoria
+     * @param $atividade
+     * @internal param $estudantes
+     * @return array
+     */
+    function &get_report_data_by_grupo_tutoria($grupo_tutoria, &$atividade) {
+
+        // Se a consulta já foi executada, não é necessário refazê-la
+        if (isset($this->report_estudantes_grupo_tutoria[$grupo_tutoria])) {
+            return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
+        }
+
+        $user_ids = array();
+        $estudantes =& $this->get_estudantes_by_grupo_tutoria($grupo_tutoria);
+
+        foreach ($estudantes as $aluno) {
+            array_push($user_ids, $aluno->id);
+        }
+
+        // WS Client
+        $client = new SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
+        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data($user_ids);
+
+        return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
+    }
+}

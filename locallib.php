@@ -278,11 +278,13 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
             $db_model->id = $lti->id;
             $db_model->course_module_id = $lti->course_module_id;
             $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->title;
-            $db_model->deadline = $lti->completionexpected;
+            $db_model->completionexpected = $lti->completionexpected;
             $db_model->position = $hub->position;
             //todo course definition
             $db_model->course_id = $lti->course_id;
             $db_model->course_name = $lti->course_name;
+            $db_model->baseurl = $lti->baseurl;
+            $db_model->consumer_key = $lti->config['resourcekey'];
 
             $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
         }
@@ -421,6 +423,7 @@ function query_lti_courses($courses) {
             $object->config = $config;
             $object->custom_parameters = $customparameters;
             $object->completionexpected = $lti->completionexpected;
+            $object->baseurl = $lti->baseurl;
             array_push($lti_activities, $object);
         }
     }

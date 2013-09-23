@@ -72,7 +72,12 @@ class SistemaTccClient {
         $this->client->setUri("{$this->url}{$path}");
         $this->client->setRawData($data);
 
-        $response =  $this->client->request('POST');
+        try {
+            $response = $this->client->request('POST');
+        } catch (Zend_Http_Client_Adapter_Exception $exception) {
+            return false;
+        }
+
         return $response->isSuccessful() ? $response->getBody() : false;
     }
 

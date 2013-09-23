@@ -114,6 +114,7 @@
 }
 
 /* Cinza */
+.relatorio-unasus .nao_aplicado,
 .relatorio-unasus.atividades_vs_notas .nao_realizada,
 .relatorio-unasus.historico_atribuicao_notas .nao_avaliada,
 .relatorio-unasus.entrega_de_atividades .nao_entregue_fora_do_prazo {
