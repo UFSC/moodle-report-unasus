@@ -411,7 +411,11 @@ function query_alunos_modulos() {
 
 class LtiPortfolioQuery {
 
+    /** @var array $estudantes_grupo_tutoria */
     private $estudantes_grupo_tutoria;
+    
+    /** @var array $report_estudantes_grupo_tutoria */
+    private $report_estudantes_grupo_tutoria;
 
     function __construct() {
         $this->estudantes_grupo_tutoria = array();
