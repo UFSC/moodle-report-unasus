@@ -24,19 +24,21 @@ define('AGRUPAR_COHORTS', 'COHORTS');
 
 class Factory {
 
-    //Atributos globais
+    // Atributos globais
+
+    /** @var bool|string $curso_ufsc Código de curso UFSC associdado a este relatório */
     protected $curso_ufsc;
+
+    /** @var int|mixed $curso_moodle Código do curso Moodle em que este relatório foi acessado */
     protected $curso_moodle;
+
+    /** @var array $cursos_ativos Cursos UFSC que estão ativos (Middleware) */
     protected $cursos_ativos;
 
-    /**
-     * @var string $relatorio relatório atual que será mostrado
-     */
+    /** @var  string $relatorio relatório atual que será mostrado */
     protected $relatorio;
 
-    /**
-     * @var mixed $modo_exibicao valores possíveis: null, tabela, grafico_valores, grafico_porcentagens, grafico_pontos
-     */
+    /** @var  mixed $modo_exibicao valores possíveis: null, tabela, grafico_valores, grafico_porcentagens, grafico_pontos */
     protected $modo_exibicao;
 
     // Atributos para construir tela de filtros
@@ -62,7 +64,7 @@ class Factory {
     public $data_inicio;
     public $data_fim;
 
-    //Singleton
+    // Singleton
     private static $instance;
 
     // Setar os valores defaults para os relatórios e filtros
@@ -219,7 +221,9 @@ class Factory {
 
 
     /**
-     * @return chamada de metodo
+     * Retorna os dados que serão exibidos pelo relatório
+     *
+     * @return array chamada de metodo
      */
     public function get_dados_relatorio() {
         $method = "get_dados_{$this->relatorio}";
@@ -227,7 +231,9 @@ class Factory {
     }
 
     /**
-     * @return chamada de metodo
+     * Retorna o array com os dados para construçào do cabeçalho
+     *
+     * @return array chamada de metodo
      */
     public function get_table_header_relatorio() {
         $method = "get_table_header_{$this->relatorio}";
@@ -235,7 +241,9 @@ class Factory {
     }
 
     /**
-     * @return chamada de metodo
+     * Retorna os dados que serão exibidos pelo relatório
+     *
+     * @return array chamada de metodo
      */
     public function get_dados_grafico_relatorio() {
         $method = "get_dados_grafico_{$this->relatorio}";
@@ -243,6 +251,11 @@ class Factory {
     }
 
 
+    /**
+     * Verifica se o relatório possui gráfico definido
+     *
+     * @return bool
+     */
     public function relatorio_possui_grafico() {
         $method = "get_dados_grafico_{$this->relatorio}";
         if (function_exists($method) && ($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))

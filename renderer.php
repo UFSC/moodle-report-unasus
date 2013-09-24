@@ -258,6 +258,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param Array $header header para a tabela, pode ser um
      *              array('value1','value2','value3') ou um array de chaves valor
      *              array('modulo'=> array('value1','value2'))
+     * @param string $tipo_cabecalho
      * @return html_table
      */
     public function default_table($dadostabela, $header, $tipo_cabecalho = 'Estudante') {
@@ -334,8 +335,8 @@ class report_unasus_renderer extends plugin_renderer_base {
     /**
      *
      * @TODO REFATORAR com default_table
-     * @param type $dadostabela
-     * @param type $header
+     * @param Array $dadostabela
+     * @param Array $header
      * @return report_unasus_table
      */
     public function table_tutores($dadostabela, $header) {
@@ -380,7 +381,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      *
      * @TODO construir uma simple table que não necessita ter divisões de tutor/polo barra azul
      * @param Array $dadostabela dados para alimentar a tabela
-     * @param Array $header header para a tabela, pode ser um
+     * @param Array $header_size header para a tabela, pode ser um
      *              array('value1','value2','value3') ou um array de chaves valor
      *              array('modulo'=> array('value1','value2'))
      * @return html_table
@@ -651,6 +652,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Constroi um fieldset de warning de erro nos filtros
      *
      * @param $msg Texto de aviso
+     * @return string
      */
     public function build_warning($msg) {
         $output = html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset warning'));
