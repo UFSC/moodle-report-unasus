@@ -425,7 +425,7 @@ class LtiPortfolioQuery {
      * @param $grupo_tutoria
      * @return array
      */
-    function &get_estudantes_by_grupo_tutoria($grupo_tutoria) {
+    private function &query_estudantes_by_grupo_tutoria($grupo_tutoria) {
 
         // Se a consulta já foi executada, não é necessário refazê-la
         if (isset($this->estudantes_grupo_tutoria[$grupo_tutoria])) {
@@ -451,12 +451,12 @@ class LtiPortfolioQuery {
     }
 
     /**
-     * @param $grupo_tutoria
-     * @param $atividade
-     * @internal param $estudantes
+     * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de tutoria
+     * @param int $grupo_tutoria código do grupo de tutoria
+     * @param report_unasus_lti_activity $atividade
      * @return array
      */
-    function &get_report_data_by_grupo_tutoria($grupo_tutoria, &$atividade) {
+    private function &query_report_data_by_grupo_tutoria($grupo_tutoria, &$atividade) {
 
         // Se a consulta já foi executada, não é necessário refazê-la
         if (isset($this->report_estudantes_grupo_tutoria[$grupo_tutoria])) {
@@ -464,7 +464,7 @@ class LtiPortfolioQuery {
         }
 
         $user_ids = array();
-        $estudantes =& $this->get_estudantes_by_grupo_tutoria($grupo_tutoria);
+        $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo_tutoria);
 
         foreach ($estudantes as $aluno) {
             array_push($user_ids, $aluno->id);
@@ -484,14 +484,14 @@ class LtiPortfolioQuery {
      * Esta função coordena as requisições realizadas via WebService e o processamento das mesmas
      * para retornar em um padrão semelhante aos dados que são retornados pelas consultas na base de dados
      *
-     * @param $atividade
-     * @param type $grupo_tutoria
-     * @return type
+     * @param report_unasus_lti_activity $atividade
+     * @param int $grupo_tutoria
+     * @return array
      */
-    function get_lti_report(&$atividade, $grupo_tutoria) {
+    public function get_report_data(&$atividade, $grupo_tutoria) {
 
-        $estudantes =& $this->get_estudantes_by_grupo_tutoria($grupo_tutoria);
-        $result =& $this->get_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
+        $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo_tutoria);
+        $result =& $this->query_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
 
         if (!$result) {
             // Falha ao conectar com Webservice

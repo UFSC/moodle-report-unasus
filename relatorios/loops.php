@@ -103,7 +103,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
-                    $result = $lti_query_object->get_lti_report($atividade, $grupo->id);
+                    $result = $lti_query_object->get_report_data($atividade, $grupo->id);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
@@ -267,7 +267,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
                     $array_das_atividades['lti_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$group-id]);
 
-                    $result = $lti_query_object->get_lti_report($atividade, $grupo->id);
+                    $result = $lti_query_object->get_report_data($atividade, $grupo->id);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
