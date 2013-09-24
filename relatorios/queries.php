@@ -413,7 +413,7 @@ class LtiPortfolioQuery {
 
     /** @var array $estudantes_grupo_tutoria */
     private $estudantes_grupo_tutoria;
-    
+
     /** @var array $report_estudantes_grupo_tutoria */
     private $report_estudantes_grupo_tutoria;
 
@@ -475,5 +475,90 @@ class LtiPortfolioQuery {
         $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data($user_ids);
 
         return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
+    }
+
+
+    /**
+     * Realiza as consultas necessarias para gerar os dados para os relatórios
+     *
+     * Esta função coordena as requisições realizadas via WebService e o processamento das mesmas
+     * para retornar em um padrão semelhante aos dados que são retornados pelas consultas na base de dados
+     *
+     * @param $atividade
+     * @param type $grupo_tutoria
+     * @return type
+     */
+    function get_lti_report(&$atividade, $grupo_tutoria) {
+
+        $estudantes =& $this->get_estudantes_by_grupo_tutoria($grupo_tutoria);
+        $result =& $this->get_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
+
+        if (!$result) {
+            // Falha ao conectar com Webservice
+            // TODO: retornar dado vazio para todos os user_ids para mitigar problemas
+            return false;
+        }
+
+        $output = array();
+
+        foreach ($result as $r) {
+
+            $userid = $r->tcc->user_id;
+            $estudante = $estudantes[$userid];
+            $found = false;
+
+            // Processando hubs encontrados
+            foreach ($r->tcc->hubs as $hub) {
+                $hub = $hub->hub;
+
+                // Só vamos processar o hub que corresponde a posição da atividade
+                if ($hub->position != $atividade->position) {
+                    continue;
+                }
+
+                $found = true;
+
+                // criar dado
+                $model = new stdClass();
+                $model->userid = $userid;
+                $model->grade = $hub->grade;
+
+                $model->status = $hub->state;
+
+                if (!empty($hub->grade_date)) {
+                    $grade_date = new DateTime($hub->grade_date);
+                    $model->grade_date = $grade_date->getTimestamp();
+                } else {
+                    $model->grade_date = false;
+                }
+
+                if (!empty($hub->state_date)) {
+                    $submission_date = new DateTime($hub->state_date);
+                    $model->submission_date = $submission_date->getTimestamp();
+                } else {
+                    $model->submission_date = false;
+                }
+
+                $model->cohort = $estudante->cohort;
+                $model->polo = $estudante->polo;
+
+                $output[] = $model;
+            }
+
+            // Marcando usuário que não possuem dados correspondentes na pesquisa
+            if (!$found) {
+
+                // criar dado
+                $model = new stdClass();
+                $model->userid = $userid;
+                $model->cohort = $estudante->cohort;
+                $model->polo = $estudante->polo;
+                $model->not_found = true;
+
+                $output[] = $model;
+            }
+        }
+
+        return $output;
     }
 }

@@ -103,7 +103,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
-                    $result = get_lti_report($atividade, $grupo->id, $lti_query_object);
+                    $result = $lti_query_object->get_lti_report($atividade, $grupo->id);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
@@ -169,6 +169,9 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
     // Recupera dados auxiliares
     $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
+
+    // Estrutura auxiliar de consulta ao LTI do Portfólio
+    $lti_query_object = new LtiPortfolioQuery();
 
     if (is_null($loop) && $factory->get_relatorio() == 'atividades_nota_atribuida') {
         $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, true);
@@ -264,7 +267,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
                     $array_das_atividades['lti_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$group-id]);
 
-                    $result = get_lti_report($atividade, $grupo->id, $lti_query_object);
+                    $result = $lti_query_object->get_lti_report($atividade, $grupo->id);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
@@ -278,9 +281,6 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                     }
                 }
             }
-
-            //$lit_activities = get_lti_report($modulo, $grupo->id, $group_array_do_grupo, $array_das_atividades);
-            //$array_das_atividades = $lit_activities['lista_atividades'];
 
             if (isset($atividades_alunos_grupos)) {
                 $total = isset($atividades_alunos_grupos[$grupo->id][$modulo]) ? $atividades_alunos_grupos[$grupo->id][$modulo] : 0;
@@ -296,106 +296,3 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
         'lista_atividade' => $lista_atividade,
         'associativo_atividade' => $associativo_atividade);
 }
-
-/**
- * Atividades lit - sistema de tcc
- *
- * @param $atividade
- * @param type $grupo_tutoria
- * @param $lti_query_object
- * @internal param int $courseid
- * @internal param \type $group_array_do_grupo
- * @internal param \dado_atividades_nota_atribuida $array_das_atividades
- * @global type $DB
- * @internal param \type $query_conjunto_alunos
- * @return type
- */
-function get_lti_report(&$atividade, $grupo_tutoria, &$lti_query_object) {
-
-    $estudantes =& $lti_query_object->get_estudantes_by_grupo_tutoria($grupo_tutoria);
-    $result =& $lti_query_object->get_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
-
-    if (!$result) {
-        // Falha ao conectar com Webservice
-        // TODO: retornar dado vazio para todos os user_ids para mitigar problemas
-        return false;
-    }
-
-    //$total_alunos = array();
-    $output = array();
-
-    foreach ($result as $r) {
-
-        $userid = $r->tcc->user_id;
-        $estudante = $estudantes[$userid];
-        $found = false;
-
-        // Processando hubs encontrados
-        foreach ($r->tcc->hubs as $hub) {
-            $hub = $hub->hub;
-
-            // Só vamos processar o hub que corresponde a posição da atividade
-            if ($hub->position != $atividade->position) {
-                continue;
-            }
-
-
-//            if (!array_key_exists($hub->position, $total_alunos)) {
-//                $total_alunos[$hub->position] = 0;
-//            }
-
-//            $total_alunos[$hub->position]++;
-
-            $found = true;
-
-            // criar dado
-            $model = new stdClass();
-            $model->userid = $userid;
-            $model->grade = $hub->grade;
-
-            $model->status = $hub->state;
-
-            if (!empty($hub->grade_date)) {
-                $grade_date = new DateTime($hub->grade_date);
-                $model->grade_date = $grade_date->getTimestamp();
-            } else {
-                $model->grade_date = false;
-            }
-
-            if (!empty($hub->state_date)) {
-                $submission_date = new DateTime($hub->state_date);
-                $model->submission_date = $submission_date->getTimestamp();
-            } else {
-                $model->submission_date = false;
-            }
-
-            $model->cohort = $estudante->cohort;
-            $model->polo = $estudante->polo;
-
-            $output[] = $model;
-        }
-
-        // Marcando usuário que não possuem dados correspondentes na pesquisa
-        if (!$found) {
-
-            // criar dado
-            $model = new stdClass();
-            $model->userid = $userid;
-            $model->cohort = $estudante->cohort;
-            $model->polo = $estudante->polo;
-            $model->not_found = true;
-
-            $output[] = $model;
-        }
-    }
-
-    return $output;
-
-
-//    if (!is_null($array_das_atividades)) {
-//        foreach ($total_alunos as $key => $total) {
-//            $array_das_atividades[$lti_atividade->course]['lti_' . $key] = new dado_atividades_nota_atribuida($total);
-//        }
-//    }
-}
-
