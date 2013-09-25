@@ -240,6 +240,27 @@ function get_tutores_menu($curso_ufsc) {
 }
 
 /**
+ * Função que busca os membros da cada agrupamento
+ * @param type $courses
+ * @return array(course_id => (userid1, userid2, ...))
+ */
+function get_agrupamentos_membros($courses = null) {
+    global $DB;
+
+    $courses = explode(',', $courses);
+    $groups = array();
+
+    foreach ($courses as $course_id) {
+        $members = $DB->get_records_sql(query_group_members(), array('courseid' => $course_id));
+
+        foreach ($members as $member) {
+            $groups[$member->groupingid][$course_id][$member->userid] = true;
+        }
+    }
+    return $groups;
+}
+
+/**
  * Função que busca todas as atividades (assign, forum) dentro de um modulo (course)
  *
  * @param array $courses array de ids dos cursos moodle, padrão null, retornando todos os modulos
@@ -326,7 +347,8 @@ function query_assign_courses($courses) {
                      a.nosubmissions,
                      a.grade,
                      c.id AS course_id,
-                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
+                     cm.groupingid as grouping_id
                 FROM {course} AS c
            LEFT JOIN {assign} AS a
                   ON (c.id = a.course AND c.id != :siteid)
@@ -359,7 +381,8 @@ function query_quiz_courses($courses) {
                      cm.completionexpected,
                      q.grade,
                      c.id AS course_id,
-                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
+                     cm.groupingid as grouping_id
                 FROM {course} AS c
                 JOIN {quiz} AS q
                   ON (c.id = q.course AND c.id != :siteid)
@@ -457,7 +480,8 @@ function query_forum_courses($courses) {
                      f.name AS forum_name,
                      cm.completionexpected,
                      c.id AS course_id,
-                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name
+                     REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
+                     cm.groupingid as grouping_id
                 FROM {course} AS c
            LEFT JOIN {forum} AS f
                   ON (c.id = f.course AND c.id != :siteid)

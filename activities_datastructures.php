@@ -14,6 +14,7 @@ abstract class report_unasus_activity {
     public $has_grade;
     public $course_id;
     public $course_name;
+    public $grouping;
 
     public function __construct($has_submission, $has_grade) {
         if (!is_bool($has_submission) || !is_bool($has_grade)) {
@@ -42,6 +43,13 @@ abstract class report_unasus_activity {
         return (!empty($this->has_submission));
     }
 
+    /**
+     * Esta atividade tem agrupamento?
+     */
+    public function has_grouping() {
+        return (!empty($this->grouping));
+    }
+
     abstract function __toString();
 }
 
@@ -59,6 +67,7 @@ class report_unasus_assign_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->grouping = $db_model->grouping_id;
     }
 
     public function __toString() {
@@ -79,6 +88,7 @@ class report_unasus_forum_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->grouping = $db_model->grouping_id;
     }
 
     public function __toString() {
@@ -99,6 +109,7 @@ class report_unasus_quiz_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->grouping = $db_model->grouping_id;
     }
 
     public function __toString() {
@@ -123,6 +134,7 @@ class report_unasus_lti_activity extends report_unasus_activity {
         $this->course_module_id = $db_model->course_module_id;
         $this->baseurl = $db_model->baseurl;
         $this->consumer_key = $db_model->consumer_key;
+        $this->grouping = $db_model->grouping_id;
     }
 
     /**

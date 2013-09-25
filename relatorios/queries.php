@@ -174,10 +174,13 @@ function query_lti() {
     return "SELECT l.id,l.course, l.name, l.timecreated,
                    l.timemodified, l.grade, l.typeid,
                    t.name AS typename, t.baseurl,
-                   cm.id as cmid, cm.completionexpected
+                   cm.id as cmid, cm.completionexpected, cm.groupingid as grouping_id,
+                   co.fullname as coursename
               FROM {lti} l
               JOIN {lti_types} t
                 ON (l.typeid=t.id )
+              JOIN {course} co
+                ON (l.course=co.id)
               JOIN {course_modules} cm
                 ON (l.course=cm.course AND cm.instance=l.id)
               JOIN {modules} m
@@ -191,6 +194,22 @@ function query_lti_config() {
                    c.name AS name, c.value as value
               FROM {lti_types_config} c
              WHERE c.typeid =:typeid";
+}
+
+/**
+ * Query Agrupamento
+ * @return string
+ */
+function query_group_members() {
+
+    return "SELECT gm.id, gm.userid, gm.groupid, gg.groupingid
+              FROM {groups_members} gm
+        INNER JOIN {groupings_groups} gg
+                ON (gm.groupid=gg.groupid)
+        INNER JOIN {groupings} g
+                ON (g.id=gg.groupingid)
+             WHERE g.courseid =:courseid
+          GROUP BY gm.id";
 }
 
 /**

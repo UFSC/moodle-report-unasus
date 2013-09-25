@@ -172,6 +172,11 @@ function get_dados_grafico_atividades_vs_notas() {
             foreach ($aluno as $atividade) {
                 $atraso = null;
 
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    continue;
+                }
+
                 //Se atividade não tem data de entrega e nem nota
                 if (!$atividade->source_activity->has_deadline() && !$atividade->has_grade()) {
                     $count_sem_prazo++;
@@ -358,6 +363,11 @@ function get_dados_grafico_entrega_de_atividades() {
             foreach ($aluno as $atividade) {
                 $atraso = null;
 
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    continue;
+                }
+
                 //Se atividade não tem data de entrega e nem nota
                 if (!$atividade->source_activity->has_deadline() && !$atividade->has_grade()) {
                     $count_sem_prazo++;
@@ -447,6 +457,12 @@ function get_dados_historico_atribuicao_notas() {
                 /** @var report_unasus_data_activity $atividade */
                 $atraso = null;
                 $tipo = null;
+
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    $lista_atividades[] = new dado_nao_aplicado();
+                    continue;
+                }
 
                 if (!$atividade->has_submitted()) {
                     $tipo = dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE;
@@ -543,6 +559,11 @@ function get_dados_grafico_historico_atribuicao_notas() {
             foreach ($aluno as $atividade) {
 
                 $atraso = null;
+
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    continue;
+                }
 
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
