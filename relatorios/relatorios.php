@@ -560,11 +560,6 @@ function get_dados_grafico_historico_atribuicao_notas() {
 
                 $atraso = null;
 
-                // Não se aplica para este estudante
-                if (is_a($atividade, 'report_unasus_data_empty')) {
-                    continue;
-                }
-
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
                 $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
@@ -803,7 +798,8 @@ function get_dados_atividades_nao_avaliadas() {
     $query_quiz = query_quiz();
     $query_forum = query_postagens_forum();
 
-    $result_array = loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+    $result_array = loop_atividades_e_foruns_sintese(
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -1415,7 +1411,7 @@ function get_todo_list_data() {
 
                 if ($factory->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted() && $atividade->source_activity->has_submission()) {
                     $atividade_sera_listada = true;
-                 }
+                }
 
                 if ($factory->get_relatorio() == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade() && $atividade->is_grade_needed()) {
                     $atividade_sera_listada = true;
@@ -1477,7 +1473,7 @@ function get_todo_list_data() {
  */
 
 /**
- * Relatorio tcc portfolio concluido
+ * Cabeçalho da tabela tcc portfolio
  */
 function get_table_header_tcc_portfolio_concluido() {
     return get_table_header_tcc_portfolio_entrega_atividades();
@@ -1603,6 +1599,7 @@ function get_dados_tcc_portfolio_entrega_atividades() {
                     $lista_atividades[] = new dado_nao_aplicado();
                     continue;
                 }
+
                 // Se a atividade não foi entregue
                 if ($atividade->has_submitted()) {
 

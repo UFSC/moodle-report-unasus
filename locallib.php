@@ -425,6 +425,7 @@ function query_quiz_courses($courses) {
 function query_lti_courses($courses) {
     global $DB;
 
+
     if (empty($courses)) {
         return false;
     }
@@ -463,7 +464,6 @@ function query_lti_courses($courses) {
             $object->config = $config;
             $object->custom_parameters = $customparameters;
             $object->completionexpected = $lti->completionexpected;
-            $object->grouping_id = $lti->grouping_id;
             $object->baseurl = $lti->baseurl;
             array_push($lti_activities, $object);
         }
