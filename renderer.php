@@ -281,7 +281,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
         // que não existe no moodle API
         $header_keys = array_keys($header);
-        if (is_array($header[$header_keys[0]])) { // Double Header
+        if (isset($header_keys[0]) && is_array($header[$header_keys[0]])) { // Double Header
             $table->build_double_header($header, $tipo_cabecalho);
             $table->attributes['class'] .= " divisao-por-modulos";
         } else {
@@ -346,7 +346,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $table->tablealign = 'center';
 
         $header_keys = array_keys($header);
-        if (is_array($header[$header_keys[0]])) { // Double Header
+        if (isset($header_keys[0]) && is_array($header[$header_keys[0]])) { // Double Header
             $table->build_double_header($header, 'Tutores');
         } else {
             $table->build_single_header($header);

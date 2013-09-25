@@ -429,6 +429,7 @@ class report_unasus_data_lti extends report_unasus_data {
 
     public $status;
     private static $submitted_status = array('sent_to_admin_for_revision', 'sent_to_admin_for_evaluation', 'admin_evaluation_ok', 'terminated');
+    private static $evaluated_status = array('admin_evaluation_ok', 'terminated');
 
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
@@ -446,6 +447,10 @@ class report_unasus_data_lti extends report_unasus_data {
 
     public function has_submitted() {
         return !is_null($this->submission_date) && in_array($this->status, self::$submitted_status);
+    }
+
+    public function has_evaluated() {
+        return in_array($this->status, self::$evaluated_status);
     }
 
 }
@@ -491,6 +496,7 @@ class report_unasus_data_nota_final extends report_unasus_data {
     public $userid;
     public $polo;
     public $grade;
+    public $cohort;
 
     public function __construct($db_model) {
         $this->userid = $db_model->userid;
