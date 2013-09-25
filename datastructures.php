@@ -449,8 +449,9 @@ class dado_avaliacao_em_atraso extends unasus_data {
     }
 
     public function __toString() {
-        $porcentagem = ($this->count_atrasos / $this->total_alunos) * 100;
-        return $this->format_grade($porcentagem) . "%";
+        $porcentagem = new dado_media(($this->count_atrasos / $this->total_alunos) * 100);
+        return "{$this->count_atrasos}/{$this->total_alunos} - {$porcentagem}";
+
     }
 
     public function get_css_class() {
@@ -477,20 +478,106 @@ class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
  */
 class dado_atividades_alunos extends unasus_data {
 
-    private $alunos_concluiram;
+    private $total_alunos;
+    private $total_concluidos;
 
-    function __construct($alunos_concluiram, $total_alunos) {
-        $this->alunos_concluiram = $alunos_concluiram;
+    function __construct($total_alunos, $total_concluidos = 0) {
         $this->total_alunos = $total_alunos;
+        $this->total_concluidos = $total_concluidos;
+    }
+
+    public function incrementar_concluido() {
+        $this->total_concluidos++;
+    }
+
+    public function get_total_alunos() {
+        return $this->total_alunos;
+    }
+
+    public function get_total_concluidos() {
+        return $this->total_concluidos;
     }
 
     public function __toString() {
-        $media = new dado_media(($this->alunos_concluiram * 100) / $this->total_alunos);
-        $result = "{$this->alunos_concluiram} / {$this->total_alunos} - {$media}";
-        return html_writer::tag('strong', $result);
+        $porcentagem = new dado_media(($this->total_concluidos / $this->total_alunos) * 100);
+        return "{$this->total_concluidos}/{$this->total_alunos} - {$porcentagem}";
     }
 
     public function get_css_class() {
+        return '';
+    }
+
+}
+
+/**
+ * Class dado_atividades_total
+ */
+class dado_atividades_total extends dado_atividades_alunos {
+
+    public function get_css_class() {
+        return 'total center';
+    }
+
+}
+
+/**
+ * Class dado_somatorio_grupo
+ * Relatorio Portfolio, TCC consolidados
+ */
+class dado_somatorio_grupo extends unasus_data {
+
+    private $soma = array();
+
+    private function init($grupo, $courseid) {
+        if (!array_key_exists($grupo, $this->soma)) {
+            $this->soma[$grupo] = array();
+        }
+        if (!array_key_exists($courseid, $this->soma[$grupo])) {
+            $this->soma[$grupo][$courseid] = 0;
+        }
+    }
+
+    public function inc($grupo, $courseid, $bool = true) {
+        $this->init($grupo, $courseid);
+        //inc somatorio
+        if ($bool) {
+            $this->soma[$grupo][$courseid]++;
+        }
+    }
+
+    public function add($grupo, $courseid, $value) {
+        $this->init($grupo, $courseid);
+        //add somatorio
+        $this->soma[$grupo][$courseid] += $value;
+    }
+
+    public function get($grupo = null, $courseid = null) {
+        if (!is_null($grupo) && !is_null($courseid)) {
+            return $this->soma[$grupo][$courseid];
+        } else if (!is_null($grupo)) {
+            return $this->soma[$grupo];
+        }
+        return $this->soma;
+    }
+
+    /**
+     * Total de alunos concluiram/Total Alunos por atividade
+     */
+    public function get_count_by_atividade () {
+        $count = array();
+
+        foreach ($this->soma as $grupo) {
+            foreach ($grupo as $id => $atividade) {
+                $count[$id] = $atividade->get_concluidos();
+            }
+        }
+    }
+
+    public function get_css_class() {
+        return '';
+    }
+
+    public function toString() {
         return '';
     }
 
@@ -772,6 +859,26 @@ class dado_modulo extends unasus_data {
 
     public function get_css_class() {
         return 'bold';
+    }
+
+}
+
+class dado_texto extends unasus_data {
+
+    private $texto;
+    private $class;
+
+    function __construct($texto, $class) {
+        $this->texto = $texto;
+        $this->class = $class;
+    }
+
+    public function __toString() {
+        return $this->texto;
+    }
+
+    public function get_css_class() {
+        return $this->class;
     }
 
 }

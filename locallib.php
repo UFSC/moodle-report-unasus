@@ -272,11 +272,9 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
-    $ltis = query_lti_courses($courses);
 
     $group_array = new GroupArray();
-    
-    
+
     foreach ($assigns as $atividade) {
         $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade));
     }
@@ -288,6 +286,35 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
     foreach ($quizes as $quiz) {
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
+
+    // Uniar com as atividades LTI
+    process_header_atividades_lti($courses, $group_array);
+
+    if ($mostrar_nota_final) {
+        $cursos_com_nota_final = query_courses_com_nota_final($courses);
+        foreach ($cursos_com_nota_final as $nota_final) {
+            $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
+        }
+    }
+
+    if ($mostrar_total) {
+        $cursos_com_nota_final = query_courses_com_nota_final($courses);
+        foreach ($cursos_com_nota_final as $nota_final) {
+            $group_array->add($nota_final->course_id, new report_unasus_total_atividades_concluidas($nota_final));
+        }
+    }
+
+    return $group_array->get_assoc();
+}
+
+/**
+ * Atividades LTI
+ * @param $courses
+ * @param GroupArray $group_array
+ * @return array
+ */
+function process_header_atividades_lti($courses, GroupArray &$group_array) {
+    $ltis = query_lti_courses($courses);
 
     /* A atividade de LTI Portfólio é composta (vai gerar sub-atividades para cada eixo */
     foreach ($ltis as $lti) {
@@ -311,22 +338,6 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
             $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
         }
     }
-
-    if ($mostrar_nota_final) {
-        $cursos_com_nota_final = query_courses_com_nota_final($courses);
-        foreach ($cursos_com_nota_final as $nota_final) {
-            $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
-        }
-    }
-
-    if ($mostrar_total) {
-        $cursos_com_nota_final = query_courses_com_nota_final($courses);
-        foreach ($cursos_com_nota_final as $nota_final) {
-            $group_array->add($nota_final->course_id, new report_unasus_total_atividades_concluidas($nota_final));
-        }
-    }
-
-    return $group_array->get_assoc();
 }
 
 /**
@@ -407,7 +418,6 @@ function query_quiz_courses($courses) {
  */
 function query_lti_courses($courses) {
     global $DB;
-
 
     if (empty($courses)) {
         return false;

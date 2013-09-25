@@ -552,7 +552,7 @@ class LtiPortfolioQuery {
         $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo_tutoria);
 
         foreach ($estudantes as $aluno) {
-            array_push($user_ids, $aluno->id);
+            $user_ids[$aluno->id] = $aluno->id;
         }
 
         // WS Client
@@ -560,6 +560,42 @@ class LtiPortfolioQuery {
         $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data($user_ids);
 
         return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
+    }
+
+    /**
+     * Realiza a contagem de alunos para cada grupo de tutoria, e o total de alunos para cada atividade
+     * Função utilizada pelo relatório de Portfolio TCC consolidados
+     *
+     * @param $lista_atividades
+     * @param $total_alunos
+     * @param $atividade
+     * @param $grupo_tutoria
+     */
+    function count_lti_report(&$lista_atividades, &$total_alunos, &$atividade, $grupo_tutoria) {
+
+        $result =& $this->get_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
+        $count_alunos_hub = array();
+
+        //Preencher total de alunos por grupo de tutoria
+        $total_alunos[$grupo_tutoria] = count($result);
+
+        foreach ($result as $r) {
+            // Processando hubs encontrados
+            foreach ($r->tcc->hubs as $hub) {
+                // Inicializar
+                $position = $hub->hub->position;
+                if (!array_key_exists($position, $count_alunos_hub)) {
+                    $count_alunos_hub[$position] = 0;
+                }
+                $count_alunos_hub[$position]++;
+            }
+        }
+
+        // array_atividade[grupo_id][ltiid_hubposition]
+        foreach ($count_alunos_hub as $id => $count_hub) {
+            $key = "lti_{$atividade->id}_{$id}";
+            $lista_atividades[$key] = new dado_atividades_alunos($count_hub);
+        }
     }
 
 
