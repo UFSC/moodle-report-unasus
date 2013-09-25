@@ -501,18 +501,27 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
     private $atividades_concluidas = array();
     private $total_atividades = array();
 
-    function __construct($aluno) {
+    function __construct($dados_aluno) {
 
-        foreach ($aluno as $atividade) {
-            $course_id = $atividade->source_activity->course_id;
+        foreach ($dados_aluno as $dado_atividade) {
+            /** @var report_unasus_data $dado_atividade */
+
+            // Se o dado da atividade for do tipo vazio, não fazer nada.
+            if ($dado_atividade instanceof report_unasus_data_empty) {
+                continue;
+            }
+
+            $course_id = $dado_atividade->source_activity->course_id;
 
             if (!array_key_exists($course_id, $this->atividades_concluidas)) {
                 $this->atividades_concluidas[$course_id] = 0;
                 $this->total_atividades[$course_id] = 0;
             }
-            if ($atividade->has_submitted()) {
+
+            if ($dado_atividade->has_submitted()) {
                 $this->atividades_concluidas[$course_id]++;
             }
+
             $this->total_atividades[$course_id]++;
         }
     }

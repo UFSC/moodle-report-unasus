@@ -173,9 +173,10 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
 
+    // FIXME: reescrever o código para não necessitar duas passadas no loop para esse caso
     if (is_null($loop) && $factory->get_relatorio() == 'atividades_nota_atribuida') {
         $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, true);
-        $atividades_alunos_grupos = atividades_alunos_grupos($loop['associativo_atividade'])->somatorio_modulos;
+        $atividades_alunos_grupos = get_dados_alunos_atividades_concluidas($loop['associativo_atividade'])->somatorio_modulos;
     }
 
     $associativo_atividade = array();
@@ -265,7 +266,12 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
-                    $array_das_atividades['lti_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$group-id]);
+                    // Criar o array caso ainda não tenha sido definido.
+                    if (!isset($array_das_atividades['lti_' . $atividade->id])) {
+                        $array_das_atividades['lti_' . $atividade->id] = array();
+                    }
+
+                    $array_das_atividades['lti_' . $atividade->id][$atividade->position] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id);
 

@@ -782,8 +782,7 @@ function get_dados_atividades_nao_avaliadas() {
     $query_quiz = query_quiz();
     $query_forum = query_postagens_forum();
 
-    $result_array = loop_atividades_e_foruns_sintese(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+    $result_array = loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -801,8 +800,7 @@ function get_dados_atividades_nao_avaliadas() {
                 }
 
                 if (!$atividade->has_grade() && $atividade->is_grade_needed()) {
-                    $course_id = $atividade->source_activity->course_id;
-                    
+
                     if (is_a($atividade, 'report_unasus_data_activity')) {
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_forum')) {
@@ -810,7 +808,7 @@ function get_dados_atividades_nao_avaliadas() {
                     } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                         $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_lti')) {
-                        $lista_atividade[$grupo_id][$course_id]['lti_' . $atividade->source_activity->position]->incrementar_atraso();
+                        $lista_atividade[$grupo_id]['lti_' . $atividade->source_activity->id][$atividade->source_activity->position]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -867,8 +865,7 @@ function get_dados_atividades_nota_atribuida() {
     $query_quiz = query_quiz();
     $query_forum = query_postagens_forum();
 
-    $result_array = loop_atividades_e_foruns_sintese(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+    $result_array = loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
     $total_alunos = $result_array['total_alunos'];
     $total_atividades = $result_array['total_atividades'];
@@ -877,7 +874,7 @@ function get_dados_atividades_nota_atribuida() {
 
 
     $somatorio_total_atrasos = array();
-    $atividades_alunos_grupos = atividades_alunos_grupos($associativo_atividade)->somatorio_grupos;
+    $atividades_alunos_grupos = get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
     
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
@@ -890,7 +887,6 @@ function get_dados_atividades_nota_atribuida() {
 
 
                 if ($atividade->has_grade() && $atividade->is_grade_needed()) {
-                    $course_id = $atividade->source_activity->course_id;
                     
                     if (is_a($atividade, 'report_unasus_data_activity')) {
                         $lista_atividade[$grupo_id]['atividade_' . $atividade->source_activity->id]->incrementar_atraso();
@@ -899,7 +895,7 @@ function get_dados_atividades_nota_atribuida() {
                     } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                         $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id]->incrementar_atraso();
                     } elseif (is_a($atividade, 'report_unasus_data_lti')) {
-                        $lista_atividade[$grupo_id][$course_id]['lti_' . $atividade->source_activity->position]->incrementar_atraso();
+                        $lista_atividade[$grupo_id]['lti_' . $atividade->source_activity->id][$atividade->source_activity->position]->incrementar_atraso();
                     }
 
                     $somatorio_total_atrasos[$grupo_id]++;
@@ -952,38 +948,41 @@ function get_dados_atividades_nota_atribuida() {
 /**
  * Numero de Alunos que concluiram todas Atividades de um modulo, 
  * e n° de alunos que concluiram todas atividades de um curso
+ *
  * @param $associativo_atividade
- * @return array
- * 
- *  
+ * @return \stdClass
  */
-function atividades_alunos_grupos($associativo_atividade) {
+function get_dados_alunos_atividades_concluidas($associativo_atividade) {
     $factory = Factory::singleton();
     $somatorio_total_modulo = array();
     $somatorio_total_grupo = array();
 
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
-        foreach ($array_dados as $aluno) {
-            $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($aluno);
+        foreach ($array_dados as $dados_aluno) {
+            $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($dados_aluno);
         }
     }
 
     foreach ($alunos_grupo as $grupo_id => $alunos_por_grupo) {
         $somatorio_total_modulo[$grupo_id] = array();
 
-        foreach ($alunos_por_grupo as $aluno) {
+        foreach ($alunos_por_grupo as $dados_aluno) {
+            /** @var dado_atividades_nota_atribuida_alunos $dados_aluno */
+
             foreach ($factory->modulos_selecionados as $course_id => $activities) {
+                // Inicializa o contador pra cada curso e pra cada grupo
                 if (!array_key_exists($course_id, $somatorio_total_modulo[$grupo_id])) {
                     $somatorio_total_modulo[$grupo_id][$course_id] = 0;
                 }
-                if ($aluno->is_complete_activities($course_id)) {
+
+                if ($dados_aluno->is_complete_activities($course_id)) {
                     $somatorio_total_modulo[$grupo_id][$course_id]++;
                 }
             }
             if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
                 $somatorio_total_grupo[$grupo_id] = 0;
             }
-            if ($aluno->is_complete_all_activities()) {
+            if ($dados_aluno->is_complete_all_activities()) {
                 $somatorio_total_grupo[$grupo_id]++;
             }
         }
