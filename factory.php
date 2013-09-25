@@ -96,6 +96,7 @@ class Factory {
         $this->modulos_selecionados = get_atividades_cursos(get_modulos_validos($modulos_raw));
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
+        $this->agrupamentos_membros = get_agrupamentos_membros(get_modulos_validos($modulos_raw));
 
         //AGRUPAMENTO DO RELATORIO
         $agrupar_relatorio = optional_param('agrupar_tutor_polo_select', null, PARAM_INT);
@@ -322,5 +323,14 @@ class Factory {
         return (!is_null($this->data_inicio) && !is_null($this->data_fim));
     }
 
-
+    /**
+     * Retorna TRUE se usuário faz parte de um determinado agrupamento p/ um determinado course_id
+     * @param $grouping_id
+     * @param $course_id
+     * @param $user_id
+     * @return bool
+     */
+    public function is_member_of($grouping_id, $course_id, $user_id) {
+        return isset($this->agrupamentos_membros[$grouping_id][$course_id][$user_id]);
+    }
 }

@@ -202,7 +202,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $assign_offline->grade_modified = null;
 
         /**
-         * Atividade offline com data de entrega e sem prazo
+         * Atividade offline com data de entrega, sem prazo, sem grupo e sem grupo
          *
          * @var report_unasus_activity $activity
          */
@@ -214,15 +214,17 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $this->assertEquals(false, $data->has_submitted());
         $this->assertEquals(false, $data->has_grade());
         $this->assertEquals(false, $data->is_submission_due());
+        $this->assertEquals(false, $activity->has_grouping());
 
 
         /**
-         * Atividade offline com data de entrega e com prazo
+         * Atividade offline com data de entrega e com prazo e com grupo e com grupo
          *
          * @var report_unasus_activity $activity
          */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
         $activity->deadline = $year_ago;
+        $activity->grouping = 1;
 
         /** @var report_unasus_data_activity $data */
         $data = new report_unasus_data_activity($activity, $assign_offline);
@@ -231,6 +233,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $this->assertEquals(false, $data->has_grade());
         $this->assertEquals(false, $data->is_submission_due());
         $this->assertEquals(true, $data->is_grade_needed());
+        $this->assertEquals(true, $activity->has_grouping());
 
 
         /**
