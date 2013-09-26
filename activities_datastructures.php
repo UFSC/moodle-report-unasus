@@ -486,7 +486,7 @@ class report_unasus_total_atividades_concluidas {
 
 }
 
-class report_unasus_data_nota_final {
+class report_unasus_data_nota_final extends report_unasus_data {
 
     public $userid;
     public $polo;
@@ -495,6 +495,8 @@ class report_unasus_data_nota_final {
     public function __construct($db_model) {
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
+        // FIXME: esse dado não define o cohort, precisa definir.
+
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float) $db_model->grade;
         }
