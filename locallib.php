@@ -306,6 +306,7 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
             $db_model->course_name = $lti->course_name;
             $db_model->baseurl = $lti->baseurl;
             $db_model->consumer_key = $lti->config['resourcekey'];
+            $db_model->grouping_id = $lti->grouping_id;
 
             $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
         }
@@ -446,6 +447,7 @@ function query_lti_courses($courses) {
             $object->config = $config;
             $object->custom_parameters = $customparameters;
             $object->completionexpected = $lti->completionexpected;
+            $object->grouping_id = $lti->grouping_id;
             $object->baseurl = $lti->baseurl;
             array_push($lti_activities, $object);
         }
