@@ -515,7 +515,7 @@ class LtiPortfolioQuery {
         if (!$result) {
             // Falha ao conectar com Webservice
             // TODO: retornar dado vazio para todos os user_ids para mitigar problemas
-            return false;
+            return array();
         }
 
         $output = array();
