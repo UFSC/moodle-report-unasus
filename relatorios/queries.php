@@ -301,8 +301,6 @@ function query_alunos_disciplina(){
  *
  */
 function query_atividades() {
-
-
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
     return "SELECT u.id AS userid,

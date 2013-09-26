@@ -425,7 +425,6 @@ function query_quiz_courses($courses) {
 function query_lti_courses($courses) {
     global $DB;
 
-
     if (empty($courses)) {
         return false;
     }

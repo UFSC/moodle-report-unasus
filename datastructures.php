@@ -548,9 +548,7 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 }
 
-class dado_atividades_nota_atribuida extends dado_atividades_alunos {
-    
-}
+class dado_avaliacao_em_atraso extends unasus_data {
 
 /**
  * Classe para relatorio sintese de atividades concluidas,
@@ -620,9 +618,8 @@ class dado_atividades_alunos extends unasus_data {
     }
 
     public function __toString() {
-        $media = new dado_media(($this->alunos_concluiram * 100) / $this->total_alunos);
-        $result = "{$this->alunos_concluiram} / {$this->total_alunos} - {$media}";
-        return html_writer::tag('strong', $result);
+        $porcentagem = new dado_media(($this->total_concluidos / $this->total_alunos) * 100);
+        return "{$this->total_concluidos}/{$this->total_alunos} - {$porcentagem}";
     }
 
     public function get_css_class() {
@@ -680,6 +677,19 @@ class dado_somatorio_grupo extends unasus_data {
             return $this->soma[$grupo];
         }
         return $this->soma;
+    }
+
+    /**
+     * Total de alunos concluiram/Total Alunos por atividade
+     */
+    public function get_count_by_atividade () {
+        $count = array();
+
+        foreach ($this->soma as $grupo) {
+            foreach ($grupo as $id => $atividade) {
+                $count[$id] = $atividade->get_concluidos();
+            }
+        }
     }
 
     public function get_css_class() {

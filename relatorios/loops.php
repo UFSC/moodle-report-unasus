@@ -149,6 +149,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                 }
             }
 
+
             // Query de notas finais, somente para o relatório Boletim
             if (!is_null($query_nota_final)) {
                 $params = array(
