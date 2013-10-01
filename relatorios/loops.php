@@ -334,6 +334,9 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                             // Agrupa os dados por usuário
                             $group_array_do_grupo->add($l->userid, $data);
                         }
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($l->userid, $data);
                     }
                 }
             }
