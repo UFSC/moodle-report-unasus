@@ -581,8 +581,8 @@ class dado_atividades_alunos extends unasus_data {
         return "$porcentagem";
     }
 
-    public function get_css_class() {
-        return '';
+    public function incrementar_atraso() {
+        $this->count_atrasos++;
     }
 
 }
@@ -764,6 +764,32 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
  * Dado de média formatado
  */
 class dado_media extends unasus_data {
+
+    private $media;
+
+    function __construct($media) {
+        $this->media = $media;
+    }
+
+    public function __toString() {
+        return $this->format_grade($this->media) . "%";
+    }
+
+    public function value() {
+        return "{$this->media}";
+    }
+
+    public function get_css_class() {
+        return 'media';
+    }
+
+}
+
+/**
+ * Dado somatorio de media para incluir coluna Total de atividades concluídas por módulo
+ * Ticket 5263
+ */
+class dado_somatorio_media extends unasus_data {
 
     private $somatorio;
     private $total;

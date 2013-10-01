@@ -82,7 +82,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
 
                     $params = array(
                         'courseid' => $courseid,
-                        'enrol_courseid' => $courseid,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
