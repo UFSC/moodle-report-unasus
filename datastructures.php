@@ -200,6 +200,116 @@ class dado_atividades_vs_notas extends unasus_data {
 
 }
 
+class dado_tcc_portfolio_concluido extends unasus_data {
+
+    const ATIVIDADE_NAO_CONCLUIDA = 0;
+    const ATIVIDADE_CONCLUIDA = 1;
+    const ATIVIDADE_NAO_APLICADO = 2;
+
+    function __construct($tipo, $atividade_id, $atraso = 0) {
+        $this->tipo = $tipo;
+        $this->atraso = $atraso;
+        $this->atividade_id = $atividade_id;
+    }
+
+    public function __toString() {
+        return '';
+    }
+
+    public function get_css_class() {
+        global $CFG;
+        switch ($this->tipo) {
+            case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_CONCLUIDA:
+                return 'nao_concluido';
+                break;
+            case dado_tcc_portfolio_concluido::ATIVIDADE_CONCLUIDA:
+                return 'concluido';
+                break;
+            case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+        global $CFG;
+
+        $legend = array();
+        $legend['nao_concluido'] = 'Atividade não concluída';
+        $legend['concluido'] = 'Atividade concluída';
+        $legend['nao_aplicado'] = 'Não aplicado';
+
+        return $legend;
+    }
+
+    public function get_atividade_id() {
+        return $this->atividade_id;
+    }
+
+}
+
+class dado_tcc_portfolio_entrega_atividades extends unasus_data {
+
+    const ATIVIDADE_NAO_ACESSADO = 0;
+    const ATIVIDADE_RASCUNHO = 1;
+    const ATIVIDADE_REVISAO = 2;
+    const ATIVIDADE_AVALIACAO = 3;
+    const ATIVIDADE_AVALIADO = 4;
+    const ATIVIDADE_NAO_APLICADO = 5;
+
+    function __construct($tipo, $atividade_id, $atraso = 0) {
+        $this->tipo = $tipo;
+        $this->atraso = $atraso;
+        $this->atividade_id = $atividade_id;
+    }
+
+    public function __toString() {
+        return '';
+    }
+
+    public function get_css_class() {
+        global $CFG;
+        switch ($this->tipo) {
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_ACESSADO:
+                return 'nao_acessado';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_RASCUNHO:
+                return 'rascunho';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_REVISAO:
+                return 'revisao';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIACAO:
+                return 'avaliacao';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIADO:
+                return 'avaliado';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+
+        $legend = array();
+        $legend['nao_acessado'] = 'Não acessado';
+        $legend['rascunho'] = 'Rascunho';
+        $legend['revisao'] = 'Revisão';
+        $legend['avaliacao'] = 'Avaliação';
+        $legend['avaliado'] = 'Avaliado';
+        $legend['nao_aplicado'] = 'Não aplicado';
+
+        return $legend;
+    }
+
+    public function get_atividade_id() {
+        return $this->atividade_id;
+    }
+
+}
+
 class dado_entrega_de_atividades extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO = 0;
@@ -449,8 +559,14 @@ class dado_avaliacao_em_atraso extends unasus_data {
     }
 
     public function __toString() {
-        $porcentagem = new dado_media(($this->count_atrasos / $this->total_alunos) * 100);
-        return "{$this->count_atrasos}/{$this->total_alunos} - {$porcentagem}";
+        if (empty($this->count_atrasos) || empty($this->total_alunos)) {
+            $calculo_porcentagem = 0; // evitar uma divisão por zero
+        } else {
+            $calculo_porcentagem = ($this->count_atrasos / $this->total_alunos) * 100;
+        }
+
+        $porcentagem = new dado_media($calculo_porcentagem);
+        return "{$this->count_atrasos}/{$this->total_alunos} <br /> {$porcentagem}";
 
     }
 
@@ -499,8 +615,14 @@ class dado_atividades_alunos extends unasus_data {
     }
 
     public function __toString() {
-        $porcentagem = new dado_media(($this->total_concluidos / $this->total_alunos) * 100);
-        return "{$this->total_concluidos}/{$this->total_alunos} - {$porcentagem}";
+        if (empty($this->total_concluidos) || empty($this->total_alunos)) {
+            $calculo_porcentagem = 0; // evitar uma divisão por zero
+        } else {
+            $calculo_porcentagem = ($this->total_concluidos / $this->total_alunos) * 100;
+        }
+
+        $porcentagem = new dado_media($calculo_porcentagem);
+        return "{$this->total_concluidos}/{$this->total_alunos} <br /> {$porcentagem}";
     }
 
     public function get_css_class() {
@@ -681,9 +803,14 @@ class dado_somatorio_media extends unasus_data {
     }
 
     public function __toString() {
+        if (empty($this->somatorio) || empty($this->total)) {
+            $media = 0; // impedir divisão por zero
+        } else {
+            $media = $this->somatorio * 100 / $this->total;
+        }
+
         $soma = "$this->somatorio/$this->total";
-        $media = $this->somatorio * 100 / $this->total;
-        return "{$soma} - {$this->format_grade($media)} %";
+        return "{$soma} <br /> {$this->format_grade($media)}%";
     }
 
     public function get_css_class() {

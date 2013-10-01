@@ -63,12 +63,12 @@ function get_nomes_tutores() {
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
 
-    $query = "SELECT pg.grupo AS grupo_id, COUNT(DISTINCT pg.matricula)
-                FROM {table_PessoasGruposTutoria} pg
-                JOIN {table_GruposTutoria} gt
-                  ON (gt.id=pg.grupo)
-               WHERE gt.curso=:curso_ufsc AND pg.tipo=:tipo_aluno
-               GROUP BY pg.grupo";
+    $query = "SELECT gt.id AS grupo_id, COUNT(DISTINCT pg.matricula)
+                FROM {table_GruposTutoria} gt
+           LEFT JOIN {table_PessoasGruposTutoria} pg
+                  ON (gt.id=pg.grupo AND pg.tipo=:tipo_aluno)
+               WHERE gt.curso=:curso_ufsc
+            GROUP BY gt.nome";
     $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
 
     $result = $middleware->get_records_sql_menu($query, $params);
@@ -328,7 +328,7 @@ function process_header_atividades_lti($courses, GroupArray &$group_array) {
             $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->title;
             $db_model->completionexpected = $lti->completionexpected;
             $db_model->position = $hub->position;
-            //todo course definition
+
             $db_model->course_id = $lti->course_id;
             $db_model->course_name = $lti->course_name;
             $db_model->baseurl = $lti->baseurl;

@@ -573,11 +573,15 @@ class LtiPortfolioQuery {
      */
     function count_lti_report(&$lista_atividades, &$total_alunos, &$atividade, $grupo_tutoria) {
 
-        $result =& $this->get_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
+        $result =& $this->query_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
         $count_alunos_hub = array();
 
         //Preencher total de alunos por grupo de tutoria
         $total_alunos[$grupo_tutoria] = count($result);
+
+        if (empty($result)) {
+            return; // grupo de tutoria sem membros cadastrados
+        }
 
         foreach ($result as $r) {
             // Processando hubs encontrados
@@ -591,10 +595,9 @@ class LtiPortfolioQuery {
             }
         }
 
-        // array_atividade[grupo_id][ltiid_hubposition]
-        foreach ($count_alunos_hub as $id => $count_hub) {
-            $key = "lti_{$atividade->id}_{$id}";
-            $lista_atividades[$key] = new dado_atividades_alunos($count_hub);
+        // array_atividade[grupo_id][lti_id][hubposition]
+        foreach ($count_alunos_hub as $position => $count_hub) {
+            $lista_atividades["lti_{$atividade->id}"][$position] = new dado_atividades_alunos($count_hub);
         }
     }
 

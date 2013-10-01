@@ -1685,18 +1685,22 @@ function get_dados_tcc_portfolio() {
             $bool_nao_acessado = true;
             $bool_has_activity = false;
 
-            foreach ($aluno as $atividade) {
+            foreach ($aluno as $dado_atividade) {
+                /** @var report_unasus_data_lti $dado_atividade */
+
                 // Não se aplica para este estudante
-                if ($atividade instanceof report_unasus_data_empty) {
+                if ($dado_atividade instanceof report_unasus_data_empty) {
                     continue;
                 }
                 $bool_has_activity = true;
 
                 /* Verificar se atividade foi avaliada */
-                if ($atividade->has_evaluated()) {
-                    if ($atividade instanceof report_unasus_data_lti) {
-                        $key = "lti_{$atividade->source_activity->id}_{$atividade->source_activity->position}";
-                        $lista_atividade[$grupo_id][$key]->incrementar_concluido();
+                if ($dado_atividade->has_evaluated()) {
+                    if ($dado_atividade instanceof report_unasus_data_lti) {
+                        /** @var dado_atividades_alunos $dado */
+
+                        $dado =& $lista_atividade[$grupo_id]["lti_{$dado_atividade->source_activity->id}"][$dado_atividade->source_activity->position];
+                        $dado->incrementar_concluido();
                     }
                 } else {
                     /* Atividade nao completa entao tcc nao esta completo */
@@ -1704,7 +1708,7 @@ function get_dados_tcc_portfolio() {
                 }
 
                 /* Verificar não acessado */
-                if ($atividade->status != 'new') {
+                if ($dado_atividade->status != 'new') {
                     $bool_nao_acessado = false;
                 }
             }
@@ -1733,11 +1737,11 @@ function get_dados_tcc_portfolio() {
         $grupo['tcc'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id, 0));
 
         /* Preencher relatorio */
-        foreach ($grupo as $id => $atividade) {
-            $data[] = $atividade;
+        foreach ($grupo as $id => $dado_atividade) {
+            $data[] = $dado_atividade;
 
-            $total_atividades_concluidos->add($id, 0, $atividade->get_total_concluidos());
-            $total_atividades_alunos->add($id, 0, $atividade->get_total_alunos());
+            $total_atividades_concluidos->add($id, 0, $dado_atividade->get_total_concluidos());
+            $total_atividades_alunos->add($id, 0, $dado_atividade->get_total_alunos());
         }
         $dados[] = $data;
     }
