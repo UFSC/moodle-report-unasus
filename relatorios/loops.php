@@ -41,9 +41,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
             // grupo de tutoria
             foreach ($atividades as $atividade) {
 
-                if (is_a($atividade, 'report_unasus_assign_activity')) {
-                    $params = array(
-                        'assignmentid' => $atividade->id,
+                if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_conjunto_alunos)) {
+                    $params = array('assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
@@ -329,10 +328,10 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
                         if (!isset($l->not_found)) {
                             $data = new report_unasus_data_lti($atividade, $l);
-                        }
 
-                        // Agrupa os dados por usuário
-                        $group_array_do_grupo->add($l->userid, $data);
+                            // Agrupa os dados por usuário
+                            $group_array_do_grupo->add($l->userid, $data);
+                        }
                     }
                 }
             }
