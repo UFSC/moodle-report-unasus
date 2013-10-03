@@ -122,8 +122,15 @@
     background: #ccc;
 
 }
+/* Azul */
+.relatorio-unasus .avaliacao{
+    background: #6495ED;
+}
+
 
 /* Verde */
+.relatorio-unasus .avaliado,
+.relatorio-unasus .concluido,
 .relatorio-unasus.atividades_vs_notas .pouco_atraso,
 .relatorio-unasus.entrega_de_atividades .no_prazo,
 .relatorio-unasus.historico_atribuicao_notas .no_prazo,
@@ -133,6 +140,8 @@
 }
 
 /* Vermelho */
+.relatorio-unasus .nao_acessado,
+.relatorio-unasus .nao_concluido,
 .relatorio-unasus.atividades_vs_notas .nao_entregue,
 .relatorio-unasus.entrega_de_atividades .muito_atraso,
 .relatorio-unasus.historico_atribuicao_notas .muito_atraso,
@@ -150,12 +159,18 @@
 }
 
 /* Amarelo */
+.relatorio-unasus .rascunho,
 .relatorio-unasus.atividades_vs_notas .muito_atraso,
 .relatorio-unasus.entrega_de_atividades .pouco_atraso,
 .relatorio-unasus.historico_atribuicao_notas .pouco_atraso,
 .relatorio-unasus.acesso_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes .parcial {
     background: #FEFF7F;
+}
+
+/* Amarelo Queimado*/
+.relatorio-unasus .revisao {
+    background: #eead2d;
 }
 
 /* Branco */

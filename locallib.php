@@ -316,6 +316,12 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
 function process_header_atividades_lti($courses, GroupArray &$group_array) {
     $ltis = query_lti_courses($courses);
 
+    // Nenhuma atividade lti encontrada,
+    // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
+    if (empty($ltis)) {
+        return;
+    }
+
     /* A atividade de LTI Portfólio é composta (vai gerar sub-atividades para cada eixo */
     foreach ($ltis as $lti) {
         foreach ($lti->tcc_definition->hub_definitions as $hub_definition) {
