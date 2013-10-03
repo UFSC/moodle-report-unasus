@@ -560,6 +560,11 @@ function get_dados_grafico_historico_atribuicao_notas() {
 
                 $atraso = null;
 
+                // Não se aplica para este estudante
+                if (is_a($atividade, 'report_unasus_data_empty')) {
+                    continue;
+                }
+
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
                 $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
@@ -1473,7 +1478,7 @@ function get_todo_list_data() {
  */
 
 /**
- * Cabeçalho da tabela tcc portfolio
+ * Relatorio tcc portfolio concluido
  */
 function get_table_header_tcc_portfolio_concluido() {
     return get_table_header_tcc_portfolio_entrega_atividades();
@@ -1599,7 +1604,6 @@ function get_dados_tcc_portfolio_entrega_atividades() {
                     $lista_atividades[] = new dado_nao_aplicado();
                     continue;
                 }
-
                 // Se a atividade não foi entregue
                 if ($atividade->has_submitted()) {
 

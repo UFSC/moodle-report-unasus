@@ -679,19 +679,6 @@ class dado_somatorio_grupo extends unasus_data {
         return $this->soma;
     }
 
-    /**
-     * Total de alunos concluiram/Total Alunos por atividade
-     */
-    public function get_count_by_atividade () {
-        $count = array();
-
-        foreach ($this->soma as $grupo) {
-            foreach ($grupo as $id => $atividade) {
-                $count[$id] = $atividade->get_concluidos();
-            }
-        }
-    }
-
     public function get_css_class() {
         return '';
     }
