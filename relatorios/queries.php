@@ -595,9 +595,9 @@ class LtiPortfolioQuery {
             }
         }
 
-        // array_atividade[grupo_id][lti_id][hubposition]
+        // array_atividade[grupo_id][lti_id_][hubposition]
         foreach ($count_alunos_hub as $position => $count_hub) {
-            $lista_atividades["lti_{$atividade->id}"][$position] = new dado_atividades_alunos($count_hub);
+            $lista_atividades["lti_{$atividade->id}_{$position}"] = new dado_atividades_alunos($count_hub);
         }
     }
 

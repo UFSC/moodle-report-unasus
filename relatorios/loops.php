@@ -312,11 +312,12 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
                     // Criar o array caso ainda não tenha sido definido.
-                    if (!isset($array_das_atividades['lti_' . $atividade->id])) {
-                        $array_das_atividades['lti_' . $atividade->id] = array();
+                    $array_key = "lti_{$atividade->id}_{$atividade->position}";
+                    if (!isset($array_das_atividades[$array_key])) {
+                        $array_das_atividades[$array_key] = array();
                     }
 
-                    $array_das_atividades['lti_' . $atividade->id][$atividade->position] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades[$array_key] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id);
 
@@ -337,8 +338,8 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
             }
 
             if (isset($atividades_alunos_grupos)) {
-                $total = isset($atividades_alunos_grupos[$grupo->id][$modulo]) ? $atividades_alunos_grupos[$grupo->id][$modulo] : 0;
-                $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total, $total_alunos[$grupo->id]);
+                $count_atividades = isset($atividades_alunos_grupos[$grupo->id][$modulo]) ? $atividades_alunos_grupos[$grupo->id][$modulo] : 0;
+                $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total_alunos[$grupo->id], $count_atividades);
             }
         }
         $lista_atividade[$grupo->id] = $array_das_atividades;
