@@ -1362,6 +1362,7 @@ function get_header_estudante_sem_atividade_postada($size) {
  * Dados para os relatórios Lista: Atividades não postadas e Lista: Atividades não avaliadas
  */
 function get_todo_list_data() {
+
     /** @var $factory Factory */
     $factory = Factory::singleton();
 
@@ -1379,17 +1380,14 @@ function get_todo_list_data() {
     $query_alunos_grupo_tutoria = query_atividades();
     $query_quiz = query_quiz();
     $query_forum = query_postagens_forum();
-
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
         $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
-
 
     $dados = array();
 
     foreach ($associativo_atividades as $grupo_id => $array_dados) {
         $estudantes = array();
         foreach ($array_dados as $id_aluno => $aluno) {
-
             $atividades_modulos = new GroupArray();
 
             foreach ($aluno as $atividade) {
@@ -1404,23 +1402,21 @@ function get_todo_list_data() {
                 }
 
                 if ($factory->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted() && $atividade->source_activity->has_submission()) {
-                    $atividade_sera_listada = true;
-                }
+                      $atividade_sera_listada = true;
+                 }
 
                 if ($factory->get_relatorio() == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade() && $atividade->is_grade_needed()) {
-                    $atividade_sera_listada = true;
+                      $atividade_sera_listada = true;
                 }
 
                 if (is_a($atividade, 'report_unasus_data_forum')) {
                     $tipo_avaliacao = 'forum';
                 }
 
-
                 if ($atividade_sera_listada) {
                     $atividades_modulos->add($atividade->source_activity->course_id, array('atividade' => $atividade, 'tipo' => $tipo_avaliacao));
                 }
             }
-
 
             $ativ_mod = $atividades_modulos->get_assoc();
 
@@ -1448,7 +1444,8 @@ function get_todo_list_data() {
                 }
             }
             $lista_atividades = null;
-        }
+            }
+
 
         // Ou unir os alunos de acordo com o tutor dele
         if ($factory->agrupar_relatorios == AGRUPAR_TUTORES) {

@@ -88,11 +88,12 @@ function query_alunos_grupo_tutoria() {
  * @return string
  */
 function query_postagens_forum() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria_disciplina = query_alunos_disciplina();
 
     return " SELECT u.id AS userid,
                     u.polo,
                     u.cohort,
+                    u.enrol,
                     fp.submission_date,
                     fp.forum_name,
                     gg.grade,
@@ -101,7 +102,7 @@ function query_postagens_forum() {
                     userid_posts IS NOT NULL AS has_post
                      FROM (
 
-                        {$alunos_grupo_tutoria}
+                        {$alunos_grupo_tutoria_disciplina}
 
                      ) u
                      LEFT JOIN
@@ -266,6 +267,21 @@ function query_potenciais_evasoes() {
     ";
 }
 
+
+function query_alunos_disciplina(){
+
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+
+        return "SELECT DISTINCT u.id, u.firstname, u.lastname, u.cohort, u.polo,
+                                u.grupo_id as grupo_id, (e.id = ue.enrolid IS NOT NULL) AS enrol
+                           FROM ({$alunos_grupo_tutoria}) u
+                           JOIN {user_enrolments} ue
+                             ON ue.userid = u.id
+                     INNER JOIN {enrol} e
+                             ON e.id = ue.enrolid AND e.courseid =:enrol_courseid
+            ";
+}
+
 /**
  * Query para os relatórios
  *
@@ -285,12 +301,14 @@ function query_potenciais_evasoes() {
  *
  */
 function query_atividades() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+
+    $alunos_grupo_tutoria_disciplina = query_alunos_disciplina();
 
     return "SELECT u.id AS userid,
                    u.polo,
                    u.cohort,
                    u.polo,
+                   u.enrol,
                    gr.grade,
                    sub.timecreated AS submission_date,
                    sub.timemodified AS submission_modified,
@@ -299,7 +317,7 @@ function query_atividades() {
                    sub.status
               FROM (
 
-                      {$alunos_grupo_tutoria}
+                      {$alunos_grupo_tutoria_disciplina}
 
                    ) u
          LEFT JOIN {assign_submission} sub
@@ -372,17 +390,18 @@ function query_nota_final() {
  *
  */
 function query_quiz() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria_disciplina = query_alunos_disciplina();
 
     return "SELECT u.id AS userid,
                    u.polo,
                    u.cohort,
+                   u.enrol,
                    qg.grade,
                    qg.timemodified AS grade_date,
                    qa.timefinish AS submission_date
               FROM (
 
-                    {$alunos_grupo_tutoria}
+                    {$alunos_grupo_tutoria_disciplina}
 
                    ) u
          LEFT JOIN (

@@ -40,15 +40,17 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
             // Num módulo existem várias atividades, numa dada atividade ele irá pesquisar todas as notas dos alunos daquele
             // grupo de tutoria
             foreach ($atividades as $atividade) {
-
+                //ESTE IF ATIVIDADES NÃO POSTADAS
                 if (is_a($atividade, 'report_unasus_assign_activity')) {
-                    $params = array('assignmentid' => $atividade->id,
+                    $params = array(
+                        'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
                     if ($query_course) {
                         $params['courseid'] = $courseid;
+                        $params['enrol_courseid'] = $courseid;
                     }
 
                     $result = $middleware->get_records_sql($query_conjunto_alunos, $params);
@@ -56,10 +58,10 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
 
-                        if (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $r->userid)) {
+                        if (!$r->enrol || (!empty($atividade->grouping) &&
+                            !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
                             $data = new report_unasus_data_empty($atividade, $r);
-                        } else {
+                        }else {
                             $data = new report_unasus_data_activity($atividade, $r);
                         }
 
@@ -70,6 +72,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
 
                     $params = array(
                         'courseid' => $courseid,
+                        'enrol_courseid' => $courseid,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
@@ -80,8 +83,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $f) {
 
-                        if (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $f->userid)) {
+                        if (!$f->enrol || (!empty($atividade->grouping) &&
+                            !$factory->is_member_of($atividade->grouping, $courseid, $f->userid))) {
                             $data = new report_unasus_data_empty($atividade, $f);
                         } else {
                             $data = new report_unasus_data_forum($atividade, $f);
@@ -96,6 +99,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $courseid,
+                        'enrol_courseid' => $courseid,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
@@ -106,8 +110,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $q) {
 
-                        if (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $q->userid)) {
+                        if (!$q->enrol || (!empty($atividade->grouping) &&
+                            !$factory->is_member_of($atividade->grouping, $courseid, $q->userid))) {
                             $data = new report_unasus_data_empty($atividade, $q);
                         } else {
                             $data = new report_unasus_data_quiz($atividade, $q);
@@ -134,7 +138,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     }
                 }
             }
-
 
             // Query de notas finais, somente para o relatório Boletim
             if (!is_null($query_nota_final)) {
