@@ -1377,7 +1377,7 @@ function get_todo_list_data() {
         $listagem_forum->add($forum->course_id, $forum);
     }
 
-    $query_alunos_grupo_tutoria = query_atividades();
+    $query_alunos_grupo_tutoria = query_atividades_nao_postadas();
     $query_quiz = query_quiz();
     $query_forum = query_postagens_forum();
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
