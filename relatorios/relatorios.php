@@ -854,8 +854,6 @@ function get_dados_atividades_nao_avaliadas() {
 
         $data[] = new dado_media(($somatorio_total_atrasos[$grupo_id] * 100) / ($total_alunos[$grupo_id] * $total_atividades));
         $dados[] = $data;
-        var_dump($total_alunos[$grupo_id]);
-        die();
     }
 
     return $dados;

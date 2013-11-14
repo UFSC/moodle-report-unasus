@@ -222,6 +222,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                     $array_das_atividades['atividade_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array('courseid' => $modulo,
+                        'enrol_courseid'=> $modulo,
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'assignmentid3' => $atividade->id,
@@ -249,6 +250,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
                     $params = array(
                         'courseid' => $modulo,
+                        'enrol_courseid'=> $modulo,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
@@ -277,6 +279,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $modulo,
+                        'enrol_courseid'=> $modulo,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
