@@ -58,11 +58,22 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
 
-                        if (!$r->enrol || (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
-                            $data = new report_unasus_data_empty($atividade, $r);
-                        }else {
-                            $data = new report_unasus_data_activity($atividade, $r);
+                        if (!is_null($query_nota_final)){
+                            if ((!empty($atividade->grouping) &&
+                                            !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $r);
+                            }else {
+                                $data = new report_unasus_data_activity($atividade, $r);
+                            }
+
+                        }else{
+
+                            if (!$r->enrol || (!empty($atividade->grouping) &&
+                                !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $r);
+                            }else {
+                                $data = new report_unasus_data_activity($atividade, $r);
+                            }
                         }
 
                         // Agrupa os dados por usuário
@@ -143,6 +154,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
             if (!is_null($query_nota_final)) {
                 $params = array(
                     'courseid' => $courseid,
+                    'enrol_courseid' => $courseid,
                     'curso_ufsc' => $factory->get_curso_ufsc(),
                     'grupo_tutoria' => $grupo->id,
                     'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
