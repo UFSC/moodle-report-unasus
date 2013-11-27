@@ -1387,12 +1387,12 @@ function get_todo_list_data() {
         $listagem_forum->add($forum->course_id, $forum);
     }
 
-    $query_alunos_grupo_tutoria = query_atividades();
-    $query_quiz = query_quiz();
-    $query_forum = query_postagens_forum();
+    $query_alunos_grupo_tutoria = query_atividades_nao_postadas();
+    $query_quiz = query_quiz_nao_postadas();
+    $query_forum = query_postagens_forum_nao_postadas();
 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz, true, null, true);
 
 
     $dados = array();

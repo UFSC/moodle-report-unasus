@@ -8,9 +8,10 @@
  * @param $query_quiz
  * @param bool $query_course
  * @param null $query_nota_final
+ * @param false $is_activity
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
-function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
+function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null, $is_activity = false) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
@@ -57,20 +58,18 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
 
-                        if (!is_null($query_nota_final)){
-                            if ((!empty($atividade->grouping) &&
-                                            !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
+                        if($is_activity){
+                            if ((!$r->enrol) || (!empty($atividade->grouping) &&
+                                    !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
                                 $data = new report_unasus_data_empty($atividade, $r);
-                            }else {
+                            } else {
                                 $data = new report_unasus_data_activity($atividade, $r);
                             }
-
-                        } else {
-
-                            if (!$r->enrol || (!empty($atividade->grouping) &&
-                                !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
+                        }else {
+                            if (!empty($atividade->grouping) &&
+                                !$factory->is_member_of($atividade->grouping, $courseid, $r->userid)) {
                                 $data = new report_unasus_data_empty($atividade, $r);
-                            }else {
+                            } else {
                                 $data = new report_unasus_data_activity($atividade, $r);
                             }
                         }
@@ -82,6 +81,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
 
                     $params = array(
                         'courseid' => $courseid,
+                        'enrol_courseid' => $courseid,
                         'curso_ufsc' => $factory->get_curso_ufsc(),
                         'grupo_tutoria' => $grupo->id,
                         'forumid' => $atividade->id,
@@ -92,11 +92,20 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $f) {
 
-                        if (!$f->enrol || (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $f->userid))) {
-                            $data = new report_unasus_data_empty($atividade, $f);
+                        if($is_activity){
+                            if ((!$r->enrol) || (!empty($atividade->grouping) &&
+                                !$factory->is_member_of($atividade->grouping, $courseid, $f->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $f);
+                            } else {
+                                $data = new report_unasus_data_forum($atividade, $f);
+                            }
                         } else {
-                            $data = new report_unasus_data_forum($atividade, $f);
+                            if (!empty($atividade->grouping) &&
+                                    !$factory->is_member_of($atividade->grouping, $courseid, $f->userid)) {
+                                $data = new report_unasus_data_empty($atividade, $f);
+                            } else {
+                                $data = new report_unasus_data_forum($atividade, $f);
+                            }
                         }
 
                         // Agrupa os dados por usuário
@@ -119,11 +128,20 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $q) {
 
-                        if (!$q->enrol || (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $q->userid))) {
-                            $data = new report_unasus_data_empty($atividade, $q);
+                        if($is_activity){
+                            if ((!$r->enrol) || (!empty($atividade->grouping) &&
+                                !$factory->is_member_of($atividade->grouping, $courseid, $q->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $q);
+                            } else {
+                                $data = new report_unasus_data_quiz($atividade, $q);
+                            }
                         } else {
-                            $data = new report_unasus_data_quiz($atividade, $q);
+                            if (!empty($atividade->grouping) &&
+                                    !$factory->is_member_of($atividade->grouping, $courseid, $q->userid)) {
+                                $data = new report_unasus_data_empty($atividade, $q);
+                            } else {
+                                $data = new report_unasus_data_quiz($atividade, $q);
+                            }
                         }
 
                         // Agrupa os dados por usuário
@@ -333,9 +351,6 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                             // Agrupa os dados por usuário
                             $group_array_do_grupo->add($l->userid, $data);
                         }
-
-                        // Agrupa os dados por usuário
-                        $group_array_do_grupo->add($l->userid, $data);
                     }
                 }
             }
