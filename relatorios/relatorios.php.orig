@@ -560,11 +560,6 @@ function get_dados_grafico_historico_atribuicao_notas() {
 
                 $atraso = null;
 
-                // Não se aplica para este estudante
-                if (is_a($atividade, 'report_unasus_data_empty')) {
-                    continue;
-                }
-
                 // Atividade offline, não necessita de envio nem de arquivo ou texto mas tem uma data de entrega
                 // aonde o tutor deveria dar a nota da avalicao offline
                 $atividade_offline = array_key_exists('nosubmissions', $atividade) && $atividade->nosubmissions == 1;
@@ -903,10 +898,10 @@ function get_dados_atividades_nota_atribuida() {
 
     $somatorio_total_atrasos = array();
     $atividades_alunos_grupos = get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
-    
+
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
-            
+
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
@@ -954,11 +949,16 @@ function get_dados_atividades_nota_atribuida() {
                 $data[] = $atividades;
             }
         }
-        
+
         /* Coluna  N° Alunos com atividades concluídas */
         $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
+<<<<<<< HEAD
         $data[] = new dado_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
         
+=======
+        $data[] = new dado_somatorio_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
+
+>>>>>>> Correcao no localib funcao process_header_atividades_lti que se funcao nao retornar array de dados deve ignorar
         $dados[] = $data;
         $somatorio_total_alunos_atividades_concluidas += $somatorioalunosgrupos;
         $somatorio_total_alunos += $total_alunos[$grupo_id];
@@ -983,7 +983,8 @@ function get_dados_atividades_nota_atribuida() {
  * @param $associativo_atividade
  * @return \stdClass
  */
-function get_dados_alunos_atividades_concluidas($associativo_atividade) {
+function get_dados_alunos_atividades_concluidas($associativo_atividade)
+{
     $factory = Factory::singleton();
     $somatorio_total_modulo = array();
     $somatorio_total_grupo = array();
@@ -1347,7 +1348,7 @@ function get_table_header_potenciais_evasoes() {
 function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
     /** @var $factory Factory */
     $factory = Factory::singleton();
-    
+
     $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
     $header = array();
 
@@ -1387,12 +1388,12 @@ function get_todo_list_data() {
         $listagem_forum->add($forum->course_id, $forum);
     }
 
-    $query_alunos_grupo_tutoria = query_atividades_nao_postadas();
-    $query_quiz = query_quiz_nao_postadas();
-    $query_forum = query_postagens_forum_nao_postadas();
+    $query_alunos_grupo_tutoria = query_atividades();
+    $query_quiz = query_quiz();
+    $query_forum = query_postagens_forum();
 
     $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-        $query_alunos_grupo_tutoria, $query_forum, $query_quiz, true, null, true);
+        $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
     $dados = array();
@@ -1478,7 +1479,7 @@ function get_todo_list_data() {
  */
 
 /**
- * Relatorio tcc portfolio concluido
+ * Cabeçalho da tabela tcc portfolio
  */
 function get_table_header_tcc_portfolio_concluido() {
     return get_table_header_tcc_portfolio_entrega_atividades();
@@ -1604,6 +1605,7 @@ function get_dados_tcc_portfolio_entrega_atividades() {
                     $lista_atividades[] = new dado_nao_aplicado();
                     continue;
                 }
+
                 // Se a atividade não foi entregue
                 if ($atividade->has_submitted()) {
 
@@ -1737,7 +1739,6 @@ function get_dados_tcc_portfolio() {
             $dados[] = $data;
             continue;
         }
-
         /* Coluna não acessado e tcc para cada modulo dentro do grupo */
         $grupo['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id));
         $grupo['tcc'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id));

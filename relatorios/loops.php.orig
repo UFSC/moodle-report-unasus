@@ -58,6 +58,22 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
 
+<<<<<<< HEAD
+                        if (!is_null($query_nota_final)){
+                            if ((!empty($atividade->grouping) &&
+                                            !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $r);
+                            }else {
+                                $data = new report_unasus_data_activity($atividade, $r);
+                            }
+
+                        } else {
+
+                            if (!$r->enrol || (!empty($atividade->grouping) &&
+                                !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $r);
+                            }else {
+=======
                         if($is_activity){
                             if ((!$r->enrol) || (!empty($atividade->grouping) &&
                                     !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
@@ -70,6 +86,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                                 !$factory->is_member_of($atividade->grouping, $courseid, $r->userid)) {
                                 $data = new report_unasus_data_empty($atividade, $r);
                             } else {
+>>>>>>> erros relatorio boletim de 1 tutor para 2 modulos diferentes
                                 $data = new report_unasus_data_activity($atividade, $r);
                             }
                         }
@@ -92,6 +109,11 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $f) {
 
+<<<<<<< HEAD
+                        if (!$f->enrol || (!empty($atividade->grouping) &&
+                            !$factory->is_member_of($atividade->grouping, $courseid, $f->userid))) {
+                            $data = new report_unasus_data_empty($atividade, $f);
+=======
                         if($is_activity){
                             if ((!$r->enrol) || (!empty($atividade->grouping) &&
                                 !$factory->is_member_of($atividade->grouping, $courseid, $f->userid))) {
@@ -99,6 +121,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                             } else {
                                 $data = new report_unasus_data_forum($atividade, $f);
                             }
+>>>>>>> erros relatorio boletim de 1 tutor para 2 modulos diferentes
                         } else {
                             if (!empty($atividade->grouping) &&
                                     !$factory->is_member_of($atividade->grouping, $courseid, $f->userid)) {
@@ -128,6 +151,11 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $q) {
 
+<<<<<<< HEAD
+                        if (!$q->enrol || (!empty($atividade->grouping) &&
+                            !$factory->is_member_of($atividade->grouping, $courseid, $q->userid))) {
+                            $data = new report_unasus_data_empty($atividade, $q);
+=======
                         if($is_activity){
                             if ((!$r->enrol) || (!empty($atividade->grouping) &&
                                 !$factory->is_member_of($atividade->grouping, $courseid, $q->userid))) {
@@ -135,6 +163,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                             } else {
                                 $data = new report_unasus_data_quiz($atividade, $q);
                             }
+>>>>>>> erros relatorio boletim de 1 tutor para 2 modulos diferentes
                         } else {
                             if (!empty($atividade->grouping) &&
                                     !$factory->is_member_of($atividade->grouping, $courseid, $q->userid)) {
@@ -351,6 +380,9 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                             // Agrupa os dados por usuário
                             $group_array_do_grupo->add($l->userid, $data);
                         }
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($l->userid, $data);
                     }
                 }
             }

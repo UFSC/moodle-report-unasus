@@ -548,6 +548,9 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 }
 
+<<<<<<< HEAD
+class dado_avaliacao_em_atraso extends unasus_data {
+
 /**
  * Classe para relatorio sintese de atividades concluidas,
  * N° de alunos de concluiram as atividades
@@ -579,14 +582,65 @@ class dado_atividades_alunos extends unasus_data {
         return "$porcentagem";
     }
 
-    public function get_css_class() {
-        return '';
+    public function incrementar_atraso() {
+        $this->count_atrasos++;
     }
 
 }
 
+class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
+=======
 class dado_atividades_nota_atribuida extends dado_atividades_alunos {
+>>>>>>> Correcao no localib funcao process_header_atividades_lti que se funcao nao retornar array de dados deve ignorar
     
+}
+
+/**
+ * Classe para relatorio sintese de atividades concluidas,
+ * N° de alunos de concluiram as atividades
+ */
+class dado_atividades_alunos extends unasus_data {
+
+    private $total;
+    private $count;
+
+    function __construct($total, $count = 0) {
+        $this->total = $total;
+        $this->count = $count;
+    }
+
+    public function incrementar() {
+        $this->count++;
+    }
+
+    public function get_total() {
+        return $this->total;
+    }
+
+    public function get_count() {
+        return $this->count;
+    }
+
+    public function __toString() {
+<<<<<<< HEAD
+        $porcentagem = new dado_media(($this->total_concluidos / $this->total_alunos) * 100);
+        return "{$this->total_concluidos}/{$this->total_alunos} - {$porcentagem}";
+=======
+        if (empty($this->count) || empty($this->total)) {
+            $calculo_porcentagem = 0; // evitar uma divisão por zero
+        } else {
+            $calculo_porcentagem = ($this->count / $this->total) * 100;
+        }
+
+        $porcentagem = new dado_media($calculo_porcentagem);
+        return "{$this->count}/{$this->total} <br /> {$porcentagem}";
+>>>>>>> Correcao no localib funcao process_header_atividades_lti que se funcao nao retornar array de dados deve ignorar
+    }
+
+    public function get_css_class() {
+        return '';
+    }
+
 }
 
 /**
@@ -702,10 +756,35 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
 }
 
 /**
+ * Dado de média formatado
+ */
+class dado_media extends unasus_data {
+
+    private $media;
+
+    function __construct($media) {
+        $this->media = $media;
+    }
+
+    public function __toString() {
+        return $this->format_grade($this->media) . "%";
+    }
+
+    public function value() {
+        return "{$this->media}";
+    }
+
+    public function get_css_class() {
+        return 'media';
+    }
+
+}
+
+/**
  * Dado somatorio de media para incluir coluna Total de atividades concluídas por módulo
  * Ticket 5263
  */
-class dado_media extends unasus_data {
+class dado_somatorio_media extends unasus_data {
 
     private $somatorio;
     private $total;
