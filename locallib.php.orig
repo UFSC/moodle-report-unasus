@@ -63,12 +63,21 @@ function get_nomes_tutores() {
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
 
+<<<<<<< HEAD
     $query = "SELECT gt.id AS grupo_id, COUNT(DISTINCT pg.matricula)
                 FROM {table_GruposTutoria} gt
            LEFT JOIN {table_PessoasGruposTutoria} pg
                   ON (gt.id=pg.grupo AND pg.tipo=:tipo_aluno)
                WHERE gt.curso=:curso_ufsc
             GROUP BY gt.nome";
+=======
+    $query = "SELECT pg.grupo AS grupo_id, COUNT(DISTINCT pg.matricula)
+                FROM {table_PessoasGruposTutoria} pg
+           LEFT JOIN {table_GruposTutoria} gt
+                  ON (gt.id=pg.grupo)
+               WHERE gt.curso=:curso_ufsc AND pg.tipo=:tipo_aluno
+            GROUP BY pg.grupo";
+>>>>>>> Correções na integração de código e divisão por zero.
     $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
 
     $result = $middleware->get_records_sql_menu($query, $params);
@@ -463,7 +472,6 @@ function query_lti_courses($courses) {
             $object->config = $config;
             $object->custom_parameters = $customparameters;
             $object->completionexpected = $lti->completionexpected;
-            $object->grouping_id = $lti->grouping_id;
             $object->baseurl = $lti->baseurl;
             array_push($lti_activities, $object);
         }
