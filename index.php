@@ -65,7 +65,7 @@ if ($factory->get_relatorio() != null) {
     // - relatório desativado segundo o ticket #4460: 'historico_atribuicao_notas'
     $relatorios_disponiveis = array('atividades_vs_notas', 'entrega_de_atividades', 'boletim', 'atividades_nao_avaliadas',
         'estudante_sem_atividade_postada', 'estudante_sem_atividade_avaliada', 'atividades_nota_atribuida', 'potenciais_evasoes',
-        'acesso_tutor', 'uso_sistema_tutor');
+        'acesso_tutor', 'uso_sistema_tutor', 'tcc_portfolio', 'tcc_portfolio_concluido', 'tcc_portfolio_entrega_atividades');
 
     // Configurações de exibição dos relatórios
     switch ($factory->get_relatorio()) {
@@ -74,6 +74,9 @@ if ($factory->get_relatorio() != null) {
         case 'estudante_sem_atividade_avaliada':
         case 'atividades_nota_atribuida':
         case 'potenciais_evasoes':
+        case 'tcc_portfolio':
+        case 'tcc_portfolio_concluido':
+        case 'tcc_portfolio_entrega_atividades':
             $factory->mostrar_botoes_grafico = false;
             break;
         case 'acesso_tutor' :
@@ -117,10 +120,13 @@ if ($factory->get_relatorio() != null) {
             case 'atividades_vs_notas':
             case 'entrega_de_atividades':
             case 'boletim':
+            case 'tcc_portfolio_concluido':
+            case 'tcc_portfolio_entrega_atividades':
                 echo $renderer->build_report();
                 break;
             case 'atividades_nota_atribuida':
             case 'atividades_nao_avaliadas':
+            case 'tcc_portfolio':
                 echo $renderer->page_atividades_nao_avaliadas();
                 break;
             case 'estudante_sem_atividade_postada':

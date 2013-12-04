@@ -63,12 +63,12 @@ function get_nomes_tutores() {
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
 
-    $query = "SELECT pg.grupo AS grupo_id, COUNT(DISTINCT pg.matricula)
-                FROM {table_PessoasGruposTutoria} pg
-                JOIN {table_GruposTutoria} gt
-                  ON (gt.id=pg.grupo)
-               WHERE gt.curso=:curso_ufsc AND pg.tipo=:tipo_aluno
-               GROUP BY pg.grupo";
+    $query = "SELECT gt.id AS grupo_id, COUNT(DISTINCT pg.matricula)
+                FROM {table_GruposTutoria} gt
+           LEFT JOIN {table_PessoasGruposTutoria} pg
+                  ON (gt.id=pg.grupo AND pg.tipo=:tipo_aluno)
+               WHERE gt.curso=:curso_ufsc
+            GROUP BY gt.nome";
     $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
 
     $result = $middleware->get_records_sql_menu($query, $params);
@@ -272,11 +272,9 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
-    $ltis = query_lti_courses($courses);
 
     $group_array = new GroupArray();
-    
-    
+
     foreach ($assigns as $atividade) {
         $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade));
     }
@@ -289,28 +287,8 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
-    /* A atividade de LTI Portfólio é composta (vai gerar sub-atividades para cada eixo */
-    foreach ($ltis as $lti) {
-        foreach ($lti->tcc_definition->hub_definitions as $hub_definition) {
-            $hub = $hub_definition->hub_definition;
-
-            // sub-atividade simulada
-            $db_model = new stdClass();
-            $db_model->id = $lti->id;
-            $db_model->course_module_id = $lti->course_module_id;
-            $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->title;
-            $db_model->completionexpected = $lti->completionexpected;
-            $db_model->position = $hub->position;
-            //todo course definition
-            $db_model->course_id = $lti->course_id;
-            $db_model->course_name = $lti->course_name;
-            $db_model->baseurl = $lti->baseurl;
-            $db_model->consumer_key = $lti->config['resourcekey'];
-            $db_model->grouping_id = $lti->grouping_id;
-
-            $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
-        }
-    }
+    // Uniar com as atividades LTI
+    process_header_atividades_lti($courses, $group_array);
 
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
@@ -327,6 +305,45 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
     }
 
     return $group_array->get_assoc();
+}
+
+/**
+ * Atividades LTI
+ * @param $courses
+ * @param GroupArray $group_array
+ * @return array
+ */
+function process_header_atividades_lti($courses, GroupArray &$group_array) {
+    $ltis = query_lti_courses($courses);
+
+    // Nenhuma atividade lti encontrada,
+    // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
+    if (empty($ltis)) {
+        return;
+    }
+
+    /* A atividade de LTI Portfólio é composta (vai gerar sub-atividades para cada eixo */
+    foreach ($ltis as $lti) {
+        foreach ($lti->tcc_definition->hub_definitions as $hub_definition) {
+            $hub = $hub_definition->hub_definition;
+
+            // sub-atividade simulada
+            $db_model = new stdClass();
+            $db_model->id = $lti->id;
+            $db_model->course_module_id = $lti->course_module_id;
+            $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->title;
+            $db_model->completionexpected = $lti->completionexpected;
+            $db_model->position = $hub->position;
+
+            $db_model->course_id = $lti->course_id;
+            $db_model->course_name = $lti->course_name;
+            $db_model->baseurl = $lti->baseurl;
+            $db_model->consumer_key = $lti->config['resourcekey'];
+            $db_model->grouping_id = $lti->grouping_id;
+
+            $group_array->add($db_model->course_id, new report_unasus_lti_activity($db_model));
+        }
+    }
 }
 
 /**
@@ -407,7 +424,6 @@ function query_quiz_courses($courses) {
  */
 function query_lti_courses($courses) {
     global $DB;
-
 
     if (empty($courses)) {
         return false;

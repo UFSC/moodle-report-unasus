@@ -200,6 +200,116 @@ class dado_atividades_vs_notas extends unasus_data {
 
 }
 
+class dado_tcc_portfolio_concluido extends unasus_data {
+
+    const ATIVIDADE_NAO_CONCLUIDA = 0;
+    const ATIVIDADE_CONCLUIDA = 1;
+    const ATIVIDADE_NAO_APLICADO = 2;
+
+    function __construct($tipo, $atividade_id, $atraso = 0) {
+        $this->tipo = $tipo;
+        $this->atraso = $atraso;
+        $this->atividade_id = $atividade_id;
+    }
+
+    public function __toString() {
+        return '';
+    }
+
+    public function get_css_class() {
+        global $CFG;
+        switch ($this->tipo) {
+            case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_CONCLUIDA:
+                return 'nao_concluido';
+                break;
+            case dado_tcc_portfolio_concluido::ATIVIDADE_CONCLUIDA:
+                return 'concluido';
+                break;
+            case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+        global $CFG;
+
+        $legend = array();
+        $legend['nao_concluido'] = 'Atividade não concluída';
+        $legend['concluido'] = 'Atividade concluída';
+        $legend['nao_aplicado'] = 'Não aplicado';
+
+        return $legend;
+    }
+
+    public function get_atividade_id() {
+        return $this->atividade_id;
+    }
+
+}
+
+class dado_tcc_portfolio_entrega_atividades extends unasus_data {
+
+    const ATIVIDADE_NAO_ACESSADO = 0;
+    const ATIVIDADE_RASCUNHO = 1;
+    const ATIVIDADE_REVISAO = 2;
+    const ATIVIDADE_AVALIACAO = 3;
+    const ATIVIDADE_AVALIADO = 4;
+    const ATIVIDADE_NAO_APLICADO = 5;
+
+    function __construct($tipo, $atividade_id, $atraso = 0) {
+        $this->tipo = $tipo;
+        $this->atraso = $atraso;
+        $this->atividade_id = $atividade_id;
+    }
+
+    public function __toString() {
+        return '';
+    }
+
+    public function get_css_class() {
+        global $CFG;
+        switch ($this->tipo) {
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_ACESSADO:
+                return 'nao_acessado';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_RASCUNHO:
+                return 'rascunho';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_REVISAO:
+                return 'revisao';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIACAO:
+                return 'avaliacao';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIADO:
+                return 'avaliado';
+                break;
+            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+
+        $legend = array();
+        $legend['nao_acessado'] = 'Não acessado';
+        $legend['rascunho'] = 'Rascunho';
+        $legend['revisao'] = 'Revisão';
+        $legend['avaliacao'] = 'Avaliação';
+        $legend['avaliado'] = 'Avaliado';
+        $legend['nao_aplicado'] = 'Não aplicado';
+
+        return $legend;
+    }
+
+    public function get_atividade_id() {
+        return $this->atividade_id;
+    }
+
+}
+
 class dado_entrega_de_atividades extends unasus_data {
 
     const ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO = 0;
@@ -438,36 +548,7 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 }
 
-class dado_avaliacao_em_atraso extends unasus_data {
-
-    protected $total_alunos;
-    protected $count_atrasos;
-
-    function __construct($total_alunos) {
-        $this->total_alunos = $total_alunos;
-        $this->count_atrasos = 0;
-    }
-
-    public function __toString() {
-        $porcentagem = ($this->count_atrasos / $this->total_alunos) * 100;
-        return $this->format_grade($porcentagem) . "%";
-    }
-
-    public function get_css_class() {
-        return '';
-    }
-
-    public static function get_legend() {
-        return false;
-    }
-
-    public function incrementar_atraso() {
-        $this->count_atrasos++;
-    }
-
-}
-
-class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
+class dado_atividades_nota_atribuida extends dado_atividades_alunos {
     
 }
 
@@ -477,20 +558,86 @@ class dado_atividades_nota_atribuida extends dado_avaliacao_em_atraso {
  */
 class dado_atividades_alunos extends unasus_data {
 
-    private $alunos_concluiram;
+    private $total;
+    private $count;
 
-    function __construct($alunos_concluiram, $total_alunos) {
-        $this->alunos_concluiram = $alunos_concluiram;
-        $this->total_alunos = $total_alunos;
+    function __construct($total, $count = 0) {
+        $this->total = $total;
+        $this->count = $count;
+    }
+
+    public function incrementar() {
+        $this->count++;
+    }
+
+    public function get_total() {
+        return $this->total;
+    }
+
+    public function get_count() {
+        return $this->count;
     }
 
     public function __toString() {
-        $media = new dado_media(($this->alunos_concluiram * 100) / $this->total_alunos);
-        $result = "{$this->alunos_concluiram} / {$this->total_alunos} - {$media}";
-        return html_writer::tag('strong', $result);
+        $porcentagem = new dado_media($this->count, $this->total);
+        return "$porcentagem";
     }
 
     public function get_css_class() {
+        return '';
+    }
+
+}
+
+/**
+ * Class dado_atividades_total
+ */
+class dado_atividades_total extends dado_atividades_alunos {
+
+    public function get_css_class() {
+        return 'total center';
+    }
+
+}
+
+/**
+ * Class dado_somatorio_grupo
+ * Relatorio Portfolio, TCC consolidados
+ */
+class dado_somatorio_grupo extends unasus_data {
+
+    private $soma = array();
+
+    private function init($grupo) {
+        if (!array_key_exists($grupo, $this->soma)) {
+            $this->soma[$grupo] = 0;
+        }
+    }
+
+    public function inc($grupo, $bool = true) {
+        $this->init($grupo);
+        if ($bool) {
+            $this->soma[$grupo]++;
+        }
+    }
+
+    public function add($grupo, $value) {
+        $this->init($grupo);
+        $this->soma[$grupo] += $value;
+    }
+
+    public function get($grupo = null) {
+        if (!is_null($grupo)) {
+            return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo] : 0;
+        }
+        return $this->soma;
+    }
+
+    public function get_css_class() {
+        return '';
+    }
+
+    public function toString() {
         return '';
     }
 
@@ -555,35 +702,11 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
 }
 
 /**
- * Dado de média formatado
- */
-class dado_media extends unasus_data {
-
-    private $media;
-
-    function __construct($media) {
-        $this->media = $media;
-    }
-
-    public function __toString() {
-        return $this->format_grade($this->media) . "%";
-    }
-
-    public function value() {
-        return "{$this->media}";
-    }
-
-    public function get_css_class() {
-        return 'media';
-    }
-
-}
-
-/**
- * Dado somatorio de media para incluir coluna Total de atividades concluídas por módulo
+ * Dado Média Formatado
+ * somatorio de media para incluir coluna Total de atividades concluídas por módulo
  * Ticket 5263
  */
-class dado_somatorio_media extends unasus_data {
+class dado_media extends unasus_data {
 
     private $somatorio;
     private $total;
@@ -594,9 +717,14 @@ class dado_somatorio_media extends unasus_data {
     }
 
     public function __toString() {
+        if (empty($this->somatorio) || empty($this->total)) {
+            $media = 0; // impedir divisão por zero
+        } else {
+            $media = $this->somatorio * 100 / $this->total;
+        }
+
         $soma = "$this->somatorio/$this->total";
-        $media = $this->somatorio * 100 / $this->total;
-        return "{$soma} - {$this->format_grade($media)} %";
+        return "{$soma} <br /> {$this->format_grade($media)}%";
     }
 
     public function get_css_class() {
@@ -772,6 +900,26 @@ class dado_modulo extends unasus_data {
 
     public function get_css_class() {
         return 'bold';
+    }
+
+}
+
+class dado_texto extends unasus_data {
+
+    private $texto;
+    private $class;
+
+    function __construct($texto, $class) {
+        $this->texto = $texto;
+        $this->class = $class;
+    }
+
+    public function __toString() {
+        return $this->texto;
+    }
+
+    public function get_css_class() {
+        return $this->class;
     }
 
 }

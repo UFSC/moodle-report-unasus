@@ -18,6 +18,16 @@ $string['estudante_sem_atividade_avaliada'] = 'Lista: atividades não avaliadas'
 $string['estudante_sem_atividade_avaliada_help'] = 'Listagem de estudantes que entregaram suas atividades mas ainda não foram corrigidas';
 $string['estudante_sem_atividade_avaliada_table_header'] = 'Atividades não Avaliadas';
 
+/* Relatórios TCC Portfolio */
+$string['tcc_portfolio'] = 'TCC: Portfólio consolidados';
+$string['tcc_portfolio_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
+
+$string['tcc_portfolio_entrega_atividades'] = 'TCC: Entrega de atividades TCC/Portfólio';
+$string['tcc_portfolio_entrega_atividades_help'] = 'Listagem de estudantes de acordo com estado de entrega de cada atividade';
+
+$string['tcc_portfolio_concluido'] = 'TCC: Atividades concluídas TCC/Portfólio';
+$string['tcc_portfolio_concluido_help'] = 'Listagem de estudantes com a situação de entrega de atividades (Concluído/Não concluído)';
+
 // - relatório desativado segundo o ticket #4460  case 'historico_atribuicao_notas':
 //$string['historico_atribuicao_notas'] = 'Histórico: atribuição de notas';
 //$string['historico_atribuicao_notas_help'] = 'OBJETIVO: Acompanhar realização da avaliação das atividades dos estudantes, pelos tutores e servir como histórico sobre o desempenho do tutor na realização das suas atribuições.';

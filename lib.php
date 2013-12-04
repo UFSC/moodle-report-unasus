@@ -14,7 +14,10 @@ function report_unasus_relatorios_validos_list() {
         'boletim',
         'acesso_tutor',
         'uso_sistema_tutor',
-        'potenciais_evasoes');
+        'potenciais_evasoes',
+        'tcc_portfolio',
+        'tcc_portfolio_concluido',
+        'tcc_portfolio_entrega_atividades');
 }
 
 function report_unasus_relatorios_restritos_list() {
