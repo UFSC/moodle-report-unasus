@@ -312,12 +312,11 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
                     // Criar o array caso ainda não tenha sido definido.
-                    $array_key = "lti_{$atividade->id}_{$atividade->position}";
-                    if (!isset($array_das_atividades[$array_key])) {
-                        $array_das_atividades[$array_key] = array();
+                    if (!isset($array_das_atividades[$atividade->id][$atividade->position])) {
+                        $array_das_atividades[$atividade->id][$atividade->position] = array();
                     }
 
-                    $array_das_atividades[$array_key] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id);
 
