@@ -268,26 +268,19 @@ class dado_tcc_portfolio_entrega_atividades extends unasus_data {
     }
 
     public function get_css_class() {
-        global $CFG;
         switch ($this->tipo) {
             case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_ACESSADO:
                 return 'nao_acessado';
-                break;
             case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_RASCUNHO:
                 return 'rascunho';
-                break;
             case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_REVISAO:
                 return 'revisao';
-                break;
             case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIACAO:
                 return 'avaliacao';
-                break;
             case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIADO:
                 return 'avaliado';
-                break;
             case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_APLICADO:
                 return 'nao_aplicado';
-                break;
         }
     }
 
@@ -548,6 +541,10 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 }
 
+class dado_atividades_nota_atribuida extends dado_atividades_alunos {
+    
+}
+
 /**
  * Classe para relatorio sintese de atividades concluidas,
  * N° de alunos de concluiram as atividades
@@ -585,10 +582,6 @@ class dado_atividades_alunos extends unasus_data {
 
 }
 
-class dado_atividades_nota_atribuida extends dado_atividades_alunos {
-    
-}
-
 /**
  * Class dado_atividades_total
  */
@@ -608,26 +601,31 @@ class dado_somatorio_grupo extends unasus_data {
 
     private $soma = array();
 
-    private function init($grupo) {
+    private function init($grupo, $id) {
         if (!array_key_exists($grupo, $this->soma)) {
-            $this->soma[$grupo] = 0;
+            $this->soma[$grupo] = array();
+        }
+        if (!array_key_exists($id, $this->soma[$grupo])) {
+            $this->soma[$grupo][$id] = 0;
         }
     }
 
-    public function inc($grupo, $bool = true) {
-        $this->init($grupo);
+    public function inc($grupo, $id, $bool = true) {
+        $this->init($grupo, $id);
         if ($bool) {
-            $this->soma[$grupo]++;
+            $this->soma[$grupo][$id]++;
         }
     }
 
-    public function add($grupo, $value) {
-        $this->init($grupo);
-        $this->soma[$grupo] += $value;
+    public function add($grupo, $id, $value) {
+        $this->init($grupo, $id);
+        $this->soma[$grupo][$id] += $value;
     }
 
-    public function get($grupo = null) {
-        if (!is_null($grupo)) {
+    public function get($grupo = null, $id = null) {
+        if (!is_null($grupo) && !is_null($id)) {
+            return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo][$id] : 0;
+        } elseif  (!is_null($grupo)) {
             return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo] : 0;
         }
         return $this->soma;
@@ -640,7 +638,6 @@ class dado_somatorio_grupo extends unasus_data {
     public function toString() {
         return '';
     }
-
 }
 
 class dado_atividades_nota_atribuida_alunos extends unasus_data {
@@ -702,7 +699,8 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
 }
 
 /**
- * Dado somatorio de media para incluir coluna Total de atividades concluídas por módulo
+ * Dado Média Formatado
+ * somatorio de media para incluir coluna Total de atividades concluídas por módulo
  * Ticket 5263
  */
 class dado_media extends unasus_data {
@@ -711,8 +709,8 @@ class dado_media extends unasus_data {
     private $total;
 
     function __construct($somatorio, $total) {
-        $this->somatorio = $somatorio;
-        $this->total = $total;
+        $this->somatorio = isset($somatorio) ? $somatorio : 0;
+        $this->total = isset($total) ? $total : 0;
     }
 
     public function __toString() {
