@@ -18,15 +18,25 @@ $string['estudante_sem_atividade_avaliada'] = 'Lista: atividades não avaliadas'
 $string['estudante_sem_atividade_avaliada_help'] = 'Listagem de estudantes que entregaram suas atividades mas ainda não foram corrigidas';
 $string['estudante_sem_atividade_avaliada_table_header'] = 'Atividades não Avaliadas';
 
-/* Relatórios TCC Portfolio */
-$string['tcc_portfolio'] = 'TCC: Portfólio consolidados';
+/* Relatórios Portfolio */
+$string['tcc_portfolio'] = 'Portfólio: Portfólios Consolidados';
 $string['tcc_portfolio_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
 
-$string['tcc_portfolio_entrega_atividades'] = 'TCC: Entrega de atividades TCC/Portfólio';
+$string['tcc_portfolio_entrega_atividades'] = 'Portfólio: Entrega de Atividades';
 $string['tcc_portfolio_entrega_atividades_help'] = 'Listagem de estudantes de acordo com estado de entrega de cada atividade';
 
-$string['tcc_portfolio_concluido'] = 'TCC: Atividades concluídas TCC/Portfólio';
+$string['tcc_portfolio_concluido'] = 'Portfólio: Atividades concluídas';
 $string['tcc_portfolio_concluido_help'] = 'Listagem de estudantes com a situação de entrega de atividades (Concluído/Não concluído)';
+
+/* Relatórios TCC */
+$string['tcc_tcc'] = 'TCC: TCCs Consolidados';
+$string['tcc_tcc_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
+
+$string['tcc_entrega_atividades'] = 'TCC: Entrega de Atividades';
+$string['tcc_entrega_atividades_help'] = 'Listagem de estudantes de acordo com estado de entrega de cada atividade';
+
+$string['tcc_concluido'] = 'TCC: Atividades concluídas';
+$string['tcc_concluido_help'] = 'Listagem de estudantes com a situação de entrega de atividades (Concluído/Não concluído)';
 
 // - relatório desativado segundo o ticket #4460  case 'historico_atribuicao_notas':
 //$string['historico_atribuicao_notas'] = 'Histórico: atribuição de notas';
@@ -79,5 +89,5 @@ $string['cohort_empty'] = 'Sem cohort';
 /* Relatorios de TCC/PORTFOLIO */
 $string['atividades_concluidas'] = 'Atividades Concluidas';
 $string['column_aluno_atividade_concluida'] = 'N° Alunos com atividades concluídas';
-$string['portfolio_prefix'] = 'Portfólio ';
-$string['tcc_prefix'] = 'TCC';
+$string['portfolio_prefix'] = 'Portfólio - ';
+$string['tcc_prefix'] = 'TCC - ';

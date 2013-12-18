@@ -200,6 +200,8 @@ class dado_atividades_vs_notas extends unasus_data {
 
 }
 
+class dado_tcc_concluido extends dado_tcc_portfolio_concluido {}
+
 class dado_tcc_portfolio_concluido extends unasus_data {
 
     const ATIVIDADE_NAO_CONCLUIDA = 0;
@@ -247,6 +249,8 @@ class dado_tcc_portfolio_concluido extends unasus_data {
     }
 
 }
+
+class dado_tcc_entrega_atividades extends dado_tcc_portfolio_entrega_atividades {}
 
 class dado_tcc_portfolio_entrega_atividades extends unasus_data {
 

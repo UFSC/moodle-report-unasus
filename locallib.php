@@ -313,8 +313,8 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
  * @param GroupArray $group_array
  * @return array
  */
-function process_header_atividades_lti($courses, GroupArray &$group_array) {
-    $ltis = query_lti_courses($courses);
+function process_header_atividades_lti($courses, GroupArray &$group_array, $is_tcc = false) {
+    $ltis = query_lti_courses($courses, $is_tcc);
 
     // Nenhuma atividade lti encontrada,
     // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
@@ -322,16 +322,20 @@ function process_header_atividades_lti($courses, GroupArray &$group_array) {
         return;
     }
 
-    /* A atividade de LTI Portfólio é composta (vai gerar sub-atividades para cada eixo */
+    /* A atividade de LTI é composta (vai gerar sub-atividades para cada eixo */
     foreach ($ltis as $lti) {
         foreach ($lti->tcc_definition->hub_definitions as $hub_definition) {
             $hub = $hub_definition->hub_definition;
+
+            $title_prefix = $lti->custom_parameters['type'] == 'portfolio'
+                        ? get_string('portfolio_prefix', 'report_unasus')
+                        : get_string('tcc_prefix', 'report_unasus');
 
             // sub-atividade simulada
             $db_model = new stdClass();
             $db_model->id = $lti->id;
             $db_model->course_module_id = $lti->course_module_id;
-            $db_model->name = get_string('portfolio_prefix', 'report_unasus') . $hub->title;
+            $db_model->name = $title_prefix . $hub->title;
             $db_model->completionexpected = $lti->completionexpected;
             $db_model->position = $hub->position;
 
@@ -422,7 +426,7 @@ function query_quiz_courses($courses) {
  * @internal param \type $tcc_definition_id
  * @return array
  */
-function query_lti_courses($courses) {
+function query_lti_courses($courses, $is_tcc = false) {
     global $DB;
 
     if (empty($courses)) {
@@ -442,9 +446,14 @@ function query_lti_courses($courses) {
             $customparameters = get_tcc_definition($config['customparameters']);
             $consumer_key = $config['resourcekey'];
 
-            // Não nos interessa os LTI's com tipo TCC
-            if ($customparameters['type'] != 'portfolio') {
-                continue;
+            if($is_tcc){
+                if ($customparameters['type'] != 'tcc') {
+                    continue;
+                }
+            }else {
+                if ($customparameters['type'] != 'portfolio') {
+                    continue;
+                }
             }
 
             // WS Client

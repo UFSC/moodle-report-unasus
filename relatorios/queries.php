@@ -58,6 +58,16 @@ function query_alunos_grupo_tutoria() {
              GROUP BY u.id";
 }
 
+function query_alunos_grupo_orientacao() {
+
+    return "SELECT DISTINCT u.id, u.firstname, 'cohort', 'polo'
+                      FROM {view_Alunos_Orientadores} ao
+                      JOIN {user} u
+                        ON (ao.username_aluno=u.username)
+                     WHERE ao.username_orientador = :orientador_id
+            ";
+}
+
 /**
  * Query para retornar se um dado aluno possui postagens num forum de um dado módulo
  * se o tiver retorna a nota e outros dados da postagem.
@@ -88,12 +98,11 @@ function query_alunos_grupo_tutoria() {
  * @return string
  */
 function query_postagens_forum() {
-    $alunos_grupo_tutoria_disciplina = query_alunos_disciplina();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
     return " SELECT u.id AS userid,
                     u.polo,
                     u.cohort,
-                    u.enrol,
                     fp.submission_date,
                     fp.forum_name,
                     gg.grade,
@@ -102,7 +111,7 @@ function query_postagens_forum() {
                     userid_posts IS NOT NULL AS has_post
                      FROM (
 
-                        {$alunos_grupo_tutoria_disciplina}
+                        {$alunos_grupo_tutoria}
 
                      ) u
                      LEFT JOIN
@@ -190,7 +199,7 @@ function query_lti() {
 }
 
 function query_lti_config() {
-    
+
     return "SELECT 
                    c.name AS name, c.value as value
               FROM {lti_types_config} c
@@ -272,7 +281,7 @@ function query_alunos_disciplina(){
 
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
-        return "SELECT DISTINCT u.id, u.firstname, u.lastname, u.cohort, u.polo,
+    return "SELECT DISTINCT u.id, u.firstname, u.lastname, u.cohort, u.polo,
                                 u.grupo_id as grupo_id, (e.id = ue.enrolid IS NOT NULL) AS enrol
                            FROM ({$alunos_grupo_tutoria}) u
                            JOIN {user_enrolments} ue
@@ -280,6 +289,33 @@ function query_alunos_disciplina(){
                      INNER JOIN {enrol} e
                              ON e.id = ue.enrolid AND e.courseid =:enrol_courseid
             ";
+}
+
+function query_atividades_nao_postadas() {
+    $alunos_disciplina = query_alunos_disciplina();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   u.polo,
+                   u.enrol,
+                   gr.grade,
+                   sub.timecreated AS submission_date,
+                   sub.timemodified AS submission_modified,
+                   gr.timemodified AS grade_modified,
+                   gr.timecreated AS grade_created,
+                   sub.status
+              FROM (
+
+                      {$alunos_disciplina}
+
+                   ) u
+         LEFT JOIN {assign_submission} sub
+                ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+         LEFT JOIN {assign_grades} gr
+                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
 }
 
 /**
@@ -301,8 +337,6 @@ function query_alunos_disciplina(){
  *
  */
 function query_atividades() {
-
-
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
     return "SELECT u.id AS userid,
@@ -318,53 +352,6 @@ function query_atividades() {
               FROM (
 
                       {$alunos_grupo_tutoria}
-
-                   ) u
-         LEFT JOIN {assign_submission} sub
-                ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-         LEFT JOIN {assign_grades} gr
-                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-          ORDER BY grupo_id, u.firstname, u.lastname
-    ";
-}
-
-
-/**
- * Query para os relatórios
- *
- * @polos array(int) polos para filtrar os alunos
- *
- * Colunas:
- *
- * - user_id
- * - grade -> nota
- * - submission_date -> unixtime de envio da atividade,
- * - submission_modified -> unixtime da data de alteracao da atividade
- * - grade_modified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
- * - grade_created -> unixtime da data que a nota foi atribuuda
- * - status -> estado da avaliaçao
- *
- * @return string
- *
- */
-function query_atividades_nao_postadas() {
-
-    $alunos_grupo_tutoria_disciplina = query_alunos_disciplina();
-
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   u.cohort,
-                   u.polo,
-                   u.enrol,
-                   gr.grade,
-                   sub.timecreated AS submission_date,
-                   sub.timemodified AS submission_modified,
-                   gr.timemodified AS grade_modified,
-                   gr.timecreated AS grade_created,
-                   sub.status
-              FROM (
-
-                      {$alunos_grupo_tutoria_disciplina}
 
                    ) u
          LEFT JOIN {assign_submission} sub
@@ -437,7 +424,40 @@ function query_nota_final() {
  *
  */
 function query_quiz() {
-    $alunos_grupo_tutoria_disciplina = query_alunos_disciplina();
+    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   qg.grade,
+                   qg.timemodified AS grade_date,
+                   qa.timefinish AS submission_date
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN (
+                        SELECT qa.*
+                          FROM (
+                                SELECT *
+                                  FROM {quiz_attempts}
+                                 WHERE (quiz=:assignmentid AND timefinish != 0)
+                              ORDER BY attempt DESC
+                                ) qa
+                      GROUP BY qa.userid, qa.quiz
+                    ) qa
+                ON (qa.userid = u.id)
+         LEFT JOIN {quiz_grades} qg
+                ON (u.id = qg.userid AND qg.quiz=qa.quiz)
+         LEFT JOIN {quiz} q
+                ON (q.course=:courseid AND q.id =:assignmentid2 AND qa.quiz = q.id AND qg.quiz = q.id)
+          ORDER BY grupo_id, u.firstname, u.lastname
+     ";
+}
+
+function query_quiz_nao_postadas() {
+    $alunos_disciplina = query_alunos_disciplina();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -448,7 +468,7 @@ function query_quiz() {
                    qa.timefinish AS submission_date
               FROM (
 
-                    {$alunos_grupo_tutoria_disciplina}
+                    {$alunos_disciplina}
 
                    ) u
          LEFT JOIN (
@@ -498,12 +518,15 @@ class LtiPortfolioQuery {
 
     /** @var array $estudantes_grupo_tutoria */
     private $estudantes_grupo_tutoria;
+    private $estudantes_grupo_orientacao;
 
     /** @var array $report_estudantes_grupo_tutoria */
     private $report_estudantes_grupo_tutoria;
+    private $report_estudantes_grupo_orientacao;
 
     function __construct() {
         $this->estudantes_grupo_tutoria = array();
+        $this->estudantes_grupo_orientacao = array();
     }
 
     /**
@@ -536,6 +559,38 @@ class LtiPortfolioQuery {
     }
 
     /**
+     * @param $grupo_orientacao
+     * @return array
+     */
+    private function &query_estudantes_by_grupo_orientacao($grupo) {
+
+        // Se a consulta já foi executada, não é necessário refazê-la
+        if (isset($this->estudantes_grupo_orientacao[$grupo])) {
+            return $this->estudantes_grupo_orientacao[$grupo];
+        }
+
+        // Middleware para as queries sql
+        $middleware = Middleware::singleton();
+
+        /** @var $factory Factory */
+        $factory = Factory::singleton();
+
+        /* Query alunos */
+        $query_alunos = query_alunos_grupo_orientacao();
+
+        $params = array(
+            'curso_ufsc' => $factory->get_curso_ufsc(),
+            'orientador_id' => $grupo
+        );
+
+        $this->estudantes_grupo_orientacao[$grupo] = $middleware->get_records_sql($query_alunos, $params);
+
+        return $this->estudantes_grupo_orientacao[$grupo];
+
+    }
+
+
+    /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de tutoria
      * @param int $grupo_tutoria código do grupo de tutoria
      * @param report_unasus_lti_activity $atividade
@@ -560,6 +615,33 @@ class LtiPortfolioQuery {
         $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data($user_ids);
 
         return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
+    }
+
+    /**
+     * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de orientação
+     * @param int $grupo_tutoria
+     * @param report_unasus_lti_activity $atividade
+     * @return array
+     */
+    private function &query_report_data_by_grupo_orientacao($grupo, &$atividade) {
+
+        // Se a consulta já foi executada, não é necessário refazê-la
+        if (isset($this->report_estudantes_grupo_orientacao[$grupo])) {
+            return $this->report_estudantes_grupo_orientacao[$grupo];
+        }
+
+        $user_ids = array();
+        $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
+
+        foreach ($estudantes as $aluno) {
+            $user_ids[$aluno->id] = $aluno->id;
+        }
+
+        // WS Client
+        $client = new SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
+        $this->report_estudantes_grupo_orientacao[$grupo] = $client->get_report_data_tcc($user_ids);
+
+        return $this->report_estudantes_grupo_orientacao[$grupo];
     }
 
     /**
@@ -609,13 +691,18 @@ class LtiPortfolioQuery {
      * para retornar em um padrão semelhante aos dados que são retornados pelas consultas na base de dados
      *
      * @param report_unasus_lti_activity $atividade
-     * @param int $grupo_tutoria
+     * @param int $grupo
      * @return array
      */
-    public function get_report_data(&$atividade, $grupo_tutoria) {
+    public function get_report_data(&$atividade, $grupo, $is_orientacao = false) {
 
-        $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo_tutoria);
-        $result =& $this->query_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
+        if($is_orientacao){
+            $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
+            $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
+        }else {
+            $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo);
+            $result =& $this->query_report_data_by_grupo_tutoria($grupo, $atividade);
+        }
 
         if (!$result) {
             // Falha ao conectar com Webservice
@@ -630,10 +717,22 @@ class LtiPortfolioQuery {
             $userid = $r->tcc->user_id;
             $estudante = $estudantes[$userid];
             $found = false;
+            $is_tcc = false;
+
+            //Verifica se é hub portfólio
+            if(!isset($r->tcc->hubs)){
+                $res = $r->tcc->hubs_tcc;
+                $is_tcc = true;
+            }else
+                $res = $r->tcc->hubs;
 
             // Processando hubs encontrados
-            foreach ($r->tcc->hubs as $hub) {
-                $hub = $hub->hub;
+            foreach ($res as $hub) {
+
+                if($is_tcc)
+                    $hub = $hub->hubs_tcc;
+                else
+                    $hub = $hub->hub;
 
                 // Só vamos processar o hub que corresponde a posição da atividade
                 if ($hub->position != $atividade->position) {

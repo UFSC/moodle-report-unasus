@@ -10,15 +10,19 @@
  * @param null $query_nota_final
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
-function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null) {
+function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null, $is_activity = false, $is_orientacao = false) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
     /** @var $factory Factory */
     $factory = Factory::singleton();
 
-    // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
+    if($is_orientacao){
+        $grupos = grupos_tutoria::get_grupos_orientacao($factory->get_curso_ufsc(), $factory->orientadores_selecionados);
+    }else {
+        // Recupera dados auxiliares
+        $grupos = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
+    }
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -30,7 +34,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
     $associativo_atividades = array();
 
     // Para cada grupo de tutoria
-    foreach ($grupos_tutoria as $grupo) {
+    foreach ($grupos as $grupo) {
 
         $group_array_do_grupo = new GroupArray();
 
@@ -57,23 +61,22 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
 
-                        if (!is_null($query_nota_final)){
-                            if ((!empty($atividade->grouping) &&
+                        if($is_activity){
+                            if ((!$r->enrol) || (!empty($atividade->grouping) &&
                                             !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
                                 $data = new report_unasus_data_empty($atividade, $r);
-                            }else {
+                            } else {
                                 $data = new report_unasus_data_activity($atividade, $r);
                             }
-
-                        } else {
-
-                            if (!$r->enrol || (!empty($atividade->grouping) &&
-                                !$factory->is_member_of($atividade->grouping, $courseid, $r->userid))) {
+                        }else {
+                            if (!empty($atividade->grouping) &&
+                                    !$factory->is_member_of($atividade->grouping, $courseid, $r->userid)) {
                                 $data = new report_unasus_data_empty($atividade, $r);
-                            }else {
+                            } else {
                                 $data = new report_unasus_data_activity($atividade, $r);
                             }
                         }
+
 
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($r->userid, $data);
@@ -93,13 +96,21 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $f) {
 
-                        if (!$f->enrol || (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $f->userid))) {
-                            $data = new report_unasus_data_empty($atividade, $f);
+                        if($is_activity){
+                            if ((!$f->enrol) || (!empty($atividade->grouping) &&
+                                            !$factory->is_member_of($atividade->grouping, $courseid, $f->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $f);
+                            } else {
+                                $data = new report_unasus_data_forum($atividade, $f);
+                            }
                         } else {
-                            $data = new report_unasus_data_forum($atividade, $f);
+                            if (!empty($atividade->grouping) &&
+                                    !$factory->is_member_of($atividade->grouping, $courseid, $f->userid)) {
+                                $data = new report_unasus_data_empty($atividade, $f);
+                            } else {
+                                $data = new report_unasus_data_forum($atividade, $f);
+                            }
                         }
-
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($f->userid, $data);
                     }
@@ -120,11 +131,20 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $q) {
 
-                        if (!$q->enrol || (!empty($atividade->grouping) &&
-                            !$factory->is_member_of($atividade->grouping, $courseid, $q->userid))) {
-                            $data = new report_unasus_data_empty($atividade, $q);
+                        if($is_activity){
+                            if ((!$q->enrol) || (!empty($atividade->grouping) &&
+                                            !$factory->is_member_of($atividade->grouping, $courseid, $q->userid))) {
+                                $data = new report_unasus_data_empty($atividade, $q);
+                            } else {
+                                $data = new report_unasus_data_quiz($atividade, $q);
+                            }
                         } else {
-                            $data = new report_unasus_data_quiz($atividade, $q);
+                            if (!empty($atividade->grouping) &&
+                                    !$factory->is_member_of($atividade->grouping, $courseid, $q->userid)) {
+                                $data = new report_unasus_data_empty($atividade, $q);
+                            } else {
+                                $data = new report_unasus_data_quiz($atividade, $q);
+                            }
                         }
 
                         // Agrupa os dados por usuário
@@ -132,7 +152,10 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
-                    $result = $lti_query_object->get_report_data($atividade, $grupo->id);
+                    if($is_orientacao)
+                        $result = $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true);
+                    else
+                        $result = $lti_query_object->get_report_data($atividade, $grupo->id);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {

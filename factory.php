@@ -21,6 +21,7 @@
 define('AGRUPAR_TUTORES', 'TUTORES');
 define('AGRUPAR_POLOS', 'POLOS');
 define('AGRUPAR_COHORTS', 'COHORTS');
+define('AGRUPAR_ORIENTADORES', 'ORIENTADORES');
 
 class Factory {
 
@@ -55,6 +56,7 @@ class Factory {
     public $modulos_selecionados;
     public $polos_selecionados;
     public $tutores_selecionados;
+    public $orientadores_selecionados;
     public $agrupar_relatorios;
 
     // Atributos para os gráficos e tabelas
@@ -97,6 +99,7 @@ class Factory {
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
         $this->agrupamentos_membros = get_agrupamentos_membros(get_modulos_validos($modulos_raw));
+        $this->orientadores_selecionados = optional_param_array('orientadores', null, PARAM_INT);
 
         //AGRUPAMENTO DO RELATORIO
         $agrupar_relatorio = optional_param('agrupar_tutor_polo_select', null, PARAM_INT);
@@ -107,6 +110,8 @@ class Factory {
             case 2:
                 $this->agrupar_relatorios = AGRUPAR_COHORTS;
                 break;
+            case 3:
+                $this->agrupar_relatorios = AGRUPAR_ORIENTADORES;
             default:
                 $this->agrupar_relatorios = AGRUPAR_TUTORES;
                 break;
