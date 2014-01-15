@@ -17,7 +17,10 @@ function report_unasus_relatorios_validos_list() {
         'potenciais_evasoes',
         'tcc_portfolio',
         'tcc_portfolio_concluido',
-        'tcc_portfolio_entrega_atividades');
+        'tcc_portfolio_entrega_atividades',
+//        'tcc_tcc',
+        'tcc_entrega_atividades',
+        'tcc_concluido');
 }
 
 function report_unasus_relatorios_restritos_list() {

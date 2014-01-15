@@ -903,10 +903,10 @@ function get_dados_atividades_nota_atribuida() {
 
     $somatorio_total_atrasos = array();
     $atividades_alunos_grupos = get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
-    
+
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
-            
+
             foreach ($aluno as $atividade) {
                 /** @var report_unasus_data $atividade */
                 if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
@@ -954,11 +954,11 @@ function get_dados_atividades_nota_atribuida() {
                 $data[] = $atividades;
             }
         }
-        
+
         /* Coluna  N° Alunos com atividades concluídas */
         $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
         $data[] = new dado_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
-        
+
         $dados[] = $data;
         $somatorio_total_alunos_atividades_concluidas += $somatorioalunosgrupos;
         $somatorio_total_alunos += $total_alunos[$grupo_id];
@@ -1347,7 +1347,7 @@ function get_table_header_potenciais_evasoes() {
 function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
     /** @var $factory Factory */
     $factory = Factory::singleton();
-    
+
     $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
     $header = array();
 
@@ -1546,14 +1546,142 @@ function get_dados_tcc_portfolio_concluido() {
 }
 
 /**
+ * TCC:
+ *
+ * Relatorio atividades concluídas,
+ */
+function get_table_header_tcc_entrega_atividades() {
+    return get_table_header_tcc_portfolio_entrega_atividades(true);
+}
+
+function get_dados_tcc_entrega_atividades() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+
+    // Recupera dados auxiliares
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+
+    /*  associativo_atividades[modulo][id_aluno][atividade]
+     *
+     * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
+     */
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, true, null, false, true);
+
+    $dados = array();
+    foreach ($associativo_atividades as $grupo_id => $array_dados) {
+        $estudantes = array();
+
+        foreach ($array_dados as $id_aluno => $aluno) {
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+            foreach ($aluno as $atividade) {
+                /** @var report_unasus_data $atividade */
+                $atraso = null;
+
+                if ($atividade instanceof report_unasus_data_empty) {
+                    $lista_atividades[] = new dado_nao_aplicado();
+                    continue;
+                }
+
+                // Se a atividade não foi entregue
+                if ($atividade->has_submitted()) {
+
+                    switch ($atividade->status) {
+                        case 'draft':
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
+                            break;
+                        case 'revision':
+                        case 'sent_to_admin_for_revision':
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                            break;
+                        case 'evaluation':
+                        case 'sent_to_admin_for_evaluation':
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIACAO;
+                            break;
+                        case 'admin_evaluation_ok':
+                        case 'terminated':
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
+                            break;
+                        default:
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_ACESSADO;
+                            break;
+                    }
+                }else{
+                    // Atividade não acessada
+                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
+                }
+
+                $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, $atividade->source_activity->id, $atraso);
+            }
+            $estudantes[] = $lista_atividades;
+
+            $lista_atividades = null;
+        }
+        $dados[grupos_tutoria::grupo_orientacao_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
+    }
+    return ($dados);
+}
+
+function get_table_header_tcc_concluido() {
+    return get_table_header_tcc_portfolio_entrega_atividades(true);
+}
+
+function get_dados_tcc_concluido() {
+    /** @var $factory Factory */
+    $factory = Factory::singleton();
+
+    // Recupera dados auxiliares
+    $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+
+    /*  associativo_atividades[modulo][id_aluno][atividade]
+     *
+     * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
+     */
+
+    $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, true, null, false, true);
+
+    $dados = array();
+    foreach ($associativo_atividades as $grupo_id => $array_dados) {
+        $estudantes = array();
+
+        foreach ($array_dados as $id_aluno => $aluno) {
+            $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+            foreach ($aluno as $atividade) {
+                /** @var report_unasus_data $atividade */
+                $atraso = null;
+
+                if ($atividade instanceof report_unasus_data_empty) {
+                    $lista_atividades[] = new dado_nao_aplicado();
+                    continue;
+                }
+
+                // Se a atividade não foi entregue
+                if ($atividade->has_evaluated()) {
+                    // E não tem entrega prazo
+                    $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
+                } else {
+                    //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                    $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
+                }
+                $lista_atividades[] = new dado_tcc_concluido($tipo, $atividade->source_activity->id, $atraso);
+            }
+            $estudantes[] = $lista_atividades;
+            $lista_atividades = null;
+        }
+        $dados[grupos_tutoria::grupo_orientacao_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
+    }
+
+    return ($dados);
+}
+
+/**
  * Relatorio tcc portfolio entrega de atividades
  */
-function get_table_header_tcc_portfolio_entrega_atividades() {
+function get_table_header_tcc_portfolio_entrega_atividades($is_tcc = false) {
     /** @var $factory Factory */
     $factory = Factory::singleton();
 
     $group_array = new GroupArray();
-    process_header_atividades_lti($factory->get_modulos_ids(), $group_array);
+    process_header_atividades_lti($factory->get_modulos_ids(), $group_array, $is_tcc);
 
     $atividades_cursos = $group_array->get_assoc();
     $header = array();

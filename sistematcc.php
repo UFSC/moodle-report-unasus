@@ -71,6 +71,19 @@ class SistemaTccClient {
         return $object;
     }
 
+    public function get_report_data_tcc($user_ids) {
+
+        $params = array(
+            'consumer_key' => $this->consumer_key,
+            'user_ids' => $user_ids
+        );
+
+        $json = $this->post('/reportingservice_tcc', $params);
+        $object = json_decode($json);
+
+        return $object;
+    }
+
     /**
      * Realiza as requisições via POST
      *
