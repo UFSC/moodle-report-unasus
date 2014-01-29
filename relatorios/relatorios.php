@@ -1551,7 +1551,18 @@ function get_dados_tcc_portfolio_concluido() {
  * Relatorio atividades concluídas,
  */
 function get_table_header_tcc_entrega_atividades() {
-    return get_table_header_tcc_portfolio_entrega_atividades(true);
+    $header = get_table_header_tcc_portfolio_entrega_atividades(true);
+
+    foreach ($header as $key => $modulo) {
+        array_push($modulo, 'Resumo');
+        array_push($modulo, 'Introdução');
+        array_push($modulo, 'Considerações Finais');
+
+        $header[$key] = $modulo;
+    }
+
+    return $header;
+
 }
 
 function get_dados_tcc_entrega_atividades() {
@@ -1577,7 +1588,7 @@ function get_dados_tcc_entrega_atividades() {
                 /** @var report_unasus_data $atividade */
                 $atraso = null;
 
-                if ($atividade instanceof report_unasus_data_empty) {
+                if ($atividade instanceof report_unasus_data_empty){
                     $lista_atividades[] = new dado_nao_aplicado();
                     continue;
                 }
@@ -1612,12 +1623,37 @@ function get_dados_tcc_entrega_atividades() {
 
                 $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, $atividade->source_activity->id, $atraso);
             }
+
+            switch ($aluno[0]->status_abstract) {
+                case 'draft':
+                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
+                    break;
+                case 'revision':
+                case 'sent_to_admin_for_revision':
+                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                    break;
+                case 'evaluation':
+                case 'sent_to_admin_for_evaluation':
+                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIACAO;
+                    break;
+                case 'admin_evaluation_ok':
+                case 'terminated':
+                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
+                    break;
+                default:
+                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_ACESSADO;
+                    break;
+            }
+            $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, null, $atraso);
+
             $estudantes[] = $lista_atividades;
 
             $lista_atividades = null;
+
         }
         $dados[grupos_tutoria::grupo_orientacao_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
     }
+
     return ($dados);
 }
 

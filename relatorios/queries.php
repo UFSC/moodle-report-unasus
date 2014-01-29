@@ -765,6 +765,14 @@ class LtiPortfolioQuery {
                 $model->cohort = $estudante->cohort;
                 $model->polo = $estudante->polo;
 
+
+                if(isset($r->tcc->abstract->state))
+                    $model->status_abstract = $r->tcc->abstract->state;
+                else{
+                    //Resumo não acessado
+                    $model->status_abstract = null;
+                }
+
                 $output[] = $model;
             }
 

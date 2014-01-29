@@ -428,6 +428,7 @@ class report_unasus_data_quiz extends report_unasus_data {
 class report_unasus_data_lti extends report_unasus_data {
 
     public $status;
+    public $status_abstract;
     private static $submitted_status = array('sent_to_admin_for_revision', 'sent_to_admin_for_evaluation', 'admin_evaluation_ok', 'terminated', 'draft');
     private static $evaluated_status = array('admin_evaluation_ok', 'terminated');
 
@@ -443,6 +444,8 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->submission_date = $db_model->submission_date;
         $this->grade_date = $db_model->grade_date;
         $this->status = $db_model->status;
+
+        $this->status_abstract = $db_model->status_abstract;
     }
 
     public function has_submitted() {
