@@ -475,11 +475,6 @@ function query_lti_courses($courses, $is_tcc = false) {
             $object->grouping_id = $lti->grouping_id;
             $object->baseurl = $lti->baseurl;
 
-            $object->abstract = 'Resumo';
-
-/*            echo '<pre>';
-            die(print_r($object));*/
-
             array_push($lti_activities, $object);
         }
     }

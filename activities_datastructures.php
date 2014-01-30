@@ -429,6 +429,8 @@ class report_unasus_data_lti extends report_unasus_data {
 
     public $status;
     public $status_abstract;
+    public $status_presentation;
+    public $status_final_considerations;
     private static $submitted_status = array('sent_to_admin_for_revision', 'sent_to_admin_for_evaluation', 'admin_evaluation_ok', 'terminated', 'draft');
     private static $evaluated_status = array('admin_evaluation_ok', 'terminated');
 
@@ -446,6 +448,8 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->status = $db_model->status;
 
         $this->status_abstract = $db_model->status_abstract;
+        $this->status_presentation = $db_model->status_presentation;
+        $this->status_final_considerations = $db_model->status_final_considerations;
     }
 
     public function has_submitted() {

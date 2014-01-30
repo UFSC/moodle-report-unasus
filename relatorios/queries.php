@@ -729,10 +729,12 @@ class LtiPortfolioQuery {
             // Processando hubs encontrados
             foreach ($res as $hub) {
 
-                if($is_tcc)
+                $hub = ($is_tcc) ? $hub->hubs_tcc : $hub->hub;
+                
+              /*  if($is_tcc)
                     $hub = $hub->hubs_tcc;
                 else
-                    $hub = $hub->hub;
+                    $hub = $hub->hub;*/
 
                 // Só vamos processar o hub que corresponde a posição da atividade
                 if ($hub->position != $atividade->position) {
@@ -765,13 +767,9 @@ class LtiPortfolioQuery {
                 $model->cohort = $estudante->cohort;
                 $model->polo = $estudante->polo;
 
-
-                if(isset($r->tcc->abstract->state))
-                    $model->status_abstract = $r->tcc->abstract->state;
-                else{
-                    //Resumo não acessado
-                    $model->status_abstract = null;
-                }
+                $model->status_abstract = (isset($r->tcc->abstract->state)) ? $r->tcc->abstract->state : null;
+                $model->status_presentation = (isset($r->tcc->presentation->state)) ? $r->tcc->presentation->state : null;
+                $model->status_final_considerations = (isset($r->tcc->final_considerations->state)) ? $r->tcc->final_considerations->state : null;
 
                 $output[] = $model;
             }

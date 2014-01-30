@@ -1562,7 +1562,6 @@ function get_table_header_tcc_entrega_atividades() {
     }
 
     return $header;
-
 }
 
 function get_dados_tcc_entrega_atividades() {
@@ -1624,27 +1623,34 @@ function get_dados_tcc_entrega_atividades() {
                 $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, $atividade->source_activity->id, $atraso);
             }
 
-            switch ($aluno[0]->status_abstract) {
-                case 'draft':
-                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
-                    break;
-                case 'revision':
-                case 'sent_to_admin_for_revision':
-                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
-                    break;
-                case 'evaluation':
-                case 'sent_to_admin_for_evaluation':
-                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIACAO;
-                    break;
-                case 'admin_evaluation_ok':
-                case 'terminated':
-                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
-                    break;
-                default:
-                    $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_ACESSADO;
-                    break;
+            $state = $aluno[0]->status_abstract;
+
+            for($i=0; $i<=2; $i++){
+
+                switch ($state) {
+                    case 'draft':
+                        $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
+                        break;
+                    case 'revision':
+                    case 'sent_to_admin_for_revision':
+                        $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                        break;
+                    case 'evaluation':
+                    case 'sent_to_admin_for_evaluation':
+                        $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIACAO;
+                        break;
+                    case 'admin_evaluation_ok':
+                    case 'terminated':
+                        $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
+                        break;
+                    default:
+                        $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_ACESSADO;
+                        break;
+                }
+                $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, null, $atraso);
+
+                $state = ($i == 0) ? $aluno[0]->status_presentation : $aluno[0]->status_final_considerations;
             }
-            $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, null, $atraso);
 
             $estudantes[] = $lista_atividades;
 
