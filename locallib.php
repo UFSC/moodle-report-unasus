@@ -233,7 +233,8 @@ function get_tutores_menu($curso_ufsc) {
               JOIN {table_PessoasGruposTutoria} pg
                 ON (pg.matricula=u.username AND pg.tipo=:tipo)
               JOIN {table_GruposTutoria} gt
-                ON (gt.id=pg.grupo AND gt.curso=:curso_ufsc)";
+                ON (gt.id=pg.grupo AND gt.curso=:curso_ufsc)
+              ORDER BY u.firstname";
 
     $params = array('curso_ufsc' => $curso_ufsc, 'tipo' => GRUPO_TUTORIA_TIPO_TUTOR);
     return $middleware->get_records_sql_menu($sql, $params);
