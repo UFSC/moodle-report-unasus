@@ -730,11 +730,6 @@ class LtiPortfolioQuery {
             foreach ($res as $hub) {
 
                 $hub = ($is_tcc) ? $hub->hubs_tcc : $hub->hub;
-                
-              /*  if($is_tcc)
-                    $hub = $hub->hubs_tcc;
-                else
-                    $hub = $hub->hub;*/
 
                 // Só vamos processar o hub que corresponde a posição da atividade
                 if ($hub->position != $atividade->position) {

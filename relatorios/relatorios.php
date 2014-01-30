@@ -1664,7 +1664,17 @@ function get_dados_tcc_entrega_atividades() {
 }
 
 function get_table_header_tcc_concluido() {
-    return get_table_header_tcc_portfolio_entrega_atividades(true);
+    $header = get_table_header_tcc_portfolio_entrega_atividades(true);
+
+    foreach ($header as $key => $modulo) {
+        array_push($modulo, 'Resumo');
+        array_push($modulo, 'Introdução');
+        array_push($modulo, 'Considerações Finais');
+
+        $header[$key] = $modulo;
+    }
+
+    return $header;
 }
 
 function get_dados_tcc_concluido() {
@@ -1706,6 +1716,21 @@ function get_dados_tcc_concluido() {
                 }
                 $lista_atividades[] = new dado_tcc_concluido($tipo, $atividade->source_activity->id, $atraso);
             }
+
+            $chapter = 'abstract';
+
+            for($i=0; $i<=2; $i++){
+
+                if($aluno[0]->has_evaluated_chapters($chapter))
+                    $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
+                else
+                    $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
+
+                $lista_atividades[] = new dado_tcc_concluido($tipo, null, $atraso);
+
+                $chapter = ($i == 0) ? 'presentation' : 'final_considerations';
+            }
+
             $estudantes[] = $lista_atividades;
             $lista_atividades = null;
         }

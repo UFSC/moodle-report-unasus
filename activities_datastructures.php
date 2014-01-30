@@ -460,6 +460,19 @@ class report_unasus_data_lti extends report_unasus_data {
         return in_array($this->status, self::$evaluated_status);
     }
 
+    public function has_evaluated_chapters($chapter) {
+        switch ($chapter){
+            case 'abstract': $status = $this->status_abstract;
+                break;
+            case 'presentation': $status = $this->status_presentation;
+                break;
+            default: $status = $this->status_final_considerations;
+                break;
+        }
+
+        return in_array($status, self::$evaluated_status);
+    }
+
 }
 
 class report_unasus_final_grade {
