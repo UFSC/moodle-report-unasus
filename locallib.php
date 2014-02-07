@@ -68,8 +68,31 @@ function get_count_estudantes($curso_ufsc) {
            LEFT JOIN {table_PessoasGruposTutoria} pg
                   ON (gt.id=pg.grupo AND pg.tipo=:tipo_aluno)
                WHERE gt.curso=:curso_ufsc
-            GROUP BY gt.nome";
+            GROUP BY gt.nome
+            ORDER BY gt.id";
     $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
+
+    $result = $middleware->get_records_sql_menu($query, $params);
+
+    foreach ($result as $key => $value) {
+        $result[$key] = (int) $value;
+    }
+
+    return $result;
+}
+
+function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
+    $middleware = Middleware::singleton();
+
+    $query = "SELECT u.id, COUNT(DISTINCT ao.username_aluno)
+                      FROM {view_Alunos_Orientadores} ao
+                      JOIN {user} u
+                        ON (ao.username_orientador=u.username)
+                     WHERE u.id IN $ids_orientadores AND ao.curso = :curso_ufsc
+                  GROUP BY u.id
+                ";
+
+    $params = array('ids_orientadores' => $ids_orientadores, 'curso_ufsc' => $curso_ufsc);
 
     $result = $middleware->get_records_sql_menu($query, $params);
 

@@ -18,7 +18,7 @@ function report_unasus_relatorios_validos_list() {
         'tcc_portfolio',
         'tcc_portfolio_concluido',
         'tcc_portfolio_entrega_atividades',
-//        'tcc_tcc',
+        'tcc_consolidado',
         'tcc_entrega_atividades',
         'tcc_concluido');
 }

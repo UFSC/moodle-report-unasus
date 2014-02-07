@@ -645,40 +645,54 @@ class LtiPortfolioQuery {
     }
 
     /**
-     * Realiza a contagem de alunos para cada grupo de tutoria, e o total de alunos para cada atividade
-     * Função utilizada pelo relatório de Portfolio TCC consolidados
+     * Realiza a contagem de alunos para cada grupo de tutoria/orientacao, e o total de alunos para cada atividade
+     * Função utilizada pelo relatório de Portfolio e TCC consolidados
      *
      * @param $lista_atividades
      * @param $total_alunos
      * @param $atividade
      * @param $grupo_tutoria
      */
-    function count_lti_report(&$lista_atividades, &$total_alunos, &$atividade, $grupo_tutoria) {
+    function count_lti_report(&$lista_atividades, &$total_alunos, &$atividade, $grupo, $is_orientação = false) {
 
-        $result =& $this->query_report_data_by_grupo_tutoria($grupo_tutoria, $atividade);
-        $count_alunos_hub = array();
+        if($is_orientação){
+            $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
+        }else
+            $result =& $this->query_report_data_by_grupo_tutoria($grupo, $atividade);
+
+        $count_alunos = array();
 
         //Preencher total de alunos por grupo de tutoria
-        $total_alunos[$grupo_tutoria] = count($result);
+        $total_alunos[$grupo] = count($result);
 
         if (empty($result)) {
-            return; // grupo de tutoria sem membros cadastrados
+            return; // grupo sem membros cadastrados
         }
+        $is_tcc = false;
 
         foreach ($result as $r) {
+            //Verifica se é hub portfólio
+            if(!isset($r->tcc->hubs)){
+                $res = $r->tcc->hubs_tcc;
+                $is_tcc = true;
+            }else
+                $res = $r->tcc->hubs;
+
             // Processando hubs encontrados
-            foreach ($r->tcc->hubs as $hub) {
+            foreach ($res as $hub) {
+                $hub = ($is_tcc) ? $hub->hubs_tcc : $hub->hub;
+
                 // Inicializar
-                $position = $hub->hub->position;
-                if (!array_key_exists($position, $count_alunos_hub)) {
-                    $count_alunos_hub[$position] = 0;
+                $position = $hub->position;
+                if (!array_key_exists($position, $count_alunos)) {
+                    $count_alunos[$position] = 0;
                 }
-                $count_alunos_hub[$position]++;
+                $count_alunos[$position]++;
             }
         }
 
         // array_atividade[lti_id][hubposition]
-        foreach ($count_alunos_hub as $position => $count_hub) {
+        foreach ($count_alunos as $position => $count_hub) {
             $lista_atividades[$atividade->id][$position] = new dado_atividades_alunos($count_hub);
         }
     }
