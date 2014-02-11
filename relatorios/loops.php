@@ -230,12 +230,14 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
     $associativo_atividade = array();
     $lista_atividade = array();
+    $count = 0;
 
     // Listagem da atividades por tutor ou orientador
     if($is_orientacao){
         $ids_orientadores = '(';
         foreach($grupos as $grupo_or){
-            $ids_orientadores .= ($grupo_or->id != 3889) ? $grupo_or->id.','
+            $count++;
+            $ids_orientadores .= (count($grupos) != $count) ? $grupo_or->id.','
                                                          : $grupo_or->id;
         }
         $ids_orientadores .= ')';
