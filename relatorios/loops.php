@@ -351,7 +351,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                     }
 
                     if(isset($total_alunos[$grupo->id])){
-                        $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                        $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_alunos(0);
                     }
 
                     $result = ($is_orientacao) ? $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true)
@@ -382,18 +382,6 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                 $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total_alunos[$grupo->id], $count_atividades);
             }
         }
-
-/*        foreach ($array_das_atividades as $key => $modulo) {
-            if(isset($total_alunos[$grupo->id])){
-                array_push($modulo, new dado_atividades_alunos($total_alunos[$grupo->id]));
-                array_push($modulo, new dado_atividades_alunos($total_alunos[$grupo->id]));
-                array_push($modulo, new dado_atividades_alunos($total_alunos[$grupo->id]));
-                array_push($modulo, new dado_atividades_alunos($total_alunos[$grupo->id]));
-                array_push($modulo, new dado_atividades_alunos($total_alunos[$grupo->id]));
-            }
-
-            $array_das_atividades[$key] = $modulo;
-        }*/
 
         $lista_atividade[$grupo->id] = $array_das_atividades;
 

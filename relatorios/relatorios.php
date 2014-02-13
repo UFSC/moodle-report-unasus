@@ -1781,6 +1781,7 @@ function get_dados_tcc_consolidado() {
     $lista_atividade = $result_array['lista_atividade'];
     $associativo_atividade = $result_array['associativo_atividade'];
 
+
     /* Variaveis totais do relatorio */
     $total_nao_acessadas = new dado_somatorio_grupo();
     $total_tcc_completo = new dado_somatorio_grupo();
@@ -1789,15 +1790,13 @@ function get_dados_tcc_consolidado() {
     $total_presentation = new dado_somatorio_grupo();
     $total_final_considerations = new dado_somatorio_grupo();
 
-
-
     /* Loop nas atividades para calcular os somatorios para sintese */
     foreach ($associativo_atividade as $grupo_id => $array_dados) {
         foreach ($array_dados as $aluno) {
             $bool_atividades = array();
-//            $dado = new dado_atividades_alunos(0);
 
             foreach ($aluno as $dado_atividade) {
+
                 /** @var report_unasus_data_lti $dado_atividade */
                 $id = $dado_atividade->source_activity->id;
                 if (!array_key_exists($id, $bool_atividades)) {
@@ -1823,7 +1822,7 @@ function get_dados_tcc_consolidado() {
                         $dado =& $lista_atividade[$grupo_id][$id][$dado_atividade->source_activity->position];
                         $dado->incrementar();
                     }
-                } else {
+                } else { //não foi avaliada
                     /* Atividade nao completa entao tcc nao esta completo */
                     $bool_atividades[$id]['tcc_completo'] = false;
                 }
@@ -1832,7 +1831,6 @@ function get_dados_tcc_consolidado() {
                 if ($dado_atividade->status != 'new') {
                     $bool_atividades[$id]['nao_acessado'] = false;
                 }
-
             }
 
             $chapter = 'abstract';
@@ -1864,6 +1862,7 @@ function get_dados_tcc_consolidado() {
 
     foreach ($lista_atividade as $grupo_id => $grupo) {
         /* Coluna nome orientador */
+
         $data = array();
         $data[] = grupos_tutoria::grupo_orientacao_to_string($factory->get_curso_ufsc(), $grupo_id);
 
@@ -1893,6 +1892,7 @@ function get_dados_tcc_consolidado() {
                 }
             }
         }
+
         $dados[] = $data;
     }
     /* Linha total alunos com atividades concluidas  */
@@ -1908,8 +1908,6 @@ function get_dados_tcc_consolidado() {
 
     return $dados;
 }
-
-
 
 
 /**
