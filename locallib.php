@@ -68,8 +68,31 @@ function get_count_estudantes($curso_ufsc) {
            LEFT JOIN {table_PessoasGruposTutoria} pg
                   ON (gt.id=pg.grupo AND pg.tipo=:tipo_aluno)
                WHERE gt.curso=:curso_ufsc
-            GROUP BY gt.nome";
+            GROUP BY gt.nome
+            ORDER BY gt.id";
     $params = array('tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE, 'curso_ufsc' => $curso_ufsc);
+
+    $result = $middleware->get_records_sql_menu($query, $params);
+
+    foreach ($result as $key => $value) {
+        $result[$key] = (int) $value;
+    }
+
+    return $result;
+}
+
+function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
+    $middleware = Middleware::singleton();
+
+    $query = "SELECT u.id, COUNT(DISTINCT ao.username_aluno)
+                      FROM {view_Alunos_Orientadores} ao
+                      JOIN {user} u
+                        ON (ao.username_orientador=u.username)
+                     WHERE u.id IN $ids_orientadores AND ao.curso = :curso_ufsc
+                  GROUP BY u.id
+                ";
+
+    $params = array('ids_orientadores' => $ids_orientadores, 'curso_ufsc' => $curso_ufsc);
 
     $result = $middleware->get_records_sql_menu($query, $params);
 
@@ -233,7 +256,8 @@ function get_tutores_menu($curso_ufsc) {
               JOIN {table_PessoasGruposTutoria} pg
                 ON (pg.matricula=u.username AND pg.tipo=:tipo)
               JOIN {table_GruposTutoria} gt
-                ON (gt.id=pg.grupo AND gt.curso=:curso_ufsc)";
+                ON (gt.id=pg.grupo AND gt.curso=:curso_ufsc)
+              ORDER BY u.firstname";
 
     $params = array('curso_ufsc' => $curso_ufsc, 'tipo' => GRUPO_TUTORIA_TIPO_TUTOR);
     return $middleware->get_records_sql_menu($sql, $params);
@@ -474,6 +498,7 @@ function query_lti_courses($courses, $is_tcc = false) {
             $object->completionexpected = $lti->completionexpected;
             $object->grouping_id = $lti->grouping_id;
             $object->baseurl = $lti->baseurl;
+
             array_push($lti_activities, $object);
         }
     }

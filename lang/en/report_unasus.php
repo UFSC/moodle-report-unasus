@@ -29,8 +29,8 @@ $string['tcc_portfolio_concluido'] = 'Portfólio: Atividades concluídas';
 $string['tcc_portfolio_concluido_help'] = 'Listagem de estudantes com a situação de entrega de atividades (Concluído/Não concluído)';
 
 /* Relatórios TCC */
-$string['tcc_tcc'] = 'TCC: TCCs Consolidados';
-$string['tcc_tcc_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
+$string['tcc_consolidado'] = 'TCC: TCCs Consolidados';
+$string['tcc_consolidado_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
 
 $string['tcc_entrega_atividades'] = 'TCC: Entrega de Atividades';
 $string['tcc_entrega_atividades_help'] = 'Listagem de estudantes de acordo com estado de entrega de cada atividade';
