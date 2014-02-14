@@ -339,7 +339,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param Array $header
      * @return report_unasus_table
      */
-    public function table_tutores($dadostabela, $header) {
+    public function table_tutores($dadostabela, $header, $relatorio = '') {
         //criacao da tabela
         $table = new report_unasus_table();
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
@@ -347,7 +347,10 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $header_keys = array_keys($header);
         if (isset($header_keys[0]) && is_array($header[$header_keys[0]])) { // Double Header
-            $table->build_double_header($header, 'Tutores');
+            if($relatorio == 'tcc_consolidado')
+                $table->build_double_header($header, 'Orientadores');
+            else
+                $table->build_double_header($header, 'Tutores');
         } else {
             $table->build_single_header($header);
         }
@@ -438,7 +441,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @TODO esse metodo não necessita de uma legenda e usa uma tabela diferente
      * @return String
      */
-    public function page_atividades_nao_avaliadas() {
+    public function page_atividades_nao_avaliadas($relatorio = '') {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -457,7 +460,10 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = $factory->get_dados_relatorio();
         $header_method = $factory->get_table_header_relatorio();
 
-        $table = $this->table_tutores($dados_method, $header_method);
+        $table = ($relatorio == 'tcc_consolidado') ? $this->table_tutores($dados_method, $header_method, $relatorio)
+                                                   : $this->table_tutores($dados_method, $header_method);
+
+
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();

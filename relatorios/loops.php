@@ -17,12 +17,9 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
     /** @var $factory Factory */
     $factory = Factory::singleton();
 
-    if($is_orientacao){
-        $grupos = grupos_tutoria::get_grupos_orientacao($factory->get_curso_ufsc(), $factory->orientadores_selecionados);
-    }else {
-        // Recupera dados auxiliares
-        $grupos = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
-    }
+    $grupos = ($is_orientacao)
+              ?  grupos_tutoria::get_grupos_orientacao($factory->get_curso_ufsc(), $factory->orientadores_selecionados)
+              :  grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -152,10 +149,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
-                    if($is_orientacao)
-                        $result = $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true);
-                    else
-                        $result = $lti_query_object->get_report_data($atividade, $grupo->id);
+                    $result = ($is_orientacao) ? $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true)
+                                               : $lti_query_object->get_report_data($atividade, $grupo->id);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
@@ -213,14 +208,16 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, $loop = null) {
+function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, $loop = null, $is_orientacao = false) {
     $middleware = Middleware::singleton();
 
     /** @var $factory Factory */
     $factory = Factory::singleton();
 
     // Recupera dados auxiliares
-    $grupos_tutoria = grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
+    $grupos = ($is_orientacao)
+            ?  grupos_tutoria::get_grupos_orientacao($factory->get_curso_ufsc(), $factory->orientadores_selecionados)
+            :  grupos_tutoria::get_grupos_tutoria($factory->get_curso_ufsc(), $factory->tutores_selecionados);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -233,9 +230,23 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
     $associativo_atividade = array();
     $lista_atividade = array();
+    $count = 0;
 
-    // Listagem da atividades por tutor
-    $total_alunos = get_count_estudantes($factory->get_curso_ufsc());
+    // Listagem da atividades por tutor ou orientador
+    if($is_orientacao){
+        $ids_orientadores = '(';
+        foreach($grupos as $grupo_or){
+            $count++;
+            $ids_orientadores .= (count($grupos) != $count) ? $grupo_or->id.','
+                                                         : $grupo_or->id;
+        }
+        $ids_orientadores .= ')';
+
+        $total_alunos = get_count_estudantes_orientacao($ids_orientadores, $factory->get_curso_ufsc());
+    }else{
+        $total_alunos = get_count_estudantes($factory->get_curso_ufsc());
+    }
+
     $total_atividades = 0;
 
     foreach ($factory->modulos_selecionados as $atividades) {
@@ -243,7 +254,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
     }
 
     // Executa Consulta
-    foreach ($grupos_tutoria as $grupo) {
+    foreach ($grupos as $grupo) {
         $group_array_do_grupo = new GroupArray();
         $array_das_atividades = array();
 
@@ -339,12 +350,19 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                         $array_das_atividades[$atividade->id][$atividade->position] = array();
                     }
 
-                    $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    if(isset($total_alunos[$grupo->id])){
+                        $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_alunos(0);
+                    }
 
-                    $result = $lti_query_object->get_report_data($atividade, $grupo->id);
+                    $result = ($is_orientacao) ? $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true)
+                                               : $lti_query_object->get_report_data($atividade, $grupo->id);
 
-                    // $total_alunos = Calcula total por atividade LTI, $array_das_atividades = para cada grupo de tutoria preenche com 'dado_atividades_alunos'
-                    $lti_query_object->count_lti_report($array_das_atividades, $total_alunos, $atividade, $grupo->id);
+                    if($is_orientacao){
+                        $lti_query_object->count_lti_report($array_das_atividades, $total_alunos, $atividade, $grupo->username_orientador, $is_orientacao);
+                    }else{
+                        // $total_alunos = Calcula total por atividade LTI, $array_das_atividades = para cada grupo de tutoria preenche com 'dado_atividades_alunos'
+                        $lti_query_object->count_lti_report($array_das_atividades, $total_alunos, $atividade, $grupo->id);
+                    }
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
@@ -364,7 +382,9 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
                 $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total_alunos[$grupo->id], $count_atividades);
             }
         }
+
         $lista_atividade[$grupo->id] = $array_das_atividades;
+
         $associativo_atividade[$grupo->id] = $group_array_do_grupo->get_assoc();
     }
 
