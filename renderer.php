@@ -395,11 +395,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
         $table->tablealign = 'center';
 
-
         $table_title = get_string($this->report . "_table_header", 'report_unasus');
         $table->headspan = array(1, $header_size);
         $table->head = array('Estudante', $table_title);
-
 
         foreach ($dadostabela as $tutor => $alunos) {
 
@@ -441,7 +439,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @TODO esse metodo não necessita de uma legenda e usa uma tabela diferente
      * @return String
      */
-    public function page_atividades_nao_avaliadas($relatorio = '') {
+    public function page_atividades_nao_avaliadas($object) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -457,13 +455,10 @@ class report_unasus_renderer extends plugin_renderer_base {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $factory->get_dados_relatorio();
-        $header_method = $factory->get_table_header_relatorio();
+        $dados_method = $object->get_dados();
+        $header_method = $object->get_table_header();
 
-        $table = ($relatorio == 'tcc_consolidado') ? $this->table_tutores($dados_method, $header_method, $relatorio)
-                                                   : $this->table_tutores($dados_method, $header_method);
-
-
+        $table = $this->table_tutores($dados_method, $header_method);
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -472,10 +467,11 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
+     * e Estudantes sem Atividades Avaliada
      *
      * @return String
      */
-    public function page_todo_list() {
+    public function page_todo_list($object) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -492,7 +488,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $factory->get_dados_relatorio();
+        $dados_method = $object->get_dados();
         $dados_atividades = $dados_method;
 
         // Varre os dados em busca do estudante com maior numero de atividades não feitas
@@ -527,7 +523,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      *
      * @return String $output
      */
-    public function build_report() {
+    public function build_report($object) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -537,7 +533,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header();
         $output .= $this->build_filter();
 
+        //-----------------------------------------------------------------
+        //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
+
         $data_class = $factory->get_estrutura_dados_relatorio();
+
+        //-----------------------------------------------------------------
 
         $output .= html_writer::tag('div', $this->build_legend(call_user_func("{$data_class}::get_legend")), array('class' => 'relatorio-unasus right_legend'));
 
@@ -547,8 +548,8 @@ class report_unasus_renderer extends plugin_renderer_base {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $factory->get_dados_relatorio();
-        $header_method = $factory->get_table_header_relatorio();
+        $dados_method = $object->get_dados();
+        $header_method = $object->get_table_header();
         $table = $this->default_table($dados_method, $header_method);
 
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
@@ -566,7 +567,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param boolean $porcentagem
      * @return String
      */
-    public function build_graph($porcentagem = false) {
+    public function build_graph($object, $porcentagem = false) {
         global $PAGE, $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -588,8 +589,13 @@ class report_unasus_renderer extends plugin_renderer_base {
             return $output;
         }
 
-        $dados_method = $factory->get_dados_grafico_relatorio();
+        $dados_method = $object->get_dados_grafico();
+        //-----------------------------------------------------------------
+        //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
+
         $dados_class = $factory->get_estrutura_dados_relatorio();
+
+        //-----------------------------------------------------------------
 
         $legend = call_user_func("$dados_class::get_legend");
 

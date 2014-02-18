@@ -36,6 +36,19 @@ require_once($CFG->dirroot . '/report/unasus/lib.php'); // biblioteca global
 require_once($CFG->dirroot . '/report/unasus/factory.php'); // fabrica de relatorios
 require_once($CFG->dirroot . '/report/unasus/sistematcc.php'); // client ws sistema de tcc
 
+require_once('reports/report_estudante_sem_atividade_postada.php');
+require_once('reports/report_estudante_sem_atividade_avaliada.php');
+require_once('reports/report_atividades_vs_notas.php');
+require_once('reports/report_entrega_de_atividades.php');
+require_once('reports/report_boletim.php');
+require_once('reports/report_atividades_nota_atribuida.php');
+require_once('reports/report_atividades_nao_avaliadas.php');
+require_once('reports/report_potenciais_evasoes.php');
+require_once('reports/report_acesso_tutor.php');
+require_once('reports/report_uso_sistema_tutor.php');
+require_once('reports/report_tcc_concluido.php');
+
+
 /** @var $factory Factory */
 $factory = Factory::singleton();
 
@@ -55,10 +68,8 @@ $PAGE->set_url('/report/unasus/index.php', $factory->get_page_params());
 $PAGE->set_pagelayout('report');
 $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
 
-
 /** @var $renderer report_unasus_renderer */
 $renderer = $PAGE->get_renderer('report_unasus');
-
 
 if ($factory->get_relatorio() != null) {
 
@@ -69,12 +80,12 @@ if ($factory->get_relatorio() != null) {
         'tcc_entrega_atividades', 'tcc_consolidado', 'tcc_concluido');
 
     // Configurações de exibição dos relatórios
-    switch ($factory->get_relatorio()) {
-        case 'atividades_nao_avaliadas':
-        case 'estudante_sem_atividade_postada':
-        case 'estudante_sem_atividade_avaliada':
-        case 'atividades_nota_atribuida':
-        case 'potenciais_evasoes':
+/*    switch ($factory->get_relatorio()) {
+//        case 'atividades_nao_avaliadas':
+//        case 'estudante_sem_atividade_postada':
+//        case 'estudante_sem_atividade_avaliada':
+//        case 'atividades_nota_atribuida':
+//        case 'potenciais_evasoes':
         case 'tcc_portfolio':
         case 'tcc_portfolio_concluido':
         case 'tcc_portfolio_entrega_atividades':
@@ -100,47 +111,119 @@ if ($factory->get_relatorio() != null) {
             break;
         default:
             break;
-    }
+    }*/
 
     //
     // Renderiza os relatórios
     //
 
+    $report = $factory->get_page_params()['relatorio'];
+    $modo_exibicao = $factory->get_modo_exibicao();
+
+    if (in_array($report, report_unasus_relatorios_validos_list())){
+        $report = 'report_' . $report;
+        $report = new $report();
+        $report->initialize($factory);
+
+        //Primeiro acesso ao relatório
+        if($modo_exibicao == null){
+            echo $report->render_report_default($renderer);
+        }
+
+        if($modo_exibicao === 'tabela'){
+            $report->render_report_table($renderer, $report, $factory);
+
+        } elseif ($modo_exibicao === 'grafico_valores' ||
+                  $modo_exibicao === 'grafico_porcentagens' ||
+                  $modo_exibicao === 'grafico_pontos'){
+
+            $porcentagem = ($modo_exibicao === 'grafico_porcentagens');
+
+            $report->render_report_graph($renderer, $report, $porcentagem, $factory);
+        }
+/*             switch ($factory->get_relatorio()) {
+
+                // - relatório desativado segundo o ticket #4460 case 'historico_atribuicao_notas':
+              case 'atividades_vs_notas':
+                case 'entrega_de_atividades':
+                case 'boletim':
+                    echo $renderer->build_graph($porcentagem);
+                    break;
+                case 'uso_sistema_tutor' :
+                    $factory->mostrar_botoes_grafico = false;
+                    $factory->mostrar_botoes_dot_chart = true;
+                    $factory->mostrar_filtro_polos = false;
+                    $factory->mostrar_filtro_modulos = false;
+                    $factory->mostrar_filtro_intervalo_tempo = true;
+                    //As strings informadas sao datas validas?
+                    if ($factory->datas_validas()) {
+                        echo $renderer->build_dot_graph();
+                        break;
+                    }
+                    $factory->mostrar_aviso_intervalo_tempo = true;
+                    echo $renderer->build_page();
+                    break;
+
+                default:
+                    print_error('unknow_report', 'report_unasus');
+                    break;
+            }*/
+        }
+        print_error('unknow_report', 'report_unasus');
+    }
+
+
     // Somente barra de filtragem, ou seja, tela inicial do relatório
-    if ($factory->get_modo_exibicao() == null) {
+    /*if ($factory->get_modo_exibicao() == null) {
         if (in_array($factory->get_relatorio(), $relatorios_disponiveis)) {
             echo $renderer->build_page();
         } else {
             print_error('unknow_report', 'report_unasus');
         }
-
     } elseif ($factory->get_modo_exibicao() === 'tabela') {
         $factory->mostrar_barra_filtragem = false;
 
         // Construção da tabela de dados
-        switch ($factory->get_relatorio()) {
+
+        $report = $factory->get_page_params()['relatorio'];
+
+        if (in_array($report, report_unasus_relatorios_validos_list())){
+            $report = 'report_' . $report;
+
+            $report = new $report($factory);
+            $report->initialize();
+            $report->render_report($renderer, $report);
+        }
+
+/*        switch ($factory->get_relatorio()) {
 
             // - relatório desativado segundo o ticket #4460  case 'historico_atribuicao_notas':
-            case 'atividades_vs_notas':
-            case 'entrega_de_atividades':
-            case 'boletim':
+            case 'atividades_vs_notas': OK!
+            case 'entrega_de_atividades': OK!
+            case 'boletim': OK!
             case 'tcc_portfolio_concluido':
             case 'tcc_portfolio_entrega_atividades':
             case 'tcc_concluido':
             case 'tcc_entrega_atividades':
                 echo $renderer->build_report();
                 break;
-            case 'atividades_nota_atribuida':
-            case 'atividades_nao_avaliadas':
+            case 'atividades_nota_atribuida': OK!
+            case 'atividades_nao_avaliadas': OK!
             case 'tcc_portfolio':
             case 'tcc_consolidado':
                 echo $renderer->page_atividades_nao_avaliadas($factory->get_relatorio());
                 break;
-            case 'estudante_sem_atividade_postada':
-            case 'estudante_sem_atividade_avaliada':
+            //TESTE REFATORAÇÃO
+            case 'estudante_sem_atividade_postada': OK!
+                $estudante_sem_atividade_postada = new report_estudante_sem_atividade_postada;
+                $estudante_sem_atividade_postada->initialize();
+                $estudante_sem_atividade_postada->render_report($renderer, $estudante_sem_atividade_postada);
+                break;
+            //---------------------------------------
+            case 'estudante_sem_atividade_avaliada': OK!
                 echo $renderer->page_todo_list();
                 break;
-            case 'potenciais_evasoes':
+            case 'potenciais_evasoes': OK!
                 $factory->texto_cabecalho = 'Tutores';
                 echo $renderer->build_report();
                 break;
@@ -171,42 +254,6 @@ if ($factory->get_relatorio() != null) {
                 print_error('unknow_report', 'report_unasus');
                 break;
         }
-    } elseif ($factory->get_modo_exibicao() === 'grafico_valores' ||
-              $factory->get_modo_exibicao() === 'grafico_porcentagens' ||
-              $factory->get_modo_exibicao() === 'grafico_pontos') {
+    } elseif */
 
-        // Construção dos gráficos
-        $factory->mostrar_barra_filtragem = false;
-
-        $porcentagem = ($factory->get_modo_exibicao() === 'grafico_porcentagens');
-
-        switch ($factory->get_relatorio()) {
-
-            // - relatório desativado segundo o ticket #4460 case 'historico_atribuicao_notas':
-            case 'atividades_vs_notas':
-            case 'entrega_de_atividades':
-            case 'boletim':
-                echo $renderer->build_graph($porcentagem);
-                break;
-            case 'uso_sistema_tutor' :
-                $factory->mostrar_botoes_grafico = false;
-                $factory->mostrar_botoes_dot_chart = true;
-                $factory->mostrar_filtro_polos = false;
-                $factory->mostrar_filtro_modulos = false;
-                $factory->mostrar_filtro_intervalo_tempo = true;
-                //As strings informadas sao datas validas?
-                if ($factory->datas_validas()) {
-                    echo $renderer->build_dot_graph();
-                    break;
-                }
-                $factory->mostrar_aviso_intervalo_tempo = true;
-                echo $renderer->build_page();
-                break;
-
-            default:
-                print_error('unknow_report', 'report_unasus');
-                break;
-        }
-    }
-}
 

@@ -43,13 +43,16 @@ class Factory {
     protected $modo_exibicao;
 
     // Atributos para construir tela de filtros
-    public $mostrar_barra_filtragem;
+    public $mostrar_barra_filtragem; //mostrar ou esconder filtro
     public $mostrar_botoes_grafico;
     public $mostrar_botoes_dot_chart;
     public $mostrar_filtro_polos;
     public $mostrar_filtro_modulos;
     public $mostrar_filtro_intervalo_tempo;
     public $mostrar_aviso_intervalo_tempo;
+
+    public $mostrar_filtro_cohorts;
+
 
     // Armazenamento de valores definidos nos filtros
     public $cohorts_selecionados;
@@ -70,21 +73,25 @@ class Factory {
     private static $instance;
 
     // Setar os valores defaults para os relatórios e filtros
-    private function __construct() {
+
+    //ATENÇÃO! TROCADO DE 'private' para 'protected' para que possa ser acessado através dos objetos dos relatórios que a estendem
+    protected function __construct() {
         //Atributos globais
         $this->curso_ufsc = get_curso_ufsc_id();
         $this->curso_moodle = get_course_id();
         $this->cursos_ativos = get_cursos_ativos_list();
 
+        //Option: Put all filters in each one
+
         //Atributos para os filtros
-        $this->mostrar_barra_filtragem = true;
-        $this->mostrar_botoes_grafico = true;
-        $this->mostrar_botoes_dot_chart = false;
-        $this->mostrar_filtro_polos = true;
-        $this->mostrar_filtro_cohorts = true;
-        $this->mostrar_filtro_modulos = true;
-        $this->mostrar_filtro_intervalo_tempo = false;
-        $this->mostrar_aviso_intervalo_tempo = false;
+//        $this->mostrar_barra_filtragem = true;
+//        $this->mostrar_botoes_grafico = true;
+//        $this->mostrar_botoes_dot_chart = false;
+//        $this->mostrar_filtro_polos = true;
+//        $this->mostrar_filtro_cohorts = true;
+//        $this->mostrar_filtro_modulos = true;
+//        $this->mostrar_filtro_intervalo_tempo = false;
+//        $this->mostrar_aviso_intervalo_tempo = false;
 
         //Atributos para os gráficos
         //Por default os módulos selecionados são os módulos que o curso escolhido possui
@@ -132,7 +139,8 @@ class Factory {
         // Verifica se é um modo de exibicao valido
         $this->set_modo_exibicao(optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT));
     }
-    
+
+
     
     /**
      * Fabrica um objeto com as definições dos relatórios que também é um singleton
@@ -141,12 +149,14 @@ class Factory {
      * @return Factory
      * @throws Exception
      */
+
+    //INSERIR INITIALIZE NESTE PONTO PARA USAR O SINGLETON DE UMA MANEIRA EFICIENTE
     public static function singleton_report() {
         global $CFG;
         
         $report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
         $valid_reports = report_unasus_relatorios_validos_list();
-        
+
         // Verifica se é um relatório válido
         if (!in_array($report, $valid_reports)) {
             print_error('unknow_report', 'report_unasus');
