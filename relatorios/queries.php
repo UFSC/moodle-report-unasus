@@ -51,7 +51,7 @@ function query_alunos_grupo_tutoria() {
                 ON (pg.matricula=u.username)
               JOIN {table_GruposTutoria} gt
                 ON (gt.id=pg.grupo)
-              JOIN {Geral_Alunos_Ativos} vga
+              JOIN {view_Alunos} vga
                 ON (vga.matricula = u.username {$query_polo})
                    {$query_cohort}
              WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
