@@ -118,7 +118,6 @@ class report_atividades_nota_atribuida extends Factory {
     }
 
     public function get_table_header(){
-        //REVER ESTA CHAMADA DE FUNÇÃO
         $header = get_table_header_modulos_atividades(false, true);
         $header[''] = array(get_string('column_aluno_atividade_concluida', 'report_unasus'));
         return $header;

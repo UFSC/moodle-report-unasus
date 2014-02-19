@@ -150,7 +150,6 @@ class report_uso_sistema_tutor extends Factory {
             $dados_grafico[$tutor[0]->get_name()] = $dados_tutor;
         }
 
-
         return $dados_grafico;
     }
 

@@ -5,7 +5,6 @@ class report_acesso_tutor extends Factory {
     public function __construct() {
     }
 
-    //AJUSTAR PARA USAR HERANÇA, não parâmetro
     public function initialize($factory, $filtro = true, $aviso = false) {
         $factory->mostrar_barra_filtragem = $filtro;
         $factory->mostrar_botoes_grafico = false;

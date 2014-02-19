@@ -81,18 +81,6 @@ class Factory {
         $this->curso_moodle = get_course_id();
         $this->cursos_ativos = get_cursos_ativos_list();
 
-        //Option: Put all filters in each one
-
-        //Atributos para os filtros
-//        $this->mostrar_barra_filtragem = true;
-//        $this->mostrar_botoes_grafico = true;
-//        $this->mostrar_botoes_dot_chart = false;
-//        $this->mostrar_filtro_polos = true;
-//        $this->mostrar_filtro_cohorts = true;
-//        $this->mostrar_filtro_modulos = true;
-//        $this->mostrar_filtro_intervalo_tempo = false;
-//        $this->mostrar_aviso_intervalo_tempo = false;
-
         //Atributos para os gráficos
         //Por default os módulos selecionados são os módulos que o curso escolhido possui
         $this->texto_cabecalho = 'Estudantes';
@@ -140,8 +128,6 @@ class Factory {
         $this->set_modo_exibicao(optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT));
     }
 
-
-    
     /**
      * Fabrica um objeto com as definições dos relatórios que também é um singleton
      * 
@@ -150,10 +136,9 @@ class Factory {
      * @throws Exception
      */
 
-    //INSERIR INITIALIZE NESTE PONTO PARA USAR O SINGLETON DE UMA MANEIRA EFICIENTE
     public static function singleton_report() {
         global $CFG;
-        
+
         $report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
         $valid_reports = report_unasus_relatorios_validos_list();
 
@@ -162,20 +147,20 @@ class Factory {
             print_error('unknow_report', 'report_unasus');
             return false;
         }
-        
+
         $class_name = "report_{$report}";
-    
+
         // carrega arquivo de definição do relatório
         require_once $CFG->dirroot . "/report/unasus/reports/{$class_name}.php";
-        
+
         if (!class_exists($class_name)) {
             throw new Exception('Missing format class.');
         }
-        
+
         if (!isset($class_name::$instace)) {
             $class_name::$instance = new $class_name;
         }
-        
+
         return $class_name::$instance;
     }
 

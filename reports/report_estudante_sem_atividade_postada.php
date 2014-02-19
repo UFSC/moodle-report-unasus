@@ -18,7 +18,6 @@ class report_estudante_sem_atividade_postada extends Factory {
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
-        die();
     }
 
     public function render_report_table($renderer, $object, $factory = null) {

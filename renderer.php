@@ -481,7 +481,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header();
         $output .= $this->build_filter();
 
-
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
         if (has_capability('report/unasus:view_tutoria', $factory->get_context()) && !has_capability('report/unasus:view_all', $factory->get_context())) {

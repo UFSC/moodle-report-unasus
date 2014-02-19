@@ -150,7 +150,6 @@ class report_boletim extends Factory {
         return $dados;
     }
 
-    //ARRUMAR PASSAGEM DE PARAMETRO, '$mostrar_nota_final = true'
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false){
         /** @var $factory Factory */
         $factory = Factory::singleton();
