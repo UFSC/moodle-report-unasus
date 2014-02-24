@@ -14,12 +14,18 @@ class report_acesso_tutor extends Factory {
         $factory->mostrar_filtro_modulos = false;
         $factory->mostrar_filtro_intervalo_tempo = true;
         $factory->mostrar_aviso_intervalo_tempo = $aviso;
+        $factory->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
     }
 
+    /**
+     * @param $renderer report_unasus_renderer
+     * @param $object
+     * @param $factory
+     */
     public function render_report_table($renderer, $object, $factory) {
         if ($factory->datas_validas()) {
             $factory->texto_cabecalho = 'Tutores';
@@ -29,6 +35,52 @@ class report_acesso_tutor extends Factory {
         $this->initialize($factory, false, true);
         echo $renderer->build_page();
     }
+
+    public function render_report_csv($name_report) {
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
+        readfile('php://output');
+
+        $dados = $this->get_dados();
+        $header = $this->get_table_header();
+
+        $fp = fopen('php://output', 'w');
+
+        $data_header = array('Tutores');
+        $first_line = array('');
+
+        $months = array_map("Factory::eliminate_html", array_keys($header));
+        $count = 0;
+
+        foreach($header as $h){
+            $n = count($h);
+            $first_line[] = $months[$count];
+
+            for($i=0;$i<$n; $i++ ){
+                if(isset($h[$i])){
+                    $element = $h[$i];
+                    $data_header[] = $element;
+                }
+                if($i < $n-1){
+                    $first_line[] = '';
+                }
+            }
+            $count++;
+        }
+
+        fputcsv($fp, $first_line);
+        fputcsv($fp, $data_header);
+
+        foreach($dados as $dat){
+            foreach($dat as $d){
+                $output = array_map("Factory::eliminate_html", $d);
+                fputcsv($fp, $output);
+            }
+        }
+        fclose($fp);
+    }
+
 
     public function get_dados() {
         /** @var $factory Factory */

@@ -14,6 +14,7 @@ class report_estudante_sem_atividade_postada extends Factory {
         $factory->mostrar_filtro_modulos = true;
         $factory->mostrar_filtro_intervalo_tempo = false;
         $factory->mostrar_aviso_intervalo_tempo = false;
+        $factory->mostrar_botao_exportar_csv = false;
     }
 
     public function render_report_default($renderer){

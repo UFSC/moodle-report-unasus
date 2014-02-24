@@ -69,6 +69,7 @@ if ($factory->get_relatorio() != null) {
 
     $report = $factory->get_page_params()['relatorio'];
     $modo_exibicao = $factory->get_modo_exibicao();
+    $name_report = $report;
 
     if (in_array($report, report_unasus_relatorios_validos_list())){
         $report = 'report_' . $report;
@@ -94,6 +95,25 @@ if ($factory->get_relatorio() != null) {
             $porcentagem = ($modo_exibicao === 'grafico_porcentagens');
 
             $report->render_report_graph($renderer, $report, $porcentagem, $factory);
+        } elseif ($modo_exibicao === 'export_csv'){
+
+            switch($name_report){
+                case 'atividades_nao_avaliadas':
+                    $name_report = 'avaliações_em_atraso';
+                    break;
+                case 'atividades_nota_atribuida':
+                    $name_report = 'atividades_concluidas';
+                    break;
+                case 'atividades_vs_notas':
+                    $name_report = 'atribuição_de_notas';
+                    break;
+                case 'tcc_portfolio':
+                    $name_report = 'portfolios_consolidados';
+                    break;
+                default: //Caso do 'Boletim', 'Acesso Tutor', 'Uso sistema tutor' e 'Potenciais Evasões' que já vem com o nome correto
+                    break;
+            }
+            $report->render_report_csv($name_report);
         }
     }
 }

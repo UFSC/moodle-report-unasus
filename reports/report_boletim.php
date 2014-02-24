@@ -14,6 +14,7 @@ class report_boletim extends Factory {
         $factory->mostrar_filtro_modulos = true;
         $factory->mostrar_filtro_intervalo_tempo = false;
         $factory->mostrar_aviso_intervalo_tempo = false;
+        $factory->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
@@ -29,6 +30,65 @@ class report_boletim extends Factory {
         $this->initialize($factory, false);
         echo $renderer->build_graph($object, $porcentagem);
     }
+
+    public function render_report_csv($name_report) {
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
+        readfile('php://output');
+
+        $dados = $this->get_dados();
+        $header = $this->get_table_header();
+
+        $fp = fopen('php://output', 'w');
+
+        $data_header = array('Estudante');
+        $first_line = array('');
+        $tutor_name = array();
+
+        foreach($header as $h){
+            if(isset($h[0]->course_name)){
+                $course_name = $h[0]->course_name;
+                $first_line[] = $course_name;
+            }
+            $n = count($h);
+            for($i=0;$i < $n; $i++ ){
+                if(isset($h[$i]->name)){
+                    $element = $h[$i]->name;
+                    $data_header[] = $element;
+                }
+                //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
+                if($i<$n-1){
+                    $first_line[] = '';
+                } else
+                    continue;
+            }
+        }
+        $data_header[] = 'Média Final';
+
+        fputcsv($fp, $first_line);
+        fputcsv($fp, $data_header);
+
+        $name = array_map("Factory::eliminate_html", array_keys($dados));
+        $count = 0;
+        $n = count($name);
+
+        foreach($dados as $dat){
+            if($count < $n){
+                file_put_contents('php://output', $name[$count]);
+                fputcsv($fp, $tutor_name);
+            }
+
+            foreach($dat as $d){
+                $output = array_map("Factory::eliminate_html", $d);
+                fputcsv($fp, $output);
+            }
+
+            $count++;
+        }
+        fclose($fp);
+    }
+
 
     public function get_dados_grafico(){
         /** @var $factory Factory */

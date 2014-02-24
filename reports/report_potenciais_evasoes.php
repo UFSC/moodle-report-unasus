@@ -14,6 +14,7 @@ class report_potenciais_evasoes extends Factory {
         $factory->mostrar_filtro_modulos = true;
         $factory->mostrar_filtro_intervalo_tempo = false;
         $factory->mostrar_aviso_intervalo_tempo = false;
+        $factory->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
@@ -25,6 +26,45 @@ class report_potenciais_evasoes extends Factory {
         $factory->texto_cabecalho = 'Tutores';
         echo $renderer->build_report($object);
     }
+
+    public function render_report_csv($name_report) {
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
+        readfile('php://output');
+
+        $dados = $this->get_dados();
+        $header = $this->get_table_header();
+
+        $fp = fopen('php://output', 'w');
+
+        $tutor_name = array('');
+        $n = count($header);
+
+        for($i=0; $i<$n; $i++){
+            $data_header[] = strip_tags($header[$i]);
+        }
+
+        fputcsv($fp, $data_header);
+
+        $name = array_map("Factory::eliminate_html", array_keys($dados));
+        $count = 0;
+        $n = count($name);
+
+        foreach($dados as $dat){
+            if($count < $n){
+                file_put_contents('php://output', $name[$count]);
+                fputcsv($fp, $tutor_name);
+            }
+            foreach($dat as $d){
+                    $output = array_map("Factory::eliminate_html", $d);
+                    fputcsv($fp, $output);
+            }
+            $count++;
+        }
+        fclose($fp);
+    }
+
 
     public function get_dados(){
         global $CFG;

@@ -233,6 +233,12 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'radio'));
         }
 
+        if($factory->mostrar_botao_exportar_csv){
+            // Exportar para CSV
+            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'export_csv', 'id' => 'radio_csv'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/csv_icon.png\">Exportar para CSV", 'radio_csv', true, array('class' => 'radio'));
+        }
+
         $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
 
         $output .= html_writer::end_tag('div');
@@ -439,7 +445,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @TODO esse metodo não necessita de uma legenda e usa uma tabela diferente
      * @return String
      */
-    public function page_atividades_nao_avaliadas($object) {
+    public function page_atividades_nao_avaliadas($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -455,8 +461,8 @@ class report_unasus_renderer extends plugin_renderer_base {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $object->get_dados();
-        $header_method = $object->get_table_header();
+        $dados_method = $report->get_dados();
+        $header_method = $report->get_table_header();
 
         $table = $this->table_tutores($dados_method, $header_method);
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
@@ -471,7 +477,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      *
      * @return String
      */
-    public function page_todo_list($object) {
+    public function page_todo_list($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -487,7 +493,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $object->get_dados();
+        $dados_method = $report->get_dados();
         $dados_atividades = $dados_method;
 
         // Varre os dados em busca do estudante com maior numero de atividades não feitas

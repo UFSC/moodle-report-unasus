@@ -14,15 +14,83 @@ class report_atividades_nota_atribuida extends Factory {
         $factory->mostrar_filtro_modulos = true;
         $factory->mostrar_filtro_intervalo_tempo = false;
         $factory->mostrar_aviso_intervalo_tempo = false;
+        $factory->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
     }
 
+    /**
+     * @param $renderer report_unasus_renderer
+     * @param $object
+     * @param null $factory
+     */
     public function render_report_table($renderer, $object, $factory = null) {
         $this->initialize($factory, false);
         echo $renderer->page_atividades_nao_avaliadas($object);
+    }
+
+    public function render_report_csv($name_report) {
+
+        switch($name_report){
+            case 'atividades_nao_avaliadas':
+                $name_report = 'avaliações_em_atraso';
+                break;
+            case 'atividades_nota_atribuida':
+                $name_report = 'atividades_concluidas';
+                break;
+            case 'atividades_vs_notas':
+                $name_report = 'atribuição_de_notas';
+                break;
+            default: //Caso do 'Boletim', 'Acesso Tutor', 'Uso sistema tutor' e 'Potenciais Evasões' que já vem com o nome correto
+                break;
+        }
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
+        readfile('php://output');
+
+        $dados = $this->get_dados();
+        $header = $this->get_table_header();
+
+        $fp = fopen('php://output', 'w');
+
+        $data_header = array('Tutores');
+        $first_line = array('');
+
+        foreach($header as $h){
+            if(isset($h[0]->course_name)){
+                $course_name = $h[0]->course_name;
+                $first_line[] = $course_name;
+            }
+            $n = count($h);
+            for($i=0;$i < $n; $i++ ){
+                if(isset($h[$i]->name)){
+                    $element = $h[$i]->name;
+                    $data_header[] = $element;
+                }
+                //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
+                if($i<$n-1){
+                    $first_line[] = '';
+                } else
+                    continue;
+
+                if($i == $n-2){
+                    $data_header[] = 'Atividades Concluídas';
+                }
+            }
+        }
+        $data_header[] = 'N° Alunos com atividades concluídas';
+
+        fputcsv($fp, $first_line);
+        fputcsv($fp, $data_header);
+
+        foreach($dados as $d){
+            $output = array_map("Factory::eliminate_html", $d);
+            fputcsv($fp, $output);
+        }
+        fclose($fp);
     }
 
     public function get_dados(){

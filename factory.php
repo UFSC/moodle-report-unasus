@@ -52,7 +52,7 @@ class Factory {
     public $mostrar_aviso_intervalo_tempo;
 
     public $mostrar_filtro_cohorts;
-
+    public $mostrar_botao_exportar_csv;
 
     // Armazenamento de valores definidos nos filtros
     public $cohorts_selecionados;
@@ -277,7 +277,7 @@ class Factory {
      * @param string $modo_exibicao tipo de relatorio a ser exibido
      */
     public function set_modo_exibicao($modo_exibicao) {
-        $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_pontos');
+        $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_pontos', 'export_csv');
         if (in_array($modo_exibicao, $options)) {
             $this->modo_exibicao = $modo_exibicao;
         } else {
@@ -332,5 +332,9 @@ class Factory {
      */
     public function is_member_of($grouping_id, $course_id, $user_id) {
         return isset($this->agrupamentos_membros[$grouping_id][$course_id][$user_id]);
+    }
+
+    static function eliminate_html ($data){
+        return strip_tags($data);
     }
 }

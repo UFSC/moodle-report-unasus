@@ -14,6 +14,7 @@ class report_estudante_sem_atividade_avaliada extends Factory {
         $factory->mostrar_filtro_modulos = true;
         $factory->mostrar_filtro_intervalo_tempo = false;
         $factory->mostrar_aviso_intervalo_tempo = false;
+        $factory->mostrar_botao_exportar_csv = false;
     }
 
     public function render_report_default($renderer){
@@ -21,6 +22,16 @@ class report_estudante_sem_atividade_avaliada extends Factory {
     }
 
     public function render_report_table($renderer, $object, $factory = null) {
+        $this->initialize($factory, false);
+        echo $renderer->page_todo_list($object);
+    }
+
+    /**
+     * @param $renderer report_unasus_renderer
+     * @param $object
+     * @param null $factory
+     */
+    public function render_report_csv($renderer, $object, $factory = null) {
         $this->initialize($factory, false);
         echo $renderer->page_todo_list($object);
     }
