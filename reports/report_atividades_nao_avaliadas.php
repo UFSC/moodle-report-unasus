@@ -3,6 +3,7 @@
 class report_atividades_nao_avaliadas extends Factory {
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true) {
@@ -15,7 +16,6 @@ class report_atividades_nao_avaliadas extends Factory {
         $factory->mostrar_filtro_intervalo_tempo = false;
         $factory->mostrar_aviso_intervalo_tempo = false;
         $factory->mostrar_botao_exportar_csv = true;
-
     }
 
     public function render_report_default($renderer){
@@ -75,9 +75,6 @@ class report_atividades_nao_avaliadas extends Factory {
     }
 
     public function get_dados() {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         // Consulta
         $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
@@ -128,7 +125,7 @@ class report_atividades_nao_avaliadas extends Factory {
         $dados = array();
         foreach ($lista_atividade as $grupo_id => $grupo) {
             $data = array();
-            $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
+            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id);
             foreach ($grupo as $atividades) {
                 if (is_array($atividades)) {
                     foreach ($atividades as $atividade) {
@@ -147,7 +144,7 @@ class report_atividades_nao_avaliadas extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $header = get_table_header_modulos_atividades($mostrar_nota_final, $mostrar_total);
+        $header = $this->get_table_header_modulos_atividades($mostrar_nota_final, $mostrar_total);
         $header[''] = array('Média');
         return $header;
     }

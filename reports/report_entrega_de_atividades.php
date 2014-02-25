@@ -3,6 +3,7 @@
 class report_entrega_de_atividades extends Factory {
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true) {
@@ -32,8 +33,6 @@ class report_entrega_de_atividades extends Factory {
 
     public function get_dados_grafico(){
         global $CFG;
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
 
         // Consultas
         $query_alunos_grupo_tutoria = query_atividades();
@@ -100,7 +99,7 @@ class report_entrega_de_atividades extends Factory {
                     }
                 }
             }
-            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] =
+            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
                     array($count_nao_entregue_mas_no_prazo,
                         $count_nao_entregue_fora_prazo,
                         $count_sem_prazo,
@@ -112,6 +111,12 @@ class report_entrega_de_atividades extends Factory {
 
         return ($dados);
     }
+
+    /**
+     * Geração de dados dos tutores e seus respectivos alunos.
+     *
+     * @return array Array[tutores][aluno][unasus_data]
+     */
 
     public function get_dados(){
         /** @var $factory Factory */
@@ -198,10 +203,7 @@ class report_entrega_de_atividades extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false){
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
-        $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {

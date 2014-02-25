@@ -3,6 +3,7 @@
 class report_boletim extends Factory {
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true) {
@@ -91,9 +92,6 @@ class report_boletim extends Factory {
 
 
     public function get_dados_grafico(){
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         // Consultas
         $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
@@ -127,16 +125,13 @@ class report_boletim extends Factory {
                     }
                 }
             }
-            $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] =
+            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
                     array($count_com_nota, $count_sem_nota);
         }
         return ($dados);
     }
 
     public function get_dados(){
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         // Consultas
         $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
@@ -144,9 +139,9 @@ class report_boletim extends Factory {
         $query_nota_final = query_nota_final();
 
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($factory->get_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
-        $nomes_polos = get_polos($factory->get_curso_ufsc());
+        $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
+        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_polos = get_polos($this->get_curso_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -159,7 +154,7 @@ class report_boletim extends Factory {
             $estudantes = array();
             foreach ($array_dados as $id_aluno => $aluno) {
                 // FIXME: se o dado for do tipo 'report_unasus_data_nota_final' não possui 'cohort', corrigir a estrutura para suportar cohort.
-                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
 
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
@@ -188,12 +183,12 @@ class report_boletim extends Factory {
                 $estudantes[] = $lista_atividades;
 
                 // Agrupamento dos estudantes pelo seu polo
-                if ($factory->agrupar_relatorios == AGRUPAR_POLOS) {
+                if ($this->agrupar_relatorios == AGRUPAR_POLOS) {
                     $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
                 }
 
                 // Unir os alunos de acordo com o cohort deles
-                if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
+                if ($this->agrupar_relatorios == AGRUPAR_COHORTS) {
                     $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                     $dados[$key][] = $lista_atividades;
                 }
@@ -202,8 +197,8 @@ class report_boletim extends Factory {
             }
 
             // Ou pelo grupo de tutoria do estudante
-            if ($factory->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
+                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
             }
         }
 
@@ -211,10 +206,7 @@ class report_boletim extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false){
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
-        $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {

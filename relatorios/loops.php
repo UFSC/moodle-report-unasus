@@ -225,7 +225,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
     // FIXME: reescrever o código para não necessitar duas passadas no loop para esse caso
     if (is_null($loop) && $factory->get_relatorio() == 'atividades_nota_atribuida') {
         $loop = loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, $query_quiz, true);
-        $atividades_alunos_grupos = get_dados_alunos_atividades_concluidas($loop['associativo_atividade'])->somatorio_modulos;
+        $atividades_alunos_grupos = $factory->get_dados_alunos_atividades_concluidas($loop['associativo_atividade'])->somatorio_modulos;
     }
 
     $associativo_atividade = array();

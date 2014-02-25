@@ -3,6 +3,7 @@
 class report_uso_sistema_tutor extends Factory {
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true, $aviso = false) {
@@ -21,20 +22,20 @@ class report_uso_sistema_tutor extends Factory {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $object, $factory = null) {
-        if ($factory->datas_validas()) {
-            $factory->texto_cabecalho = null;
+    public function render_report_table($renderer, $report, $factory = null) {
+        if ($this->datas_validas()) {
+            $this->texto_cabecalho = null;
             $this->initialize($factory, false);
-            echo $renderer->build_report($object);
+            echo $renderer->build_report($report);
         }
         $this->initialize($factory, false, true);
         echo $renderer->build_page();
     }
 
-    public function render_report_graph($renderer, $object, $porcentagem, $factory = null){
-        if ($factory->datas_validas()) {
+    public function render_report_graph($renderer, $report, $porcentagem, $factory = null){
+        if ($this->datas_validas()) {
             $this->initialize($factory, false);
-            echo $renderer->build_dot_graph($object);
+            echo $renderer->build_dot_graph($report);
         }
         $this->initialize($factory, false, true);
         echo $renderer->build_page();
@@ -87,25 +88,23 @@ class report_uso_sistema_tutor extends Factory {
     }
 
     function get_dados() {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
 
         $middleware = Middleware::singleton();
-        $lista_tutores = get_tutores_menu($factory->get_curso_ufsc());
+        $lista_tutores = get_tutores_menu($this->get_curso_ufsc());
 
         $query = query_uso_sistema_tutor();
 
         //Converte a string data pra um DateTime e depois pra Unixtime
-        $data_inicio = date_create_from_format('d/m/Y', $factory->data_inicio);
+        $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
         $data_inicio_unix = strtotime($data_inicio->format('d/m/Y'));
-        $data_fim = date_create_from_format('d/m/Y', $factory->data_fim);
+        $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
         $data_fim_query = $data_fim->format('Y-m-d h:i:s');
         $data_fim_unix = strtotime($data_fim->format('d/m/Y'));
 
         //Query
         $dados = array();
         foreach ($lista_tutores as $id => $tutor) {
-            if (is_null($factory->tutores_selecionados) || in_array($id, $factory->tutores_selecionados)) {
+            if (is_null($this->tutores_selecionados) || in_array($id, $this->tutores_selecionados)) {
                 $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $data_inicio_unix, 'tempomaximo' => $data_fim_query));
                 /** @FIXME incluir na biblioteca do middleware a implementação da contagem de resultados, sem utilizar o ADORecordSet_myqsli */
                 if ($result->MaxRecordCount() == 0) {
@@ -146,7 +145,7 @@ class report_uso_sistema_tutor extends Factory {
         $result = $result->get_assoc();
 
 
-        $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($factory->get_curso_ufsc());
+        $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($this->get_curso_ufsc());
 
         //para cada resultado que estava no formato [id]=>[dados_acesso]
         // ele transforma para [tutor,dado_acesso1,dado_acesso2]
@@ -154,7 +153,7 @@ class report_uso_sistema_tutor extends Factory {
         foreach ($result as $id => $values) {
             $dados = array();
             $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-            array_push($dados, new pessoa($nome, $id, $factory->get_curso_moodle()));
+            array_push($dados, new pessoa($nome, $id, $this->get_curso_moodle()));
             foreach ($values as $value) {
                 array_push($dados, $value);
             }
@@ -164,24 +163,18 @@ class report_uso_sistema_tutor extends Factory {
     }
 
     function get_table_header() {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
-        $double_header = get_time_interval_com_meses($factory->data_inicio, $factory->data_fim, 'P1D', 'd/m/Y');
+        $double_header = get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
         $double_header[''] = array('Media');
         $double_header[' '] = array('Total');
         return $double_header;
     }
 
     function get_dados_grafico() {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         $dados = get_dados_uso_sistema_tutor();
 
         //Converte a string data pra um DateTime e depois pra Unixtime
-        $data_inicio = date_create_from_format('d/m/Y', $factory->data_inicio);
-        $data_fim = date_create_from_format('d/m/Y', $factory->data_fim);
+        $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
+        $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
 
         // Intervalo de dias no formato d/m
         $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');

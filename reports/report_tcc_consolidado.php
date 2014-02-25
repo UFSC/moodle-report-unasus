@@ -6,9 +6,10 @@
  * Time: 15:45
  */
 
-class report_tcc_consolidado {
+class report_tcc_consolidado extends Factory{
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true) {
@@ -85,9 +86,6 @@ class report_tcc_consolidado {
     }
 
     public function get_dados(){
-        /* Factory */
-        $factory = Factory::singleton();
-
         /* Resultados */
         $result_array = loop_atividades_e_foruns_sintese(null, null, null, null, true);
 
@@ -179,7 +177,7 @@ class report_tcc_consolidado {
             /* Coluna nome orientador */
 
             $data = array();
-            $data[] = grupos_tutoria::grupo_orientacao_to_string($factory->get_curso_ufsc(), $grupo_id);
+            $data[] = grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id);
 
             /* Grupo vazio, imprimir apenas o nome do tutor */
             if (empty($grupo)) {
@@ -225,7 +223,7 @@ class report_tcc_consolidado {
     }
 
     public function get_table_header(){
-        $header = get_table_header_tcc_portfolio_entrega_atividades(true);
+        $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
 
         foreach ($header as $key => $modulo) {
             array_push($modulo, 'Não acessado');

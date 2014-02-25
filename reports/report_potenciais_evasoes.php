@@ -3,6 +3,7 @@
 class report_potenciais_evasoes extends Factory {
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true) {
@@ -21,10 +22,10 @@ class report_potenciais_evasoes extends Factory {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $object, $factory = null) {
+    public function render_report_table($renderer, $report, $factory = null) {
         $this->initialize($factory, false);
-        $factory->texto_cabecalho = 'Tutores';
-        echo $renderer->build_report($object);
+        $this->texto_cabecalho = 'Tutores';
+        echo $renderer->build_report($report);
     }
 
     public function render_report_csv($name_report) {
@@ -68,10 +69,8 @@ class report_potenciais_evasoes extends Factory {
 
     public function get_dados(){
         global $CFG;
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
 
-        $modulos = $factory->modulos_selecionados;
+        $modulos = $this->modulos_selecionados;
         // Consulta
         $query_alunos_atividades = query_atividades();
         $query_quiz = query_quiz();
@@ -79,9 +78,9 @@ class report_potenciais_evasoes extends Factory {
 
 
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($factory->get_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
-        $nomes_polos = get_polos($factory->get_curso_ufsc());
+        $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
+        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_polos = get_polos($this->get_curso_ufsc());
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_alunos_atividades, $query_forum, $query_quiz);
 
@@ -93,7 +92,7 @@ class report_potenciais_evasoes extends Factory {
             $estudantes = array();
             foreach ($array_dados as $id_aluno => $aluno) {
                 $dados_modulos = array();
-                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
 
@@ -117,11 +116,11 @@ class report_potenciais_evasoes extends Factory {
                 if ($atividades_nao_realizadas_do_estudante >= $CFG->report_unasus_tolerancia_potencial_evasao) {
                     $estudantes[] = $lista_atividades;
                     // Unir os alunos de acordo com o polo deles
-                    if ($factory->agrupar_relatorios == AGRUPAR_POLOS) {
+                    if ($this->agrupar_relatorios == AGRUPAR_POLOS) {
                         $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
                     }
                     // Unir os alunos de acordo com o cohort deles
-                    if ($factory->agrupar_relatorios == AGRUPAR_COHORTS) {
+                    if ($this->agrupar_relatorios == AGRUPAR_COHORTS) {
                         $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
                         $dados[$key][] = $lista_atividades;
                     }
@@ -130,21 +129,18 @@ class report_potenciais_evasoes extends Factory {
             }
 
             // Ou unir os alunos de acordo com o tutor dele
-            if ($factory->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
+                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
             }
         }
         return $dados;
     }
 
     public function get_table_header(){
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
-        $modulos = $factory->get_modulos_ids();
+        $modulos = $this->get_modulos_ids();
 
         $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
-        if (is_null($factory->modulos_selecionados)) {
+        if (is_null($this->modulos_selecionados)) {
             $modulos = get_id_modulos();
         }
 

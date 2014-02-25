@@ -134,7 +134,7 @@ class report_estudante_sem_atividade_avaliada extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $header = get_table_header_modulos_atividades($mostrar_nota_final, $mostrar_total);
+        $header = $this->get_table_header_modulos_atividades($mostrar_nota_final, $mostrar_total);
         $header[''] = array('Média');
         return $header;
     }

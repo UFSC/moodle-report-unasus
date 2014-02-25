@@ -3,6 +3,7 @@
 class report_acesso_tutor extends Factory {
 
     public function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true, $aviso = false) {
@@ -27,8 +28,8 @@ class report_acesso_tutor extends Factory {
      * @param $factory
      */
     public function render_report_table($renderer, $object, $factory) {
-        if ($factory->datas_validas()) {
-            $factory->texto_cabecalho = 'Tutores';
+        if ($this->datas_validas()) {
+            $this->texto_cabecalho = 'Tutores';
             $this->initialize($factory, false);
             echo $renderer->build_report($object);
         }
@@ -83,13 +84,11 @@ class report_acesso_tutor extends Factory {
 
 
     public function get_dados() {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
 
         $middleware = Middleware::singleton();
 
         // Consulta
-        $query = query_acesso_tutor($factory->tutores_selecionados);
+        $query = query_acesso_tutor($this->tutores_selecionados);
 
         $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR, 'curso_ufsc' => get_curso_ufsc_id());
         $result = $middleware->get_recordset_sql($query, $params);
@@ -110,8 +109,8 @@ class report_acesso_tutor extends Factory {
 
 
         //Converte a string data pra um DateTime
-        $data_inicio = date_create_from_format('d/m/Y', $factory->data_inicio);
-        $data_fim = date_create_from_format('d/m/Y', $factory->data_fim);
+        $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
+        $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
 
         // Intervalo de dias no formato d/m/Y
         $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
@@ -129,7 +128,7 @@ class report_acesso_tutor extends Factory {
         }
         $result = $result->get_assoc();
 
-        $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($factory->get_curso_ufsc());
+        $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($this->get_curso_ufsc());
 
         //para cada resultado que estava no formato [id]=>[dados_acesso]
         // ele transforma para [tutor,dado_acesso1,dado_acesso2]
@@ -137,7 +136,7 @@ class report_acesso_tutor extends Factory {
         foreach ($result as $id => $values) {
             $dados = array();
             $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-            array_push($dados, new pessoa($nome, $id, $factory->get_curso_moodle()));
+            array_push($dados, new pessoa($nome, $id, $this->get_curso_moodle()));
             foreach ($values as $value) {
                 array_push($dados, $value);
             }
@@ -148,10 +147,7 @@ class report_acesso_tutor extends Factory {
     }
 
     public function get_table_header() {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
-        return get_time_interval_com_meses($factory->data_inicio, $factory->data_fim, 'P1D', 'd/m/Y');
+        return get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
     }
 
 }

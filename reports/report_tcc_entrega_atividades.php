@@ -6,9 +6,10 @@
  * Time: 15:46
  */
 
-class report_tcc_entrega_atividades {
+class report_tcc_entrega_atividades extends Factory{
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true) {
@@ -32,11 +33,8 @@ class report_tcc_entrega_atividades {
     }
 
     public function get_dados(){
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($factory->get_curso_ufsc());
+        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -49,7 +47,7 @@ class report_tcc_entrega_atividades {
             $estudantes = array();
 
             foreach ($array_dados as $id_aluno => $aluno) {
-                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $factory->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
                     $atraso = null;
@@ -124,14 +122,14 @@ class report_tcc_entrega_atividades {
                 $lista_atividades = null;
 
             }
-            $dados[grupos_tutoria::grupo_orientacao_to_string($factory->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            $dados[grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);
     }
 
     public function get_table_header(){
-        $header = get_table_header_tcc_portfolio_entrega_atividades(true);
+        $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
 
         foreach ($header as $key => $modulo) {
             array_push($modulo, 'Resumo');

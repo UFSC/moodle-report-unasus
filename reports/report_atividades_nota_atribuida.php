@@ -3,6 +3,7 @@
 class report_atividades_nota_atribuida extends Factory {
 
     function __construct() {
+        parent::__construct();
     }
 
     public function initialize($factory, $filtro = true) {
@@ -94,9 +95,6 @@ class report_atividades_nota_atribuida extends Factory {
     }
 
     public function get_dados(){
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         // Consulta
         $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
@@ -111,7 +109,7 @@ class report_atividades_nota_atribuida extends Factory {
 
 
         $somatorio_total_atrasos = array();
-        $atividades_alunos_grupos = get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
+        $atividades_alunos_grupos = $this->get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
 
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
             foreach ($array_dados as $aluno) {
@@ -153,7 +151,7 @@ class report_atividades_nota_atribuida extends Factory {
 
         foreach ($lista_atividade as $grupo_id => $grupo) {
             $data = array();
-            $data[] = grupos_tutoria::grupo_tutoria_to_string($factory->get_curso_ufsc(), $grupo_id);
+            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id);
             foreach ($grupo as $atividades) {
                 if (is_array($atividades)) {
                     foreach ($atividades as $atividade) {
@@ -186,7 +184,7 @@ class report_atividades_nota_atribuida extends Factory {
     }
 
     public function get_table_header(){
-        $header = get_table_header_modulos_atividades(false, true);
+        $header = $this->get_table_header_modulos_atividades(false, true);
         $header[''] = array(get_string('column_aluno_atividade_concluida', 'report_unasus'));
         return $header;
     }

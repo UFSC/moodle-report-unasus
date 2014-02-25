@@ -72,9 +72,6 @@ class Factory {
     // Singleton
     private static $instance;
 
-    // Setar os valores defaults para os relatórios e filtros
-
-    //ATENÇÃO! TROCADO DE 'private' para 'protected' para que possa ser acessado através dos objetos dos relatórios que a estendem
     protected function __construct() {
         //Atributos globais
         $this->curso_ufsc = get_curso_ufsc_id();
@@ -337,4 +334,93 @@ class Factory {
     static function eliminate_html ($data){
         return strip_tags($data);
     }
+
+    /**
+     * Numero de Alunos que concluiram todas Atividades de um modulo,
+     * e n° de alunos que concluiram todas atividades de um curso
+     *
+     * UTILIZADO PELO RELATÓRIO 'report_atividades_nota_atribuida'
+     *
+     * @param $associativo_atividade
+     * @return \stdClass
+     */
+    function get_dados_alunos_atividades_concluidas($associativo_atividade) {
+        $factory = Factory::singleton();
+        $somatorio_total_modulo = array();
+        $somatorio_total_grupo = array();
+
+        foreach ($associativo_atividade as $grupo_id => $array_dados) {
+            foreach ($array_dados as $dados_aluno) {
+                $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($dados_aluno);
+            }
+        }
+
+        foreach ($alunos_grupo as $grupo_id => $alunos_por_grupo) {
+            $somatorio_total_modulo[$grupo_id] = array();
+
+            foreach ($alunos_por_grupo as $dados_aluno) {
+                /** @var dado_atividades_nota_atribuida_alunos $dados_aluno */
+
+                foreach ($factory->modulos_selecionados as $course_id => $activities) {
+                    // Inicializa o contador pra cada curso e pra cada grupo
+                    if (!array_key_exists($course_id, $somatorio_total_modulo[$grupo_id])) {
+                        $somatorio_total_modulo[$grupo_id][$course_id] = 0;
+                    }
+
+                    if ($dados_aluno->is_complete_activities($course_id)) {
+                        $somatorio_total_modulo[$grupo_id][$course_id]++;
+                    }
+                }
+                if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
+                    $somatorio_total_grupo[$grupo_id] = 0;
+                }
+                if ($dados_aluno->is_complete_all_activities()) {
+                    $somatorio_total_grupo[$grupo_id]++;
+                }
+            }
+        }
+
+        $somatorio = new stdClass();
+        $somatorio->somatorio_modulos = $somatorio_total_modulo;
+        $somatorio->somatorio_grupos = $somatorio_total_grupo;
+
+        return $somatorio;
+    }
+
+    function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
+        /** @var $factory Factory */
+        $factory = Factory::singleton();
+
+        $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
+        $header = array();
+
+        foreach ($atividades_cursos as $course_id => $atividades) {
+            $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
+            $course_link = html_writer::link($course_url, $atividades[0]->course_name);
+
+            $header[$course_link] = $atividades;
+        }
+        return $header;
+    }
+
+    function get_table_header_tcc_portfolio_entrega_atividades($is_tcc = false) {
+
+        $group_array = new GroupArray();
+        process_header_atividades_lti($this->get_modulos_ids(), $group_array, $is_tcc);
+
+        $atividades_cursos = $group_array->get_assoc();
+        $header = array();
+
+        foreach ($atividades_cursos as $course_id => $atividades) {
+            if (!empty($atividades)) {
+                $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
+                $course_link = html_writer::link($course_url, $atividades[0]->course_name);
+
+                $header[$course_link] = $atividades;
+            }
+        }
+
+        return $header;
+    }
+
 }
