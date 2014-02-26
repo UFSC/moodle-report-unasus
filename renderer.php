@@ -184,13 +184,15 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
             }
 
-            // Filtro de Tutores
-            $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
-            $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-            $filter_tutores .= html_writer::select(get_tutores_menu($factory->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-            $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
-            $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-            $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
+            if ($factory->mostrar_filtro_tutores) {
+                // Filtro de Tutores
+                $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
+                $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
+                $filter_tutores .= html_writer::select(get_tutores_menu($factory->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+                $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
+                $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
+                $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
+            }
         }
 
         if ($factory->mostrar_filtro_intervalo_tempo) {
@@ -627,7 +629,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @global type $PAGE
      * @return String
      */
-    public function build_dot_graph() {
+    public function build_dot_graph($report) {
         global $PAGE;
 
         /** @var $factory Factory */
@@ -648,7 +650,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             return $output;
         }
 
-        $dados_method = $factory->get_dados_grafico_relatorio();
+        $dados_method = $report->get_dados_grafico();
 
         // Se algum tutor logou ele gera o gráfico
         if (dot_chart_com_tutores_com_acesso($dados_method)) {
@@ -658,7 +660,6 @@ class report_unasus_renderer extends plugin_renderer_base {
             // Se nenhum tutor logou ele informa um erro em vez de gerar um gráfico vazio
             $output .= $this->build_warning('Nenhum tutor logou no moodle no intervalo de tempo selecionado');
         }
-
 
         $output .= $this->default_footer();
 

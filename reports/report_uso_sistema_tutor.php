@@ -6,38 +6,41 @@ class report_uso_sistema_tutor extends Factory {
         parent::__construct();
     }
 
-    public function initialize($factory, $filtro = true, $aviso = false) {
-        $factory->mostrar_barra_filtragem = $filtro;
-        $factory->mostrar_botoes_grafico = false;
-        $factory->mostrar_botoes_dot_chart = true;
-        $factory->mostrar_filtro_polos = false;
-        $factory->mostrar_filtro_cohorts = false;
-        $factory->mostrar_filtro_modulos = false;
-        $factory->mostrar_filtro_intervalo_tempo = true;
-        $factory->mostrar_aviso_intervalo_tempo = $aviso;
-        $factory->mostrar_botao_exportar_csv = true;
+    public function initialize($filtro = true, $aviso = false) {
+        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_botoes_grafico = false;
+        $this->mostrar_botoes_dot_chart = true;
+        $this->mostrar_filtro_polos = false;
+        $this->mostrar_filtro_cohorts = false;
+        $this->mostrar_filtro_modulos = false;
+        $this->mostrar_filtro_intervalo_tempo = true;
+        $this->mostrar_aviso_intervalo_tempo = $aviso;
+        $this->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report, $factory = null) {
+    public function render_report_table($renderer, $report){
         if ($this->datas_validas()) {
             $this->texto_cabecalho = null;
-            $this->initialize($factory, false);
+            $this->initialize(false);
             echo $renderer->build_report($report);
         }
-        $this->initialize($factory, false, true);
+        $this->initialize(false, true);
         echo $renderer->build_page();
     }
 
-    public function render_report_graph($renderer, $report, $porcentagem, $factory = null){
+    /** @var $renderer report_unasus_renderer */
+
+    public function render_report_graph($renderer, $report, $porcentagem){
         if ($this->datas_validas()) {
-            $this->initialize($factory, false);
+            $this->initialize(false);
             echo $renderer->build_dot_graph($report);
         }
-        $this->initialize($factory, false, true);
+        $this->initialize(false, true);
         echo $renderer->build_page();
     }
 
@@ -170,7 +173,7 @@ class report_uso_sistema_tutor extends Factory {
     }
 
     function get_dados_grafico() {
-        $dados = get_dados_uso_sistema_tutor();
+        $dados = $this->get_dados();
 
         //Converte a string data pra um DateTime e depois pra Unixtime
         $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);

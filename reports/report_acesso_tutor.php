@@ -6,16 +6,17 @@ class report_acesso_tutor extends Factory {
         parent::__construct();
     }
 
-    public function initialize($factory, $filtro = true, $aviso = false) {
-        $factory->mostrar_barra_filtragem = $filtro;
-        $factory->mostrar_botoes_grafico = false;
-        $factory->mostrar_botoes_dot_chart = false;
-        $factory->mostrar_filtro_polos = false;
-        $factory->mostrar_filtro_cohorts = false;
-        $factory->mostrar_filtro_modulos = false;
-        $factory->mostrar_filtro_intervalo_tempo = true;
-        $factory->mostrar_aviso_intervalo_tempo = $aviso;
-        $factory->mostrar_botao_exportar_csv = true;
+    public function initialize($filtro = true, $aviso = false) {
+        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_botoes_grafico = false;
+        $this->mostrar_botoes_dot_chart = false;
+        $this->mostrar_filtro_polos = false;
+        $this->mostrar_filtro_cohorts = false;
+        $this->mostrar_filtro_modulos = false;
+        $this->mostrar_filtro_intervalo_tempo = true;
+        $this->mostrar_aviso_intervalo_tempo = $aviso;
+        $this->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
@@ -27,13 +28,13 @@ class report_acesso_tutor extends Factory {
      * @param $object
      * @param $factory
      */
-    public function render_report_table($renderer, $object, $factory) {
+    public function render_report_table($renderer, $report){
         if ($this->datas_validas()) {
             $this->texto_cabecalho = 'Tutores';
-            $this->initialize($factory, false);
-            echo $renderer->build_report($object);
+            $this->initialize(false);
+            echo $renderer->build_report($report);
         }
-        $this->initialize($factory, false, true);
+        $this->initialize(false, true);
         echo $renderer->build_page();
     }
 
@@ -81,7 +82,6 @@ class report_acesso_tutor extends Factory {
         }
         fclose($fp);
     }
-
 
     public function get_dados() {
 

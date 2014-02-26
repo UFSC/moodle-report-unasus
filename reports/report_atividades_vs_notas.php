@@ -6,30 +6,31 @@ class report_atividades_vs_notas extends Factory {
         parent::__construct();
     }
 
-    public function initialize($factory, $filtro = true) {
-        $factory->mostrar_barra_filtragem = $filtro;
-        $factory->mostrar_botoes_grafico = true;
-        $factory->mostrar_botoes_dot_chart = false;
-        $factory->mostrar_filtro_polos = true;
-        $factory->mostrar_filtro_cohorts = true;
-        $factory->mostrar_filtro_modulos = true;
-        $factory->mostrar_filtro_intervalo_tempo = false;
-        $factory->mostrar_aviso_intervalo_tempo = false;
-        $factory->mostrar_botao_exportar_csv = true;
+    public function initialize($filtro = true) {
+        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_botoes_grafico = true;
+        $this->mostrar_botoes_dot_chart = false;
+        $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_cohorts = true;
+        $this->mostrar_filtro_modulos = true;
+        $this->mostrar_filtro_intervalo_tempo = false;
+        $this->mostrar_aviso_intervalo_tempo = false;
+        $this->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $object, $factory = null) {
-        $this->initialize($factory, false);
-        echo $renderer->build_report($object);
+    public function render_report_table($renderer, $report) {
+        $this->initialize(false);
+        echo $renderer->build_report($report);
     }
 
-    public function render_report_graph($renderer, $object, $porcentagem, $factory = null){
-        $this->initialize($factory, false);
-        echo $renderer->build_graph($object, $porcentagem);
+    public function render_report_graph($renderer, $report, $porcentagem){
+        $this->initialize(false);
+        echo $renderer->build_graph($report, $porcentagem);
     }
 
     public function render_report_csv($name_report) {
@@ -88,7 +89,6 @@ class report_atividades_vs_notas extends Factory {
         }
         fclose($fp);
     }
-
 
     public function get_dados_grafico(){
         global $CFG;

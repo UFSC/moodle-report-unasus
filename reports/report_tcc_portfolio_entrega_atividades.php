@@ -12,24 +12,25 @@ class report_tcc_portfolio_entrega_atividades extends Factory {
         parent::__construct();
     }
 
-    public function initialize($factory, $filtro = true) {
-        $factory->mostrar_barra_filtragem = $filtro;
-        $factory->mostrar_botoes_grafico = false; //Botões de geração de gráfico removidos - não são utilizados
-        $factory->mostrar_botoes_dot_chart = false;
-        $factory->mostrar_filtro_polos = true;
-        $factory->mostrar_filtro_cohorts = true;
-        $factory->mostrar_filtro_modulos = true;
-        $factory->mostrar_filtro_intervalo_tempo = false;
-        $factory->mostrar_aviso_intervalo_tempo = false;
+    public function initialize($filtro = true) {
+        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_botoes_grafico = false; //Botões de geração de gráfico removidos - não são utilizados
+        $this->mostrar_botoes_dot_chart = false;
+        $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_cohorts = true;
+        $this->mostrar_filtro_modulos = true;
+        $this->mostrar_filtro_intervalo_tempo = false;
+        $this->mostrar_aviso_intervalo_tempo = false;
     }
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $object, $factory = null) {
-        $this->initialize($factory, false);
-        echo $renderer->build_report($object);
+    public function render_report_table($renderer, $report) {
+        $this->initialize(false);
+        echo $renderer->build_report($report);
     }
 
     public function get_dados(){

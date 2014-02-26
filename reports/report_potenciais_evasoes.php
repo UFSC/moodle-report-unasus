@@ -6,24 +6,25 @@ class report_potenciais_evasoes extends Factory {
         parent::__construct();
     }
 
-    public function initialize($factory, $filtro = true) {
-        $factory->mostrar_barra_filtragem = $filtro;
-        $factory->mostrar_botoes_grafico = false;
-        $factory->mostrar_botoes_dot_chart = false;
-        $factory->mostrar_filtro_polos = true;
-        $factory->mostrar_filtro_cohorts = true;
-        $factory->mostrar_filtro_modulos = true;
-        $factory->mostrar_filtro_intervalo_tempo = false;
-        $factory->mostrar_aviso_intervalo_tempo = false;
-        $factory->mostrar_botao_exportar_csv = true;
+    public function initialize($filtro = true) {
+        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_botoes_grafico = false;
+        $this->mostrar_botoes_dot_chart = false;
+        $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_cohorts = true;
+        $this->mostrar_filtro_modulos = true;
+        $this->mostrar_filtro_intervalo_tempo = false;
+        $this->mostrar_aviso_intervalo_tempo = false;
+        $this->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report, $factory = null) {
-        $this->initialize($factory, false);
+    public function render_report_table($renderer, $report) {
+        $this->initialize(false);
         $this->texto_cabecalho = 'Tutores';
         echo $renderer->build_report($report);
     }

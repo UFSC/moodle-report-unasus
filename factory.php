@@ -48,6 +48,7 @@ class Factory {
     public $mostrar_botoes_dot_chart;
     public $mostrar_filtro_polos;
     public $mostrar_filtro_modulos;
+    public $mostrar_filtro_tutores;
     public $mostrar_filtro_intervalo_tempo;
     public $mostrar_aviso_intervalo_tempo;
 
@@ -70,7 +71,7 @@ class Factory {
     public $data_fim;
 
     // Singleton
-    private static $instance;
+    private static $report;
 
     protected function __construct() {
         //Atributos globais
@@ -133,49 +134,31 @@ class Factory {
      * @throws Exception
      */
 
-    public static function singleton_report() {
-        global $CFG;
+    public static function singleton() {
 
         $report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
-        $valid_reports = report_unasus_relatorios_validos_list();
 
-        // Verifica se é um relatório válido
-        if (!in_array($report, $valid_reports)) {
+        if (! in_array($report, report_unasus_relatorios_validos_list())){
             print_error('unknow_report', 'report_unasus');
             return false;
         }
 
-        $class_name = "report_{$report}";
+        $report = 'report_' . $report;
+        $path_report = 'reports/' . $report . '.php';
 
-        // carrega arquivo de definição do relatório
-        require_once $CFG->dirroot . "/report/unasus/reports/{$class_name}.php";
+        require_once('' . $path_report . '');
 
-        if (!class_exists($class_name)) {
+        if (!class_exists($report)) {
             throw new Exception('Missing format class.');
         }
 
-        if (!isset($class_name::$instace)) {
-            $class_name::$instance = new $class_name;
+        if (!isset(self::$report)) {
+            self::$report = new $report;
         }
 
-        return $class_name::$instance;
+        return self::$report;
     }
 
-    /**
-     * Singleton class, garantia de uma unica instancia da classe
-     * 
-     * @deprecated utilizar singleton_report()
-     * @return Factory
-     */
-    public static function singleton() {
-        if (!isset(self::$instance)) {
-            $c = __CLASS__;
-            self::$instance = new $c;
-        }
-
-        return self::$instance;
-    }
-    
     /**
      * Verifica se é um relatório válido e o seta
      * @deprecated 
@@ -217,14 +200,13 @@ class Factory {
         return "dado_{$this->relatorio}";
     }
 
-
     /**
      * Retorna os dados que serão exibidos pelo relatório
      *
      * @return array chamada de metodo
      */
     public function get_dados_relatorio() {
-        $method = "get_dados_{$this->relatorio}";
+        $method = "get_dados";
         return $method();
     }
 
@@ -234,7 +216,7 @@ class Factory {
      * @return array chamada de metodo
      */
     public function get_table_header_relatorio() {
-        $method = "get_table_header_{$this->relatorio}";
+        $method = "get_table_header";
         return $method();
     }
 
@@ -244,7 +226,7 @@ class Factory {
      * @return array chamada de metodo
      */
     public function get_dados_grafico_relatorio() {
-        $method = "get_dados_grafico_{$this->relatorio}";
+        $method = "get_dados_grafico";
         return $method();
     }
 
@@ -255,8 +237,7 @@ class Factory {
      * @return bool
      */
     public function relatorio_possui_grafico() {
-        $method = "get_dados_grafico_{$this->relatorio}";
-        if (function_exists($method) && ($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))
+        if (($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))
             return true;
         return false;
     }

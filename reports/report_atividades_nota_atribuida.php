@@ -6,16 +6,17 @@ class report_atividades_nota_atribuida extends Factory {
         parent::__construct();
     }
 
-    public function initialize($factory, $filtro = true) {
-        $factory->mostrar_barra_filtragem = $filtro;
-        $factory->mostrar_botoes_grafico = false;
-        $factory->mostrar_botoes_dot_chart = false;
-        $factory->mostrar_filtro_polos = true;
-        $factory->mostrar_filtro_cohorts = true;
-        $factory->mostrar_filtro_modulos = true;
-        $factory->mostrar_filtro_intervalo_tempo = false;
-        $factory->mostrar_aviso_intervalo_tempo = false;
-        $factory->mostrar_botao_exportar_csv = true;
+    public function initialize($filtro = true) {
+        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_botoes_grafico = false;
+        $this->mostrar_botoes_dot_chart = false;
+        $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_cohorts = true;
+        $this->mostrar_filtro_modulos = true;
+        $this->mostrar_filtro_intervalo_tempo = false;
+        $this->mostrar_aviso_intervalo_tempo = false;
+        $this->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
@@ -27,26 +28,12 @@ class report_atividades_nota_atribuida extends Factory {
      * @param $object
      * @param null $factory
      */
-    public function render_report_table($renderer, $object, $factory = null) {
-        $this->initialize($factory, false);
-        echo $renderer->page_atividades_nao_avaliadas($object);
+    public function render_report_table($renderer, $report) {
+        $this->initialize(false);
+        echo $renderer->page_atividades_nao_avaliadas($report);
     }
 
     public function render_report_csv($name_report) {
-
-        switch($name_report){
-            case 'atividades_nao_avaliadas':
-                $name_report = 'avaliações_em_atraso';
-                break;
-            case 'atividades_nota_atribuida':
-                $name_report = 'atividades_concluidas';
-                break;
-            case 'atividades_vs_notas':
-                $name_report = 'atribuição_de_notas';
-                break;
-            default: //Caso do 'Boletim', 'Acesso Tutor', 'Uso sistema tutor' e 'Potenciais Evasões' que já vem com o nome correto
-                break;
-        }
 
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');

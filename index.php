@@ -37,86 +37,69 @@ require_once($CFG->dirroot . '/report/unasus/factory.php'); // fabrica de relato
 require_once($CFG->dirroot . '/report/unasus/sistematcc.php'); // client ws sistema de tcc
 
 /** @var $factory Factory */
-$factory = Factory::singleton();
+$report = Factory::singleton();
 
 // Usuário tem de estar logado no curso moodle
-require_login($factory->get_curso_moodle());
+require_login($report->get_curso_moodle());
+
 // Usuário tem de ter a permissão para ver o relatório?
-require_capability('report/unasus:view', $factory->get_context());
+require_capability('report/unasus:view', $report->get_context());
 
 // Usuário tem permissão para ver os relatorios restritos
-if (in_array($factory->get_relatorio(), report_unasus_relatorios_restritos_list())) {
-    require_capability('report/unasus:view_all', $factory->get_context());
+if (in_array($report->get_relatorio(), report_unasus_relatorios_restritos_list())) {
+    require_capability('report/unasus:view_all', $report->get_context());
 }
 
 // Configurações da pagina HTML
-$PAGE->set_url('/report/unasus/index.php', $factory->get_page_params());
+$PAGE->set_url('/report/unasus/index.php', $report->get_page_params());
 $PAGE->set_pagelayout('report');
 $PAGE->requires->js_init_call('M.report_unasus.init'); // carrega arquivo module.js dentro deste módulo
 
 /** @var $renderer report_unasus_renderer */
 $renderer = $PAGE->get_renderer('report_unasus');
 
-if ($factory->get_relatorio() != null) {
+$name_report = $report->get_page_params()['relatorio'];
+$modo_exibicao = $report->get_modo_exibicao();
 
-    // - relatório desativado segundo o ticket #4460: 'historico_atribuicao_notas'
-    $relatorios_disponiveis = array('atividades_vs_notas', 'entrega_de_atividades', 'boletim', 'atividades_nao_avaliadas',
-        'estudante_sem_atividade_postada', 'estudante_sem_atividade_avaliada', 'atividades_nota_atribuida', 'potenciais_evasoes',
-        'acesso_tutor', 'uso_sistema_tutor', 'tcc_portfolio', 'tcc_portfolio_concluido', 'tcc_portfolio_entrega_atividades',
-        'tcc_entrega_atividades', 'tcc_consolidado', 'tcc_concluido');
+$report->initialize();
 
-    // Renderiza os relatórios
-
-    $report = $factory->get_page_params()['relatorio'];
-    $modo_exibicao = $factory->get_modo_exibicao();
-    $name_report = $report;
-
-    if (in_array($report, report_unasus_relatorios_validos_list())){
-        $report = 'report_' . $report;
-        $path_report = 'reports/' . $report . '.php';
-
-        require_once('' . $path_report . '');
-
-        $report = new $report();
-        $report->initialize($factory);
-
-        //Primeiro acesso ao relatório
-        if($modo_exibicao == null){
-            echo $report->render_report_default($renderer);
-        }
-
-        if($modo_exibicao === 'tabela'){
-            $report->render_report_table($renderer, $report, $factory);
-
-        } elseif ($modo_exibicao === 'grafico_valores' ||
-                  $modo_exibicao === 'grafico_porcentagens' ||
-                  $modo_exibicao === 'grafico_pontos'){
-
-            $porcentagem = ($modo_exibicao === 'grafico_porcentagens');
-
-            $report->render_report_graph($renderer, $report, $porcentagem, $factory);
-        } elseif ($modo_exibicao === 'export_csv'){
-
-            switch($name_report){
-                case 'atividades_nao_avaliadas':
-                    $name_report = 'avaliações_em_atraso';
-                    break;
-                case 'atividades_nota_atribuida':
-                    $name_report = 'atividades_concluidas';
-                    break;
-                case 'atividades_vs_notas':
-                    $name_report = 'atribuição_de_notas';
-                    break;
-                case 'tcc_portfolio':
-                    $name_report = 'portfolios_consolidados';
-                    break;
-                default: //Caso do 'Boletim', 'Acesso Tutor', 'Uso sistema tutor' e 'Potenciais Evasões' que já vem com o nome correto
-                    break;
-            }
-            $report->render_report_csv($name_report);
-        }
-    }
+//Primeiro acesso ao relatório
+if($modo_exibicao == null){
+    echo $report->render_report_default($renderer);
 }
+
+if($modo_exibicao === 'tabela'){
+    $report->render_report_table($renderer, $report);
+
+} elseif ($modo_exibicao === 'grafico_valores' ||
+          $modo_exibicao === 'grafico_porcentagens' ||
+          $modo_exibicao === 'grafico_pontos'){
+
+    $porcentagem = ($modo_exibicao === 'grafico_porcentagens');
+
+    $report->render_report_graph($renderer, $report, $porcentagem);
+    } elseif ($modo_exibicao === 'export_csv'){
+
+        switch($name_report){
+            case 'atividades_nao_avaliadas':
+                $name_report = 'avaliações_em_atraso';
+                break;
+            case 'atividades_nota_atribuida':
+                $name_report = 'atividades_concluidas';
+                break;
+            case 'atividades_vs_notas':
+                $name_report = 'atribuição_de_notas';
+                break;
+            case 'tcc_portfolio':
+                $name_report = 'portfolios_consolidados';
+                break;
+            default: //Caso do 'Boletim', 'Acesso Tutor', 'Uso sistema tutor' e 'Potenciais Evasões' que já vem com o nome correto
+                break;
+        }
+        $report->render_report_csv($name_report);
+}
+
+
 
 
 

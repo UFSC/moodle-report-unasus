@@ -6,30 +6,26 @@ class report_boletim extends Factory {
         parent::__construct();
     }
 
-    public function initialize($factory, $filtro = true) {
-        $factory->mostrar_barra_filtragem = $filtro;
-        $factory->mostrar_botoes_grafico = false; //Botões de geração de gráfico removidos - não são utilizados
-        $factory->mostrar_botoes_dot_chart = false;
-        $factory->mostrar_filtro_polos = true;
-        $factory->mostrar_filtro_cohorts = true;
-        $factory->mostrar_filtro_modulos = true;
-        $factory->mostrar_filtro_intervalo_tempo = false;
-        $factory->mostrar_aviso_intervalo_tempo = false;
-        $factory->mostrar_botao_exportar_csv = true;
+    public function initialize($filtro = true) {
+        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_botoes_grafico = false; //Botões de geração de gráfico removidos - não são utilizados
+        $this->mostrar_botoes_dot_chart = false;
+        $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_cohorts = true;
+        $this->mostrar_filtro_modulos = true;
+        $this->mostrar_filtro_intervalo_tempo = false;
+        $this->mostrar_aviso_intervalo_tempo = false;
+        $this->mostrar_botao_exportar_csv = true;
     }
 
     public function render_report_default($renderer){
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $object, $factory = null) {
-        $this->initialize($factory, false);
-        echo $renderer->build_report($object);
-    }
-
-    public function render_report_graph($renderer, $object, $porcentagem, $factory = null){
-        $this->initialize($factory, false);
-        echo $renderer->build_graph($object, $porcentagem);
+    public function render_report_table($renderer, $report) {
+        $this->initialize(false);
+        echo $renderer->build_report($report);
     }
 
     public function render_report_csv($name_report) {
@@ -88,47 +84,6 @@ class report_boletim extends Factory {
             $count++;
         }
         fclose($fp);
-    }
-
-
-    public function get_dados_grafico(){
-        // Consultas
-        $query_alunos_grupo_tutoria = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
-
-
-        /*  associativo_atividades[modulo][id_aluno][atividade]
-         *
-         * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
-         */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
-
-
-        $dados = array();
-        foreach ($associativo_atividades as $grupo_id => $array_dados) {
-            //variáveis soltas para melhor entendimento
-            $count_com_nota = 0;
-            $count_sem_nota = 0;
-
-            foreach ($array_dados as $id_aluno => $aluno) {
-
-                foreach ($aluno as $atividade) {
-                    $atraso = null;
-
-                    //Atividade tem nota
-                    if ($atividade->has_grade()) {
-                        $count_com_nota++;
-                    } else {
-                        $count_sem_nota++;
-                    }
-                }
-            }
-            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
-                    array($count_com_nota, $count_sem_nota);
-        }
-        return ($dados);
     }
 
     public function get_dados(){
