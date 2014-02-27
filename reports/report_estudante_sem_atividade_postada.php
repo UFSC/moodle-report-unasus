@@ -2,10 +2,6 @@
 
 class report_estudante_sem_atividade_postada extends Factory {
 
-    function __construct() {
-        parent::__construct();
-    }
-
     public function initialize($filtro = true) {
         $this->mostrar_filtro_tutores = true;
         $this->mostrar_barra_filtragem = $filtro;

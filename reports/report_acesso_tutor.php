@@ -2,10 +2,6 @@
 
 class report_acesso_tutor extends Factory {
 
-    public function __construct() {
-        parent::__construct();
-    }
-
     public function initialize($filtro = true, $aviso = false) {
         $this->mostrar_filtro_tutores = true;
         $this->mostrar_barra_filtragem = $filtro;

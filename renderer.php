@@ -574,7 +574,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param boolean $porcentagem
      * @return String
      */
-    public function build_graph($object, $porcentagem = false) {
+    public function build_graph($report, $porcentagem = false) {
         global $PAGE, $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -590,13 +590,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter(true);
 
         // verifica se o gráfico foi implementado
-        if (!$factory->relatorio_possui_grafico()) {
+        if (!$factory->relatorio_possui_grafico($report)) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;
         }
 
-        $dados_method = $object->get_dados_grafico();
+        $dados_method = $report->get_dados_grafico();
         //-----------------------------------------------------------------
         //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
 
@@ -644,7 +644,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter();
 
         // verifica se o gráfico foi implementado
-        if (!$factory->relatorio_possui_grafico()) {
+        if (!$factory->relatorio_possui_grafico($report)) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;

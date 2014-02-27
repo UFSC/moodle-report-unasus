@@ -136,6 +136,8 @@ class Factory {
 
     public static function singleton() {
 
+        global $CFG;
+
         $report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
 
         if (! in_array($report, report_unasus_relatorios_validos_list())){
@@ -143,17 +145,17 @@ class Factory {
             return false;
         }
 
-        $report = 'report_' . $report;
-        $path_report = 'reports/' . $report . '.php';
+        $class_name = "report_{$report}";
 
-        require_once('' . $path_report . '');
+        // carrega arquivo de definição do relatório
+        require_once $CFG->dirroot . "/report/unasus/reports/{$class_name}.php";
 
-        if (!class_exists($report)) {
+        if (!class_exists($class_name)) {
             throw new Exception('Missing format class.');
         }
 
         if (!isset(self::$report)) {
-            self::$report = new $report;
+            self::$report = new $class_name;
         }
 
         return self::$report;
@@ -201,43 +203,14 @@ class Factory {
     }
 
     /**
-     * Retorna os dados que serão exibidos pelo relatório
-     *
-     * @return array chamada de metodo
-     */
-    public function get_dados_relatorio() {
-        $method = "get_dados";
-        return $method();
-    }
-
-    /**
-     * Retorna o array com os dados para construçào do cabeçalho
-     *
-     * @return array chamada de metodo
-     */
-    public function get_table_header_relatorio() {
-        $method = "get_table_header";
-        return $method();
-    }
-
-    /**
-     * Retorna os dados que serão exibidos pelo relatório
-     *
-     * @return array chamada de metodo
-     */
-    public function get_dados_grafico_relatorio() {
-        $method = "get_dados_grafico";
-        return $method();
-    }
-
-
-    /**
      * Verifica se o relatório possui gráfico definido
      *
      * @return bool
      */
-    public function relatorio_possui_grafico() {
-        if (($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))
+    public function relatorio_possui_grafico($report) {
+        $method = 'get_dados_grafico';
+
+        if (method_exists($report, $method))
             return true;
         return false;
     }
@@ -314,58 +287,6 @@ class Factory {
 
     static function eliminate_html ($data){
         return strip_tags($data);
-    }
-
-    /**
-     * Numero de Alunos que concluiram todas Atividades de um modulo,
-     * e n° de alunos que concluiram todas atividades de um curso
-     *
-     * UTILIZADO PELO RELATÓRIO 'report_atividades_nota_atribuida'
-     *
-     * @param $associativo_atividade
-     * @return \stdClass
-     */
-    function get_dados_alunos_atividades_concluidas($associativo_atividade) {
-        $factory = Factory::singleton();
-        $somatorio_total_modulo = array();
-        $somatorio_total_grupo = array();
-
-        foreach ($associativo_atividade as $grupo_id => $array_dados) {
-            foreach ($array_dados as $dados_aluno) {
-                $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($dados_aluno);
-            }
-        }
-
-        foreach ($alunos_grupo as $grupo_id => $alunos_por_grupo) {
-            $somatorio_total_modulo[$grupo_id] = array();
-
-            foreach ($alunos_por_grupo as $dados_aluno) {
-                /** @var dado_atividades_nota_atribuida_alunos $dados_aluno */
-
-                foreach ($factory->modulos_selecionados as $course_id => $activities) {
-                    // Inicializa o contador pra cada curso e pra cada grupo
-                    if (!array_key_exists($course_id, $somatorio_total_modulo[$grupo_id])) {
-                        $somatorio_total_modulo[$grupo_id][$course_id] = 0;
-                    }
-
-                    if ($dados_aluno->is_complete_activities($course_id)) {
-                        $somatorio_total_modulo[$grupo_id][$course_id]++;
-                    }
-                }
-                if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
-                    $somatorio_total_grupo[$grupo_id] = 0;
-                }
-                if ($dados_aluno->is_complete_all_activities()) {
-                    $somatorio_total_grupo[$grupo_id]++;
-                }
-            }
-        }
-
-        $somatorio = new stdClass();
-        $somatorio->somatorio_modulos = $somatorio_total_modulo;
-        $somatorio->somatorio_grupos = $somatorio_total_grupo;
-
-        return $somatorio;
     }
 
     function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {

@@ -8,14 +8,10 @@
 
 class report_tcc_portfolio_entrega_atividades extends Factory {
 
-    function __construct() {
-        parent::__construct();
-    }
-
     public function initialize($filtro = true) {
         $this->mostrar_filtro_tutores = true;
         $this->mostrar_barra_filtragem = $filtro;
-        $this->mostrar_botoes_grafico = false; //Botões de geração de gráfico removidos - não são utilizados
+        $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
         $this->mostrar_filtro_cohorts = true;

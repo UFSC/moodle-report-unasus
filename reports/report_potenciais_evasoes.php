@@ -2,10 +2,6 @@
 
 class report_potenciais_evasoes extends Factory {
 
-    function __construct() {
-        parent::__construct();
-    }
-
     public function initialize($filtro = true) {
         $this->mostrar_filtro_tutores = true;
         $this->mostrar_barra_filtragem = $filtro;

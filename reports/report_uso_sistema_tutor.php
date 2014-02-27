@@ -2,10 +2,6 @@
 
 class report_uso_sistema_tutor extends Factory {
 
-    function __construct() {
-        parent::__construct();
-    }
-
     public function initialize($filtro = true, $aviso = false) {
         $this->mostrar_filtro_tutores = true;
         $this->mostrar_barra_filtragem = $filtro;

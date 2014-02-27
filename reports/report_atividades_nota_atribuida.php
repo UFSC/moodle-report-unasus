@@ -2,10 +2,6 @@
 
 class report_atividades_nota_atribuida extends Factory {
 
-    function __construct() {
-        parent::__construct();
-    }
-
     public function initialize($filtro = true) {
         $this->mostrar_filtro_tutores = true;
         $this->mostrar_barra_filtragem = $filtro;
@@ -174,6 +170,57 @@ class report_atividades_nota_atribuida extends Factory {
         $header = $this->get_table_header_modulos_atividades(false, true);
         $header[''] = array(get_string('column_aluno_atividade_concluida', 'report_unasus'));
         return $header;
+    }
+
+    /**
+     * Numero de Alunos que concluiram todas Atividades de um modulo,
+     * e n° de alunos que concluiram todas atividades de um curso
+     *
+     * UTILIZADO PELO RELATÓRIO 'report_atividades_nota_atribuida'
+     *
+     * @param $associativo_atividade
+     * @return \stdClass
+     */
+    function get_dados_alunos_atividades_concluidas($associativo_atividade) {
+        $somatorio_total_modulo = array();
+        $somatorio_total_grupo = array();
+
+        foreach ($associativo_atividade as $grupo_id => $array_dados) {
+            foreach ($array_dados as $dados_aluno) {
+                $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($dados_aluno);
+            }
+        }
+
+        foreach ($alunos_grupo as $grupo_id => $alunos_por_grupo) {
+            $somatorio_total_modulo[$grupo_id] = array();
+
+            foreach ($alunos_por_grupo as $dados_aluno) {
+                /** @var dado_atividades_nota_atribuida_alunos $dados_aluno */
+
+                foreach ($this->modulos_selecionados as $course_id => $activities) {
+                    // Inicializa o contador pra cada curso e pra cada grupo
+                    if (!array_key_exists($course_id, $somatorio_total_modulo[$grupo_id])) {
+                        $somatorio_total_modulo[$grupo_id][$course_id] = 0;
+                    }
+
+                    if ($dados_aluno->is_complete_activities($course_id)) {
+                        $somatorio_total_modulo[$grupo_id][$course_id]++;
+                    }
+                }
+                if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
+                    $somatorio_total_grupo[$grupo_id] = 0;
+                }
+                if ($dados_aluno->is_complete_all_activities()) {
+                    $somatorio_total_grupo[$grupo_id]++;
+                }
+            }
+        }
+
+        $somatorio = new stdClass();
+        $somatorio->somatorio_modulos = $somatorio_total_modulo;
+        $somatorio->somatorio_grupos = $somatorio_total_grupo;
+
+        return $somatorio;
     }
 
 }
