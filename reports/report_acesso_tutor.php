@@ -32,7 +32,6 @@ class report_acesso_tutor extends Factory {
         }
         $this->mostrar_barra_filtragem = false;
         $this->mostrar_aviso_intervalo_tempo = true;
-        echo $renderer->build_page();
     }
 
     public function render_report_csv($name_report) {

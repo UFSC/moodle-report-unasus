@@ -27,7 +27,6 @@ class report_uso_sistema_tutor extends Factory {
         }
         $this->mostrar_barra_filtragem = false;
         $this->mostrar_aviso_intervalo_tempo = true;
-        echo $renderer->build_page();
     }
 
     /** @var $renderer report_unasus_renderer */
