@@ -1,16 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: salazar
- * Date: 12/02/14
- * Time: 15:45
- */
 
 class report_tcc_consolidado extends Factory{
 
-    public function initialize($filtro = true) {
+    protected function initialize() {
         $this->mostrar_filtro_tutores = false;
-        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = false;
@@ -26,7 +20,7 @@ class report_tcc_consolidado extends Factory{
     }
 
     public function render_report_table($renderer, $report) {
-        $this->initialize(false);
+        $this->mostrar_barra_filtragem = false;
         echo $renderer->page_atividades_nao_avaliadas($report);
     }
 

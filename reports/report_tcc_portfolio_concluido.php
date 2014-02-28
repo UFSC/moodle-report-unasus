@@ -1,17 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: salazar
- * Date: 12/02/14
- * Time: 15:45
- */
 
 class report_tcc_portfolio_concluido extends Factory{
 
-    public function initialize($filtro = true) {
+    protected function initialize() {
         $this->mostrar_filtro_tutores = true;
-        $this->mostrar_barra_filtragem = $filtro;
-        $this->mostrar_botoes_grafico = false; //Botões de geração de gráfico removidos - não são utilizados
+        $this->mostrar_barra_filtragem = true;
+        $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
         $this->mostrar_filtro_cohorts = true;
@@ -25,7 +19,7 @@ class report_tcc_portfolio_concluido extends Factory{
     }
 
     public function render_report_table($renderer, $report) {
-        $this->initialize(false);
+        $this->mostrar_barra_filtragem = false;
         echo $renderer->build_report($report);
     }
 

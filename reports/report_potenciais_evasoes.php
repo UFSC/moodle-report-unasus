@@ -2,9 +2,9 @@
 
 class report_potenciais_evasoes extends Factory {
 
-    public function initialize($filtro = true) {
+    protected function initialize() {
         $this->mostrar_filtro_tutores = true;
-        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
@@ -20,7 +20,7 @@ class report_potenciais_evasoes extends Factory {
     }
 
     public function render_report_table($renderer, $report) {
-        $this->initialize(false);
+        $this->mostrar_barra_filtragem = false;
         $this->texto_cabecalho = 'Tutores';
         echo $renderer->build_report($report);
     }

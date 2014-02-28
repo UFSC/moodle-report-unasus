@@ -2,16 +2,16 @@
 
 class report_uso_sistema_tutor extends Factory {
 
-    public function initialize($filtro = true, $aviso = false) {
+    protected function initialize() {
         $this->mostrar_filtro_tutores = true;
-        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = true;
         $this->mostrar_filtro_polos = false;
         $this->mostrar_filtro_cohorts = false;
         $this->mostrar_filtro_modulos = false;
         $this->mostrar_filtro_intervalo_tempo = true;
-        $this->mostrar_aviso_intervalo_tempo = $aviso;
+        $this->mostrar_aviso_intervalo_tempo = false;
         $this->mostrar_botao_exportar_csv = true;
     }
 
@@ -22,10 +22,11 @@ class report_uso_sistema_tutor extends Factory {
     public function render_report_table($renderer, $report){
         if ($this->datas_validas()) {
             $this->texto_cabecalho = null;
-            $this->initialize(false);
+            $this->mostrar_barra_filtragem = false;
             echo $renderer->build_report($report);
         }
-        $this->initialize(false, true);
+        $this->mostrar_barra_filtragem = false;
+        $this->mostrar_aviso_intervalo_tempo = true;
         echo $renderer->build_page();
     }
 
@@ -33,10 +34,11 @@ class report_uso_sistema_tutor extends Factory {
 
     public function render_report_graph($renderer, $report, $porcentagem){
         if ($this->datas_validas()) {
-            $this->initialize(false);
+            $this->mostrar_barra_filtragem = false;
             echo $renderer->build_dot_graph($report);
         }
-        $this->initialize(false, true);
+        $this->mostrar_barra_filtragem = false;
+        $this->mostrar_aviso_intervalo_tempo = true;
         echo $renderer->build_page();
     }
 

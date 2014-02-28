@@ -2,9 +2,9 @@
 
 class report_entrega_de_atividades extends Factory {
 
-    public function initialize($filtro = true) {
+    protected function initialize() {
         $this->mostrar_filtro_tutores = true;
-        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = true;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
@@ -19,12 +19,12 @@ class report_entrega_de_atividades extends Factory {
     }
 
     public function render_report_table($renderer, $report) {
-        $this->initialize(false);
+        $this->mostrar_barra_filtragem = false;
         echo $renderer->build_report($report);
     }
 
     public function render_report_graph($renderer, $report, $porcentagem){
-        $this->initialize(false);
+        $this->mostrar_barra_filtragem = false;
         echo $renderer->build_graph($report, $porcentagem);
     }
 

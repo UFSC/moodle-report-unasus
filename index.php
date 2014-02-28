@@ -61,8 +61,6 @@ $renderer = $PAGE->get_renderer('report_unasus');
 $name_report = $report->get_page_params()['relatorio'];
 $modo_exibicao = $report->get_modo_exibicao();
 
-$report->initialize();
-
 //Primeiro acesso ao relatório
 if($modo_exibicao == null){
     echo $report->render_report_default($renderer);

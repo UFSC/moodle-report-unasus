@@ -156,6 +156,7 @@ class Factory {
 
         if (!isset(self::$report)) {
             self::$report = new $class_name;
+            self::$report->initialize();
         }
 
         return self::$report;

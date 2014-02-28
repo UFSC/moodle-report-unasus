@@ -2,9 +2,9 @@
 
 class report_atividades_nota_atribuida extends Factory {
 
-    public function initialize($filtro = true) {
+    protected function initialize() {
         $this->mostrar_filtro_tutores = true;
-        $this->mostrar_barra_filtragem = $filtro;
+        $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
         $this->mostrar_filtro_polos = true;
@@ -25,7 +25,7 @@ class report_atividades_nota_atribuida extends Factory {
      * @param null $factory
      */
     public function render_report_table($renderer, $report) {
-        $this->initialize(false);
+        $this->mostrar_barra_filtragem = false;
         echo $renderer->page_atividades_nao_avaliadas($report);
     }
 
