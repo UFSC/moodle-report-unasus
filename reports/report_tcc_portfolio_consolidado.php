@@ -1,6 +1,6 @@
 <?php
 
-class report_tcc_portfolio extends Factory {
+class report_tcc_portfolio_consolidado extends Factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -21,7 +21,7 @@ class report_tcc_portfolio extends Factory {
 
     public function render_report_table($renderer, $report) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->page_atividades_nao_avaliadas($report);
+        echo $renderer->page_avaliacoes_em_atraso($report);
     }
 
     public function render_report_csv($name_report) {

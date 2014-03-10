@@ -6,7 +6,7 @@ function report_unasus_relatorios_validos_list() {
     return array(
         'estudante_sem_atividade_avaliada',
         'estudante_sem_atividade_postada',
-        'atividades_nao_avaliadas',
+        'avaliacoes_em_atraso',
         'atividades_nota_atribuida',
         'entrega_de_atividades',
         'atividades_vs_notas',
@@ -15,7 +15,7 @@ function report_unasus_relatorios_validos_list() {
         'acesso_tutor',
         'uso_sistema_tutor',
         'potenciais_evasoes',
-        'tcc_portfolio',
+        'tcc_portfolio_consolidado',
         'tcc_portfolio_concluido',
         'tcc_portfolio_entrega_atividades',
         'tcc_consolidado',

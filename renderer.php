@@ -19,7 +19,7 @@ require_once($CFG->libdir . '/formslib.php');
  * default_table -> tabela para os relatorios
  * table_tutores -> tabela de sintese dos tutores
  * table_todo_list -> tabela dos relatorios de tarefas em atraso
- * page_atividades_nao_avaliadas -> renderizacao para os relatorio de Atividades Postadas e não Avaliadas
+ * page_avaliacoes_em_atraso -> renderizacao para os relatorio de Atividades Postadas e não Avaliadas
  * page_todo_list -> renderizacao para os relatorios de tarefas em atraso
  * build_report -> renderizacao padrão, utilizada na maioria dos relatorios
  * build_graph -> renderizacao dos gráficos de barra
@@ -447,7 +447,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @TODO esse metodo não necessita de uma legenda e usa uma tabela diferente
      * @return String
      */
-    public function page_atividades_nao_avaliadas($report) {
+    public function page_avaliacoes_em_atraso($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 

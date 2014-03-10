@@ -1,6 +1,6 @@
 <?php
 
-class report_atividades_nao_avaliadas extends Factory {
+class report_avaliacoes_em_atraso extends Factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -21,7 +21,7 @@ class report_atividades_nao_avaliadas extends Factory {
     
     public function render_report_table($renderer, $report) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->page_atividades_nao_avaliadas($report);
+        echo $renderer->page_avaliacoes_em_atraso($report);
     }
 
     /**
