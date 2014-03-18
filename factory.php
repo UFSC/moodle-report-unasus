@@ -43,13 +43,17 @@ class Factory {
     protected $modo_exibicao;
 
     // Atributos para construir tela de filtros
-    public $mostrar_barra_filtragem;
+    public $mostrar_barra_filtragem; //mostrar ou esconder filtro
     public $mostrar_botoes_grafico;
     public $mostrar_botoes_dot_chart;
     public $mostrar_filtro_polos;
     public $mostrar_filtro_modulos;
+    public $mostrar_filtro_tutores;
     public $mostrar_filtro_intervalo_tempo;
     public $mostrar_aviso_intervalo_tempo;
+
+    public $mostrar_filtro_cohorts;
+    public $mostrar_botao_exportar_csv;
 
     // Armazenamento de valores definidos nos filtros
     public $cohorts_selecionados;
@@ -67,24 +71,13 @@ class Factory {
     public $data_fim;
 
     // Singleton
-    private static $instance;
+    private static $report;
 
-    // Setar os valores defaults para os relatórios e filtros
-    private function __construct() {
+    protected function __construct() {
         //Atributos globais
         $this->curso_ufsc = get_curso_ufsc_id();
         $this->curso_moodle = get_course_id();
         $this->cursos_ativos = get_cursos_ativos_list();
-
-        //Atributos para os filtros
-        $this->mostrar_barra_filtragem = true;
-        $this->mostrar_botoes_grafico = true;
-        $this->mostrar_botoes_dot_chart = false;
-        $this->mostrar_filtro_polos = true;
-        $this->mostrar_filtro_cohorts = true;
-        $this->mostrar_filtro_modulos = true;
-        $this->mostrar_filtro_intervalo_tempo = false;
-        $this->mostrar_aviso_intervalo_tempo = false;
 
         //Atributos para os gráficos
         //Por default os módulos selecionados são os módulos que o curso escolhido possui
@@ -132,8 +125,7 @@ class Factory {
         // Verifica se é um modo de exibicao valido
         $this->set_modo_exibicao(optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT));
     }
-    
-    
+
     /**
      * Fabrica um objeto com as definições dos relatórios que também é um singleton
      * 
@@ -141,49 +133,35 @@ class Factory {
      * @return Factory
      * @throws Exception
      */
-    public static function singleton_report() {
+
+    public static function singleton() {
+
         global $CFG;
-        
+
         $report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
-        $valid_reports = report_unasus_relatorios_validos_list();
-        
-        // Verifica se é um relatório válido
-        if (!in_array($report, $valid_reports)) {
+
+        if (! in_array($report, report_unasus_relatorios_validos_list())){
             print_error('unknow_report', 'report_unasus');
             return false;
         }
-        
+
         $class_name = "report_{$report}";
-    
+
         // carrega arquivo de definição do relatório
         require_once $CFG->dirroot . "/report/unasus/reports/{$class_name}.php";
-        
+
         if (!class_exists($class_name)) {
             throw new Exception('Missing format class.');
         }
-        
-        if (!isset($class_name::$instace)) {
-            $class_name::$instance = new $class_name;
-        }
-        
-        return $class_name::$instance;
-    }
 
-    /**
-     * Singleton class, garantia de uma unica instancia da classe
-     * 
-     * @deprecated utilizar singleton_report()
-     * @return Factory
-     */
-    public static function singleton() {
-        if (!isset(self::$instance)) {
-            $c = __CLASS__;
-            self::$instance = new $c;
+        if (!isset(self::$report)) {
+            self::$report = new $class_name;
+            self::$report->initialize();
         }
 
-        return self::$instance;
+        return self::$report;
     }
-    
+
     /**
      * Verifica se é um relatório válido e o seta
      * @deprecated 
@@ -225,46 +203,15 @@ class Factory {
         return "dado_{$this->relatorio}";
     }
 
-
-    /**
-     * Retorna os dados que serão exibidos pelo relatório
-     *
-     * @return array chamada de metodo
-     */
-    public function get_dados_relatorio() {
-        $method = "get_dados_{$this->relatorio}";
-        return $method();
-    }
-
-    /**
-     * Retorna o array com os dados para construçào do cabeçalho
-     *
-     * @return array chamada de metodo
-     */
-    public function get_table_header_relatorio() {
-        $method = "get_table_header_{$this->relatorio}";
-        return $method();
-    }
-
-    /**
-     * Retorna os dados que serão exibidos pelo relatório
-     *
-     * @return array chamada de metodo
-     */
-    public function get_dados_grafico_relatorio() {
-        $method = "get_dados_grafico_{$this->relatorio}";
-        return $method();
-    }
-
-
     /**
      * Verifica se o relatório possui gráfico definido
      *
      * @return bool
      */
-    public function relatorio_possui_grafico() {
-        $method = "get_dados_grafico_{$this->relatorio}";
-        if (function_exists($method) && ($this->mostrar_botoes_grafico || $this->mostrar_botoes_dot_chart))
+    public function relatorio_possui_grafico($report) {
+        $method = 'get_dados_grafico';
+
+        if (method_exists($report, $method))
             return true;
         return false;
     }
@@ -282,7 +229,7 @@ class Factory {
      * @param string $modo_exibicao tipo de relatorio a ser exibido
      */
     public function set_modo_exibicao($modo_exibicao) {
-        $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_pontos');
+        $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_pontos', 'export_csv');
         if (in_array($modo_exibicao, $options)) {
             $this->modo_exibicao = $modo_exibicao;
         } else {
@@ -338,4 +285,45 @@ class Factory {
     public function is_member_of($grouping_id, $course_id, $user_id) {
         return isset($this->agrupamentos_membros[$grouping_id][$course_id][$user_id]);
     }
+
+    static function eliminate_html ($data){
+        return strip_tags($data);
+    }
+
+    function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
+        /** @var $factory Factory */
+        $factory = Factory::singleton();
+
+        $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
+        $header = array();
+
+        foreach ($atividades_cursos as $course_id => $atividades) {
+            $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
+            $course_link = html_writer::link($course_url, $atividades[0]->course_name);
+
+            $header[$course_link] = $atividades;
+        }
+        return $header;
+    }
+
+    function get_table_header_tcc_portfolio_entrega_atividades($is_tcc = false) {
+
+        $group_array = new GroupArray();
+        process_header_atividades_lti($this->get_modulos_ids(), $group_array, $is_tcc);
+
+        $atividades_cursos = $group_array->get_assoc();
+        $header = array();
+
+        foreach ($atividades_cursos as $course_id => $atividades) {
+            if (!empty($atividades)) {
+                $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
+                $course_link = html_writer::link($course_url, $atividades[0]->course_name);
+
+                $header[$course_link] = $atividades;
+            }
+        }
+
+        return $header;
+    }
+
 }

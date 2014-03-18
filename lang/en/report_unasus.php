@@ -19,8 +19,8 @@ $string['estudante_sem_atividade_avaliada_help'] = 'Listagem de estudantes que e
 $string['estudante_sem_atividade_avaliada_table_header'] = 'Atividades não Avaliadas';
 
 /* Relatórios Portfolio */
-$string['tcc_portfolio'] = 'Portfólio: Portfólios Consolidados';
-$string['tcc_portfolio_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
+$string['tcc_portfolio_consolidado'] = 'Portfólio: Portfólios Consolidados';
+$string['tcc_portfolio_consolidado_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
 
 $string['tcc_portfolio_entrega_atividades'] = 'Portfólio: Entrega de Atividades';
 $string['tcc_portfolio_entrega_atividades_help'] = 'Listagem de estudantes de acordo com estado de entrega de cada atividade';
@@ -46,8 +46,8 @@ $string['boletim'] = 'Boletim';
 $string['boletim_help'] = 'Notas das atividades realizadas pelo aluno';
 $string['boletim_table_header'] = 'Boletim';
 
-$string['atividades_nao_avaliadas'] = 'Síntese: avaliações em atraso';
-$string['atividades_nao_avaliadas_help'] = 'OBJETIVO: Acompanhar o estado das avalições que foram ou não corrigidas por um tutor';
+$string['avaliacoes_em_atraso'] = 'Síntese: avaliações em atraso';
+$string['avaliacoes_em_atraso_help'] = 'OBJETIVO: Acompanhar o estado das avalições que foram ou não corrigidas por um tutor';
 
 $string['atividades_nota_atribuida'] = 'Síntese: atividades concluídas';
 $string['atividades_nota_atribuida_help'] = 'OBJETIVO: Acompanhar o estado das avalições que tiveram ou não notas atribuidas por um tutor';

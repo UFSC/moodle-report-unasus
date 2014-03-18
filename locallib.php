@@ -6,7 +6,9 @@ require_once($CFG->dirroot . '/local/tutores/middlewarelib.php');
 require_once($CFG->dirroot . '/local/tutores/lib.php');
 require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
-require_once($CFG->dirroot . '/report/unasus/relatorios/relatorios.php');
+require_once($CFG->dirroot . '/report/unasus/relatorios/queries.php');
+require_once($CFG->dirroot . '/report/unasus/relatorios/loops.php');
+
 
 function get_datetime_from_unixtime($unixtime) {
     return date_create(date("Y-m-d H:m:s", $unixtime));

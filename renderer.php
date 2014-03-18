@@ -19,7 +19,7 @@ require_once($CFG->libdir . '/formslib.php');
  * default_table -> tabela para os relatorios
  * table_tutores -> tabela de sintese dos tutores
  * table_todo_list -> tabela dos relatorios de tarefas em atraso
- * page_atividades_nao_avaliadas -> renderizacao para os relatorio de Atividades Postadas e não Avaliadas
+ * page_avaliacoes_em_atraso -> renderizacao para os relatorio de Atividades Postadas e não Avaliadas
  * page_todo_list -> renderizacao para os relatorios de tarefas em atraso
  * build_report -> renderizacao padrão, utilizada na maioria dos relatorios
  * build_graph -> renderizacao dos gráficos de barra
@@ -184,13 +184,15 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
             }
 
-            // Filtro de Tutores
-            $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
-            $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-            $filter_tutores .= html_writer::select(get_tutores_menu($factory->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-            $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
-            $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-            $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
+            if ($factory->mostrar_filtro_tutores) {
+                // Filtro de Tutores
+                $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
+                $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
+                $filter_tutores .= html_writer::select(get_tutores_menu($factory->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+                $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
+                $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
+                $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
+            }
         }
 
         if ($factory->mostrar_filtro_intervalo_tempo) {
@@ -231,6 +233,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         if ($factory->mostrar_botoes_dot_chart) {
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_pontos', 'id' => 'radio_dot'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'radio'));
+        }
+
+        if($factory->mostrar_botao_exportar_csv){
+            // Exportar para CSV
+            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'export_csv', 'id' => 'radio_csv'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/csv_icon.png\">Exportar para CSV", 'radio_csv', true, array('class' => 'radio'));
         }
 
         $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
@@ -395,11 +403,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
         $table->tablealign = 'center';
 
-
         $table_title = get_string($this->report . "_table_header", 'report_unasus');
         $table->headspan = array(1, $header_size);
         $table->head = array('Estudante', $table_title);
-
 
         foreach ($dadostabela as $tutor => $alunos) {
 
@@ -441,7 +447,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @TODO esse metodo não necessita de uma legenda e usa uma tabela diferente
      * @return String
      */
-    public function page_atividades_nao_avaliadas($relatorio = '') {
+    public function page_avaliacoes_em_atraso($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -457,13 +463,10 @@ class report_unasus_renderer extends plugin_renderer_base {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $factory->get_dados_relatorio();
-        $header_method = $factory->get_table_header_relatorio();
+        $dados_method = $report->get_dados();
+        $header_method = $report->get_table_header();
 
-        $table = ($relatorio == 'tcc_consolidado') ? $this->table_tutores($dados_method, $header_method, $relatorio)
-                                                   : $this->table_tutores($dados_method, $header_method);
-
-
+        $table = $this->table_tutores($dados_method, $header_method);
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
@@ -472,10 +475,11 @@ class report_unasus_renderer extends plugin_renderer_base {
 
     /**
      * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
+     * e Estudantes sem Atividades Avaliada
      *
      * @return String
      */
-    public function page_todo_list() {
+    public function page_todo_list($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -485,14 +489,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header();
         $output .= $this->build_filter();
 
-
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
         if (has_capability('report/unasus:view_tutoria', $factory->get_context()) && !has_capability('report/unasus:view_all', $factory->get_context())) {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $factory->get_dados_relatorio();
+        $dados_method = $report->get_dados();
         $dados_atividades = $dados_method;
 
         // Varre os dados em busca do estudante com maior numero de atividades não feitas
@@ -527,7 +530,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      *
      * @return String $output
      */
-    public function build_report() {
+    public function build_report($object) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -537,7 +540,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output = $this->default_header();
         $output .= $this->build_filter();
 
+        //-----------------------------------------------------------------
+        //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
+
         $data_class = $factory->get_estrutura_dados_relatorio();
+
+        //-----------------------------------------------------------------
 
         $output .= html_writer::tag('div', $this->build_legend(call_user_func("{$data_class}::get_legend")), array('class' => 'relatorio-unasus right_legend'));
 
@@ -547,8 +555,8 @@ class report_unasus_renderer extends plugin_renderer_base {
             $factory->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $factory->get_dados_relatorio();
-        $header_method = $factory->get_table_header_relatorio();
+        $dados_method = $object->get_dados();
+        $header_method = $object->get_table_header();
         $table = $this->default_table($dados_method, $header_method);
 
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
@@ -566,7 +574,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param boolean $porcentagem
      * @return String
      */
-    public function build_graph($porcentagem = false) {
+    public function build_graph($report, $porcentagem = false) {
         global $PAGE, $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -582,14 +590,19 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter(true);
 
         // verifica se o gráfico foi implementado
-        if (!$factory->relatorio_possui_grafico()) {
+        if (!$factory->relatorio_possui_grafico($report)) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;
         }
 
-        $dados_method = $factory->get_dados_grafico_relatorio();
+        $dados_method = $report->get_dados_grafico();
+        //-----------------------------------------------------------------
+        //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
+
         $dados_class = $factory->get_estrutura_dados_relatorio();
+
+        //-----------------------------------------------------------------
 
         $legend = call_user_func("$dados_class::get_legend");
 
@@ -616,7 +629,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @global type $PAGE
      * @return String
      */
-    public function build_dot_graph() {
+    public function build_dot_graph($report) {
         global $PAGE;
 
         /** @var $factory Factory */
@@ -631,13 +644,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter();
 
         // verifica se o gráfico foi implementado
-        if (!$factory->relatorio_possui_grafico()) {
+        if (!$factory->relatorio_possui_grafico($report)) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;
         }
 
-        $dados_method = $factory->get_dados_grafico_relatorio();
+        $dados_method = $report->get_dados_grafico();
 
         // Se algum tutor logou ele gera o gráfico
         if (dot_chart_com_tutores_com_acesso($dados_method)) {
@@ -647,7 +660,6 @@ class report_unasus_renderer extends plugin_renderer_base {
             // Se nenhum tutor logou ele informa um erro em vez de gerar um gráfico vazio
             $output .= $this->build_warning('Nenhum tutor logou no moodle no intervalo de tempo selecionado');
         }
-
 
         $output .= $this->default_footer();
 
