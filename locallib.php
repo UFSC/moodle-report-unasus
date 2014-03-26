@@ -69,6 +69,8 @@ function get_count_estudantes($curso_ufsc) {
                 FROM {table_GruposTutoria} gt
            LEFT JOIN {table_PessoasGruposTutoria} pg
                   ON (gt.id=pg.grupo AND pg.tipo=:tipo_aluno)
+          INNER JOIN {view_UsuariosFuncoesCursos} ufc
+                  ON (ufc.username = pg.matricula)
                WHERE gt.curso=:curso_ufsc
             GROUP BY gt.nome
             ORDER BY gt.id";
