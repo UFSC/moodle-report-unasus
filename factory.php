@@ -87,11 +87,13 @@ class Factory {
         if (is_null($modulos_raw)) {
             $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
         }
+        $modulos = get_modulos_validos($modulos_raw);
+
         $this->cohorts_selecionados = optional_param_array('cohorts', null, PARAM_INT);
-        $this->modulos_selecionados = get_atividades_cursos(get_modulos_validos($modulos_raw));
+        $this->modulos_selecionados = get_atividades_cursos($modulos);
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
-        $this->agrupamentos_membros = get_agrupamentos_membros(get_modulos_validos($modulos_raw));
+        $this->agrupamentos_membros = get_agrupamentos_membros($modulos);
         $this->orientadores_selecionados = optional_param_array('orientadores', null, PARAM_INT);
 
         //AGRUPAMENTO DO RELATORIO
