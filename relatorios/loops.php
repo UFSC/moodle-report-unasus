@@ -8,6 +8,10 @@
  * @param $query_quiz
  * @param bool $query_course
  * @param null $query_nota_final
+ * @param bool $is_activity
+ * @param bool $is_orientacao
+ * @throws Exception
+ * @throws dml_read_exception
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
 function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null, $is_activity = false, $is_orientacao = false) {

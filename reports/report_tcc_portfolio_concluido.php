@@ -26,7 +26,7 @@ class report_tcc_portfolio_concluido extends Factory {
     public function get_dados() {
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_estudantes = tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
         $nomes_polos = get_polos($this->get_curso_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]

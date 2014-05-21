@@ -28,7 +28,7 @@ class report_estudante_sem_atividade_avaliada extends Factory {
 
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_estudantes = tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
         $nomes_polos = get_polos($this->get_curso_ufsc());
         $foruns_modulo = query_forum_courses($this->get_modulos_ids());
 

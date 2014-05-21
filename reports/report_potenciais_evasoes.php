@@ -76,7 +76,7 @@ class report_potenciais_evasoes extends Factory {
 
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_estudantes = tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
         $nomes_polos = get_polos($this->get_curso_ufsc());
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_alunos_atividades, $query_forum, $query_quiz);

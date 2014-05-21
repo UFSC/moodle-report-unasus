@@ -41,27 +41,6 @@ function get_nomes_modulos() {
     return array_keys($modulos, array('siteid' => $SITE->id));
 }
 
-/**
- * Dado que alimenta a lista do filtro tutores
- *
- * @deprecated
- * @return array(Strings)
- */
-function get_nomes_tutores() {
-    global $DB;
-    $tutores = $DB->get_records_sql(
-        "SELECT DISTINCT CONCAT(firstname,' ',lastname) AS fullname
-           FROM {role_assignments} AS ra
-           JOIN {role} AS r
-             ON (r.id=ra.roleid)
-           JOIN {context} AS c
-             ON (c.id=ra.contextid)
-           JOIN {user} AS u
-             ON (u.id=ra.userid)
-          WHERE c.contextlevel=40;");
-    return array_keys($tutores);
-}
-
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
 
@@ -959,4 +938,31 @@ function dot_chart_com_tutores_com_acesso($dados) {
         }
     }
     return false;
+}
+
+class tutoria {
+
+    /**
+     * Listagem de estudantes que participam de um curso UFSC e estão relacionados a um tutor
+     *
+     * @param $curso_ufsc
+     * @return array
+     */
+    function get_estudantes_curso_ufsc($curso_ufsc) {
+        global $DB;
+
+        $relationship_id = get_relationship_tutoria($curso_ufsc)->id;
+        $cohort_estudantes = get_relationship_cohort_estudantes($relationship_id);
+
+        $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) AS fullname
+              FROM {user} u
+              JOIN {relationship_members} rm
+                ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+              JOIN {relationship_groups} rg
+                ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
+              ORDER BY u.firstname";
+
+        $params = array('relationship_id' => $relationship_id, 'cohort_id' => $cohort_estudantes->id);
+        return $DB->get_records_sql_menu($sql, $params);
+    }
 }

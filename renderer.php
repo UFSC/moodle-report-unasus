@@ -667,7 +667,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     /**
      * Constroi um fieldset de warning de erro nos filtros
      *
-     * @param $msg Texto de aviso
+     * @param string $msg Texto de aviso
      * @return string
      */
     public function build_warning($msg) {

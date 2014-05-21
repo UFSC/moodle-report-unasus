@@ -25,7 +25,7 @@ class report_tcc_entrega_atividades extends Factory {
 
     public function get_dados() {
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_estudantes = tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
