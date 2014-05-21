@@ -15,13 +15,13 @@ class report_boletim extends Factory {
         $this->mostrar_botao_exportar_csv = true;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_report($report);
+        echo $renderer->build_report($this);
     }
 
     public function render_report_csv($name_report) {
@@ -39,19 +39,19 @@ class report_boletim extends Factory {
         $first_line = array('');
         $tutor_name = array();
 
-        foreach($header as $h){
-            if(isset($h[0]->course_name)){
+        foreach ($header as $h) {
+            if (isset($h[0]->course_name)) {
                 $course_name = $h[0]->course_name;
                 $first_line[] = $course_name;
             }
             $n = count($h);
-            for($i=0;$i < $n; $i++ ){
-                if(isset($h[$i]->name)){
+            for ($i = 0; $i < $n; $i++) {
+                if (isset($h[$i]->name)) {
                     $element = $h[$i]->name;
                     $data_header[] = $element;
                 }
                 //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
-                if($i<$n-1){
+                if ($i < $n - 1) {
                     $first_line[] = '';
                 } else
                     continue;
@@ -66,13 +66,13 @@ class report_boletim extends Factory {
         $count = 0;
         $n = count($name);
 
-        foreach($dados as $dat){
-            if($count < $n){
+        foreach ($dados as $dat) {
+            if ($count < $n) {
                 file_put_contents('php://output', $name[$count]);
                 fputcsv($fp, $tutor_name);
             }
 
-            foreach($dat as $d){
+            foreach ($dat as $d) {
                 $output = array_map("Factory::eliminate_html", $d);
                 fputcsv($fp, $output);
             }
@@ -82,7 +82,7 @@ class report_boletim extends Factory {
         fclose($fp);
     }
 
-    public function get_dados(){
+    public function get_dados() {
         // Consultas
         $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
@@ -156,7 +156,7 @@ class report_boletim extends Factory {
         return $dados;
     }
 
-    public function get_table_header($mostrar_nota_final = true, $mostrar_total = false){
+    public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
         $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
         $header = array();
 

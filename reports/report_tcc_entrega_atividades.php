@@ -1,6 +1,6 @@
 <?php
 
-class report_tcc_entrega_atividades extends Factory{
+class report_tcc_entrega_atividades extends Factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = false;
@@ -14,16 +14,16 @@ class report_tcc_entrega_atividades extends Factory{
         $this->mostrar_aviso_intervalo_tempo = false;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_report($report);
+        echo $renderer->build_report($this);
     }
 
-    public function get_dados(){
+    public function get_dados() {
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
 
@@ -43,7 +43,7 @@ class report_tcc_entrega_atividades extends Factory{
                     /** @var report_unasus_data $atividade */
                     $atraso = null;
 
-                    if ($atividade instanceof report_unasus_data_empty){
+                    if ($atividade instanceof report_unasus_data_empty) {
                         $lista_atividades[] = new dado_nao_aplicado();
                         continue;
                     }
@@ -71,7 +71,7 @@ class report_tcc_entrega_atividades extends Factory{
                                 $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_ACESSADO;
                                 break;
                         }
-                    }else{
+                    } else {
                         // Atividade não acessada
                         $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
                     }
@@ -81,7 +81,7 @@ class report_tcc_entrega_atividades extends Factory{
 
                 $state = $aluno[0]->status_abstract;
 
-                for($i=0; $i<=2; $i++){
+                for ($i = 0; $i <= 2; $i++) {
 
                     switch ($state) {
                         case 'draft':
@@ -119,7 +119,7 @@ class report_tcc_entrega_atividades extends Factory{
         return ($dados);
     }
 
-    public function get_table_header(){
+    public function get_table_header() {
         $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
 
         foreach ($header as $key => $modulo) {

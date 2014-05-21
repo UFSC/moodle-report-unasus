@@ -14,16 +14,16 @@ class report_tcc_portfolio_entrega_atividades extends Factory {
         $this->mostrar_aviso_intervalo_tempo = false;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_report($report);
+        echo $renderer->build_report($this);
     }
 
-    public function get_dados(){
+    public function get_dados() {
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
         $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
@@ -97,7 +97,7 @@ class report_tcc_portfolio_entrega_atividades extends Factory {
         return ($dados);
     }
 
-    public function get_table_header(){
+    public function get_table_header() {
         $group_array = new GroupArray();
         process_header_atividades_lti($this->get_modulos_ids(), $group_array);
 

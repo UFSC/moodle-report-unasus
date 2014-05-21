@@ -14,21 +14,21 @@ class report_entrega_de_atividades extends Factory {
         $this->mostrar_aviso_intervalo_tempo = false;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_report($report);
+        echo $renderer->build_report($this);
     }
 
-    public function render_report_graph($renderer, $report, $porcentagem){
+    public function render_report_graph($renderer, $porcentagem) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_graph($report, $porcentagem);
+        echo $renderer->build_graph($this, $porcentagem);
     }
 
-    public function get_dados_grafico(){
+    public function get_dados_grafico() {
         global $CFG;
 
         // Consultas
@@ -41,7 +41,7 @@ class report_entrega_de_atividades extends Factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+                $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
         $dados = array();
@@ -98,11 +98,11 @@ class report_entrega_de_atividades extends Factory {
             }
             $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
                     array($count_nao_entregue_mas_no_prazo,
-                        $count_nao_entregue_fora_prazo,
-                        $count_sem_prazo,
-                        $count_entregue_no_prazo,
-                        $count_pouco_atraso,
-                        $count_muito_atraso,
+                            $count_nao_entregue_fora_prazo,
+                            $count_sem_prazo,
+                            $count_entregue_no_prazo,
+                            $count_pouco_atraso,
+                            $count_muito_atraso,
                     );
         }
 
@@ -115,7 +115,7 @@ class report_entrega_de_atividades extends Factory {
      * @return array Array[tutores][aluno][unasus_data]
      */
 
-    public function get_dados(){
+    public function get_dados() {
         // Consultas
         $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
@@ -131,7 +131,7 @@ class report_entrega_de_atividades extends Factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+                $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -196,7 +196,7 @@ class report_entrega_de_atividades extends Factory {
         return ($dados);
     }
 
-    public function get_table_header($mostrar_nota_final = false, $mostrar_total = false){
+    public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
         $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
         $header = array();
 

@@ -15,16 +15,16 @@ class report_estudante_sem_atividade_avaliada extends Factory {
         $this->mostrar_botao_exportar_csv = false;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report){
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->page_todo_list($report);
+        echo $renderer->page_todo_list($this);
     }
 
-    public function get_dados(){
+    public function get_dados() {
 
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
@@ -42,7 +42,7 @@ class report_estudante_sem_atividade_avaliada extends Factory {
         $query_forum = query_postagens_forum();
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+                $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
 
         $dados = array();

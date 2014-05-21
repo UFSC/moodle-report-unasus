@@ -15,13 +15,13 @@ class report_avaliacoes_em_atraso extends Factory {
         $this->mostrar_botao_exportar_csv = true;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
-    
-    public function render_report_table($renderer, $report) {
+
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->page_avaliacoes_em_atraso($report);
+        echo $renderer->page_avaliacoes_em_atraso($this);
     }
 
     /**
@@ -41,19 +41,19 @@ class report_avaliacoes_em_atraso extends Factory {
         $data_header = array('Tutores');
         $first_line = array('');
 
-        foreach($header as $h){
-            if(isset($h[0]->course_name)){
+        foreach ($header as $h) {
+            if (isset($h[0]->course_name)) {
                 $course_name = $h[0]->course_name;
                 $first_line[] = $course_name;
             }
             $n = count($h);
-            for($i=0;$i < $n; $i++ ){
-                if(isset($h[$i]->name)){
+            for ($i = 0; $i < $n; $i++) {
+                if (isset($h[$i]->name)) {
                     $element = $h[$i]->name;
                     $data_header[] = $element;
                 }
                 //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
-                if($i<$n-1){
+                if ($i < $n - 1) {
                     $first_line[] = '';
                 } else
                     continue;
@@ -64,7 +64,7 @@ class report_avaliacoes_em_atraso extends Factory {
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
-        foreach($dados as $d){
+        foreach ($dados as $d) {
             $output = array_map("Factory::eliminate_html", $d);
             fputcsv($fp, $output);
         }

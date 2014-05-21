@@ -15,14 +15,14 @@ class report_potenciais_evasoes extends Factory {
         $this->mostrar_botao_exportar_csv = true;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
         $this->texto_cabecalho = 'Tutores';
-        echo $renderer->build_report($report);
+        echo $renderer->build_report($this);
     }
 
     public function render_report_csv($name_report) {
@@ -39,7 +39,7 @@ class report_potenciais_evasoes extends Factory {
         $tutor_name = array('');
         $n = count($header);
 
-        for($i=0; $i<$n; $i++){
+        for ($i = 0; $i < $n; $i++) {
             $data_header[] = strip_tags($header[$i]);
         }
 
@@ -49,14 +49,14 @@ class report_potenciais_evasoes extends Factory {
         $count = 0;
         $n = count($name);
 
-        foreach($dados as $dat){
-            if($count < $n){
+        foreach ($dados as $dat) {
+            if ($count < $n) {
                 file_put_contents('php://output', $name[$count]);
                 fputcsv($fp, $tutor_name);
             }
-            foreach($dat as $d){
-                    $output = array_map("Factory::eliminate_html", $d);
-                    fputcsv($fp, $output);
+            foreach ($dat as $d) {
+                $output = array_map("Factory::eliminate_html", $d);
+                fputcsv($fp, $output);
             }
             $count++;
         }
@@ -64,10 +64,10 @@ class report_potenciais_evasoes extends Factory {
     }
 
 
-    public function get_dados(){
+    public function get_dados() {
         global $CFG;
 
-        $modulos = $this->modulos_selecionados;
+        $modulos = $this->atividades_cursos;
         // Consulta
         $query_alunos_atividades = query_atividades();
         $query_quiz = query_quiz();
@@ -133,7 +133,11 @@ class report_potenciais_evasoes extends Factory {
         return $dados;
     }
 
-    public function get_table_header(){
+    /**
+     * FIXME Nada faz sentido no código abaixo. Verificar e corrigir o que for necessário (utilizar os metodos da factory)
+     * @return array
+     */
+    public function get_table_header() {
         $modulos = $this->get_modulos_ids();
 
         $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());

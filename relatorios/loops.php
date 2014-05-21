@@ -36,7 +36,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_conjunto_alunos, $query_fo
         $group_array_do_grupo = new GroupArray();
 
         // Para cada modulo e suas atividades
-        foreach ($factory->modulos_selecionados as $courseid => $atividades) {
+        foreach ($factory->atividades_cursos as $courseid => $atividades) {
 
             // Num módulo existem várias atividades, numa dada atividade ele irá pesquisar todas as notas dos alunos daquele
             // grupo de tutoria
@@ -249,7 +249,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
 
     $total_atividades = 0;
 
-    foreach ($factory->modulos_selecionados as $atividades) {
+    foreach ($factory->atividades_cursos as $atividades) {
         $total_atividades += count($atividades);
     }
 
@@ -258,7 +258,7 @@ function loop_atividades_e_foruns_sintese($query_conjunto_alunos, $query_forum, 
         $group_array_do_grupo = new GroupArray();
         $array_das_atividades = array();
 
-        foreach ($factory->modulos_selecionados as $modulo => $atividades) {
+        foreach ($factory->atividades_cursos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
 
                 if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_conjunto_alunos)) {

@@ -15,26 +15,24 @@ class report_uso_sistema_tutor extends Factory {
         $this->mostrar_botao_exportar_csv = true;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report){
+    public function render_report_table($renderer) {
         if ($this->datas_validas()) {
             $this->texto_cabecalho = null;
             $this->mostrar_barra_filtragem = false;
-            echo $renderer->build_report($report);
+            echo $renderer->build_report($this);
         }
         $this->mostrar_barra_filtragem = false;
         $this->mostrar_aviso_intervalo_tempo = true;
     }
 
-    /** @var $renderer report_unasus_renderer */
-
-    public function render_report_graph($renderer, $report, $porcentagem){
+    public function render_report_graph($renderer, $porcentagem) {
         if ($this->datas_validas()) {
             $this->mostrar_barra_filtragem = false;
-            echo $renderer->build_dot_graph($report);
+            echo $renderer->build_dot_graph($this);
         }
         $this->mostrar_barra_filtragem = false;
         $this->mostrar_aviso_intervalo_tempo = true;
@@ -59,16 +57,16 @@ class report_uso_sistema_tutor extends Factory {
         $months = array_map("Factory::eliminate_html", array_keys($header));
         $count = 0;
 
-        foreach($header as $h){
+        foreach ($header as $h) {
             $n = count($h);
             $first_line[] = $months[$count];
 
-            for($i=0;$i<$n; $i++ ){
-                if(isset($h[$i])){
+            for ($i = 0; $i < $n; $i++) {
+                if (isset($h[$i])) {
                     $element = $h[$i];
                     $data_header[] = $element;
                 }
-                if($i < $n-1){
+                if ($i < $n - 1) {
                     $first_line[] = '';
                 }
             }
@@ -78,8 +76,8 @@ class report_uso_sistema_tutor extends Factory {
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
-        foreach($dados as $dat){
-            foreach($dat as $d){
+        foreach ($dados as $dat) {
+            foreach ($dat as $d) {
                 $output = array_map("Factory::eliminate_html", $d);
                 fputcsv($fp, $output);
             }

@@ -234,8 +234,6 @@ class dado_tcc_portfolio_concluido extends unasus_data {
     }
 
     public static function get_legend() {
-        global $CFG;
-
         $legend = array();
         $legend['nao_concluido'] = 'Atividade não concluída';
         $legend['concluido'] = 'Atividade concluída';

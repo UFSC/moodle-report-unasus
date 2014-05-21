@@ -346,13 +346,12 @@ function get_tutores_menu($curso_ufsc) {
 
 /**
  * Função que busca os membros da cada agrupamento
- * @param type $courses
+ * @param array $courses array de ids dos cursos moodle
  * @return array(course_id => (userid1, userid2, ...))
  */
-function get_agrupamentos_membros($courses = null) {
+function get_agrupamentos_membros($courses) {
     global $DB;
 
-    $courses = explode(',', $courses);
     $groups = array();
 
     foreach ($courses as $course_id) {
@@ -368,12 +367,17 @@ function get_agrupamentos_membros($courses = null) {
 /**
  * Função que busca todas as atividades (assign, forum) dentro de um modulo (course)
  *
- * @param array $courses array de ids dos cursos moodle, padrão null, retornando todos os modulos
+ * @param array $courses array de ids dos cursos moodle
  * @param bool $mostrar_nota_final
  * @param bool $mostrar_total
+ * @throws Exception
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mostrar_total = false) {
+function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false) {
+
+    if (empty($courses)) {
+        throw new Exception("Falha ao obter as atividades, curso não informado.");
+    }
 
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
@@ -415,8 +419,10 @@ function get_atividades_cursos($courses = null, $mostrar_nota_final = false, $mo
 
 /**
  * Atividades LTI
+ *
  * @param $courses
  * @param GroupArray $group_array
+ * @param bool $is_tcc
  * @return array
  */
 function process_header_atividades_lti($courses, GroupArray &$group_array, $is_tcc = false) {
@@ -460,8 +466,9 @@ function process_header_atividades_lti($courses, GroupArray &$group_array, $is_t
  * Função que busca os courses com suas respectivas atividades e datas de entrega
  * utilizada no get_atividade_modulos
  *
- * @global moodle_database $DB
  * @param array $courses
+ * @throws Exception
+ * @global moodle_database $DB
  * @return moodle_recordset
  */
 function query_assign_courses($courses) {
@@ -529,6 +536,7 @@ function query_quiz_courses($courses) {
  * Função para buscar atividades de lti
  *
  * @param $courses
+ * @param bool $is_tcc
  * @internal param \type $tcc_definition_id
  * @return array
  */
@@ -653,7 +661,7 @@ function query_courses_com_nota_final($courses) {
  * Verifica se o usuário não enviar uma listagem de modulos obtem todos os modulos válidos (possuem atividade)
  *
  * @param array $modulos
- * @return array
+ * @return string
  */
 function get_modulos_validos($modulos) {
 

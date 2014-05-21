@@ -15,13 +15,13 @@ class report_tcc_portfolio_consolidado extends Factory {
         $this->mostrar_botao_exportar_csv = true;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->page_avaliacoes_em_atraso($report);
+        echo $renderer->page_avaliacoes_em_atraso($this);
     }
 
     public function render_report_csv($name_report) {
@@ -38,25 +38,25 @@ class report_tcc_portfolio_consolidado extends Factory {
         $data_header = array('Tutores');
         $first_line = array('');
 
-        foreach($header as $h){
+        foreach ($header as $h) {
 
-            if(isset($h[0]->course_name)){
+            if (isset($h[0]->course_name)) {
                 $course_name = $h[0]->course_name;
                 $first_line[] = $course_name;
             }
             $n = count($h);
-            for($i=0;$i < $n; $i++ ){
-                if(isset($h[$i]->name)){
+            for ($i = 0; $i < $n; $i++) {
+                if (isset($h[$i]->name)) {
                     $element = $h[$i]->name;
                     $data_header[] = $element;
                 }
                 //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
-                if($i<$n-1){
+                if ($i < $n - 1) {
                     $first_line[] = '';
                 } else
                     continue;
 
-                if($i == $n-2){
+                if ($i == $n - 2) {
                     $data_header[] = 'Não Acessado';
                     $data_header[] = 'Concluído';
                 }
@@ -66,14 +66,14 @@ class report_tcc_portfolio_consolidado extends Factory {
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
-        foreach($dados as $d){
+        foreach ($dados as $d) {
             $output = array_map("Factory::eliminate_html", $d);
             fputcsv($fp, $output);
         }
         fclose($fp);
     }
 
-    public function get_dados(){
+    public function get_dados() {
         /* Resultados */
         $result_array = loop_atividades_e_foruns_sintese(null, null, null);
 
@@ -124,7 +124,7 @@ class report_tcc_portfolio_consolidado extends Factory {
                         $bool_atividades[$id]['nao_acessado'] = false;
                     }
                 }
-                foreach($bool_atividades as $id => $bool_atividade) {
+                foreach ($bool_atividades as $id => $bool_atividade) {
                     $total_tcc_completo->inc($grupo_id, $id, $bool_atividade['has_activity'] && $bool_atividade['tcc_completo']);
                     $total_nao_acessadas->inc($grupo_id, $id, $bool_atividade['has_activity'] && $bool_atividade['nao_acessado']);
                 }
@@ -178,7 +178,7 @@ class report_tcc_portfolio_consolidado extends Factory {
         return $dados;
     }
 
-    public function get_table_header(){
+    public function get_table_header() {
         $header = $this->get_table_header_tcc_portfolio_entrega_atividades();
 
         foreach ($header as $key => $modulo) {

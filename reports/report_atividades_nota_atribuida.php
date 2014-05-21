@@ -15,18 +15,13 @@ class report_atividades_nota_atribuida extends Factory {
         $this->mostrar_botao_exportar_csv = true;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    /**
-     * @param $renderer report_unasus_renderer
-     * @param $object
-     * @param null $factory
-     */
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->page_avaliacoes_em_atraso($report);
+        echo $renderer->page_avaliacoes_em_atraso($this);
     }
 
     public function render_report_csv($name_report) {
@@ -43,24 +38,24 @@ class report_atividades_nota_atribuida extends Factory {
         $data_header = array('Tutores');
         $first_line = array('');
 
-        foreach($header as $h){
-            if(isset($h[0]->course_name)){
+        foreach ($header as $h) {
+            if (isset($h[0]->course_name)) {
                 $course_name = $h[0]->course_name;
                 $first_line[] = $course_name;
             }
             $n = count($h);
-            for($i=0;$i < $n; $i++ ){
-                if(isset($h[$i]->name)){
+            for ($i = 0; $i < $n; $i++) {
+                if (isset($h[$i]->name)) {
                     $element = $h[$i]->name;
                     $data_header[] = $element;
                 }
                 //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
-                if($i<$n-1){
+                if ($i < $n - 1) {
                     $first_line[] = '';
                 } else
                     continue;
 
-                if($i == $n-2){
+                if ($i == $n - 2) {
                     $data_header[] = 'Atividades Concluídas';
                 }
             }
@@ -70,14 +65,14 @@ class report_atividades_nota_atribuida extends Factory {
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
-        foreach($dados as $d){
+        foreach ($dados as $d) {
             $output = array_map("Factory::eliminate_html", $d);
             fputcsv($fp, $output);
         }
         fclose($fp);
     }
 
-    public function get_dados(){
+    public function get_dados() {
         // Consulta
         $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
@@ -166,7 +161,7 @@ class report_atividades_nota_atribuida extends Factory {
         return $dados;
     }
 
-    public function get_table_header(){
+    public function get_table_header() {
         $header = $this->get_table_header_modulos_atividades(false, true);
         $header[''] = array(get_string('column_aluno_atividade_concluida', 'report_unasus'));
         return $header;
@@ -197,7 +192,7 @@ class report_atividades_nota_atribuida extends Factory {
             foreach ($alunos_por_grupo as $dados_aluno) {
                 /** @var dado_atividades_nota_atribuida_alunos $dados_aluno */
 
-                foreach ($this->modulos_selecionados as $course_id => $activities) {
+                foreach ($this->atividades_cursos as $course_id => $activities) {
                     // Inicializa o contador pra cada curso e pra cada grupo
                     if (!array_key_exists($course_id, $somatorio_total_modulo[$grupo_id])) {
                         $somatorio_total_modulo[$grupo_id][$course_id] = 0;

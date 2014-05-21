@@ -15,18 +15,18 @@ class report_atividades_vs_notas extends Factory {
         $this->mostrar_botao_exportar_csv = true;
     }
 
-    public function render_report_default($renderer){
+    public function render_report_default($renderer) {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_report($report);
+        echo $renderer->build_report($this);
     }
 
-    public function render_report_graph($renderer, $report, $porcentagem){
+    public function render_report_graph($renderer, $porcentagem) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_graph($report, $porcentagem);
+        echo $renderer->build_graph($this, $porcentagem);
     }
 
     public function render_report_csv($name_report) {
@@ -48,19 +48,19 @@ class report_atividades_vs_notas extends Factory {
         $count = 0;
         $n_names = count($name_tutor);
 
-        foreach($header as $h){
-            if(isset($h[0]->course_name)){
+        foreach ($header as $h) {
+            if (isset($h[0]->course_name)) {
                 $course_name = $h[0]->course_name;
                 $first_line[] = $course_name;
             }
             $n = count($h);
-            for($i=0;$i < $n; $i++ ){
-                if(isset($h[$i]->name)){
+            for ($i = 0; $i < $n; $i++) {
+                if (isset($h[$i]->name)) {
                     $element = $h[$i]->name;
                     $data_header[] = $element;
                 }
                 //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
-                if($i<$n-1){
+                if ($i < $n - 1) {
                     $first_line[] = '';
                 } else
                     continue;
@@ -70,13 +70,13 @@ class report_atividades_vs_notas extends Factory {
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
-        foreach($dados as $dat){
+        foreach ($dados as $dat) {
 
-            if($count < $n_names){
+            if ($count < $n_names) {
                 file_put_contents('php://output', $name_tutor[$count]);
                 fputcsv($fp, $tutor_name);
             }
-            foreach($dat as $d){
+            foreach ($dat as $d) {
                 $output = array_map("Factory::eliminate_html", $d);
                 fputcsv($fp, $output);
             }
@@ -86,7 +86,7 @@ class report_atividades_vs_notas extends Factory {
         fclose($fp);
     }
 
-    public function get_dados_grafico(){
+    public function get_dados_grafico() {
         global $CFG;
 
         // Consultas
@@ -165,12 +165,12 @@ class report_atividades_vs_notas extends Factory {
 
             $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
                     array($count_nota_atribuida,
-                        $count_nota_atribuida_atraso,
-                        $count_pouco_atraso,
-                        $count_muito_atraso,
-                        $count_nao_entregue,
-                        $count_nao_realizada,
-                        $count_sem_prazo);
+                            $count_nota_atribuida_atraso,
+                            $count_pouco_atraso,
+                            $count_muito_atraso,
+                            $count_nao_entregue,
+                            $count_nao_realizada,
+                            $count_sem_prazo);
         }
         return $dados;
     }
@@ -180,8 +180,7 @@ class report_atividades_vs_notas extends Factory {
      *
      * @return array Array[tutores][aluno][unasus_data]
      */
-
-    public function get_dados(){
+    public function get_dados() {
         // Dado Auxiliar
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
         $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
@@ -197,7 +196,7 @@ class report_atividades_vs_notas extends Factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-            $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+                $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -283,10 +282,11 @@ class report_atividades_vs_notas extends Factory {
      *  Primeira linha módulo1, modulo2
      *  Segunda linha ativ1_mod1, ativ2_mod1, ativ1_mod2, ativ2_mod2
      *
+     * @param bool $mostrar_nota_final
+     * @param bool $mostrar_total
      * @return array
      */
-
-    public function get_table_header($mostrar_nota_final = false, $mostrar_total = false){
+    public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
         $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
         $header = array();
 

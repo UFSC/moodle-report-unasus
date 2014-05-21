@@ -74,26 +74,27 @@ class Factory {
     private static $report;
 
     protected function __construct() {
-        //Atributos globais
+        // Atributos globais
         $this->curso_ufsc = get_curso_ufsc_id();
         $this->curso_moodle = get_course_id();
         $this->cursos_ativos = get_cursos_ativos_list();
 
-        //Atributos para os gráficos
-        //Por default os módulos selecionados são os módulos que o curso escolhido possui
+        // Atributos para os gráficos
+        // Por default os módulos selecionados são os módulos que o curso escolhido possui
         $this->texto_cabecalho = 'Estudantes';
 
-        $modulos_raw = optional_param_array('modulos', null, PARAM_INT);
-        if (is_null($modulos_raw)) {
-            $modulos_raw = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
+        // Recupera os módulos enviados do filtro e caso nenhum tenha sido selecionado, retorna todos os possíveis.
+        $modulos = optional_param_array('modulos', null, PARAM_INT);
+        if (is_null($modulos)) {
+            $modulos = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
         }
-        $modulos = get_modulos_validos($modulos_raw);
 
+        // Valores definidos nos filtros
         $this->cohorts_selecionados = optional_param_array('cohorts', null, PARAM_INT);
-        $this->modulos_selecionados = get_atividades_cursos($modulos);
+        $this->modulos_selecionados = $modulos;
+        $this->atividades_cursos = get_atividades_cursos($modulos);
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
-        $this->agrupamentos_membros = get_agrupamentos_membros($modulos);
         $this->orientadores_selecionados = optional_param_array('orientadores', null, PARAM_INT);
 
         //AGRUPAMENTO DO RELATORIO
@@ -111,6 +112,8 @@ class Factory {
                 $this->agrupar_relatorios = AGRUPAR_TUTORES;
                 break;
         }
+
+        $this->agrupamentos_membros = get_agrupamentos_membros($modulos);
 
         //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
         $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
@@ -208,6 +211,7 @@ class Factory {
     /**
      * Verifica se o relatório possui gráfico definido
      *
+     * @param $report
      * @return bool
      */
     public function relatorio_possui_grafico($report) {
@@ -264,10 +268,10 @@ class Factory {
     }
 
     /**
-     * @return array array com as ids dos modulos
+     * @return array ids dos modulos
      */
     public function get_modulos_ids() {
-        return array_keys($this->modulos_selecionados);
+        return $this->modulos_selecionados;
     }
 
     /**

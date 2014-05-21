@@ -29,7 +29,7 @@ require_once($CFG->libdir . '/formslib.php');
  */
 class report_unasus_renderer extends plugin_renderer_base {
 
-    private $report;
+    private $report_name;
 
     public function __construct(moodle_page $page, $target) {
         parent::__construct($page, $target);
@@ -40,9 +40,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Carrega tipo de renderização (relatório ou gráfico)
         $relatorio = $factory->get_relatorio();
         if (!empty($relatorio)) {
-            $this->report = $relatorio;
+            $this->report_name = $relatorio;
         } else {
-            $this->report = $factory->get_modo_exibicao();
+            $this->report_name = $factory->get_modo_exibicao();
         }
     }
 
@@ -53,13 +53,13 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function build_page() {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
+        /** @var $report Factory */
+        $report = Factory::singleton();
 
         $output = $this->default_header();
         $output .= $this->build_filter();
 
-        if ($factory->mostrar_aviso_intervalo_tempo) {
+        if ($report->mostrar_aviso_intervalo_tempo) {
             $output .= $this->build_warning('Intervalo de Tempo incorreto ou Formato de data inválido ');
         }
         $output .= $this->default_footer();
@@ -76,7 +76,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         if ($legend === false) {
             return null;
         }
-        $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus {$this->report}"));
+        $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus {$this->report_name}"));
         $output .= html_writer::tag('legend', 'Legenda', array('class' => 'legend'));
         $output .= html_writer::start_tag('dl');
 
@@ -98,10 +98,10 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function default_header() {
         $output = $this->header();
 
-        $title = get_string($this->report, 'report_unasus');
+        $title = get_string($this->report_name, 'report_unasus');
 
-        if ($title != "[[$this->report]]") {
-            $output .= $this->heading_with_help($title, $this->report, 'report_unasus');
+        if ($title != "[[$this->report_name]]") {
+            $output .= $this->heading_with_help($title, $this->report_name, 'report_unasus');
         } else {
             $output .= $this->heading($title);
         }
@@ -117,12 +117,12 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function build_filter() {
         global $CFG, $_POST;
 
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
+        /** @var $report Factory */
+        $report = Factory::singleton();
 
         //$dados_tutores = grupos_tutoria::get_chave_valor_grupos_tutoria($this->curso_ufsc);
         // Inicio do Form
-        $url_filtro = new moodle_url('/report/unasus/index.php', $factory->get_page_params());
+        $url_filtro = new moodle_url('/report/unasus/index.php', $report->get_page_params());
         $output = html_writer::start_tag('form', array('action' => $url_filtro,
                     'method' => 'post', 'accept-charset' => 'utf-8', 'id' => 'filter_form'));
 
@@ -131,15 +131,15 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
 
         // Botao de ocultar/mostrar filtros, só aparece com javascript carregado
-        $css_class = ($factory->mostrar_barra_filtragem == true) ? 'hidden' : 'visible';
+        $css_class = ($report->mostrar_barra_filtragem == true) ? 'hidden' : 'visible';
         $output .= html_writer::nonempty_tag('button', 'Mostrar Filtros', array('id' => 'button-mostrar-filtro', 'type' => 'button', 'class' => "relatorio-unasus botao-ocultar {$css_class}"));
 
         // Filtros
         $output .= html_writer::start_tag('div', array('class' => "relatorio-unasus conteudo-filtro", 'id' => 'div_filtro'));
 
-        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => $factory->get_relatorio()));
+        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => $report->get_relatorio()));
 
-        if ($factory->mostrar_filtro_polos) {
+        if ($report->mostrar_filtro_polos) {
             // Dropdown list
             $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
             $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
@@ -150,9 +150,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
 
         // Filtro de modulo
-        if ($factory->mostrar_filtro_modulos) {
+        if ($report->mostrar_filtro_modulos) {
             $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '';
-            $nome_modulos = get_nome_modulos($factory->get_curso_ufsc());
+            $nome_modulos = get_nome_modulos($report->get_curso_ufsc());
             $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
             $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post, '', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
             $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
@@ -160,13 +160,13 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
         }
 
-        if (has_capability('report/unasus:view_all', $factory->get_context())) {
+        if (has_capability('report/unasus:view_all', $report->get_context())) {
 
-            if ($factory->mostrar_filtro_polos) {
+            if ($report->mostrar_filtro_polos) {
                 // Filtro de Polo
                 $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '';
                 $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-                $filter_polos .= html_writer::select(get_polos($factory->get_curso_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+                $filter_polos .= html_writer::select(get_polos($report->get_curso_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
                 $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
                 $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'multiple_list'));
@@ -174,34 +174,34 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             $output .= html_writer::tag('div', '', array('class' => 'clear'));
 
-            if ($factory->mostrar_filtro_cohorts) {
+            if ($report->mostrar_filtro_cohorts) {
                 // Filtro de Cohorts
                 $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '';
                 $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
-                $filter_cohorts .= html_writer::select(get_nomes_cohorts($factory->get_curso_ufsc()), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
+                $filter_cohorts .= html_writer::select(get_nomes_cohorts($report->get_curso_ufsc()), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
                 $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
                 $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
             }
 
-            if ($factory->mostrar_filtro_tutores) {
+            if ($report->mostrar_filtro_tutores) {
                 // Filtro de Tutores
                 $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
                 $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-                $filter_tutores .= html_writer::select(get_tutores_menu($factory->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+                $filter_tutores .= html_writer::select(get_tutores_menu($report->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
                 $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
                 $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
             }
         }
 
-        if ($factory->mostrar_filtro_intervalo_tempo) {
+        if ($report->mostrar_filtro_intervalo_tempo) {
 
             $data_fim = date('d/m/Y');
             $data_inicio = date('d/m/Y', strtotime('-1 months'));
 
-            $data_inicio_param = $factory->data_inicio;
-            $data_fim_param = $factory->data_fim;
+            $data_inicio_param = $report->data_inicio;
+            $data_fim_param = $report->data_fim;
 
             if (!is_null($data_inicio_param))
                 $data_inicio = $data_inicio_param;
@@ -223,19 +223,19 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'tabela', 'id' => 'radio_tabela', 'checked' => true));
         $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela', true, array('class' => 'radio'));
 
-        if ($factory->mostrar_botoes_grafico) {
+        if ($report->mostrar_botoes_grafico) {
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_valores', 'id' => 'radio_valores'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores', true, array('class' => 'radio'));
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_porcentagens', 'id' => 'radio_porcentagem'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'radio'));
         }
 
-        if ($factory->mostrar_botoes_dot_chart) {
+        if ($report->mostrar_botoes_dot_chart) {
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_pontos', 'id' => 'radio_dot'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'radio'));
         }
 
-        if($factory->mostrar_botao_exportar_csv){
+        if($report->mostrar_botao_exportar_csv){
             // Exportar para CSV
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'export_csv', 'id' => 'radio_csv'));
             $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/csv_icon.png\">Exportar para CSV", 'radio_csv', true, array('class' => 'radio'));
@@ -272,7 +272,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function default_table($dadostabela, $header, $tipo_cabecalho = 'Estudante') {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";
         $table->tablealign = 'center';
 
 
@@ -345,12 +345,13 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @TODO REFATORAR com default_table
      * @param Array $dadostabela
      * @param Array $header
+     * @param string $relatorio
      * @return report_unasus_table
      */
     public function table_tutores($dadostabela, $header, $relatorio = '') {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";
         $table->tablealign = 'center';
 
         $header_keys = array_keys($header);
@@ -400,10 +401,10 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function table_todo_list($dadostabela, $header_size) {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";
         $table->tablealign = 'center';
 
-        $table_title = get_string($this->report . "_table_header", 'report_unasus');
+        $table_title = get_string($this->report_name . "_table_header", 'report_unasus');
         $table->headspan = array(1, $header_size);
         $table->head = array('Estudante', $table_title);
 
@@ -445,22 +446,22 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página referente ao relatorio de Atividades Postadas e não Avaliadas
      *
      * @TODO esse metodo não necessita de uma legenda e usa uma tabela diferente
+     * @param $report
+     * @throws Exception
+     * @throws coding_exception
      * @return String
      */
     public function page_avaliacoes_em_atraso($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         $output = $this->default_header();
         $output .= $this->build_filter();
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $factory->get_context()) && !has_capability('report/unasus:view_all', $factory->get_context())) {
-            $factory->tutores_selecionados = array($USER->id);
+        if (has_capability('report/unasus:view_tutoria', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->tutores_selecionados = array($USER->id);
         }
 
         $dados_method = $report->get_dados();
@@ -477,22 +478,22 @@ class report_unasus_renderer extends plugin_renderer_base {
      * Cria a página referente ao Relatório de Estudantes sem Atividades Postadas (fora do prazo)
      * e Estudantes sem Atividades Avaliada
      *
+     * @param $report
+     * @throws Exception
+     * @throws coding_exception
      * @return String
      */
     public function page_todo_list($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
-
         $output = $this->default_header();
         $output .= $this->build_filter();
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $factory->get_context()) && !has_capability('report/unasus:view_all', $factory->get_context())) {
-            $factory->tutores_selecionados = array($USER->id);
+        if (has_capability('report/unasus:view_tutoria', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->tutores_selecionados = array($USER->id);
         }
 
         $dados_method = $report->get_dados();
@@ -528,14 +529,13 @@ class report_unasus_renderer extends plugin_renderer_base {
      * - Método que faz a busca no banco de dados: get_dados_{NOME DO REPORT}
      * - Método que pega o array do cabeçalho da tabela: get_table_header_{NOME DO REPORT}
      *
+     * @param $report
+     * @throws coding_exception
      * @return String $output
      */
-    public function build_report($object) {
+    public function build_report($report) {
         global $USER;
         raise_memory_limit(MEMORY_EXTRA);
-
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
 
         $output = $this->default_header();
         $output .= $this->build_filter();
@@ -543,21 +543,19 @@ class report_unasus_renderer extends plugin_renderer_base {
         //-----------------------------------------------------------------
         //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
 
-        $data_class = $factory->get_estrutura_dados_relatorio();
+        $data_class = $report->get_estrutura_dados_relatorio();
 
         //-----------------------------------------------------------------
 
-        $output .= html_writer::tag('div', $this->build_legend(call_user_func("{$data_class}::get_legend")), array('class' => 'relatorio-unasus right_legend'));
+        $output .= html_writer::tag('div', $this->build_legend($data_class::get_legend()), array('class' => 'relatorio-unasus right_legend'));
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $factory->get_context()) && !has_capability('report/unasus:view_all', $factory->get_context())) {
-            $factory->tutores_selecionados = array($USER->id);
+        if (has_capability('report/unasus:view_tutoria', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->tutores_selecionados = array($USER->id);
         }
 
-        $dados_method = $object->get_dados();
-        $header_method = $object->get_table_header();
-        $table = $this->default_table($dados_method, $header_method);
+        $table = $this->default_table($report->get_dados(), $report->get_table_header());
 
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
@@ -570,16 +568,16 @@ class report_unasus_renderer extends plugin_renderer_base {
      * modo porcentagem onde todos os valores sao mostrados em termos de porcentagens,
      * barras de 100%.
      *
-     * @global type $PAGE
+     * @param $report Factory
      * @param boolean $porcentagem
+     * @throws Exception
+     * @throws coding_exception
+     * @global type $PAGE
      * @return String
      */
     public function build_graph($report, $porcentagem = false) {
         global $PAGE, $USER;
         raise_memory_limit(MEMORY_EXTRA);
-
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
 
         $output = $this->default_header();
 
@@ -590,7 +588,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter(true);
 
         // verifica se o gráfico foi implementado
-        if (!$factory->relatorio_possui_grafico($report)) {
+        if (!$report->relatorio_possui_grafico($report)) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;
@@ -600,7 +598,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         //-----------------------------------------------------------------
         //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
 
-        $dados_class = $factory->get_estrutura_dados_relatorio();
+        $dados_class = $report->get_estrutura_dados_relatorio();
 
         //-----------------------------------------------------------------
 
@@ -608,14 +606,14 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
         // alteramos o que vai ser enviado para o filtro de tutor.
-        if (has_capability('report/unasus:view_tutoria', $factory->get_context()) && !has_capability('report/unasus:view_all', $factory->get_context())) {
-            $factory->tutores_selecionados = array($USER->id);
+        if (has_capability('report/unasus:view_tutoria', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->tutores_selecionados = array($USER->id);
         }
 
         $PAGE->requires->js_init_call('M.report_unasus.init_graph', array(
             $dados_method,
             array_values($legend),
-            get_string($this->report, 'report_unasus'), $porcentagem));
+            get_string($this->report_name, 'report_unasus'), $porcentagem));
 
         $output .= '<div id="container" class="container relatorio-wrapper"></div>';
         $output .= $this->default_footer();
@@ -626,14 +624,14 @@ class report_unasus_renderer extends plugin_renderer_base {
     /**
      * Cria o gráfico de pontos para o relatório de acesso do tutor(horas)
      *
+     * @param $report
+     * @throws Exception
+     * @throws coding_exception
      * @global type $PAGE
      * @return String
      */
     public function build_dot_graph($report) {
         global $PAGE;
-
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
 
         $output = $this->default_header();
 
@@ -644,7 +642,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter();
 
         // verifica se o gráfico foi implementado
-        if (!$factory->relatorio_possui_grafico($report)) {
+        if (!$report->relatorio_possui_grafico($report)) {
             $output .= $this->box(get_string('unimplemented_graph_error', 'report_unasus'));
             $output .= $this->default_footer();
             return $output;

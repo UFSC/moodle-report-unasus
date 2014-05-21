@@ -62,26 +62,24 @@ $name_report = $report->get_page_params()['relatorio'];
 $modo_exibicao = $report->get_modo_exibicao();
 
 //Primeiro acesso ao relatório
-if($modo_exibicao == null){
+if ($modo_exibicao == null) {
     echo $report->render_report_default($renderer);
 }
 
-if($modo_exibicao === 'tabela'){
-    $report->render_report_table($renderer, $report);
-
-} elseif ($modo_exibicao === 'grafico_valores' ||
-          $modo_exibicao === 'grafico_porcentagens' ||
-          $modo_exibicao === 'grafico_pontos'){
-
-    $porcentagem = ($modo_exibicao === 'grafico_porcentagens');
-
-    $report->render_report_graph($renderer, $report, $porcentagem);
-    } elseif ($modo_exibicao === 'export_csv'){
-                $report->render_report_csv($name_report);
+switch ($modo_exibicao) {
+    case 'tabela':
+        $report->render_report_table($renderer);
+        break;
+    case 'grafico_valores':
+    case 'grafico_porcentagens':
+    case 'grafico_pontos':
+        $porcentagem = ($modo_exibicao === 'grafico_porcentagens');
+        $report->render_report_graph($renderer, $porcentagem);
+        break;
+    case 'export_csv':
+        $report->render_report_csv($name_report);
+        break;
 }
-
-
-
 
 
 
