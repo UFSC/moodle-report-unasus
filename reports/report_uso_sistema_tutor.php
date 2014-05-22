@@ -88,7 +88,7 @@ class report_uso_sistema_tutor extends Factory {
     function get_dados() {
 
         $middleware = Middleware::singleton();
-        $lista_tutores = get_tutores_menu($this->get_curso_ufsc());
+        $lista_tutores = tutoria::get_tutores_menu($this->get_curso_ufsc());
 
         $query = query_uso_sistema_tutor();
 

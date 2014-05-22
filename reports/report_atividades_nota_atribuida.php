@@ -74,11 +74,11 @@ class report_atividades_nota_atribuida extends Factory {
 
     public function get_dados() {
         // Consulta
-        $query_alunos_grupo_tutoria = query_atividades();
+        $query_atividades = query_atividades();
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
 
-        $result_array = loop_atividades_e_foruns_sintese($query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];

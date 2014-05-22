@@ -69,7 +69,7 @@ class report_potenciais_evasoes extends Factory {
 
         $modulos = $this->atividades_cursos;
         // Consulta
-        $query_alunos_atividades = query_atividades();
+        $query_atividades = query_atividades();
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
 
@@ -79,7 +79,7 @@ class report_potenciais_evasoes extends Factory {
         $nomes_estudantes = tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
         $nomes_polos = get_polos($this->get_curso_ufsc());
 
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_alunos_atividades, $query_forum, $query_quiz);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz);
 
         //pega a hora atual para comparar se uma atividade esta atrasada ou nao
         $timenow = time();

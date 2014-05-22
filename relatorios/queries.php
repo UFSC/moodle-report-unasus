@@ -7,9 +7,7 @@
 
 /**
  * Query para retornar os alunos pertencentes a um grupo de tutoria
- *
- *
- * Utilizada em diversos relatórios, necessita do middleware para rodar.
+ * Utilizada em diversos relatórios, necessita do relationship para rodar.
  *
  * Colunas:
  *
@@ -18,16 +16,17 @@
  * - lastname
  * - grupo_id
  *
+ * @throws Exception
  * @return string
  */
 function query_alunos_grupo_tutoria() {
 
-    /** @var $factory Factory */
-    $factory = Factory::singleton();
+    /** @var $report Factory */
+    $report = Factory::singleton();
     $query_polo = ' ';
 
-    $cohorts = int_array_to_sql($factory->cohorts_selecionados);
-    $polos = int_array_to_sql($factory->polos_selecionados);
+    $cohorts = int_array_to_sql($report->cohorts_selecionados);
+    $polos = int_array_to_sql($report->polos_selecionados);
 
     if (!is_null($cohorts)) {
         $query_cohort = " JOIN {cohort_members} cm
@@ -45,16 +44,16 @@ function query_alunos_grupo_tutoria() {
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return "SELECT u.id, u.firstname, u.lastname, gt.id AS grupo_id, vga.polo, co.id as cohort
+    return "SELECT u.id, u.firstname, u.lastname, rg.id AS grupo_id, vga.polo, co.id as cohort
               FROM {user} u
-              JOIN {table_PessoasGruposTutoria} pg
-                ON (pg.matricula=u.username)
-              JOIN {table_GruposTutoria} gt
-                ON (gt.id=pg.grupo)
+              JOIN {relationship_members} rm
+                ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_relationship_id)
+              JOIN {relationship_groups} rg
+                ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
               JOIN {view_Alunos} vga
                 ON (vga.matricula = u.username {$query_polo})
                    {$query_cohort}
-             WHERE gt.curso=:curso_ufsc AND pg.grupo=:grupo_tutoria AND pg.tipo=:tipo_aluno
+             WHERE rg.id=:grupo_tutoria
              GROUP BY u.id";
 }
 
@@ -559,7 +558,10 @@ class LtiPortfolioQuery {
     }
 
     /**
-     * @param $grupo_orientacao
+     * @param $grupo
+     * @throws Exception
+     * @throws dml_read_exception
+     * @internal param $grupo_orientacao
      * @return array
      */
     private function &query_estudantes_by_grupo_orientacao($grupo) {
@@ -619,8 +621,9 @@ class LtiPortfolioQuery {
 
     /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de orientação
-     * @param int $grupo_tutoria
+     * @param $grupo
      * @param report_unasus_lti_activity $atividade
+     * @internal param int $grupo_tutoria
      * @return array
      */
     private function &query_report_data_by_grupo_orientacao($grupo, &$atividade) {
@@ -651,7 +654,9 @@ class LtiPortfolioQuery {
      * @param $lista_atividades
      * @param $total_alunos
      * @param $atividade
-     * @param $grupo_tutoria
+     * @param $grupo
+     * @param bool $is_orientação
+     * @internal param $grupo_tutoria
      */
     function count_lti_report(&$lista_atividades, &$total_alunos, &$atividade, $grupo, $is_orientação = false) {
 
@@ -706,6 +711,7 @@ class LtiPortfolioQuery {
      *
      * @param report_unasus_lti_activity $atividade
      * @param int $grupo
+     * @param bool $is_orientacao
      * @return array
      */
     public function get_report_data(&$atividade, $grupo, $is_orientacao = false) {

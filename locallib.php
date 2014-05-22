@@ -44,8 +44,8 @@ function get_nomes_modulos() {
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
 
-    $relationship_id = get_relationship_tutoria($curso_ufsc)->id;
-    $cohort_estudantes = get_relationship_cohort_estudantes($relationship_id);
+    $relationship_id = tutoria::get_relationship_tutoria($curso_ufsc)->id;
+    $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship_id);
 
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
                 FROM {relationship_groups} rg
@@ -122,8 +122,8 @@ function get_nomes_cohorts($curso_ufsc) {
 function get_polos($curso_ufsc) {
     $academico = Middleware::singleton();
 
-    $relationship_id = get_relationship_tutoria($curso_ufsc)->id;
-    $cohort_estudantes = get_relationship_cohort_estudantes($relationship_id);
+    $relationship_id = tutoria::get_relationship_tutoria($curso_ufsc)->id;
+    $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship_id);
 
     $sql = "
           SELECT DISTINCT(ua.polo), ua.nomepolo
@@ -233,94 +233,6 @@ function get_id_nome_atividades() {
 
     $modulos = $DB->get_records_sql_menu("SELECT a.id, a.name FROM {assign} a");
     return $modulos;
-}
-
-/**
- * Retorna o relationship_cohort dos estudantes de um determinado relationship
- * @param $relationship_id
- * @return mixed
- */
-function get_relationship_cohort_estudantes($relationship_id) {
-    global $DB;
-
-    $sql = "SELECT rc.*
-              FROM {relationship_cohorts} rc
-              JOIN {role} r
-                ON (r.id=rc.roleid)
-             WHERE relationshipid=:relationship_id
-               AND r.shortname IN ('student')";
-
-    return $DB->get_record_sql($sql, array('relationship_id' => $relationship_id));
-}
-
-/**
- * Retorna o relationship_cohort dos tutores de um determinado relationship
- * @param $relationship_id
- * @return mixed
- */
-function get_relationship_cohort_tutores($relationship_id) {
-    global $DB;
-
-    $sql = "SELECT rc.*
-              FROM {relationship_cohorts} rc
-              JOIN {role} r
-                ON (r.id=rc.roleid)
-             WHERE relationshipid=:relationship_id
-               AND r.shortname IN ('tutor')";
-
-    return $DB->get_record_sql($sql, array('relationship_id' => $relationship_id));
-}
-
-/**
- * Retorna o relationship que designa os grupos de tutoria de um determinado curso UFSC
- * @param $curso_ufsc
- * @return mixed
- */
-function get_relationship_tutoria($curso_ufsc) {
-    global $DB;
-
-    $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
-
-    $sql = "SELECT r.id, r.name as nome
-              FROM {relationship} r
-              JOIN (
-                    SELECT ti.itemid as relationship_id
-                      FROM {tag_instance} ti
-                      JOIN {tag} t
-                        ON (t.id=ti.tagid)
-                     WHERE t.name='grupo_tutoria'
-                   ) tr
-                ON (r.id=tr.relationship_id)
-              JOIN {context} ctx
-                ON (ctx.id=r.contextid)
-              JOIN {course_categories} cc
-                ON (ctx.instanceid = cc.id AND (cc.path LIKE '/$ufsc_category/%' OR cc.path LIKE '/$ufsc_category'))";
-
-    return $DB->get_record_sql($sql);
-}
-
-/**
- * Dado que alimenta a lista do filtro tutores
- *
- * @param $curso_ufsc
- * @return array
- */
-function get_tutores_menu($curso_ufsc) {
-    global $DB;
-
-    $relationship_id = get_relationship_tutoria($curso_ufsc)->id;
-    $cohort_tutores = get_relationship_cohort_tutores($relationship_id);
-
-    $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) AS fullname
-              FROM {user} u
-              JOIN {relationship_members} rm
-                ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
-              JOIN {relationship_groups} rg
-                ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-              ORDER BY u.firstname";
-
-    $params = array('relationship_id' => $relationship_id, 'cohort_id' => $cohort_tutores->id);
-    return $DB->get_records_sql_menu($sql, $params);
 }
 
 /**
@@ -946,13 +858,137 @@ class tutoria {
      * Listagem de estudantes que participam de um curso UFSC e estão relacionados a um tutor
      *
      * @param $curso_ufsc
-     * @return array
+     * @return array [id][fullname]
      */
-    function get_estudantes_curso_ufsc($curso_ufsc) {
+    static function get_estudantes_curso_ufsc($curso_ufsc) {
         global $DB;
 
-        $relationship_id = get_relationship_tutoria($curso_ufsc)->id;
-        $cohort_estudantes = get_relationship_cohort_estudantes($relationship_id);
+        $relationship_id = self::get_relationship_tutoria($curso_ufsc)->id;
+        $cohort_estudantes = self::get_relationship_cohort_estudantes($relationship_id);
+
+        $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) AS fullname
+                  FROM {user} u
+                  JOIN {relationship_members} rm
+                    ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+                  JOIN {relationship_groups} rg
+                    ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
+              ORDER BY u.firstname";
+
+        $params = array('relationship_id' => $relationship_id, 'cohort_id' => $cohort_estudantes->id);
+        return $DB->get_records_sql_menu($sql, $params);
+    }
+
+    /**
+     * Retorna lista de grupos de tutoria de um determinado curso ufsc
+     *
+     * @param string $curso_ufsc
+     * @param array $tutores
+     * @return array
+     */
+    static function get_grupos_tutoria($curso_ufsc, $tutores = null) {
+        global $DB;
+        $relationship_tutoria = self::get_relationship_tutoria($curso_ufsc);
+
+        if (is_null($tutores)) {
+            $sql = "SELECT rg.*
+                      FROM {relationship_groups} rg
+                     WHERE rg.relationshipid = :relationshipid
+                  GROUP BY rg.id
+                  ORDER BY name";
+            $params = array('relationshipid'=>$relationship_tutoria->id);
+        } else {
+            $tutores_sql = int_array_to_sql($tutores);
+            $cohort_tutores = self::get_relationship_cohort_tutores($relationship_id);
+
+            $sql = "SELECT rg.*,
+                      FROM {relationship_groups} rg
+                      JOIN {relationship_members} rm
+                        ON (rg.id=rm.relationshipgroupid AND rm.relationshipcohortid=:cohort_id)
+                     WHERE rg.relationshipid = :relationshipid
+                       AND rm.userid IN ({$tutores_sql})
+                  GROUP BY rg.id
+                  ORDER BY name";
+            $params = array('relationshipid'=>$relationship_tutoria->id, 'cohort_id' => $cohort_tutores);
+        }
+
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Retorna o relationship_cohort dos estudantes de um determinado relationship
+     * @param $relationship_id
+     * @return mixed
+     */
+    static function get_relationship_cohort_estudantes($relationship_id) {
+        global $DB;
+
+        $sql = "SELECT rc.*
+              FROM {relationship_cohorts} rc
+              JOIN {role} r
+                ON (r.id=rc.roleid)
+             WHERE relationshipid=:relationship_id
+               AND r.shortname IN ('student')";
+
+        return $DB->get_record_sql($sql, array('relationship_id' => $relationship_id));
+    }
+
+    /**
+     * Retorna o relationship_cohort dos tutores de um determinado relationship
+     * @param $relationship_id
+     * @return mixed
+     */
+    static function get_relationship_cohort_tutores($relationship_id) {
+        global $DB;
+
+        $sql = "SELECT rc.*
+              FROM {relationship_cohorts} rc
+              JOIN {role} r
+                ON (r.id=rc.roleid)
+             WHERE relationshipid=:relationship_id
+               AND r.shortname IN ('tutor')";
+
+        return $DB->get_record_sql($sql, array('relationship_id' => $relationship_id));
+    }
+
+    /**
+     * Retorna o relationship que designa os grupos de tutoria de um determinado curso UFSC
+     * @param $curso_ufsc
+     * @return mixed
+     */
+    static function get_relationship_tutoria($curso_ufsc) {
+        global $DB;
+
+        $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
+
+        $sql = "SELECT r.id, r.name as nome
+              FROM {relationship} r
+              JOIN (
+                    SELECT ti.itemid as relationship_id
+                      FROM {tag_instance} ti
+                      JOIN {tag} t
+                        ON (t.id=ti.tagid)
+                     WHERE t.name='grupo_tutoria'
+                   ) tr
+                ON (r.id=tr.relationship_id)
+              JOIN {context} ctx
+                ON (ctx.id=r.contextid)
+              JOIN {course_categories} cc
+                ON (ctx.instanceid = cc.id AND (cc.path LIKE '/$ufsc_category/%' OR cc.path LIKE '/$ufsc_category'))";
+
+        return $DB->get_record_sql($sql);
+    }
+
+    /**
+     * Dado que alimenta a lista do filtro tutores
+     *
+     * @param $curso_ufsc
+     * @return array
+     */
+    static function get_tutores_menu($curso_ufsc) {
+        global $DB;
+
+        $relationship_id = self::get_relationship_tutoria($curso_ufsc)->id;
+        $cohort_tutores = self::get_relationship_cohort_tutores($relationship_id);
 
         $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) AS fullname
               FROM {user} u
@@ -962,7 +998,7 @@ class tutoria {
                 ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
               ORDER BY u.firstname";
 
-        $params = array('relationship_id' => $relationship_id, 'cohort_id' => $cohort_estudantes->id);
+        $params = array('relationship_id' => $relationship_id, 'cohort_id' => $cohort_tutores->id);
         return $DB->get_records_sql_menu($sql, $params);
     }
 }

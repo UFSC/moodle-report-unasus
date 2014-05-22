@@ -32,7 +32,7 @@ class report_entrega_de_atividades extends Factory {
         global $CFG;
 
         // Consultas
-        $query_alunos_grupo_tutoria = query_atividades();
+        $query_atividades = query_atividades();
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
 
@@ -41,7 +41,7 @@ class report_entrega_de_atividades extends Factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-                $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+                $query_atividades, $query_forum, $query_quiz);
 
 
         $dados = array();
@@ -117,7 +117,7 @@ class report_entrega_de_atividades extends Factory {
 
     public function get_dados() {
         // Consultas
-        $query_alunos_grupo_tutoria = query_atividades();
+        $query_atividades = query_atividades();
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
 
@@ -131,7 +131,7 @@ class report_entrega_de_atividades extends Factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-                $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+                $query_atividades, $query_forum, $query_quiz);
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
