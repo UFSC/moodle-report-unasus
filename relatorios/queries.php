@@ -170,10 +170,10 @@ function query_acesso_tutor() {
                  FROM {stats_user_daily} sud
            INNER JOIN {user} u
                    ON (u.id=sud.userid {$filtro_tutor} )
-           INNER JOIN {table_PessoasGruposTutoria} pgt
-                   ON (pgt.matricula=u.username AND pgt.tipo=:tipo_tutor)
-                 JOIN {table_GruposTutoria} gt
-                   ON (gt.id=pgt.grupo AND gt.curso=:curso_ufsc)
+           INNER JOIN {relationship_members} rm
+                   ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+                 JOIN {relationship_groups} rg
+                   ON (rg.id=rm.relationshipgroupid AND rg.relationshipid = :relationshipid)
              GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
              ORDER BY calendar_year, calendar_month, calendar_day";
 }

@@ -75,14 +75,16 @@ class report_acesso_tutor extends Factory {
     }
 
     public function get_dados() {
+        global $DB;
 
-        $middleware = Middleware::singleton();
+        $relationship_tutoria = self::get_relationship_tutoria($curso_ufsc);
+        $cohort_tutores = self::get_relationship_cohort_tutores($relationship_tutoria->id);
 
         // Consulta
         $query = query_acesso_tutor($this->tutores_selecionados);
 
-        $params = array('tipo_tutor' => GRUPO_TUTORIA_TIPO_TUTOR, 'curso_ufsc' => get_curso_ufsc_id());
-        $result = $middleware->get_recordset_sql($query, $params);
+        $params = array('relationshipid' => $relationship_tutoria->id, 'cohort_id' => $cohort_tutores->id);
+        $result = $DB->get_recordset_sql($query, $params);
 
         //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]
         $group_array = new GroupArray();
