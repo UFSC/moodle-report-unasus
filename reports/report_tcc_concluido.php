@@ -78,7 +78,7 @@ class report_tcc_concluido extends Factory {
                 $estudantes[] = $lista_atividades;
                 $lista_atividades = null;
             }
-            $dados[grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            $dados[tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);

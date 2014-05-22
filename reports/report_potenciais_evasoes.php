@@ -127,7 +127,7 @@ class report_potenciais_evasoes extends Factory {
 
             // Ou unir os alunos de acordo com o tutor dele
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+                $dados[tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
             }
         }
         return $dados;

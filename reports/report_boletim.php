@@ -149,7 +149,7 @@ class report_boletim extends Factory {
 
             // Ou pelo grupo de tutoria do estudante
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+                $dados[tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
             }
         }
 

@@ -171,7 +171,7 @@ class report_tcc_consolidado extends Factory {
             /* Coluna nome orientador */
 
             $data = array();
-            $data[] = grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id);
+            $data[] = tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id);
 
             /* Grupo vazio, imprimir apenas o nome do tutor */
             if (empty($grupo)) {

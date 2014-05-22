@@ -143,7 +143,7 @@ class report_uso_sistema_tutor extends Factory {
         $result = $result->get_assoc();
 
 
-        $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($this->get_curso_ufsc());
+        $nomes_tutores = tutoria::get_tutores_curso_ufsc($this->get_curso_ufsc());
 
         //para cada resultado que estava no formato [id]=>[dados_acesso]
         // ele transforma para [tutor,dado_acesso1,dado_acesso2]

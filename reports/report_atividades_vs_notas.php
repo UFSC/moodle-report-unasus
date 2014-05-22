@@ -163,7 +163,7 @@ class report_atividades_vs_notas extends Factory {
                 }
             }
 
-            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
+            $dados[tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
                     array($count_nota_atribuida,
                             $count_nota_atribuida_atraso,
                             $count_pouco_atraso,
@@ -190,6 +190,8 @@ class report_atividades_vs_notas extends Factory {
         $query_atividades = query_atividades();
         $query_forum = query_postagens_forum();
         $query_quiz = query_quiz();
+
+
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -270,7 +272,7 @@ class report_atividades_vs_notas extends Factory {
             }
             // Ou unir os alunos de acordo com o tutor dele
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+                $dados[tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
             }
         }
 

@@ -915,6 +915,58 @@ class tutoria {
     }
 
     /**
+     * Retorna a string que é utilizada no agrupamento por grupos de tutoria
+     *
+     * O padrão é $nome_do_grupo - Tutor(es) responsaveis
+     * @param $curso_ufsc
+     * @param $id
+     * @return string
+     * @throws dml_read_exception
+     */
+    static function grupo_tutoria_to_string($curso_ufsc, $id) {
+        global $DB;
+
+        $relationship_tutoria = self::get_relationship_tutoria($curso_ufsc);
+        $cohort_tutores = self::get_relationship_cohort_tutores($relationship_tutoria->id);
+
+        $params = array('relationshipid' => $relationship_tutoria->id, 'cohort_id' => $cohort_tutores->id, 'grupo_id' => $id);
+
+        $sql = "SELECT rg.*
+                  FROM {relationship_groups} rg
+             LEFT JOIN {relationship_members} rm
+                    ON (rg.id=rm.relationshipgroupid AND rm.relationshipcohortid=:cohort_id)
+                 WHERE rg.relationshipid = :relationshipid
+                   AND rg.id=:grupo_id
+              GROUP BY rg.id
+              ORDER BY name";
+
+        $grupos_tutoria = $DB->get_records_sql($sql, $params);
+
+        $sql = "SELECT u.id as user_id, CONCAT(u.firstname,' ',u.lastname) as fullname
+                  FROM {relationship_groups} rg
+             LEFT JOIN {relationship_members} rm
+                    ON (rg.id=rm.relationshipgroupid AND rm.relationshipcohortid=:cohort_id)
+             LEFT JOIN {user} u
+                    ON (u.id=rm.userid)
+                 WHERE rg.relationshipid = :relationshipid
+                   AND rg.id=:grupo_id
+              GROUP BY rg.id
+              ORDER BY name";
+
+        $tutores = $DB->get_records_sql($sql, $params);
+
+        $string = '<strong>' . $grupos_tutoria[$id]->name . '</strong>';
+        if (empty($tutores)) {
+            return $string . " - Sem Tutor Responsável";
+        } else {
+            foreach ($tutores as $tutor) {
+                $string.= ' - ' . $tutor->fullname . ' ';
+            }
+        }
+        return $string;
+    }
+
+    /**
      * Retorna o relationship_cohort dos estudantes de um determinado relationship
      * @param $relationship_id
      * @return mixed
