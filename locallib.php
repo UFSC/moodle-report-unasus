@@ -14,33 +14,6 @@ function get_datetime_from_unixtime($unixtime) {
     return date_create(date("Y-m-d H:m:s", $unixtime));
 }
 
-/**
- * Função para capturar um formulario do moodle e pegar sua string geradora
- * já que a unica função para um moodleform é o display que printa automaticamente
- * o form, sem possuir um metodo tostring()
- *
- * @param moodleform $mform Formulario do Moodle
- * @return string
- */
-function get_form_display(&$mform) {
-    ob_start();
-    $mform->display();
-    $output = ob_get_contents();
-    ob_end_clean();
-    return $output;
-}
-
-function get_nomes_modulos() {
-    global $DB, $SITE;
-    $modulos = $DB->get_records_sql(
-        "SELECT DISTINCT(REPLACE(fullname, CONCAT(shortname, ' - '), '')) AS fullname
-           FROM {course} c
-           JOIN {assign} a
-             ON (c.id = a.course)
-          WHERE c.id != :siteid");
-    return array_keys($modulos, array('siteid' => $SITE->id));
-}
-
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
 
