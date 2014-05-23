@@ -89,7 +89,7 @@ class report_potenciais_evasoes extends Factory {
             $estudantes = array();
             foreach ($array_dados as $id_aluno => $aluno) {
                 $dados_modulos = array();
-                $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+                $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
 

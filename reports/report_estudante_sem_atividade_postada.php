@@ -85,7 +85,7 @@ class report_estudante_sem_atividade_postada extends Factory {
 
                 if (!empty($ativ_mod)) {
 
-                    $lista_atividades[] = new estudante($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+                    $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
 
                     foreach ($ativ_mod as $key => $modulo) {
                         $lista_atividades[] = new dado_modulo($key, $modulo[0]['atividade']->source_activity->course_name);

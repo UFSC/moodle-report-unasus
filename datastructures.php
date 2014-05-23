@@ -11,7 +11,7 @@ defined('MOODLE_INTERNAL') || die;
  *
  * Auxilia renderização nos relatórios.
  */
-class pessoa {
+class report_unasus_person {
 
     protected $name;
     protected $id;
@@ -49,7 +49,7 @@ class pessoa {
 /**
  * Estrutura de dados que representa um estudante
  */
-class estudante extends pessoa {
+class report_unasus_student extends report_unasus_person {
 
     public $cohort;
     public $polo;

@@ -151,7 +151,7 @@ class report_uso_sistema_tutor extends Factory {
         foreach ($result as $id => $values) {
             $dados = array();
             $nome = (array_key_exists($id, $nomes_tutores)) ? $nomes_tutores[$id] : $id;
-            array_push($dados, new pessoa($nome, $id, $this->get_curso_moodle()));
+            array_push($dados, new report_unasus_person($nome, $id, $this->get_curso_moodle()));
             foreach ($values as $value) {
                 array_push($dados, $value);
             }
