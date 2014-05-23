@@ -718,12 +718,6 @@ function get_course_id() {
 /// TODO: refatorar e deduplicar as funcinoalidades abaixo de forma que ambas ferramentas disponibilizem uma única API.
 ///
 
-function get_cursos_ativos_list() {
-    $middleware = Middleware::singleton();
-    $sql = "SELECT curso, nome_sintetico FROM {View_Cursos_Ativos}";
-    return $middleware->get_records_sql_menu($sql);
-}
-
 /*
  * @dias_atras quantos dias antes da data atual no formato (P120D)
  * @tempo_pulo de quanto em quanto tempo deve ser o itervalo (P1D)

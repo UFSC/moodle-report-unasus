@@ -33,9 +33,6 @@ class Factory {
     /** @var int|mixed $curso_moodle Código do curso Moodle em que este relatório foi acessado */
     protected $curso_moodle;
 
-    /** @var array $cursos_ativos Cursos UFSC que estão ativos (Middleware) */
-    protected $cursos_ativos;
-
     /** @var  string $relatorio relatório atual que será mostrado */
     protected $relatorio;
 
@@ -77,7 +74,6 @@ class Factory {
         // Atributos globais
         $this->curso_ufsc = get_curso_ufsc_id();
         $this->curso_moodle = get_course_id();
-        $this->cursos_ativos = get_cursos_ativos_list();
 
         // Atributos para os gráficos
         // Por default os módulos selecionados são os módulos que o curso escolhido possui
