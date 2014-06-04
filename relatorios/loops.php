@@ -224,6 +224,9 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     /** @var $report Factory */
     $report = Factory::singleton();
 
+    $relationship = tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+    $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
+
     // Recupera dados auxiliares
     $grupos = ($is_orientacao)
             ?  grupos_tutoria::get_grupos_orientacao($report->get_curso_ufsc(), $report->orientadores_selecionados)
