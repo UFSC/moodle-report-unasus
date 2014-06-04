@@ -46,9 +46,9 @@ class tutoria {
             $params = array('relationshipid'=>$relationship->id);
         } else {
             $tutores_sql = int_array_to_sql($tutores);
-            $cohort_tutores = self::get_relationship_cohort_tutores($relationship);
+            $cohort_tutores = self::get_relationship_cohort_tutores($relationship->id);
 
-            $sql = "SELECT rg.*,
+            $sql = "SELECT rg.*
                       FROM {relationship_groups} rg
                       JOIN {relationship_members} rm
                         ON (rg.id=rm.relationshipgroupid AND rm.relationshipcohortid=:cohort_id)
@@ -56,7 +56,7 @@ class tutoria {
                        AND rm.userid IN ({$tutores_sql})
                   GROUP BY rg.id
                   ORDER BY name";
-            $params = array('relationshipid'=>$relationship->id, 'cohort_id' => $cohort_tutores);
+            $params = array('relationshipid'=>$relationship->id, 'cohort_id' => $cohort_tutores->id);
         }
 
         return $DB->get_records_sql($sql, $params);
