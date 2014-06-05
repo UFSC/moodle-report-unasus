@@ -16,6 +16,12 @@ class report_acesso_tutor extends Factory {
     }
 
     public function render_report_default($renderer) {
+        global $CFG;
+
+        if (!$CFG->enablestats) {
+            print_error('statistics_not_enabled_error', 'report_unasus');
+        }
+
         echo $renderer->build_page();
     }
 
@@ -77,8 +83,8 @@ class report_acesso_tutor extends Factory {
     public function get_dados() {
         global $DB;
 
-        $relationship_tutoria = self::get_relationship_tutoria($curso_ufsc);
-        $cohort_tutores = self::get_relationship_cohort_tutores($relationship_tutoria->id);
+        $relationship_tutoria = tutoria::get_relationship_tutoria($this->get_curso_ufsc());
+        $cohort_tutores = tutoria::get_relationship_cohort_tutores($relationship_tutoria->id);
 
         // Consulta
         $query = query_acesso_tutor($this->tutores_selecionados);
@@ -89,14 +95,14 @@ class report_acesso_tutor extends Factory {
         //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]
         $group_array = new GroupArray();
         foreach ($result as $r) {
-            $dia = $r['calendar_day'];
-            $mes = $r['calendar_month'];
-            $ano = $r['calendar_year'];
+            $dia = $r->calendar_day;
+            $mes = $r->calendar_month;
+            $ano = $r->calendar_year;
             if ($dia < 10)
                 $dia = '0' . $dia;
             if ($mes < 10)
                 $mes = '0' . $mes;
-            $group_array->add($r['userid'], $dia . '/' . $mes . '/' . $ano);
+            $group_array->add($r->userid, $dia . '/' . $mes . '/' . $ano);
         }
         $dados = $group_array->get_assoc();
 

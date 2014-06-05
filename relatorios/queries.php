@@ -202,7 +202,7 @@ class tutoria {
      * @param $curso_ufsc
      * @return array
      */
-    static function get_tutores_menu($curso_ufsc) {
+    static function get_tutores_curso_ufsc($curso_ufsc) {
         global $DB;
 
         $relationship = self::get_relationship_tutoria($curso_ufsc);
@@ -381,22 +381,23 @@ function query_acesso_tutor() {
     $filtro_tutor = '';
     if (!is_null($factory->tutores_selecionados)) {
         $tutores = int_array_to_sql($factory->tutores_selecionados);
-        $filtro_tutor = "AND u.id IN ({$tutores}) ";
+        $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
 
-    return " SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
-                      month(from_unixtime(sud.`timeend`)) AS calendar_month,
-                      day(from_unixtime(sud.`timeend`)) AS calendar_day,
-                      sud.userid
-                 FROM {stats_user_daily} sud
-           INNER JOIN {user} u
-                   ON (u.id=sud.userid {$filtro_tutor} )
-           INNER JOIN {relationship_members} rm
-                   ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
-                 JOIN {relationship_groups} rg
-                   ON (rg.id=rm.relationshipgroupid AND rg.relationshipid = :relationshipid)
-             GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
-             ORDER BY calendar_year, calendar_month, calendar_day";
+    return "SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
+                   month(from_unixtime(sud.`timeend`)) AS calendar_month,
+                   day(from_unixtime(sud.`timeend`)) AS calendar_day,
+                   u.id as userid
+              FROM {user} u
+        INNER JOIN {relationship_members} rm
+                ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+              JOIN {relationship_groups} rg
+                ON (rg.id=rm.relationshipgroupid AND rg.relationshipid = :relationshipid)
+         LEFT JOIN {stats_user_daily} sud
+                ON (u.id=sud.userid)
+                   {$filtro_tutor}
+          GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
+          ORDER BY calendar_year, calendar_month, calendar_day";
 }
 
 function query_lti() {

@@ -16,6 +16,12 @@ class report_uso_sistema_tutor extends Factory {
     }
 
     public function render_report_default($renderer) {
+        global $CFG;
+
+        if (!$CFG->enablestats) {
+            print_error('statistics_not_enabled_error', 'report_unasus');
+        }
+
         echo $renderer->build_page();
     }
 
@@ -88,7 +94,7 @@ class report_uso_sistema_tutor extends Factory {
     function get_dados() {
 
         $middleware = Middleware::singleton();
-        $lista_tutores = tutoria::get_tutores_menu($this->get_curso_ufsc());
+        $lista_tutores = tutoria::get_tutores_curso_ufsc($this->get_curso_ufsc());
 
         $query = query_uso_sistema_tutor();
 
