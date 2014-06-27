@@ -384,19 +384,19 @@ function query_acesso_tutor() {
         $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
 
-    return "SELECT year(from_unixtime(sud.`timeend`)) AS calendar_year,
-                   month(from_unixtime(sud.`timeend`)) AS calendar_month,
-                   day(from_unixtime(sud.`timeend`)) AS calendar_day,
-                   u.id as userid
+    return "SELECT year(from_unixtime(l.time)) as calendar_year,
+                   month(from_unixtime(l.time)) as calendar_month,
+                   day(from_unixtime(l.time)) as calendar_day,
+                   l.userid
               FROM {user} u
-        INNER JOIN {relationship_members} rm
-                ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+              JOIN {relationship_members} rm
+                ON (rm.userid=u.id AND rm.relationshipcohortid=14)
               JOIN {relationship_groups} rg
-                ON (rg.id=rm.relationshipgroupid AND rg.relationshipid = :relationshipid)
-         LEFT JOIN {stats_user_daily} sud
-                ON (u.id=sud.userid)
+                ON (rg.id=rm.relationshipgroupid AND rg.relationshipid = 7)
+         LEFT JOIN {log} l
+                ON (u.id=l.userid)
                    {$filtro_tutor}
-          GROUP BY calendar_year, calendar_month, calendar_day, sud.userid
+          GROUP BY calendar_year, calendar_month, calendar_day, u.id
           ORDER BY calendar_year, calendar_month, calendar_day";
 }
 
@@ -421,7 +421,7 @@ function query_lti() {
 
 function query_lti_config() {
 
-    return "SELECT 
+    return "SELECT
                    c.name AS name, c.value as value
               FROM {lti_types_config} c
              WHERE c.typeid =:typeid";
@@ -452,7 +452,7 @@ function query_uso_sistema_tutor() {
 
     return "SELECT userid, dia , count(*) /2  AS horas
               FROM (
-                   
+
                     SELECT date_format( (FROM_UNIXTIME(time))  , '%d/%m/%Y') AS dia,
                            date_format( (FROM_UNIXTIME(time))  , '%H') AS hora,
                            ROUND (date_format( (FROM_UNIXTIME(time))  , '%i') / 30) *30 AS min,
