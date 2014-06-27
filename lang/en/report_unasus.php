@@ -96,3 +96,4 @@ $string['relationship_tutoria_not_available_error'] = 'Não foi configurado o Re
 $string['relationship_cohort_estudantes_not_available_error'] = 'Não foi configurado o Cohort de Estudantes para relacionamento de tutoria.';
 $string['relationship_cohort_tutores_not_available_error'] = 'Não foi configurado o Cohort de Tutores para relacionamento de tutoria.';
 $string['statistics_not_enabled_error'] = 'Não é possível gerar este relatório com as Estatísticas desabilitadas no Moodle';
+$string['no_valid_activity_found_error'] = 'Nenhuma atividade válida foi encontrada, para a seleção de filtros informada.';

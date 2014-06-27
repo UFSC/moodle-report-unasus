@@ -27,7 +27,6 @@
  * são chamadas as funçoes de geração de tabelas e gráficos no arquivo /relatorios/relatorios.php
  */
 
-
 // Bibiotecas minimas necessarias para ser um plugin da area administrativa
 require('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');

@@ -278,7 +278,13 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         }
     }
 
-    return $group_array->get_assoc();
+    $atividades = $group_array->get_assoc();
+
+    if (empty($atividades)) {
+        print_error('no_valid_activity_found_error', 'report_unasus');
+    }
+
+    return $atividades;
 }
 
 /**
@@ -355,7 +361,7 @@ function query_assign_courses($courses) {
                   ON (cm.course = c.id AND cm.instance=a.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'assign')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE 
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
            ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
@@ -491,14 +497,16 @@ function query_forum_courses($courses) {
                 FROM {course} AS c
            LEFT JOIN {forum} AS f
                   ON (c.id = f.course AND c.id != :siteid)
-                JOIN {grade_items} AS gi
+           LEFT JOIN {grade_items} AS gi
                   ON (gi.courseid=c.id AND gi.itemtype = 'mod' AND
                       gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
                 JOIN {course_modules} cm
                   ON (cm.course=c.id AND cm.instance=f.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'forum')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+               WHERE c.id IN ({$string_courses})
+                 AND cm.visible=TRUE
+                 AND (gi.id=TRUE OR cm.completion != 0)
             ORDER BY c.id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
