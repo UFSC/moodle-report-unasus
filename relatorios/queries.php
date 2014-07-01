@@ -397,7 +397,7 @@ function query_acesso_tutor() {
                 ON (u.id=l.userid)
                    {$filtro_tutor}
           GROUP BY calendar_year, calendar_month, calendar_day, u.id
-          ORDER BY calendar_year, calendar_month, calendar_day, u.firstname";
+          ORDER BY calendar_year, calendar_month, calendar_day";
 }
 
 function query_lti() {
