@@ -89,7 +89,7 @@ class report_acesso_tutor extends Factory {
         // Consulta
         $query = query_acesso_tutor($this->tutores_selecionados);
 
-        $params = array('relationshipid' => $relationship_tutoria->id, 'cohort_id' => $cohort_tutores->id);
+        $params = array('relationship_id' => $relationship_tutoria->id, 'relationship_cohort_id' => $cohort_tutores->id);
         $result = $DB->get_recordset_sql($query, $params);
 
         //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]

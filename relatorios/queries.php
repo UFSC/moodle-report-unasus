@@ -390,9 +390,9 @@ function query_acesso_tutor() {
                    l.userid
               FROM {user} u
               JOIN {relationship_members} rm
-                ON (rm.userid=u.id AND rm.relationshipcohortid=14)
+                ON (rm.userid=u.id AND rm.relationshipcohortid=:relationship_cohort_id)
               JOIN {relationship_groups} rg
-                ON (rg.id=rm.relationshipgroupid AND rg.relationshipid = 7)
+                ON (rg.id=rm.relationshipgroupid AND rg.relationshipid=:relationship_id)
          LEFT JOIN {log} l
                 ON (u.id=l.userid)
                    {$filtro_tutor}
