@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 class report_tcc_portfolio_concluido extends Factory {
 
     protected function initialize() {

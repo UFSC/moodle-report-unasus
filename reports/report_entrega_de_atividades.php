@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 class report_entrega_de_atividades extends Factory {
 
     protected function initialize() {

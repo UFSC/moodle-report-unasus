@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 class report_potenciais_evasoes extends Factory {
 
     protected function initialize() {

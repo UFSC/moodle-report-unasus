@@ -1,5 +1,7 @@
-
 <?php
+
+defined('MOODLE_INTERNAL') || die;
+
 /**
  * Loop para a criação do array associativo com as atividades e foruns de um dado aluno fazendo as queries SQLs
  *
