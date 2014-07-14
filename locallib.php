@@ -8,6 +8,7 @@ require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/queries.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/loops.php');
+require_once($CFG->dirroot . '/report/unasus/relatorios/tutoria.php');
 
 
 function get_datetime_from_unixtime($unixtime) {
