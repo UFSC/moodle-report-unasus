@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 // Carrega o zend framework
 include 'Zend/Loader/Autoloader.php';
 Zend_Loader_Autoloader::autoload('Zend_Loader');

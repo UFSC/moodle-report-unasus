@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 class report_atividades_nota_atribuida extends Factory {
 
     protected function initialize() {

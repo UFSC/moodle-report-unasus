@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 class report_estudante_sem_atividade_avaliada extends Factory {
 
     protected function initialize() {

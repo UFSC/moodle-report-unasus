@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 class report_avaliacoes_em_atraso extends Factory {
 
     protected function initialize() {

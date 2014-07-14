@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 class report_uso_sistema_tutor extends Factory {
 
     protected function initialize() {

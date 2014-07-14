@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 /**
  * Representa uma atividade (tarefa, forum, quiz)
  *
