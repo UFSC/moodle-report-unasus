@@ -124,14 +124,18 @@ class tutoria {
     static function get_relationship_cohort_estudantes($relationship_id) {
         global $DB;
 
+        $student_role = grupos_tutoria::get_papeis_estudantes();
+        list($sqlfragment, $paramsfragment) = $DB->get_in_or_equal($student_role, SQL_PARAMS_NAMED, 'shortname');
+
         $sql = "SELECT rc.*
               FROM {relationship_cohorts} rc
               JOIN {role} r
                 ON (r.id=rc.roleid)
              WHERE relationshipid=:relationship_id
-               AND r.shortname IN ('student')";
+               AND r.shortname {$sqlfragment}";
 
-        $cohort = $DB->get_record_sql($sql, array('relationship_id' => $relationship_id));
+        $params = array_merge($paramsfragment, array('relationship_id' => $relationship_id));
+        $cohort = $DB->get_record_sql($sql, $params);
 
         if (!$cohort) {
             print_error('relationship_cohort_estudantes_not_available_error', 'report_unasus', '', null, "Relationship: {$relationship_id}");
@@ -148,14 +152,19 @@ class tutoria {
     static function get_relationship_cohort_tutores($relationship_id) {
         global $DB;
 
+        $tutor_role = grupos_tutoria::get_papeis_tutores();
+        list($sqlfragment, $paramsfragment) = $DB->get_in_or_equal($tutor_role, SQL_PARAMS_NAMED, 'shortname');
+
         $sql = "SELECT rc.*
               FROM {relationship_cohorts} rc
               JOIN {role} r
                 ON (r.id=rc.roleid)
              WHERE relationshipid=:relationship_id
-               AND r.shortname IN ('tutor')";
+               AND r.shortname {$sqlfragment}";
 
-        $cohort = $DB->get_record_sql($sql, array('relationship_id' => $relationship_id));
+
+        $params = array_merge($paramsfragment, array('relationship_id' => $relationship_id));
+        $cohort = $DB->get_record_sql($sql, $params);
 
         if (!$cohort) {
             print_error('relationship_cohort_tutores_not_available_error', 'report_unasus', '', null, "Relationship: {$relationship_id}");
