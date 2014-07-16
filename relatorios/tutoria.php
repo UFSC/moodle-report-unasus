@@ -25,6 +25,7 @@ class tutoria {
               ORDER BY u.firstname";
 
         $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
+
         return $DB->get_records_sql_menu($sql, $params);
     }
 
@@ -45,7 +46,7 @@ class tutoria {
                      WHERE rg.relationshipid = :relationshipid
                   GROUP BY rg.id
                   ORDER BY name";
-            $params = array('relationshipid'=>$relationship->id);
+            $params = array('relationshipid' => $relationship->id);
         } else {
             $tutores_sql = int_array_to_sql($tutores);
             $cohort_tutores = self::get_relationship_cohort_tutores($relationship->id);
@@ -58,7 +59,7 @@ class tutoria {
                        AND rm.userid IN ({$tutores_sql})
                   GROUP BY rg.id
                   ORDER BY name";
-            $params = array('relationshipid'=>$relationship->id, 'cohort_id' => $cohort_tutores->id);
+            $params = array('relationshipid' => $relationship->id, 'cohort_id' => $cohort_tutores->id);
         }
 
         return $DB->get_records_sql($sql, $params);
@@ -105,14 +106,15 @@ class tutoria {
 
         $tutores = $DB->get_records_sql($sql, $params);
 
-        $string = '<strong>' . $grupos_tutoria[$id]->name . '</strong>';
+        $string = '<strong>'.$grupos_tutoria[$id]->name.'</strong>';
         if (empty($tutores)) {
-            return $string . " - Sem Tutor Responsável";
+            return $string." - Sem Tutor Responsável";
         } else {
             foreach ($tutores as $tutor) {
-                $string.= ' - ' . $tutor->fullname . ' ';
+                $string .= ' - '.$tutor->fullname.' ';
             }
         }
+
         return $string;
     }
 
@@ -128,11 +130,11 @@ class tutoria {
         list($sqlfragment, $paramsfragment) = $DB->get_in_or_equal($student_role, SQL_PARAMS_NAMED, 'shortname');
 
         $sql = "SELECT rc.*
-              FROM {relationship_cohorts} rc
-              JOIN {role} r
-                ON (r.id=rc.roleid)
-             WHERE relationshipid=:relationship_id
-               AND r.shortname {$sqlfragment}";
+                  FROM {relationship_cohorts} rc
+                  JOIN {role} r
+                    ON (r.id=rc.roleid)
+                 WHERE relationshipid=:relationship_id
+                   AND r.shortname {$sqlfragment}";
 
         $params = array_merge($paramsfragment, array('relationship_id' => $relationship_id));
         $cohort = $DB->get_record_sql($sql, $params);
@@ -220,14 +222,15 @@ class tutoria {
         $cohort_tutores = self::get_relationship_cohort_tutores($relationship->id);
 
         $sql = "SELECT DISTINCT u.id, CONCAT(firstname,' ',lastname) AS fullname
-              FROM {user} u
-              JOIN {relationship_members} rm
-                ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
-              JOIN {relationship_groups} rg
-                ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
+                  FROM {user} u
+                  JOIN {relationship_members} rm
+                    ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+                  JOIN {relationship_groups} rg
+                    ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
               ORDER BY u.firstname";
 
         $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_tutores->id);
+
         return $DB->get_records_sql_menu($sql, $params);
     }
 }
