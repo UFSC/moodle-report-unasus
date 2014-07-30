@@ -1,7 +1,5 @@
 <?php
 
-defined('MOODLE_INTERNAL') || die;
-
 /* ---------------------------------------
  * QUERIES UTILIZADAS EM VÁRIOS RELATÓRIOS
  * ---------------------------------------

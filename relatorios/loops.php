@@ -28,7 +28,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
               :  tutoria::get_grupos_tutoria($report->get_curso_ufsc(), $report->tutores_selecionados);
 
     $relationship = tutoria::get_relationship_tutoria($report->get_curso_ufsc());
-
     $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
