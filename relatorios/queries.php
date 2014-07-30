@@ -145,6 +145,54 @@ function query_postagens_forum() {
     ";
 }
 
+function query_postagens_forum_nao_postadas() {
+    $alunos_disciplina = query_alunos_disciplina();
+
+    return " SELECT u.id AS userid,
+                    u.polo,
+                    u.cohort,
+                    fp.submission_date,
+                    fp.forum_name,
+                    gg.grade,
+                    gg.timemodified,
+                    fp.itemid,
+                    userid_posts IS NOT NULL AS has_post
+                     FROM (
+
+                        {$alunos_disciplina}
+
+                     ) u
+                     LEFT JOIN
+                     (
+                        SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name, f.id as itemid
+                          FROM {forum} f
+                          JOIN {forum_discussions} fd
+                            ON (fd.forum=f.id)
+                          JOIN {forum_posts} fp
+                            ON (fd.id = fp.discussion)
+                         WHERE f.id=:forumid
+                      GROUP BY fp.userid
+                      ORDER BY fp.created ASC
+                     ) fp
+                    ON (fp.userid_posts=u.id)
+                    LEFT JOIN
+                    (
+                        SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid, f.id as forumid
+                        FROM {forum} f
+                        JOIN {grade_items} gi
+                          ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                              gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
+                        JOIN {grade_grades} gg
+                          ON (gg.itemid=gi.id)
+                    GROUP BY gg.userid, gg.itemid
+                    ) gg
+                    ON (gg.userid = u.id AND fp.itemid=gg.forumid)
+                    ORDER BY grupo_id, u.firstname, u.lastname
+
+    ";
+}
+
+
 /* ---------------------------------------
  * QUERIES ESPECÍFICAS DE UM RELATÓRIO
  * ---------------------------------------

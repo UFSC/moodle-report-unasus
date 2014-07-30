@@ -809,6 +809,83 @@ class dado_uso_sistema_tutor extends unasus_data {
 
 }
 
+class dado_modulos_concluidos extends unasus_data {
+
+    const MODULO_NAO_CONCLUIDO = 0;
+    const MODULO_CONCLUIDO = 1;
+
+    private $estado;
+    private $final_grade; //nota em letra
+    private $numero_atividades_modulo;
+    private $atividades_nao_realizadas;
+    private $atividade;
+    private $atividades_pendentes = array();
+
+
+    function __construct($numero_atividades_modulo, $final_grade, $atividade) {
+        $this->numero_atividades_modulo = $numero_atividades_modulo;
+        $this->atividades_nao_realizadas = 0;
+        $this->estado = dado_modulos_concluidos::MODULO_CONCLUIDO;
+        $this->final_grade = $final_grade;
+        $this->atividade = $atividade;
+    }
+
+    public function __toString() {
+        $pendentes = '';
+
+        switch ($this->estado) {
+            case 0: //Há atividades pendentes
+                $n_pendentes = count($this->atividades_pendentes);
+                for($i=0; $i< $n_pendentes; $i++){
+                    $pendentes .= ($i<($n_pendentes-1)) ? $this->atividades_pendentes[$i]->__toString() . ' - '
+                                                        : $this->atividades_pendentes[$i]->__toString();
+                }
+                return '<b>' . $pendentes . '</b>';
+            case 1:
+                return (String) '<b>' . $this->final_grade .'</b>';
+            default:
+                return false;
+                break;
+        }
+    }
+
+    public function get_css_class() {
+        switch ($this->estado) {
+            case 0:
+                return "nao_concluido";
+            case 1:
+                return "concluido";
+            default:
+                return false;
+                break;
+        }
+    }
+
+    public function add_atividade_nao_realizada() {
+        $this->atividades_nao_realizadas++;
+        if ($this->atividades_nao_realizadas == 1) {
+            $this->estado = dado_modulos_concluidos::MODULO_NAO_CONCLUIDO;
+        }
+    }
+
+    public function add_atividades_pendentes($nome_atividade){
+        $this->atividades_pendentes[] = $nome_atividade;
+    }
+
+    public function get_total_atividades_nao_realizadas() {
+        return $this->atividades_nao_realizadas;
+    }
+
+    public static function get_legend() {
+        $legend = array();
+        $legend['concluido'] = 'Módulo concluído';
+        $legend['nao_concluido'] = 'Módulo pendente';
+
+        return $legend;
+    }
+
+}
+
 class dado_potenciais_evasoes extends unasus_data {
 
     const MODULO_NAO_CONCLUIDO = 0;

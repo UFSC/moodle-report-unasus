@@ -117,6 +117,31 @@ function get_polos($curso_ufsc) {
     return $polos;
 }
 
+function get_final_grades($id_aluno, $course_id){
+
+    $middleware = Middleware::singleton();
+
+    $sql = "SELECT u.id,
+                  ROUND(gg.finalgrade,2) grade
+              FROM {course} AS c
+              JOIN {context} AS ctx
+	            ON c.id = ctx.instanceid
+              JOIN {role_assignments} AS ra
+	            ON ra.contextid = ctx.id
+              JOIN {user} AS u
+	            ON u.id = ra.userid
+              JOIN {grade_grades} AS gg
+	            ON gg.userid = u.id
+              JOIN {grade_items} AS gi
+	            ON gi.id = gg.itemid
+              JOIN {course_categories} AS cc ON cc.id = c.category
+             WHERE gi.courseid = c.id AND gi.itemtype = 'course'
+               AND u.id = :id_aluno
+               AND c.id = :courseid";
+
+    return $middleware->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
+}
+
 /**
  * Localiza uma categoria com base no curso UFSC informado
  *
