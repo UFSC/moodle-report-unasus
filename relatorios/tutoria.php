@@ -200,7 +200,14 @@ class tutoria {
               JOIN {course_categories} cc
                 ON (ctx.instanceid = cc.id AND (cc.path LIKE '/$ufsc_category/%' OR cc.path LIKE '/$ufsc_category'))";
 
-        $relationship = $DB->get_record_sql($sql);
+        $relationship = $DB->get_records_sql($sql);
+
+        //Evita o caso de um curso que retorne com mais de um relationship
+        if(count($relationship) > 1){
+            print_error('relationship_tutoria_not_available_error', 'report_unasus');
+        }
+
+        $relationship = $relationship[key($relationship)];
 
         if (!$relationship) {
             print_error('relationship_tutoria_not_available_error', 'report_unasus');
