@@ -358,10 +358,18 @@ function query_atividades_nao_postadas() {
                       {$alunos_disciplina}
 
                    ) u
-         LEFT JOIN {assign_submission} sub
+         LEFT JOIN (
+                    SELECT sub.*
+                        FROM (
+                              SELECT *
+                                FROM {assign_submission}
+                            ORDER BY attemptnumber DESC
+                              ) sub
+                    GROUP BY sub.userid, sub.assignment
+                   ) sub
                 ON (u.id=sub.userid AND sub.assignment=:assignmentid)
          LEFT JOIN {assign_grades} gr
-                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id AND gr.attemptnumber=sub.attemptnumber)
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -402,10 +410,18 @@ function query_atividades() {
                       {$alunos_grupo_tutoria}
 
                    ) u
-         LEFT JOIN {assign_submission} sub
+         LEFT JOIN (
+                    SELECT sub.*
+                        FROM (
+                              SELECT *
+                                FROM {assign_submission}
+                            ORDER BY attemptnumber DESC
+                              ) sub
+                    GROUP BY sub.userid, sub.assignment
+                   ) sub
                 ON (u.id=sub.userid AND sub.assignment=:assignmentid)
          LEFT JOIN {assign_grades} gr
-                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id AND gr.attemptnumber=sub.attemptnumber)
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
