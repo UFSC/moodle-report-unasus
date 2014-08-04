@@ -119,7 +119,7 @@ function get_polos($curso_ufsc) {
 
 function get_final_grades($id_aluno, $course_id){
 
-    $middleware = Middleware::singleton();
+    global $DB;
 
     $sql = "SELECT u.id,
                   ROUND(gg.finalgrade,2) grade
@@ -139,7 +139,7 @@ function get_final_grades($id_aluno, $course_id){
                AND u.id = :id_aluno
                AND c.id = :courseid";
 
-    return $middleware->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
+    return $DB->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
 }
 
 /**

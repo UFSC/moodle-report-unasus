@@ -67,7 +67,7 @@ if ($modo_exibicao == null) {
 
 switch ($modo_exibicao) {
     case 'tabela':
-        $report->render_report_table($renderer, $report);
+        $report->render_report_table($renderer);
         break;
     case 'grafico_valores':
     case 'grafico_porcentagens':

@@ -21,10 +21,10 @@ class report_modulos_concluidos extends Factory {
         echo $renderer->build_page();
     }
 
-    public function render_report_table($renderer, $report) {
+    public function render_report_table($renderer){
         $this->mostrar_barra_filtragem = false;
         $this->texto_cabecalho = 'Tutores';
-        echo $renderer->build_report($report);
+        echo $renderer->build_report($this);
     }
 
     public function get_dados(){
