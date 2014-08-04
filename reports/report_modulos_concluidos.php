@@ -29,14 +29,12 @@ class report_modulos_concluidos extends Factory {
 
     public function get_dados(){
 
-        global $DB;
-
         $modulos = $this->modulos_selecionados;
 
         // Consulta
-        $query_atividades_nao_postadas = query_atividades_nao_postadas();
-        $query_quiz = query_quiz_nao_postadas();
-        $query_forum = query_postagens_forum_nao_postadas();
+        $query_atividades_nao_postadas = query_atividades();
+        $query_quiz = query_quiz();
+        $query_forum = query_postagens_forum();
 
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());

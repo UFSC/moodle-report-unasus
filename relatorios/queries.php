@@ -45,17 +45,26 @@ function query_alunos_grupo_tutoria() {
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return "SELECT u.id, u.firstname, u.lastname, rg.id AS grupo_id, vga.polo, co.id as cohort
-              FROM {user} u
-              JOIN {relationship_members} rm
-                ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_relationship_id)
-              JOIN {relationship_groups} rg
-                ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-              JOIN {view_Alunos} vga
-                ON (vga.matricula = u.username {$query_polo})
-                   {$query_cohort}
-             WHERE rg.id=:grupo_tutoria
-             GROUP BY u.id";
+    return "SELECT DISTINCT u.id, u.firstname, u.lastname, u.cohort, u.polo,
+                                u.grupo_id as grupo_id, (e.id = ue.enrolid IS NOT NULL) AS enrol
+                           FROM (
+                                 SELECT u.id, u.firstname, u.lastname, rg.id AS grupo_id, vga.polo, co.id as cohort
+                                   FROM {user} u
+                                   JOIN {relationship_members} rm
+                                     ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_relationship_id)
+                                   JOIN {relationship_groups} rg
+                                     ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
+                                   JOIN {view_Alunos} vga
+                                     ON (vga.matricula = u.username {$query_polo})
+                                        {$query_cohort}
+                                  WHERE rg.id=:grupo_tutoria
+                                  GROUP BY u.id
+                           ) u
+                           JOIN {user_enrolments} ue
+                             ON ue.userid = u.id
+                     INNER JOIN {enrol} e
+                             ON e.id = ue.enrolid AND e.courseid =:enrol_courseid
+            ";
 }
 
 function query_alunos_grupo_orientacao() {
@@ -143,54 +152,6 @@ function query_postagens_forum() {
 
     ";
 }
-
-function query_postagens_forum_nao_postadas() {
-    $alunos_disciplina = query_alunos_disciplina();
-
-    return " SELECT u.id AS userid,
-                    u.polo,
-                    u.cohort,
-                    fp.submission_date,
-                    fp.forum_name,
-                    gg.grade,
-                    gg.timemodified,
-                    fp.itemid,
-                    userid_posts IS NOT NULL AS has_post
-                     FROM (
-
-                        {$alunos_disciplina}
-
-                     ) u
-                     LEFT JOIN
-                     (
-                        SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name, f.id as itemid
-                          FROM {forum} f
-                          JOIN {forum_discussions} fd
-                            ON (fd.forum=f.id)
-                          JOIN {forum_posts} fp
-                            ON (fd.id = fp.discussion)
-                         WHERE f.id=:forumid
-                      GROUP BY fp.userid
-                      ORDER BY fp.created ASC
-                     ) fp
-                    ON (fp.userid_posts=u.id)
-                    LEFT JOIN
-                    (
-                        SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid, f.id as forumid
-                        FROM {forum} f
-                        JOIN {grade_items} gi
-                          ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
-                              gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
-                        JOIN {grade_grades} gg
-                          ON (gg.itemid=gi.id)
-                    GROUP BY gg.userid, gg.itemid
-                    ) gg
-                    ON (gg.userid = u.id AND fp.itemid=gg.forumid)
-                    ORDER BY grupo_id, u.firstname, u.lastname
-
-    ";
-}
-
 
 /* ---------------------------------------
  * QUERIES ESPECÍFICAS DE UM RELATÓRIO
@@ -325,56 +286,6 @@ function query_potenciais_evasoes() {
     ";
 }
 
-
-function query_alunos_disciplina(){
-
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
-
-    return "SELECT DISTINCT u.id, u.firstname, u.lastname, u.cohort, u.polo,
-                                u.grupo_id as grupo_id, (e.id = ue.enrolid IS NOT NULL) AS enrol
-                           FROM ({$alunos_grupo_tutoria}) u
-                           JOIN {user_enrolments} ue
-                             ON ue.userid = u.id
-                     INNER JOIN {enrol} e
-                             ON e.id = ue.enrolid AND e.courseid =:enrol_courseid
-            ";
-}
-
-function query_atividades_nao_postadas() {
-    $alunos_disciplina = query_alunos_disciplina();
-
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   u.cohort,
-                   u.polo,
-                   u.enrol,
-                   gr.grade,
-                   sub.timecreated AS submission_date,
-                   sub.timemodified AS submission_modified,
-                   gr.timemodified AS grade_modified,
-                   gr.timecreated AS grade_created,
-                   sub.status
-              FROM (
-
-                      {$alunos_disciplina}
-
-                   ) u
-         LEFT JOIN (
-                    SELECT sub.*
-                        FROM (
-                              SELECT *
-                                FROM {assign_submission}
-                            ORDER BY attemptnumber DESC
-                              ) sub
-                    GROUP BY sub.userid, sub.assignment
-                   ) sub
-                ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-         LEFT JOIN {assign_grades} gr
-                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id AND gr.attemptnumber=sub.attemptnumber)
-          ORDER BY grupo_id, u.firstname, u.lastname
-    ";
-}
-
 /**
  * Query para os relatórios
  *
@@ -500,40 +411,6 @@ function query_quiz() {
               FROM (
 
                     {$alunos_grupo_tutoria}
-
-                   ) u
-         LEFT JOIN (
-                        SELECT qa.*
-                          FROM (
-                                SELECT *
-                                  FROM {quiz_attempts}
-                                 WHERE (quiz=:assignmentid AND timefinish != 0)
-                              ORDER BY attempt DESC
-                                ) qa
-                      GROUP BY qa.userid, qa.quiz
-                    ) qa
-                ON (qa.userid = u.id)
-         LEFT JOIN {quiz_grades} qg
-                ON (u.id = qg.userid AND qg.quiz=qa.quiz)
-         LEFT JOIN {quiz} q
-                ON (q.course=:courseid AND q.id =:assignmentid2 AND qa.quiz = q.id AND qg.quiz = q.id)
-          ORDER BY grupo_id, u.firstname, u.lastname
-     ";
-}
-
-function query_quiz_nao_postadas() {
-    $alunos_disciplina = query_alunos_disciplina();
-
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   u.cohort,
-                   u.enrol,
-                   qg.grade,
-                   qg.timemodified AS grade_date,
-                   qa.timefinish AS submission_date
-              FROM (
-
-                    {$alunos_disciplina}
 
                    ) u
          LEFT JOIN (
