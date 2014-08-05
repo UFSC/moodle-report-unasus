@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die;
+
 require_once($CFG->libdir . '/gradelib.php');
 
 class report_modulos_concluidos extends Factory {

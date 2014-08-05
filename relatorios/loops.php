@@ -8,7 +8,6 @@ defined('MOODLE_INTERNAL') || die;
  * @param $query_atividades
  * @param $query_forum
  * @param $query_quiz
- * @param bool $query_course
  * @param null $query_nota_final
  * @param bool $is_activity
  * @param bool $is_orientacao
@@ -16,7 +15,7 @@ defined('MOODLE_INTERNAL') || die;
  * @throws dml_read_exception
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
-function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_course = true, $query_nota_final = null, $is_activity = false, $is_orientacao = false) {
+function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_nota_final = null, $is_activity = false, $is_orientacao = false) {
     // Middleware para as queries sql
     $middleware = Middleware::singleton();
 
@@ -52,15 +51,15 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
             foreach ($atividades as $atividade) {
 
                 if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades)) {
-                    $params = array('assignmentid' => $atividade->id,
+                    $params = array(
+                        'courseid' => $courseid,
+                        'enrol_courseid' => $courseid,
+                        'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo_tutoria' => $grupo->id);
-                    if ($query_course) {
-                        $params['courseid'] = $courseid;
-                        $params['enrol_courseid'] = $courseid;
-                    }
+
 
                     $result = $middleware->get_records_sql($query_atividades, $params);
 

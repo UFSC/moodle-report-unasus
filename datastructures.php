@@ -183,10 +183,10 @@ class dado_atividades_vs_notas extends unasus_data {
     public static function get_legend() {
 
         $legend = array();
-        $legend['nota_atribuida'] = 'Nota atribuída no prazo (até ' . get_prazo_avaliacao() * 24 . 'hs)';
-        $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de ' . get_prazo_avaliacao() * 24 . 'hs)';
-        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até " . get_prazo_avaliacao() . " dias após data de entrega)";
-        $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após " . get_prazo_maximo_avaliacao() . " dias da data de entrega)";
+        $legend['nota_atribuida'] = 'Nota atribuída no prazo (até '.get_prazo_avaliacao() * 24 .'hs)';
+        $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de '.get_prazo_avaliacao() * 24 .'hs)';
+        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até ".get_prazo_avaliacao()." dias após data de entrega)";
+        $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após ".get_prazo_maximo_avaliacao()." dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperado';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
@@ -427,6 +427,7 @@ class dado_boletim extends unasus_data {
         $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 7';
         $legend['abaixo_media'] = 'Média final abaixo de 7';
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
+
         return $legend;
     }
 
@@ -471,6 +472,7 @@ class dado_nota_final extends unasus_data {
         $legend = array();
         $legend['com_nota'] = 'Atividade avaliada';
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
+
         return $legend;
     }
 
@@ -543,9 +545,7 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 }
 
-class dado_atividades_nota_atribuida extends dado_atividades_alunos {
-    
-}
+class dado_atividades_nota_atribuida extends dado_atividades_alunos {}
 
 /**
  * Classe para relatorio sintese de atividades concluidas,
@@ -575,6 +575,7 @@ class dado_atividades_alunos extends unasus_data {
 
     public function __toString() {
         $porcentagem = new dado_media($this->count, $this->total);
+
         return "$porcentagem";
     }
 
@@ -627,9 +628,10 @@ class dado_somatorio_grupo extends unasus_data {
     public function get($grupo = null, $id = null) {
         if (!is_null($grupo) && !is_null($id)) {
             return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo][$id] : 0;
-        } elseif  (!is_null($grupo)) {
+        } elseif (!is_null($grupo)) {
             return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo] : 0;
         }
+
         return $this->soma;
     }
 
@@ -682,6 +684,7 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
         if (array_key_exists($course_id, $this->atividades_concluidas)) {
             return $this->atividades_concluidas[$course_id] == $this->total_atividades[$course_id];
         }
+
         return false;
     }
 
@@ -691,6 +694,7 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -723,6 +727,7 @@ class dado_media extends unasus_data {
         }
 
         $soma = "$this->somatorio/$this->total";
+
         return "{$soma} <br /> {$this->format_grade($media)}%";
     }
 
@@ -836,13 +841,14 @@ class dado_modulos_concluidos extends unasus_data {
         switch ($this->estado) {
             case 0: //Há atividades pendentes
                 $n_pendentes = count($this->atividades_pendentes);
-                for($i=0; $i< $n_pendentes; $i++){
-                    $pendentes .= ($i<($n_pendentes-1)) ? $this->atividades_pendentes[$i]->__toString() . ' - '
-                                                        : $this->atividades_pendentes[$i]->__toString();
+                for ($i = 0; $i < $n_pendentes; $i++) {
+                    $pendentes .= ($i < ($n_pendentes - 1)) ? $this->atividades_pendentes[$i]->__toString().' - '
+                            : $this->atividades_pendentes[$i]->__toString();
                 }
-                return '<b>' . $pendentes . '</b>';
+
+                return '<b>'.$pendentes.'</b>';
             case 1:
-                return (String) '<b>' . $this->final_grade .'</b>';
+                return (String) '<b>'.$this->final_grade.'</b>';
             default:
                 return false;
                 break;
@@ -868,7 +874,7 @@ class dado_modulos_concluidos extends unasus_data {
         }
     }
 
-    public function add_atividades_pendentes($nome_atividade){
+    public function add_atividades_pendentes($nome_atividade) {
         $this->atividades_pendentes[] = $nome_atividade;
     }
 
@@ -971,6 +977,7 @@ class dado_modulo extends unasus_data {
 
     public function __toString() {
         $course_url = new moodle_url('/course/view.php', array('id' => $this->id));
+
         return html_writer::link($course_url, $this->nome);
     }
 
@@ -1009,7 +1016,7 @@ class dado_atividade extends unasus_data {
     }
 
     public function __toString() {
-        return '' . $this->atividade->source_activity->__toString();
+        return ''.$this->atividade->source_activity->__toString();
     }
 
     public function get_css_class() {

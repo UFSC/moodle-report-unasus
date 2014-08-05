@@ -100,7 +100,7 @@ class report_boletim extends Factory {
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, true, $query_nota_final);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_nota_final);
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
