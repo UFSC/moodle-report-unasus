@@ -1,6 +1,7 @@
 <?php
 
 defined('MOODLE_INTERNAL') || die;
+
 /* ---------------------------------------
  * QUERIES UTILIZADAS EM VÁRIOS RELATÓRIOS
  * ---------------------------------------
@@ -45,35 +46,50 @@ function query_alunos_grupo_tutoria() {
         $query_polo = "  AND vga.polo IN ({$polos}) ";
     }
 
-    return "SELECT DISTINCT u.id, u.firstname, u.lastname, u.cohort, u.polo,
-                                u.grupo_id as grupo_id, (e.id = ue.enrolid IS NOT NULL) AS enrol
-                           FROM (
-                                 SELECT u.id, u.firstname, u.lastname, rg.id AS grupo_id, vga.polo, co.id as cohort
-                                   FROM {user} u
-                                   JOIN {relationship_members} rm
-                                     ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_relationship_id)
-                                   JOIN {relationship_groups} rg
-                                     ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-                                   JOIN {view_Alunos} vga
-                                     ON (vga.matricula = u.username {$query_polo})
-                                        {$query_cohort}
-                                  WHERE rg.id=:grupo_tutoria
-                                  GROUP BY u.id
-                           ) u
-                           JOIN {user_enrolments} ue
-                             ON ue.userid = u.id
-                     INNER JOIN {enrol} e
-                             ON e.id = ue.enrolid AND e.courseid =:enrol_courseid
-            ";
+    $query_alunos_relationship_tutoria = "
+         SELECT u.id,
+                u.firstname,
+                u.lastname,
+                rg.id AS grupo_id,
+                vga.polo,
+                co.id AS cohort
+           FROM {user} u
+           JOIN {relationship_members} rm
+             ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_relationship_id)
+           JOIN {relationship_groups} rg
+             ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
+           JOIN {view_Alunos} vga
+             ON (vga.matricula = u.username {$query_polo})
+                {$query_cohort}
+          WHERE rg.id=:grupo_tutoria
+          GROUP BY u.id";
+
+    return "SELECT DISTINCT u.id,
+                   u.firstname,
+                   u.lastname,
+                   u.cohort,
+                   u.polo,
+                   u.grupo_id AS grupo_id,
+                   (e.id = ue.enrolid IS NOT NULL) AS enrol
+              FROM (
+                      {$query_alunos_relationship_tutoria}
+                   ) u
+              JOIN {user_enrolments} ue
+                ON (ue.userid = u.id)
+        INNER JOIN {enrol} e
+                ON (e.id = ue.enrolid AND e.courseid =:enrol_courseid)";
 }
 
 function query_alunos_grupo_orientacao() {
 
-    return "SELECT DISTINCT u.id, u.firstname, 'cohort', 'polo'
-                      FROM {view_Alunos_Orientadores} ao
-                      JOIN {user} u
-                        ON (ao.username_aluno=u.username)
-                     WHERE ao.username_orientador = :orientador_id
+    return "SELECT DISTINCT u.id,
+                   u.firstname,
+                   'cohort',
+                   'polo'
+              FROM {view_Alunos_Orientadores} ao
+              JOIN {user} u
+                ON (ao.username_aluno=u.username)
+             WHERE ao.username_orientador = :orientador_id
             ";
 }
 
@@ -109,22 +125,21 @@ function query_alunos_grupo_orientacao() {
 function query_postagens_forum() {
     $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
 
-    return " SELECT u.id AS userid,
-                    u.polo,
-                    u.cohort,
-                    fp.submission_date,
-                    fp.forum_name,
-                    gg.grade,
-                    gg.timemodified,
-                    fp.itemid,
-                    userid_posts IS NOT NULL AS has_post
-                     FROM (
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   fp.submission_date,
+                   fp.forum_name,
+                   gg.grade,
+                   gg.timemodified,
+                   fp.itemid,
+                   userid_posts IS NOT NULL AS has_post
+              FROM (
 
-                        {$alunos_grupo_tutoria}
+                    {$alunos_grupo_tutoria}
 
-                     ) u
-                     LEFT JOIN
-                     (
+                   ) u
+         LEFT JOIN (
                         SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name, f.id as itemid
                           FROM {forum} f
                           JOIN {forum_discussions} fd
@@ -134,11 +149,10 @@ function query_postagens_forum() {
                          WHERE f.id=:forumid
                       GROUP BY fp.userid
                       ORDER BY fp.created ASC
-                     ) fp
-                    ON (fp.userid_posts=u.id)
-                    LEFT JOIN
-                    (
-                        SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid, f.id as forumid
+                   ) fp
+                ON (fp.userid_posts=u.id)
+         LEFT JOIN (
+                      SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid, f.id as forumid
                         FROM {forum} f
                         JOIN {grade_items} gi
                           ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
@@ -146,9 +160,9 @@ function query_postagens_forum() {
                         JOIN {grade_grades} gg
                           ON (gg.itemid=gi.id)
                     GROUP BY gg.userid, gg.itemid
-                    ) gg
-                    ON (gg.userid = u.id AND fp.itemid=gg.forumid)
-                    ORDER BY grupo_id, u.firstname, u.lastname
+                  ) gg
+               ON (gg.userid = u.id AND fp.itemid=gg.forumid)
+         ORDER BY grupo_id, u.firstname, u.lastname
 
     ";
 }
@@ -253,7 +267,7 @@ function query_uso_sistema_tutor() {
                            AND action != 'login' AND action != 'logout'
                   GROUP BY dia, hora, min
 
-                   )AS report
+                   ) AS report
           GROUP BY report.dia";
 }
 
@@ -324,11 +338,11 @@ function query_atividades() {
                    ) u
          LEFT JOIN (
                     SELECT sub.*
-                        FROM (
+                      FROM (
                               SELECT *
                                 FROM {assign_submission}
                             ORDER BY attemptnumber DESC
-                              ) sub
+                           ) sub
                     GROUP BY sub.userid, sub.assignment
                    ) sub
                 ON (u.id=sub.userid AND sub.assignment=:assignmentid)
@@ -422,7 +436,7 @@ function query_quiz() {
                               ORDER BY attempt DESC
                                 ) qa
                       GROUP BY qa.userid, qa.quiz
-                    ) qa
+                   ) qa
                 ON (qa.userid = u.id)
          LEFT JOIN {quiz_grades} qg
                 ON (u.id = qg.userid AND qg.quiz=qa.quiz)
@@ -494,11 +508,11 @@ class LtiPortfolioQuery {
         /* Query alunos */
         $query_alunos = query_alunos_grupo_tutoria();
         $params = array(
-            'curso_ufsc' => $report->get_curso_ufsc(),
-            'cohort_relationship_id' => $cohort_estudantes->id,
-            'relationship_id' => $relationship->id,
-            'grupo_tutoria' => $grupo_tutoria,
-            'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                'curso_ufsc' => $report->get_curso_ufsc(),
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'relationship_id' => $relationship->id,
+                'grupo_tutoria' => $grupo_tutoria,
+                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
         $this->estudantes_grupo_tutoria[$grupo_tutoria] = $middleware->get_records_sql($query_alunos, $params);
 
@@ -529,8 +543,8 @@ class LtiPortfolioQuery {
         $query_alunos = query_alunos_grupo_orientacao();
 
         $params = array(
-            'curso_ufsc' => $factory->get_curso_ufsc(),
-            'orientador_id' => $grupo
+                'curso_ufsc' => $factory->get_curso_ufsc(),
+                'orientador_id' => $grupo
         );
 
         $this->estudantes_grupo_orientacao[$grupo] = $middleware->get_records_sql($query_alunos, $params);
@@ -608,10 +622,11 @@ class LtiPortfolioQuery {
      */
     function count_lti_report(&$lista_atividades, &$total_alunos, &$atividade, $grupo, $is_orientação = false) {
 
-        if($is_orientação){
+        if ($is_orientação) {
             $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
-        }else
+        } else {
             $result =& $this->query_report_data_by_grupo_tutoria($grupo, $atividade);
+        }
 
         $count_alunos = array();
 
@@ -625,11 +640,12 @@ class LtiPortfolioQuery {
 
         foreach ($result as $r) {
             //Verifica se é hub portfólio
-            if(!isset($r->tcc->hubs)){
+            if (!isset($r->tcc->hubs)) {
                 $res = $r->tcc->hubs_tcc;
                 $is_tcc = true;
-            }else
+            } else {
                 $res = $r->tcc->hubs;
+            }
 
             // Processando hubs encontrados
             foreach ($res as $hub) {
@@ -664,10 +680,10 @@ class LtiPortfolioQuery {
      */
     public function get_report_data(&$atividade, $grupo, $is_orientacao = false) {
 
-        if($is_orientacao){
+        if ($is_orientacao) {
             $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
             $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
-        }else {
+        } else {
             $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo);
             $result =& $this->query_report_data_by_grupo_tutoria($grupo, $atividade);
         }
@@ -688,11 +704,12 @@ class LtiPortfolioQuery {
             $is_tcc = false;
 
             //Verifica se é hub portfólio
-            if(!isset($r->tcc->hubs)){
+            if (!isset($r->tcc->hubs)) {
                 $res = $r->tcc->hubs_tcc;
                 $is_tcc = true;
-            }else
+            } else {
                 $res = $r->tcc->hubs;
+            }
 
             // Processando hubs encontrados
             foreach ($res as $hub) {
