@@ -545,13 +545,18 @@ class LtiPortfolioQuery {
         // Middleware para as queries sql
         $middleware = Middleware::singleton();
 
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
+        /** @var $report Factory */
+        $report = Factory::singleton();
+
+        $relationship = tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+        $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
         $query_alunos = query_alunos_grupo_tutoria();
         $params = array(
-            'curso_ufsc' => $factory->get_curso_ufsc(),
+            'curso_ufsc' => $report->get_curso_ufsc(),
+            'cohort_relationship_id' => $cohort_estudantes->id,
+            'relationship_id' => $relationship->id,
             'grupo_tutoria' => $grupo_tutoria,
             'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
