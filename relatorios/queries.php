@@ -43,7 +43,7 @@ function query_alunos_grupo_tutoria() {
     }
 
     if (!is_null($polos)) {
-        $query_polo = "  AND vga.polo IN ({$polos}) ";
+        $query_polo = "  AND uid.data IN ({$polos}) ";
     }
 
     $query_alunos_relationship_tutoria = "
@@ -51,17 +51,21 @@ function query_alunos_grupo_tutoria() {
                 u.firstname,
                 u.lastname,
                 rg.id AS grupo_id,
-                vga.polo,
+                uid.data AS polo,
                 co.id AS cohort
            FROM {user} u
            JOIN {relationship_members} rm
              ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-           JOIN {view_Alunos} vga
-             ON (vga.matricula = u.username {$query_polo})
+      LEFT JOIN {user_info_data} uid
+             ON (u.id = uid.userid AND uid.fieldid=(
+                    SELECT id
+                    FROM {user_info_field}
+                    WHERE shortname = 'polo')
+                )
                 {$query_cohort}
-          WHERE rg.id=:grupo_tutoria
+          WHERE rg.id=:grupo_tutoria {$query_polo}
           GROUP BY u.id";
 
     return "SELECT DISTINCT u.id,
