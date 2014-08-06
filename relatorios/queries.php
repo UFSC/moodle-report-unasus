@@ -351,7 +351,10 @@ function query_atividades() {
                    ) sub
                 ON (u.id=sub.userid AND sub.assignment=:assignmentid)
          LEFT JOIN {assign_grades} gr
-                ON (gr.assignment=:assignmentid2 AND gr.userid=u.id AND gr.attemptnumber=sub.attemptnumber)
+                ON (gr.assignment=:assignmentid2 AND
+                    gr.userid=u.id AND
+                    ((sub.id IS NOT NULL AND gr.attemptnumber=sub.attemptnumber) OR (sub.id IS NULL))
+                   )
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
