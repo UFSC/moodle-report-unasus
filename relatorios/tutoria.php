@@ -203,12 +203,11 @@ class tutoria {
         $relationship = $DB->get_records_sql($sql);
 
         //Evita o caso de um curso que retorne com mais de um relationship
-        if(count($relationship) > 1){
+        if (count($relationship) > 1) {
             print_error('relationship_tutoria_not_available_error', 'report_unasus');
         }
 
-        $relationship = $relationship[key($relationship)];
-
+        $relationship = reset($relationship);
         if (!$relationship) {
             print_error('relationship_tutoria_not_available_error', 'report_unasus');
         }
