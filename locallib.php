@@ -165,21 +165,23 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
 
     $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
 
-    $modulos = $DB->$method(
-        "SELECT DISTINCT(c.id),
-                REPLACE(fullname,
-                CONCAT(shortname, ' - '), '') AS fullname,
-                c.category AS categoryid,
-                cc.name AS category,
-                cc.depth
-           FROM {course} c
-           JOIN {course_categories} cc
-             ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
-           JOIN {course_modules} cm
-             ON (c.id = cm.course)
-          WHERE c.id != :siteid
-            AND c.visible=TRUE
-       ORDER BY cc.depth, cc.name, c.fullname", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+    $sql = " SELECT DISTINCT(c.id),
+                    REPLACE(fullname,
+                    CONCAT(shortname, ' - '), '') AS fullname,
+                    c.category AS categoryid,
+                    cc.name AS category,
+                    cc.depth
+               FROM {course} c
+               JOIN {course_categories} cc
+                 ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
+               JOIN {course_modules} cm
+                 ON (c.id = cm.course)
+              WHERE c.id != :siteid
+                AND c.visible=TRUE
+           ORDER BY cc.depth, cc.sortorder, c.sortorder";
+
+    $params = array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}");
+    $modulos = $DB->$method($sql, $params);
 
     return $modulos;
 }
