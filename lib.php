@@ -6,6 +6,7 @@ function report_unasus_relatorios_validos_list() {
     return array(
         'estudante_sem_atividade_avaliada',
         'estudante_sem_atividade_postada',
+        'modulos_concluidos',
         'avaliacoes_em_atraso',
         'atividades_nota_atribuida',
         'entrega_de_atividades',

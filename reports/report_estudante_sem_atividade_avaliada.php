@@ -39,7 +39,7 @@ class report_estudante_sem_atividade_avaliada extends Factory {
             $listagem_forum->add($forum->course_id, $forum);
         }
 
-        $query_alunos_grupo_tutoria = query_atividades_nao_postadas();
+        $query_alunos_grupo_tutoria = query_atividades();
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
 

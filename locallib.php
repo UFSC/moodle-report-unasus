@@ -47,13 +47,13 @@ function get_count_estudantes($curso_ufsc) {
 function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
     $middleware = Middleware::singleton();
 
-    $query = "SELECT u.id, COUNT(DISTINCT ao.username_aluno)
-                      FROM {view_Alunos_Orientadores} ao
-                      JOIN {user} u
-                        ON (ao.username_orientador=u.username)
-                     WHERE u.id IN $ids_orientadores AND ao.curso = :curso_ufsc
-                  GROUP BY u.id
-                ";
+    $query = "SELECT u.id,
+                     COUNT(DISTINCT ao.username_aluno) AS count
+                FROM {view_Alunos_Orientadores} ao
+                JOIN {user} u
+                  ON (ao.username_orientador=u.username)
+               WHERE u.id IN $ids_orientadores AND ao.curso = :curso_ufsc
+            GROUP BY u.id";
 
     $params = array('ids_orientadores' => $ids_orientadores, 'curso_ufsc' => $curso_ufsc);
 
@@ -117,6 +117,32 @@ function get_polos($curso_ufsc) {
     return $polos;
 }
 
+function get_final_grades($id_aluno, $course_id){
+
+    global $DB;
+
+    $sql = "SELECT u.id,
+                  ROUND(gg.finalgrade,2) grade
+              FROM {course} AS c
+              JOIN {context} AS ctx
+	            ON c.id = ctx.instanceid
+              JOIN {role_assignments} AS ra
+	            ON ra.contextid = ctx.id
+              JOIN {user} AS u
+	            ON u.id = ra.userid
+              JOIN {grade_grades} AS gg
+	            ON gg.userid = u.id
+              JOIN {grade_items} AS gi
+	            ON gi.id = gg.itemid
+              JOIN {course_categories} AS cc
+                ON cc.id = c.category
+             WHERE gi.courseid = c.id AND gi.itemtype = 'course'
+               AND u.id = :id_aluno
+               AND c.id = :courseid";
+
+    return $DB->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
+}
+
 /**
  * Localiza uma categoria com base no curso UFSC informado
  *
@@ -139,18 +165,23 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
 
     $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
 
-    $modulos = $DB->$method(
-        "SELECT DISTINCT(c.id),
-                REPLACE(fullname, CONCAT(shortname, ' - '), '') AS fullname,
-                c.category AS categoryid, cc.name AS category, cc.depth
-           FROM {course} c
-           JOIN {course_categories} cc
-             ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
-           JOIN {course_modules} cm
-             ON (c.id = cm.course)
-          WHERE c.id != :siteid
-            AND c.visible=TRUE
-       ORDER BY cc.depth, cc.name, c.fullname", array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}"));
+    $sql = " SELECT DISTINCT(c.id),
+                    REPLACE(fullname,
+                    CONCAT(shortname, ' - '), '') AS fullname,
+                    c.category AS categoryid,
+                    cc.name AS category,
+                    cc.depth
+               FROM {course} c
+               JOIN {course_categories} cc
+                 ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
+               JOIN {course_modules} cm
+                 ON (c.id = cm.course)
+              WHERE c.id != :siteid
+                AND c.visible=TRUE
+           ORDER BY cc.depth, cc.sortorder, c.sortorder";
+
+    $params = array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}");
+    $modulos = $DB->$method($sql, $params);
 
     return $modulos;
 }
@@ -354,7 +385,7 @@ function query_assign_courses($courses) {
                      a.grade,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                     cm.groupingid as grouping_id
+                     cm.groupingid AS grouping_id
                 FROM {course} AS c
            LEFT JOIN {assign} AS a
                   ON (c.id = a.course AND c.id != :siteid)

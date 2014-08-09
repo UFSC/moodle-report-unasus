@@ -19,6 +19,10 @@ $string['estudante_sem_atividade_avaliada'] = 'Lista: atividades não avaliadas'
 $string['estudante_sem_atividade_avaliada_help'] = 'Listagem de estudantes que entregaram suas atividades mas ainda não foram corrigidas';
 $string['estudante_sem_atividade_avaliada_table_header'] = 'Atividades não Avaliadas';
 
+$string['modulos_concluidos'] = 'Lista: Conclusão';
+$string['modulos_concluidos_help'] = 'Listagem de estudantes que concluíram ou possuem alguma atividade pendente no módulo';
+$string['modulos_concluidos_table_header'] = 'Conclusão';
+
 /* Relatórios Portfolio */
 $string['tcc_portfolio_consolidado'] = 'Portfólio: Portfólios Consolidados';
 $string['tcc_portfolio_consolidado_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes';
