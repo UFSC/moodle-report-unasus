@@ -127,7 +127,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Fieldset
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
-        $output .= html_writer::nonempty_tag('legend', 'Filtrar Estudantes');
+        $output .= html_writer::nonempty_tag('legend', get_string('filter_header', 'report_unasus'));
 
         // Botao de ocultar/mostrar filtros, só aparece com javascript carregado
         $css_class = ($report->mostrar_barra_filtragem == true) ? 'hidden' : 'visible';

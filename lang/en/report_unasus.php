@@ -4,6 +4,7 @@ $string['unasus:view'] = 'Visualizar listagem de relatórios da UNA-SUS';
 $string['unasus:view_all'] = 'Visualizar relatórios de todos estudantes';
 $string['unasus:view_tutoria'] = 'Visualizar relatórios dos estudantes do seu grupo de tutoria';
 $string['unasus_navigation_name'] = 'UNA-SUS';
+$string['filter_header'] = 'Filtrar Resultados';
 
 $string['atividades_vs_notas'] = 'Acompanhamento: atribuição de notas';
 $string['atividades_vs_notas_help'] = 'OBJETIVO: Acompanhar a situação atual de realização das atividades dos estudantes e instrumentar os tutores com informações sobre atividades sem nota atribuída, e prazos para atribuição dessas notas.';
@@ -42,10 +43,6 @@ $string['tcc_entrega_atividades_help'] = 'Listagem de estudantes de acordo com e
 
 $string['tcc_concluido'] = 'TCC: Atividades concluídas';
 $string['tcc_concluido_help'] = 'Listagem de estudantes com a situação de entrega de atividades (Concluído/Não concluído)';
-
-// - relatório desativado segundo o ticket #4460  case 'historico_atribuicao_notas':
-//$string['historico_atribuicao_notas'] = 'Histórico: atribuição de notas';
-//$string['historico_atribuicao_notas_help'] = 'OBJETIVO: Acompanhar realização da avaliação das atividades dos estudantes, pelos tutores e servir como histórico sobre o desempenho do tutor na realização das suas atribuições.';
 
 $string['boletim'] = 'Boletim';
 $string['boletim_help'] = 'Notas das atividades realizadas pelo aluno';
