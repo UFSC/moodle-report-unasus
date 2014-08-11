@@ -28,7 +28,7 @@ class report_tcc_concluido extends Factory {
     public function get_dados() {
 
         // Recupera dados auxiliares
-        $nomes_estudantes = tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -80,7 +80,7 @@ class report_tcc_concluido extends Factory {
                 $estudantes[] = $lista_atividades;
                 $lista_atividades = null;
             }
-            $dados[tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            $dados[grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);

@@ -78,7 +78,7 @@ class report_potenciais_evasoes extends Factory {
 
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
-        $nomes_estudantes = tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
+        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
         $nomes_polos = get_polos($this->get_curso_ufsc());
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz);
@@ -129,7 +129,7 @@ class report_potenciais_evasoes extends Factory {
 
             // Ou unir os alunos de acordo com o tutor dele
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
             }
         }
         return $dados;

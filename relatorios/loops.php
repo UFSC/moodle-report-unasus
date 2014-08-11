@@ -24,10 +24,10 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
 
     $grupos = ($is_orientacao)
               ?  grupos_tutoria::get_grupos_orientacao($report->get_curso_ufsc(), $report->orientadores_selecionados)
-              :  tutoria::get_grupos_tutoria($report->get_curso_ufsc(), $report->tutores_selecionados);
+              :  grupos_tutoria::get_grupos_tutoria($report->get_curso_ufsc(), $report->tutores_selecionados);
 
-    $relationship = tutoria::get_relationship_tutoria($report->get_curso_ufsc());
-    $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -225,13 +225,13 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     /** @var $report Factory */
     $report = Factory::singleton();
 
-    $relationship = tutoria::get_relationship_tutoria($report->get_curso_ufsc());
-    $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Recupera dados auxiliares
     $grupos = ($is_orientacao)
             ?  grupos_tutoria::get_grupos_orientacao($report->get_curso_ufsc(), $report->orientadores_selecionados)
-            :  tutoria::get_grupos_tutoria($report->get_curso_ufsc(), $report->tutores_selecionados);
+            :  grupos_tutoria::get_grupos_tutoria($report->get_curso_ufsc(), $report->tutores_selecionados);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();

@@ -509,8 +509,8 @@ class LtiPortfolioQuery {
         /** @var $report Factory */
         $report = Factory::singleton();
 
-        $relationship = tutoria::get_relationship_tutoria($report->get_curso_ufsc());
-        $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
+        $relationship = grupos_tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+        $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
         $query_alunos = query_alunos_grupo_tutoria();

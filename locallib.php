@@ -8,7 +8,6 @@ require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/queries.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/loops.php');
-require_once($CFG->dirroot . '/report/unasus/relatorios/tutoria.php');
 
 
 function get_datetime_from_unixtime($unixtime) {
@@ -18,8 +17,8 @@ function get_datetime_from_unixtime($unixtime) {
 function get_count_estudantes($curso_ufsc) {
     $middleware = Middleware::singleton();
 
-    $relationship = tutoria::get_relationship_tutoria($curso_ufsc);
-    $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
+    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
                 FROM {relationship_groups} rg
@@ -96,8 +95,8 @@ function get_nomes_cohorts($curso_ufsc) {
 function get_polos($curso_ufsc) {
     $academico = Middleware::singleton();
 
-    $relationship = tutoria::get_relationship_tutoria($curso_ufsc);
-    $cohort_estudantes = tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
+    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     $sql = "
           SELECT DISTINCT(ua.polo), ua.nomepolo
