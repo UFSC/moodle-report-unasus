@@ -74,7 +74,7 @@ function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
 function get_nomes_cohorts($curso_ufsc) {
     global $DB;
 
-    $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
+    $ufsc_category = grupos_tutoria::get_category_from_curso_ufsc($curso_ufsc);
 
     $modulos = $DB->get_records_sql_menu(
         "SELECT DISTINCT(cohort.id), cohort.name
@@ -142,27 +142,10 @@ function get_final_grades($id_aluno, $course_id){
     return $DB->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
 }
 
-/**
- * Localiza uma categoria com base no curso UFSC informado
- *
- * @param int $curso_ufsc Código do Curso UFSC
- * @return mixed
- */
-function get_category_from_curso_ufsc($curso_ufsc) {
-    global $DB;
-
-    $ufsc_category_sql = "
-        SELECT cc.id
-          FROM {course_categories} cc
-         WHERE cc.idnumber=:curso_ufsc";
-
-    return $DB->get_field_sql($ufsc_category_sql, array('curso_ufsc' => "curso_{$curso_ufsc}"));
-}
-
 function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
     global $DB, $SITE;
 
-    $ufsc_category = get_category_from_curso_ufsc($curso_ufsc);
+    $ufsc_category = grupos_tutoria::get_category_from_curso_ufsc($curso_ufsc);
 
     $sql = " SELECT DISTINCT(c.id),
                     REPLACE(fullname,
