@@ -102,10 +102,10 @@ class report_uso_sistema_tutor extends Factory {
 
         //Converte a string data pra um DateTime e depois pra Unixtime
         $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
-        $data_inicio_unix = strtotime($data_inicio->format('d/m/Y'));
+        $data_inicio_unix = strtotime($data_inicio->format('Y-m-d'));
         $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
         $data_fim_query = $data_fim->format('Y-m-d h:i:s');
-        $data_fim_unix = strtotime($data_fim->format('d/m/Y'));
+        $data_fim_unix = strtotime($data_fim->format('Y-m-d'));
 
         //Query
         $dados = array();
