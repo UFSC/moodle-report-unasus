@@ -246,8 +246,7 @@ function query_group_members() {
                 ON (gm.groupid=gg.groupid)
         INNER JOIN {groupings} g
                 ON (g.id=gg.groupingid)
-             WHERE g.courseid =:courseid
-          GROUP BY gm.id";
+             WHERE g.courseid =:courseid";
 }
 
 /**

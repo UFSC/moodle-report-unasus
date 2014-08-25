@@ -224,6 +224,7 @@ function get_id_nome_atividades() {
 
 /**
  * Função que busca os membros da cada agrupamento
+ *
  * @param array $courses array de ids dos cursos moodle
  * @return array(course_id => (userid1, userid2, ...))
  */
@@ -233,7 +234,7 @@ function get_agrupamentos_membros($courses) {
     $groups = array();
 
     foreach ($courses as $course_id) {
-        $members = $DB->get_records_sql(query_group_members(), array('courseid' => $course_id));
+        $members = $DB->get_recordset_sql(query_group_members(), array('courseid' => $course_id));
 
         foreach ($members as $member) {
             $groups[$member->groupingid][$course_id][$member->userid] = true;
