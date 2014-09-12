@@ -142,7 +142,7 @@ class report_potenciais_evasoes extends Factory {
     public function get_table_header() {
         $modulos = $this->get_modulos_ids();
 
-        $nome_modulos = get_id_nome_modulos(get_curso_ufsc_id());
+        $nome_modulos = get_id_nome_modulos($this->curso_ufsc);
         if (is_null($this->modulos_selecionados)) {
             $modulos = get_id_modulos();
         }

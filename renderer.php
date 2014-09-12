@@ -151,7 +151,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Filtro de modulo
         if ($report->mostrar_filtro_modulos) {
             $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '';
-            $nome_modulos = get_nome_modulos($report->get_curso_ufsc());
+            $nome_modulos = get_nome_modulos_por_categoria_turma($report->get_categoria_turma_ufsc());
             $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
             $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post, '', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
             $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
@@ -165,7 +165,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 // Filtro de Polo
                 $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '';
                 $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-                $filter_polos .= html_writer::select(get_polos($report->get_curso_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+                $filter_polos .= html_writer::select(get_polos_por_categoria_turma($report->get_categoria_turma_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
                 $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
                 $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'multiple_list'));
@@ -177,7 +177,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 // Filtro de Cohorts
                 $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '';
                 $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
-                $filter_cohorts .= html_writer::select(get_nomes_cohorts($report->get_curso_ufsc()), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
+                $filter_cohorts .= html_writer::select(get_nomes_cohorts_categoria_curso($report->get_categoria_curso_ufsc()), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
                 $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
                 $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
@@ -187,7 +187,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 // Filtro de Tutores
                 $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
                 $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-                $filter_tutores .= html_writer::select(grupos_tutoria::get_tutores_curso_ufsc($report->get_curso_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+                $filter_tutores .= html_writer::select(grupos_tutoria::get_tutores_categoria_curso_ufsc($report->get_categoria_turma_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
                 $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
                 $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));

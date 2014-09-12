@@ -35,6 +35,12 @@ class Factory {
     /** @var int|mixed $curso_moodle Código do curso Moodle em que este relatório foi acessado */
     protected $curso_moodle;
 
+    /** @var bool|string $categoria_curso_ufsc ID da categoria do curso UFSC associdado a este relatório */
+    protected $categoria_curso_ufsc;
+
+    /** @var bool|string $categoria_turma_ufsc ID da categoria da turma do curso UFSC associdado a este relatório */
+    protected $categoria_turma_ufsc;
+
     /** @var  string $relatorio relatório atual que será mostrado */
     protected $relatorio;
 
@@ -74,8 +80,13 @@ class Factory {
 
     protected function __construct() {
         // Atributos globais
-        $this->curso_ufsc = get_curso_ufsc_id();
         $this->curso_moodle = get_course_id();
+
+        #todo Remover linha abaixo e função grupos_tutoria::get_curso_ufsc_id
+        $this->curso_ufsc = grupos_tutoria::get_curso_ufsc_id($this->curso_moodle);
+
+        $this->categoria_curso_ufsc = grupos_tutoria::get_categoria_curso_ufsc($this->curso_moodle);
+        $this->categoria_turma_ufsc = grupos_tutoria::get_categoria_turma_ufsc($this->curso_moodle);
 
         // Atributos para os gráficos
         // Por default os módulos selecionados são os módulos que o curso escolhido possui
@@ -84,7 +95,7 @@ class Factory {
         // Recupera os módulos enviados do filtro e caso nenhum tenha sido selecionado, retorna todos os possíveis.
         $modulos = optional_param_array('modulos', null, PARAM_INT);
         if (is_null($modulos)) {
-            $modulos = array_keys(get_id_nome_modulos(get_curso_ufsc_id()));
+            $modulos = array_keys(get_id_nome_modulos_por_categoria_turma($this->categoria_turma_ufsc));
         }
 
         // Valores definidos nos filtros
@@ -197,6 +208,20 @@ class Factory {
      */
     public function get_curso_moodle() {
         return $this->curso_moodle;
+    }
+
+    /**
+     * @return int categoria do curso ufsc
+     */
+    public function get_categoria_curso_ufsc() {
+        return $this->categoria_curso_ufsc;
+    }
+
+    /**
+     * @return int categoria da turma do curso ufsc
+     */
+    public function get_categoria_turma_ufsc() {
+        return $this->categoria_turma_ufsc;
     }
 
     /**

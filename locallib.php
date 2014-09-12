@@ -65,6 +65,7 @@ function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
     return $result;
 }
 
+#TODO Roberto: remover AKI e trocar por [ get_nomes_cohorts_categoria_curso ]
 /**
  * Dado que alimenta a lista do filtro cohort
  *
@@ -87,6 +88,27 @@ function get_nomes_cohorts($curso_ufsc) {
 }
 
 /**
+ * Dado que alimenta a lista do filtro cohort
+ *
+ * @param int $categoria_curso
+ * @return array (nome dos cohorts)
+ */
+function get_nomes_cohorts_categoria_curso($categoria_curso) {
+    global $DB;
+
+    $modulos = $DB->get_records_sql_menu(
+            "SELECT DISTINCT(cohort.id), cohort.name
+           FROM {cohort} cohort
+           JOIN {context} ctx
+             ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
+           JOIN {course_categories} cc
+             ON (ctx.instanceid = cc.id AND
+                ((cc.path LIKE '%/{$categoria_curso}') or (cc.path LIKE '%/{$categoria_curso}/%')))");
+    return $modulos;
+}
+
+#TODO Roberto: Remover função abaixo e trocar por
+/**
  * Dado que alimenta a lista do filtro polos
  *
  * @param $curso_ufsc
@@ -96,6 +118,39 @@ function get_polos($curso_ufsc) {
     $academico = Middleware::singleton();
 
     $relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
+    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+
+    $sql = "
+          SELECT DISTINCT(ua.polo), ua.nomepolo
+            FROM {View_Usuarios_Dados_Adicionais} ua
+            JOIN {user} u
+              ON (u.username=ua.username)
+            JOIN {relationship_members} rm
+              ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+            JOIN {relationship_groups} rg
+              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
+           WHERE nomepolo != ''
+        ORDER BY nomepolo";
+
+    $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
+    $polos = $academico->get_records_sql_menu($sql, $params);
+
+    return $polos;
+}
+
+
+#AKI
+/**
+ * Dado que alimenta a lista do filtro polos
+ *s
+ * @param $categoria_turma
+ * @return array
+ */
+function get_polos_por_categoria_turma($categoria_turma) {
+    $academico = Middleware::singleton();
+
+    #$relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
+    $relationship = grupos_tutoria::get_relationship_tutoria_por_categoria_turma($categoria_turma);
     $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     $sql = "
@@ -142,6 +197,7 @@ function get_final_grades($id_aluno, $course_id){
     return $DB->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
 }
 
+#TODO Roberto: remover e trocar por [ get_id_nome_modulos_por_categoria_turma ]
 function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
     global $DB, $SITE;
 
@@ -168,6 +224,37 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
     return $modulos;
 }
 
+function get_id_nome_modulos_por_categoria_turma($ufsc_category, $method = 'get_records_sql_menu') {
+    global $DB, $SITE;
+
+    $sql = " SELECT DISTINCT(c.id),
+                    REPLACE(fullname,
+                    CONCAT(shortname, ' - '), '') AS fullname,
+                    c.category AS categoryid,
+                    cc.name AS category,
+                    cc.depth
+               FROM {course} c
+               JOIN {course_categories} cc
+                 ON (c.category = cc.id
+                     AND (
+                           ((cc.path LIKE '%/$ufsc_category') or
+                            (cc.path LIKE '%/$ufsc_category/%'))
+                          )
+                    )
+               JOIN {course_modules} cm
+                 ON (c.id = cm.course)
+              WHERE c.id != :siteid
+                AND c.visible=TRUE
+           ORDER BY cc.depth, cc.sortorder, c.sortorder";
+
+    $params = array('siteid' => $SITE->id);
+    $modulos = $DB->$method($sql, $params);
+
+    return $modulos;
+}
+
+#TODO Roberto: remover função abaixo e trocar por [ get_nome_modulos_por_categoria ]
+
 /**
  * Lista de modulos separados por categoria
  * Estrutura =   $array = array(
@@ -182,6 +269,40 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
  */
 function get_nome_modulos($curso_ufsc) {
     $modulos = get_id_nome_modulos($curso_ufsc, 'get_records_sql');
+
+    // Interar para criar array dos modulos separados por grupos
+    $listall = array();
+    $list = array();
+
+    foreach ($modulos as $key => $modulo) {
+        if ($modulo->depth == 1) {
+            $listall[$key] = $modulo->fullname;
+        } else {
+            $list[$modulo->category][$key] = $modulo->fullname;
+        }
+    }
+
+    foreach ($list as $key => $l) {
+        array_push($listall, array($key => $l));
+    }
+
+    return $listall;
+}
+
+/**
+ * Lista de modulos separados por categoria da turma
+ * Estrutura =   $array = array(
+ *      array('Odd' => array(1 => 'Item 1 do grupo 1', 2 => 'Item 2 do grupo 1')),
+ *       array('Even' => array(3 => 'Item 1 do grupo 2', 4 => 'Item 2 do grupo 2')),
+ *       5 => 'lista principal 1',
+ *       6 => 'lista principal 2',
+ *   );
+ *
+ * @param $categoria_curso
+ * @return array
+ */
+function get_nome_modulos_por_categoria_turma($categoria_curso) {
+    $modulos = get_id_nome_modulos_por_categoria_turma($categoria_curso, 'get_records_sql');
 
     // Interar para criar array dos modulos separados por grupos
     $listall = array();
