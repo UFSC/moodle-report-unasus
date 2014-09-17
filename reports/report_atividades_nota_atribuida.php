@@ -131,7 +131,7 @@ class report_atividades_nota_atribuida extends Factory {
 
         foreach ($lista_atividade as $grupo_id => $grupo) {
             $data = array();
-            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id);
+            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
             foreach ($grupo as $atividades) {
                 if (is_array($atividades)) {
                     foreach ($atividades as $atividade) {

@@ -85,7 +85,7 @@ class report_acesso_tutor extends Factory {
     public function get_dados() {
         global $DB;
 
-        $relationship_tutoria = grupos_tutoria::get_relationship_tutoria($this->get_curso_ufsc());
+        $relationship_tutoria = grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
         $cohort_tutores = grupos_tutoria::get_relationship_cohort_tutores($relationship_tutoria->id);
 
         // Consulta
@@ -129,7 +129,7 @@ class report_acesso_tutor extends Factory {
         }
         $result = $result->get_assoc();
 
-        $nomes_tutores = grupos_tutoria::get_tutores_curso_ufsc($this->get_curso_ufsc());
+        $nomes_tutores = grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
 
         //para cada resultado que estava no formato [id]=>[dados_acesso]
         // ele transforma para [tutor,dado_acesso1,dado_acesso2]
