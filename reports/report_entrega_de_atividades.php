@@ -98,7 +98,7 @@ class report_entrega_de_atividades extends Factory {
                     }
                 }
             }
-            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] =
+            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] =
                     array($count_nao_entregue_mas_no_prazo,
                             $count_nao_entregue_fora_prazo,
                             $count_sem_prazo,
@@ -124,9 +124,9 @@ class report_entrega_de_atividades extends Factory {
         $query_forum = query_postagens_forum();
 
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($this->get_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes_curso_ufsc($this->get_curso_ufsc());
-        $nomes_polos = get_polos($this->get_curso_ufsc());
+        $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
+        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -191,7 +191,7 @@ class report_entrega_de_atividades extends Factory {
             }
             // Ou unir os alunos de acordo com o tutor dele
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
             }
         }
 

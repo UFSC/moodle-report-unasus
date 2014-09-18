@@ -140,7 +140,7 @@ class report_tcc_portfolio_consolidado extends Factory {
         foreach ($lista_atividade as $grupo_id => $grupo) {
             /* Coluna nome grupo tutoria */
             $data = array();
-            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_curso_ufsc(), $grupo_id);
+            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
             /* Grupo vazio, imprimir apenas o nome do tutor */
             if (empty($grupo)) {

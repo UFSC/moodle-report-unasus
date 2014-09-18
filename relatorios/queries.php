@@ -6,7 +6,6 @@ defined('MOODLE_INTERNAL') || die;
  * QUERIES UTILIZADAS EM VÁRIOS RELATÓRIOS
  * ---------------------------------------
  */
-
 /**
  * Query para retornar os alunos pertencentes a um grupo de tutoria
  * Utilizada em diversos relatórios, necessita do relationship para rodar.
@@ -508,7 +507,7 @@ class LtiPortfolioQuery {
         /** @var $report Factory */
         $report = Factory::singleton();
 
-        $relationship = grupos_tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+        $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
         $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */

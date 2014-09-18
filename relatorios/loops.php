@@ -23,10 +23,10 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
     $report = Factory::singleton();
 
     $grupos = ($is_orientacao)
-              ?  grupos_tutoria::get_grupos_orientacao($report->get_curso_ufsc(), $report->orientadores_selecionados)
-              :  grupos_tutoria::get_grupos_tutoria($report->get_curso_ufsc(), $report->tutores_selecionados);
+              ?  grupos_tutoria::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
+              :  grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
     $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
@@ -225,13 +225,13 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     /** @var $report Factory */
     $report = Factory::singleton();
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_curso_ufsc());
+    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
     $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Recupera dados auxiliares
     $grupos = ($is_orientacao)
             ?  grupos_tutoria::get_grupos_orientacao($report->get_curso_ufsc(), $report->orientadores_selecionados)
-            :  grupos_tutoria::get_grupos_tutoria($report->get_curso_ufsc(), $report->tutores_selecionados);
+            :  grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -258,7 +258,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
         $total_alunos = get_count_estudantes_orientacao($ids_orientadores, $report->get_curso_ufsc());
     }else{
-        $total_alunos = get_count_estudantes($report->get_curso_ufsc());
+        $total_alunos = get_count_estudantes($report->get_categoria_turma_ufsc());
     }
 
     $total_atividades = 0;

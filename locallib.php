@@ -14,10 +14,10 @@ function get_datetime_from_unixtime($unixtime) {
     return date_create(date("Y-m-d H:m:s", $unixtime));
 }
 
-function get_count_estudantes($curso_ufsc) {
+function get_count_estudantes($categoria_turma) {
     $middleware = Middleware::singleton();
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
+    $relationship = grupos_tutoria::get_relationship_tutoria($categoria_turma);
     $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
@@ -28,8 +28,6 @@ function get_count_estudantes($curso_ufsc) {
                  AND rm.relationshipcohortid=:cohort_id)
           INNER JOIN {user} u
                   ON (u.id=rm.userid)
-          INNER JOIN {view_UsuariosFuncoesCursos} ufc
-                  ON (ufc.username = u.username)
             GROUP BY rg.name
             ORDER BY rg.id";
     $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
@@ -43,6 +41,7 @@ function get_count_estudantes($curso_ufsc) {
     return $result;
 }
 
+#TODO Roberto: remover esta função e trocar por ...
 function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
     $middleware = Middleware::singleton();
 
@@ -68,34 +67,34 @@ function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
 /**
  * Dado que alimenta a lista do filtro cohort
  *
- * @param int $curso_ufsc
+ * @param int $categoria_curso
  * @return array (nome dos cohorts)
  */
-function get_nomes_cohorts($curso_ufsc) {
+function get_nomes_cohorts($categoria_curso) {
     global $DB;
 
-    $ufsc_category = grupos_tutoria::get_category_from_curso_ufsc($curso_ufsc);
-
     $modulos = $DB->get_records_sql_menu(
-        "SELECT DISTINCT(cohort.id), cohort.name
+            "SELECT DISTINCT(cohort.id), cohort.name
            FROM {cohort} cohort
            JOIN {context} ctx
              ON (cohort.contextid = ctx.id AND ctx.contextlevel = 40)
            JOIN {course_categories} cc
-             ON (ctx.instanceid = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))", array('curso_ufsc' => "curso_{$curso_ufsc}"));
+             ON (ctx.instanceid = cc.id AND
+                ((cc.path LIKE '%/{$categoria_curso}') or (cc.path LIKE '%/{$categoria_curso}/%')))");
     return $modulos;
 }
 
 /**
  * Dado que alimenta a lista do filtro polos
- *
- * @param $curso_ufsc
+ *s
+ * @param $categoria_turma
  * @return array
  */
-function get_polos($curso_ufsc) {
+function get_polos($categoria_turma) {
     $academico = Middleware::singleton();
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
+    #$relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
+    $relationship = grupos_tutoria::get_relationship_tutoria($categoria_turma);
     $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     $sql = "
@@ -142,10 +141,8 @@ function get_final_grades($id_aluno, $course_id){
     return $DB->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
 }
 
-function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
+function get_id_nome_modulos($ufsc_category, $method = 'get_records_sql_menu') {
     global $DB, $SITE;
-
-    $ufsc_category = grupos_tutoria::get_category_from_curso_ufsc($curso_ufsc);
 
     $sql = " SELECT DISTINCT(c.id),
                     REPLACE(fullname,
@@ -155,21 +152,26 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
                     cc.depth
                FROM {course} c
                JOIN {course_categories} cc
-                 ON (c.category = cc.id AND (cc.idnumber = :curso_ufsc OR cc.path LIKE '/{$ufsc_category}/%'))
+                 ON (c.category = cc.id
+                     AND (
+                           ((cc.path LIKE '%/$ufsc_category') or
+                            (cc.path LIKE '%/$ufsc_category/%'))
+                          )
+                    )
                JOIN {course_modules} cm
                  ON (c.id = cm.course)
               WHERE c.id != :siteid
                 AND c.visible=TRUE
            ORDER BY cc.depth, cc.sortorder, c.sortorder";
 
-    $params = array('siteid' => $SITE->id, 'curso_ufsc' => "curso_{$curso_ufsc}");
+    $params = array('siteid' => $SITE->id);
     $modulos = $DB->$method($sql, $params);
 
     return $modulos;
 }
 
 /**
- * Lista de modulos separados por categoria
+ * Lista de modulos separados por categoria da turma
  * Estrutura =   $array = array(
  *      array('Odd' => array(1 => 'Item 1 do grupo 1', 2 => 'Item 2 do grupo 1')),
  *       array('Even' => array(3 => 'Item 1 do grupo 2', 4 => 'Item 2 do grupo 2')),
@@ -177,11 +179,11 @@ function get_id_nome_modulos($curso_ufsc, $method = 'get_records_sql_menu') {
  *       6 => 'lista principal 2',
  *   );
  *
- * @param string $curso_ufsc
+ * @param $categoria_curso
  * @return array
  */
-function get_nome_modulos($curso_ufsc) {
-    $modulos = get_id_nome_modulos($curso_ufsc, 'get_records_sql');
+function get_nome_modulos($categoria_curso) {
+    $modulos = get_id_nome_modulos($categoria_curso, 'get_records_sql');
 
     // Interar para criar array dos modulos separados por grupos
     $listall = array();
