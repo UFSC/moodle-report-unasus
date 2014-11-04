@@ -3,6 +3,8 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . '/gradelib.php');
+require_once($CFG->dirroot . '/grade/querylib.php');
+
 
 class report_modulos_concluidos extends Factory {
 
@@ -58,13 +60,10 @@ class report_modulos_concluidos extends Factory {
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
 
-                    $final_grade = get_final_grades($id_aluno, $atividade->source_activity->course_id);
+                    $full_grade[$id_aluno] = grade_get_course_grade($id_aluno, $atividade->source_activity->course_id);
 
-                    $grade_item = new grade_item();
-
-                    if(isset($final_grade[$id_aluno])){
-                        $final_grade = $final_grade[$id_aluno]->grade;
-                        $final_grade = grade_format_gradevalue($final_grade, $grade_item);
+                    if(isset($full_grade[$id_aluno])){
+                        $final_grade = $full_grade[$id_aluno]->str_grade;
                     } else if(empty($final_grade)){
                         $final_grade = 'Não há atividades avaliativas para o módulo';
                     }
