@@ -74,7 +74,8 @@ class report_modulos_concluidos extends Factory {
                     }
 
                     // para cada atividade nao feita ele adiciona uma nova atividade nao realizada naquele modulo
-                    if ($atividade->source_activity->has_submission() && !$atividade->has_submitted() && !$atividade->is_a_future_due()) {
+                    if ($atividade->source_activity->has_submission() && !$atividade->has_submitted()
+                            && !$atividade->is_a_future_due() && !$atividade->has_grade() && $atividade->is_grade_needed()){
                         $dados_modulos[$atividade->source_activity->course_id]->add_atividade_nao_realizada();
                         $dados_modulos[$atividade->source_activity->course_id]->add_atividades_pendentes($atividade->source_activity);
                     }
