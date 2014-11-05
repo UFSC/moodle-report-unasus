@@ -278,8 +278,9 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
+    #FIXME: Assim que o TCC estiver concluído recolocar o LTI nos relatórios
     // Uniar com as atividades LTI
-    process_header_atividades_lti($courses, $group_array);
+    #process_header_atividades_lti($courses, $group_array);
 
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
@@ -318,6 +319,7 @@ function process_header_atividades_lti($courses, GroupArray &$group_array, $is_t
     // Nenhuma atividade lti encontrada,
     // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
     if (empty($ltis)) {
+
         return;
     }
 
@@ -379,7 +381,7 @@ function query_assign_courses($courses) {
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'assign')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
-           ORDER BY c.id";
+           ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
@@ -413,7 +415,7 @@ function query_quiz_courses($courses) {
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'quiz')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
-            ORDER BY c.id";
+            ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -447,16 +449,6 @@ function query_lti_courses($courses, $is_tcc = false) {
             $customparameters = get_tcc_definition($config['customparameters']);
             $consumer_key = $config['resourcekey'];
 
-            if($is_tcc){
-                if ($customparameters['type'] != 'tcc') {
-                    continue;
-                }
-            }else {
-                if ($customparameters['type'] != 'portfolio') {
-                    continue;
-                }
-            }
-
             // WS Client
             $client = new SistemaTccClient($lti->baseurl, $consumer_key);
             $object = $client->get_tcc_definition($customparameters['tcc_definition']);
@@ -464,6 +456,7 @@ function query_lti_courses($courses, $is_tcc = false) {
             if (!$object) {
                 // Ocorreu alguma falha
                 continue;
+                //return false;
             }
 
             $object->id = $lti->id;
@@ -524,7 +517,7 @@ function query_forum_courses($courses) {
                WHERE c.id IN ({$string_courses})
                  AND cm.visible=TRUE
                  AND (gi.id=TRUE OR cm.completion != 0)
-            ORDER BY c.id";
+            ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -538,10 +531,12 @@ function query_courses_com_nota_final($courses) {
                      gi.courseid AS course_id,
                      gi.itemname
                 FROM {grade_items} gi
+                JOIN {course} AS c
+                  ON (c.id = gi.courseid)
                WHERE (gi.itemtype LIKE 'course'
                  AND itemmodule IS NULL
                  AND gi.courseid IN ({$string_courses}))
-            ORDER BY gi.id";
+            ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
