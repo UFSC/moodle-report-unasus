@@ -104,8 +104,10 @@ class report_unasus_forum_activity extends report_unasus_activity {
 class report_unasus_quiz_activity extends report_unasus_activity {
 
     public function __construct($db_model) {
-        parent::__construct(true, true);
 
+        $has_grade = ((int) $db_model->grade) == 0 ? false : true;
+
+        parent::__construct(true, $has_grade);
         $this->id = $db_model->quiz_id;
         $this->name = $db_model->quiz_name;
         $this->deadline = $db_model->completionexpected;
@@ -275,7 +277,7 @@ abstract class report_unasus_data {
             // não é necessário enviar a nota
             return false;
         } else if ($this->source_activity->has_submission && !$this->has_submitted()) {
-            // se a atividade possui envio e não foi feito um envio
+            // se a atividade precisa que seja enviado e não foi feito um envio
             // não é necessário enviar uma nota
             return false;
         } else if (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline > $now) {
@@ -286,6 +288,63 @@ abstract class report_unasus_data {
         }
 
         return true;
+    }
+
+    /**
+     * Retorna se as condições para se ter uma atividade completa já foram cumpridas
+     *
+     *
+     * @see grade_due_days()
+     * @return bool
+     */
+    public function is_activity_pending() {
+
+        $now = time();
+
+        if ($this->source_activity->has_grade && $this->has_grade()) {
+            // se a atividade possui nota habilitado e possui nota
+            // a atividade não está pendente
+            return false;
+        } else if ($this->source_activity->has_submission && $this->has_submitted()) {
+            // se a atividade precisa que seja enviado e foi feito um envio
+            // a atividade não está pendente
+            return false;
+        } else if (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline > $now) {
+            // se a atividade não possui envio, não possui nota enviada
+            // e ainda não chegou a data esperada de entrega,
+            // a atividade não está pendente
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Verifica se o usuário é membro do grupo da atividade
+     *
+     *
+     * @param $agrupamentos_membros array Membros por grouping, course_id e user_id
+     * @see grade_due_days()
+     * @return bool
+     */
+    public function is_member_of($agrupamentos_membros) {
+        $a_grouping = $this->source_activity->grouping;
+
+        // Se atividade não for agrupada (grouping == "0") então todos os estudantes são membros
+        $is_member = $a_grouping == "0" ? true : false;
+
+        if (!$is_member && array_key_exists($a_grouping, $agrupamentos_membros)) {
+            // Se atividade for agrupada pesquisa o usuário no grupo da atividade
+            $a_user = $this->userid;
+            $a_course = $this->source_activity->course_id;
+            $a_groupings = $agrupamentos_membros[$a_grouping];
+
+            if (array_key_exists($a_course, $a_groupings)) {
+                $a_courses = $a_groupings[$a_course];
+                $is_member = array_key_exists($a_user, $a_courses);
+            }
+        }
+        return $is_member;
     }
 
     /**
