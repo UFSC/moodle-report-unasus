@@ -848,7 +848,7 @@ class dado_modulos_concluidos extends unasus_data {
 
                 return '<b>'.$pendentes.'</b>';
             case 1:
-                return (String) '<b>'.$this->final_grade.'</b>';
+                return ($this->final_grade == '-') ? '<b>'. 'Sem Nota'.'</b>' : (String) '<b>'.$this->final_grade.'</b>';
             default:
                 return false;
                 break;
