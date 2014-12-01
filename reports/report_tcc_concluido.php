@@ -28,7 +28,7 @@ class report_tcc_concluido extends Factory {
     public function get_dados() {
 
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_estudantes = grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -37,12 +37,15 @@ class report_tcc_concluido extends Factory {
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, false, true);
 
+/*        echo '<pre>';
+        die(print_r($associativo_atividades));*/
+
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
             $estudantes = array();
 
             foreach ($array_dados as $id_aluno => $aluno) {
-                $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+                $lista_atividades[] = new report_nunasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
                     $atraso = null;
@@ -80,7 +83,7 @@ class report_tcc_concluido extends Factory {
                 $estudantes[] = $lista_atividades;
                 $lista_atividades = null;
             }
-            $dados[grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            $dados[grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);

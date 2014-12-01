@@ -23,7 +23,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
     $report = Factory::singleton();
 
     $grupos = ($is_orientacao)
-              ?  grupos_tutoria::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
+              ?  grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
               :  grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
 
     $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
@@ -49,6 +49,9 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
             // Num módulo existem várias atividades, numa dada atividade ele irá pesquisar todas as notas dos alunos daquele
             // grupo de tutoria
             foreach ($atividades as $atividade) {
+
+                /*echo '<pre>';
+                die(print_r($atividades));*/
 
                 if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades)) {
                     $params = array(
@@ -156,6 +159,9 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         $group_array_do_grupo->add($q->userid, $data);
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
+
+                    echo '<pre>';
+                    die(print_r($atividade));
 
                     $result = ($is_orientacao) ? $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true)
                                                : $lti_query_object->get_report_data($atividade, $grupo->id);

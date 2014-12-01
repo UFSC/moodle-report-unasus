@@ -219,7 +219,6 @@ class dado_tcc_portfolio_concluido extends unasus_data {
     }
 
     public function get_css_class() {
-        global $CFG;
         switch ($this->tipo) {
             case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_CONCLUIDA:
                 return 'nao_concluido';
