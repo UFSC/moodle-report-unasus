@@ -20,7 +20,7 @@ defined('MOODLE_INTERNAL') || die;
  * @throws Exception
  * @return string
  */
-function query_alunos_grupo_tutoria() {
+function query_alunos_relationship() {
 
     /** @var $report Factory */
     $report = Factory::singleton();
@@ -45,7 +45,7 @@ function query_alunos_grupo_tutoria() {
         $query_polo = "  AND uid.data IN ({$polos}) ";
     }
 
-    $query_alunos_relationship_tutoria = "
+    $query_relationship = "
          SELECT u.id,
                 u.firstname,
                 u.lastname,
@@ -64,7 +64,7 @@ function query_alunos_grupo_tutoria() {
                     WHERE shortname = 'polo')
                 )
                 {$query_cohort}
-          WHERE rg.id=:grupo_tutoria {$query_polo}
+          WHERE rg.id=:grupo {$query_polo}
           GROUP BY u.id";
 
     return "SELECT DISTINCT u.id,
@@ -75,7 +75,7 @@ function query_alunos_grupo_tutoria() {
                    u.grupo_id AS grupo_id,
                    (e.id = ue.enrolid IS NOT NULL) AS enrol
               FROM (
-                      {$query_alunos_relationship_tutoria}
+                      {$query_relationship}
                    ) u
               JOIN {user_enrolments} ue
                 ON (ue.userid = u.id)
@@ -126,7 +126,7 @@ function query_alunos_grupo_orientacao() {
  * @return string
  */
 function query_postagens_forum() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -281,7 +281,7 @@ function query_uso_sistema_tutor() {
  * @return string
  */
 function query_potenciais_evasoes() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS user_id,
                    u.polo,
@@ -321,7 +321,7 @@ function query_potenciais_evasoes() {
  *
  */
 function query_atividades() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -370,7 +370,7 @@ function query_atividades() {
  *
  */
 function query_nota_final() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -419,7 +419,7 @@ function query_nota_final() {
  *
  */
 function query_quiz() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -452,7 +452,7 @@ function query_quiz() {
 }
 
 function query_alunos_modulos() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -496,6 +496,7 @@ class LtiPortfolioQuery {
      */
     private function &query_estudantes_by_grupo_tutoria($grupo_tutoria) {
 
+        global $DB;
         // Se a consulta já foi executada, não é necessário refazê-la
         if (isset($this->estudantes_grupo_tutoria[$grupo_tutoria])) {
             return $this->estudantes_grupo_tutoria[$grupo_tutoria];
@@ -511,12 +512,12 @@ class LtiPortfolioQuery {
         $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_grupo_tutoria();
+        $query_alunos = query_alunos_relationship();
         $params = array(
                 'curso_ufsc' => $report->get_curso_ufsc(),
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'relationship_id' => $relationship->id,
-                'grupo_tutoria' => $grupo_tutoria,
+                'grupo' => $grupo_tutoria,
                 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
 
         $this->estudantes_grupo_tutoria[$grupo_tutoria] = $middleware->get_records_sql($query_alunos, $params);
@@ -531,31 +532,35 @@ class LtiPortfolioQuery {
      * @internal param $grupo_orientacao
      * @return array
      */
-    private function &query_estudantes_by_grupo_orientacao($grupo) {
+    private function &query_estudantes_by_grupo_orientacao($grupo_orientacao) {
+
+        global $DB;
 
         // Se a consulta já foi executada, não é necessário refazê-la
-        if (isset($this->estudantes_grupo_orientacao[$grupo])) {
-            return $this->estudantes_grupo_orientacao[$grupo];
+        if (isset($this->estudantes_grupo_orientacao[$grupo_orientacao])) {
+            return $this->estudantes_grupo_orientacao[$grupo_orientacao];
         }
 
         // Middleware para as queries sql
         $middleware = Middleware::singleton();
+        /** @var $report Factory */
+        $report = Factory::singleton();
 
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
+        $relationship = grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
+        $cohort_estudantes = grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_grupo_orientacao();
+        $query_alunos = query_alunos_relationship();
 
         $params = array(
-                'curso_ufsc' => $factory->get_curso_ufsc(),
-                'orientador_id' => $grupo
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'relationship_id' => $relationship->id,
+                'grupo' => $grupo_orientacao,
         );
 
-        $this->estudantes_grupo_orientacao[$grupo] = $middleware->get_records_sql($query_alunos, $params);
+        $this->estudantes_grupo_orientacao[$grupo_orientacao] = $DB->get_records_sql($query_alunos, $params);
 
-        return $this->estudantes_grupo_orientacao[$grupo];
-
+        return $this->estudantes_grupo_orientacao[$grupo_orientacao];
     }
 
 
@@ -593,15 +598,15 @@ class LtiPortfolioQuery {
      * @internal param int $grupo_tutoria
      * @return array
      */
-    private function &query_report_data_by_grupo_orientacao($grupo, &$atividade) {
+    private function &query_report_data_by_grupo_orientacao($grupo_orientacao, &$atividade) {
 
         // Se a consulta já foi executada, não é necessário refazê-la
-        if (isset($this->report_estudantes_grupo_orientacao[$grupo])) {
-            return $this->report_estudantes_grupo_orientacao[$grupo];
+        if (isset($this->report_estudantes_grupo_orientacao[$grupo_orientacao])) {
+            return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
         }
 
         $user_ids = array();
-        $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
+        $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo_orientacao);
 
         foreach ($estudantes as $aluno) {
             $user_ids[$aluno->id] = $aluno->id;
@@ -609,9 +614,9 @@ class LtiPortfolioQuery {
 
         // WS Client
         $client = new SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
-        $this->report_estudantes_grupo_orientacao[$grupo] = $client->get_report_data_tcc($user_ids);
+        $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
 
-        return $this->report_estudantes_grupo_orientacao[$grupo];
+        return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
     }
 
     /**
@@ -687,6 +692,10 @@ class LtiPortfolioQuery {
 
         if ($is_orientacao) {
             $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
+
+            echo '<pre>';
+            die(print_r($estudantes));
+
             $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
         } else {
             $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo);

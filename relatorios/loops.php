@@ -50,9 +50,6 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
             // grupo de tutoria
             foreach ($atividades as $atividade) {
 
-                /*echo '<pre>';
-                die(print_r($atividades));*/
-
                 if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades)) {
                     $params = array(
                         'courseid' => $courseid,
@@ -160,11 +157,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
-                    echo '<pre>';
-                    die(print_r($atividade));
-
-                    $result = ($is_orientacao) ? $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true)
-                                               : $lti_query_object->get_report_data($atividade, $grupo->id);
+                    $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
