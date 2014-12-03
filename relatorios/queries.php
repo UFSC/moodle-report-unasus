@@ -80,7 +80,7 @@ function query_alunos_relationship() {
               JOIN {user_enrolments} ue
                 ON (ue.userid = u.id)
         INNER JOIN {enrol} e
-                ON (e.id = ue.enrolid AND e.courseid =:enrol_courseid)";
+                ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
 }
 
 function query_alunos_grupo_orientacao() {
@@ -555,7 +555,9 @@ class LtiPortfolioQuery {
         $params = array(
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'relationship_id' => $relationship->id,
-                'grupo' => $grupo_orientacao,
+                'grupo' => $grupo_orientacao
+                //Verificar necessidade deste - não necessita, mas manter a passagem dos parâmetros
+                //'enrol_courseid' => 1
         );
 
         $this->estudantes_grupo_orientacao[$grupo_orientacao] = $DB->get_records_sql($query_alunos, $params);
@@ -593,7 +595,7 @@ class LtiPortfolioQuery {
 
     /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de orientação
-     * @param $grupo
+     * @param $grupo_orientacao
      * @param report_unasus_lti_activity $atividade
      * @internal param int $grupo_tutoria
      * @return array
@@ -692,11 +694,8 @@ class LtiPortfolioQuery {
 
         if ($is_orientacao) {
             $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
-
-            echo '<pre>';
-            die(print_r($estudantes));
-
             $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
+
         } else {
             $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo);
             $result =& $this->query_report_data_by_grupo_tutoria($grupo, $atividade);
@@ -711,48 +710,28 @@ class LtiPortfolioQuery {
         $output = array();
 
         foreach ($result as $r) {
+            $chapters = $r->tcc->chapters;
 
             $userid = $r->tcc->user_id;
-            $estudante = $estudantes[$userid];
-            $found = false;
-            $is_tcc = false;
-
-            //Verifica se é hub portfólio
-            if (!isset($r->tcc->hubs)) {
-                $res = $r->tcc->hubs_tcc;
-                $is_tcc = true;
-            } else {
-                $res = $r->tcc->hubs;
+            if( !isset($estudantes[$userid])){
+                continue;
             }
 
-            // Processando hubs encontrados
-            foreach ($res as $hub) {
+            $estudante = $estudantes[$userid];
+            $found = false;
 
-                $hub = ($is_tcc) ? $hub->hubs_tcc : $hub->hub;
-
-                // Só vamos processar o hub que corresponde a posição da atividade
-                if ($hub->position != $atividade->position) {
-                    continue;
-                }
+            // Processando capítulos encontrados
+            foreach ($chapters as $chapter) {
 
                 $found = true;
 
                 // criar dado
                 $model = new stdClass();
                 $model->userid = $userid;
-                $model->grade = $hub->grade;
+                $model->status = $chapter->chapter->state;
 
-                $model->status = $hub->state;
-
-                if (!empty($hub->grade_date)) {
-                    $grade_date = new DateTime($hub->grade_date);
-                    $model->grade_date = $grade_date->getTimestamp();
-                } else {
-                    $model->grade_date = false;
-                }
-
-                if (!empty($hub->state_date)) {
-                    $submission_date = new DateTime($hub->state_date);
+                if (!empty($chapter->state_date)) {
+                    $submission_date = new DateTime($chapter->state_date);
                     $model->submission_date = $submission_date->getTimestamp();
                 } else {
                     $model->submission_date = false;
@@ -761,9 +740,7 @@ class LtiPortfolioQuery {
                 $model->cohort = $estudante->cohort;
                 $model->polo = $estudante->polo;
 
-                $model->status_abstract = (isset($r->tcc->abstract->state)) ? $r->tcc->abstract->state : null;
-                $model->status_presentation = (isset($r->tcc->presentation->state)) ? $r->tcc->presentation->state : null;
-                $model->status_final_considerations = (isset($r->tcc->final_considerations->state)) ? $r->tcc->final_considerations->state : null;
+//                $model->status_abstract = (isset($r->tcc->abstract->state)) ? $r->tcc->abstract->state : null;
 
                 $output[] = $model;
             }
