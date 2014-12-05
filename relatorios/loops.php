@@ -159,16 +159,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
 
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
-                    // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
-
-                        if (isset($l->not_found)) {
-                            $data = new report_unasus_data_empty($atividade, $l);
-                        } else {
-                            $data = new report_unasus_data_lti($atividade, $l);
-                        }
-
-                        // Agrupa os dados por usuário
+                        $data = new report_unasus_data_lti($atividade, $l);
                         $group_array_do_grupo->add($l->userid, $data);
                     }
                 }

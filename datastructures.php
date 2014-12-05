@@ -200,7 +200,45 @@ class dado_atividades_vs_notas extends unasus_data {
 
 }
 
-class dado_tcc_concluido extends dado_tcc_portfolio_concluido {}
+class dado_tcc_concluido extends unasus_data {
+
+    const ATIVIDADE_NAO_CONCLUIDA = 0;
+    const ATIVIDADE_CONCLUIDA = 1;
+    const ATIVIDADE_NAO_APLICADO = 2;
+
+    function __construct($tipo, $chapter) {
+        $this->tipo = $tipo;
+        $this->chapter = $chapter;
+    }
+
+    public function __toString() {
+        return '';
+    }
+
+    public function get_css_class() {
+        switch ($this->tipo) {
+            case dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA:
+                return 'nao_concluido';
+                break;
+            case dado_tcc_concluido::ATIVIDADE_CONCLUIDA:
+                return 'concluido';
+                break;
+            case dado_tcc_concluido::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+        $legend = array();
+        $legend['nao_concluido'] = 'Atividade não concluída';
+        $legend['concluido'] = 'Atividade concluída';
+        $legend['nao_aplicado'] = 'Não aplicado';
+
+        return $legend;
+    }
+
+}
 
 class dado_tcc_portfolio_concluido extends unasus_data {
 

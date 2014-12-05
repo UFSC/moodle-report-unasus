@@ -526,7 +526,7 @@ class LtiPortfolioQuery {
     }
 
     /**
-     * @param $grupo
+     * @param $grupo_orientacao
      * @throws Exception
      * @throws dml_read_exception
      * @internal param $grupo_orientacao
@@ -541,8 +541,6 @@ class LtiPortfolioQuery {
             return $this->estudantes_grupo_orientacao[$grupo_orientacao];
         }
 
-        // Middleware para as queries sql
-        $middleware = Middleware::singleton();
         /** @var $report Factory */
         $report = Factory::singleton();
 
@@ -723,6 +721,8 @@ class LtiPortfolioQuery {
             // Processando capítulos encontrados
             foreach ($chapters as $chapter) {
 
+//                $position = $chapter->chapter->position;
+
                 $found = true;
 
                 // criar dado
@@ -740,7 +740,10 @@ class LtiPortfolioQuery {
                 $model->cohort = $estudante->cohort;
                 $model->polo = $estudante->polo;
 
-//                $model->status_abstract = (isset($r->tcc->abstract->state)) ? $r->tcc->abstract->state : null;
+               for($position=1; $position <= 5; $position++){
+                    $status_chapter = 'status_chapter' . $position;
+                    $model->$status_chapter =  $chapter->chapter->state;
+               }
 
                 $output[] = $model;
             }
