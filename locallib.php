@@ -423,7 +423,6 @@ function query_quiz_courses($courses) {
  * Função para buscar atividades de lti
  *
  * @param $courses
- * @param bool $is_tcc
  * @internal param \type $tcc_definition_id
  * @return array
  */
@@ -441,9 +440,6 @@ function query_lti_courses($courses) {
 
         $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
 
-/*        echo '<pre>';
-        die(print_r($ltis));*/
-
         $course_name = $DB->get_field('course', 'fullname', array('id' => $course));
 
         foreach ($ltis as $lti) {
@@ -455,13 +451,9 @@ function query_lti_courses($courses) {
             $client = new SistemaTccClient($lti->baseurl, $consumer_key);
             $object = $client->get_tcc_definition($customparameters['tcc_definition']);
 
-/*            echo '<pre>';
-            die(print_r($object));*/
-
             if (!$object) {
                 // Ocorreu alguma falha
                 continue;
-                //return false;
             }
 
             $object->id = $lti->id;
@@ -477,9 +469,6 @@ function query_lti_courses($courses) {
             array_push($lti_activities, $object);
         }
     }
-
-    /*echo '<pre>';
-    die(print_r($lti_activities));*/
 
     return $lti_activities;
 }

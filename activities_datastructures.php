@@ -494,9 +494,10 @@ class report_unasus_data_lti extends report_unasus_data {
     public $status_chapter3; // Revisão da Literatura
     public $status_chapter4; // Metodologia
     public $status_chapter5; // Resultados Esperados
+    public $status_abstract; // Resumo
 
     private static $submitted_status = array('sent_to_admin_for_revision', 'sent_to_admin_for_evaluation', 'admin_evaluation_ok', 'terminated', 'draft');
-    private static $evaluated_status = array('admin_evaluation_ok', 'terminated');
+    private static $evaluated_status = array('admin_evaluation_ok', 'terminated', 'done');
 
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
@@ -512,6 +513,8 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->status_chapter3 = $db_model->status_chapter3;
         $this->status_chapter4 = $db_model->status_chapter4;
         $this->status_chapter5 = $db_model->status_chapter5;
+
+        $this->status_abstract = $db_model->status_abstract;
     }
 
     public function has_submitted() {
@@ -524,6 +527,8 @@ class report_unasus_data_lti extends report_unasus_data {
 
     public function has_evaluated_chapters($chapter) {
         switch ($chapter){
+            case 'abstract': $status = $this->status_abstract;
+                break;
             case 'chapter1': $status = $this->status_chapter1;
                 break;
             case 'chapter2': $status = $this->status_chapter2;

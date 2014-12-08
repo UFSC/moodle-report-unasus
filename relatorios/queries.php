@@ -708,6 +708,9 @@ class LtiPortfolioQuery {
         $output = array();
 
         foreach ($result as $r) {
+
+            $status_abstract = ($r->tcc->abstract == null) ? 'null' : $r->tcc->abstract->state;
+
             $chapters = $r->tcc->chapters;
 
             $userid = $r->tcc->user_id;
@@ -720,8 +723,6 @@ class LtiPortfolioQuery {
 
             // Processando capítulos encontrados
             foreach ($chapters as $chapter) {
-
-//                $position = $chapter->chapter->position;
 
                 $found = true;
 
@@ -744,6 +745,8 @@ class LtiPortfolioQuery {
                     $status_chapter = 'status_chapter' . $position;
                     $model->$status_chapter =  $chapter->chapter->state;
                }
+
+                $model->status_abstract = $status_abstract;
 
                 $output[] = $model;
             }

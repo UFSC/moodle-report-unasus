@@ -53,8 +53,19 @@ class report_tcc_concluido extends Factory {
                 }
 
                 $chapter = 'chapter1';
+                $j = 0;
 
-                for ($i = 0; $i <= 20; $i+=5) {
+                for ($i = 0; $i <= 4; $i++) {
+
+                    if($j == 0){
+                        if ($aluno[$j]->has_evaluated_chapters('abstract'))
+                            $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
+                        else
+                            $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
+
+                        $lista_atividades[] = new dado_tcc_concluido($tipo, 'abstract');
+                        $j+=5;
+                    }
 
                     if ($aluno[$i]->has_evaluated_chapters($chapter))
                         $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
@@ -84,6 +95,11 @@ class report_tcc_concluido extends Factory {
 
     public function get_table_header() {
         $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
+
+        foreach ($header as $key => $modulo) {
+            array_unshift($modulo, 'Resumo');
+            $header[$key] = $modulo;
+        }
 
         return $header;
     }
