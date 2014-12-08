@@ -502,9 +502,6 @@ class LtiPortfolioQuery {
             return $this->estudantes_grupo_tutoria[$grupo_tutoria];
         }
 
-        // Middleware para as queries sql
-        $middleware = Middleware::singleton();
-
         /** @var $report Factory */
         $report = Factory::singleton();
 
@@ -514,13 +511,13 @@ class LtiPortfolioQuery {
         /* Query alunos */
         $query_alunos = query_alunos_relationship();
         $params = array(
-                'curso_ufsc' => $report->get_curso_ufsc(),
+                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'relationship_id' => $relationship->id,
-                'grupo' => $grupo_tutoria,
-                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                'grupo' => $grupo_tutoria
+        );
 
-        $this->estudantes_grupo_tutoria[$grupo_tutoria] = $middleware->get_records_sql($query_alunos, $params);
+        $this->estudantes_grupo_tutoria[$grupo_tutoria] = $DB->get_records_sql($query_alunos, $params);
 
         return $this->estudantes_grupo_tutoria[$grupo_tutoria];
     }
@@ -554,8 +551,6 @@ class LtiPortfolioQuery {
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'relationship_id' => $relationship->id,
                 'grupo' => $grupo_orientacao
-                //Verificar necessidade deste - não necessita, mas manter a passagem dos parâmetros
-                //'enrol_courseid' => 1
         );
 
         $this->estudantes_grupo_orientacao[$grupo_orientacao] = $DB->get_records_sql($query_alunos, $params);
