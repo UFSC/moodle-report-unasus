@@ -737,8 +737,13 @@ class LtiPortfolioQuery {
                 $model->polo = $estudante->polo;
 
                for($position=1; $position <= 5; $position++){
-                    $status_chapter = 'status_chapter' . $position;
-                    $model->$status_chapter =  $chapter->chapter->state;
+                   $status_chapter = 'status_chapter' . $position;
+                   // Se estado default é 'draft' e não há conteúdo no capítulo, vai para estado 'Novo'
+                   if($chapter->chapter->state == 'draft' && $chapter->chapter->content == null){
+                       $model->$status_chapter = 'null';
+                   } else{
+                       $model->$status_chapter =  $chapter->chapter->state;
+                   }
                }
 
                 $model->status_abstract = $status_abstract;

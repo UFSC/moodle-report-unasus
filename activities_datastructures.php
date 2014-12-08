@@ -496,8 +496,8 @@ class report_unasus_data_lti extends report_unasus_data {
     public $status_chapter5; // Resultados Esperados
     public $status_abstract; // Resumo
 
-    private static $submitted_status = array('sent_to_admin_for_revision', 'sent_to_admin_for_evaluation', 'admin_evaluation_ok', 'terminated', 'draft');
-    private static $evaluated_status = array('admin_evaluation_ok', 'terminated', 'done');
+    private static $submitted_status = array('review', 'draft'); // Revisão e Rascunho
+    private static $evaluated_status = array('done'); // Avaliado
 
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
