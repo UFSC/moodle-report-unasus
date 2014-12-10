@@ -260,6 +260,7 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         throw new Exception("Falha ao obter as atividades, curso não informado.");
     }
 
+    // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
@@ -278,9 +279,8 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
-    #FIXME: Assim que o TCC estiver concluído recolocar o LTI nos relatórios
     // Uniar com as atividades LTI
-    #process_header_atividades_lti($courses, $group_array);
+    process_header_atividades_lti($courses, $group_array);
 
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);
@@ -313,8 +313,8 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
  * @param bool $is_tcc
  * @return array
  */
-function process_header_atividades_lti($courses, GroupArray &$group_array, $is_tcc = false) {
-    $ltis = query_lti_courses($courses, $is_tcc);
+function process_header_atividades_lti($courses, GroupArray &$group_array) {
+    $ltis = query_lti_courses($courses);
 
     // Nenhuma atividade lti encontrada,
     // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
@@ -325,20 +325,18 @@ function process_header_atividades_lti($courses, GroupArray &$group_array, $is_t
 
     /* A atividade de LTI é composta (vai gerar sub-atividades para cada eixo */
     foreach ($ltis as $lti) {
-        foreach ($lti->tcc_definition->hub_definitions as $hub_definition) {
-            $hub = $hub_definition->hub_definition;
 
-            $title_prefix = $lti->custom_parameters['type'] == 'portfolio'
-                        ? get_string('portfolio_prefix', 'report_unasus')
-                        : get_string('tcc_prefix', 'report_unasus');
+        foreach ($lti->tcc_definition->chapter_definitions as $chapter_definition) {
+
+            $chapter_definition = $chapter_definition->chapter_definition;
 
             // sub-atividade simulada
             $db_model = new stdClass();
             $db_model->id = $lti->id;
             $db_model->course_module_id = $lti->course_module_id;
-            $db_model->name = $title_prefix . $hub->title;
+            $db_model->name = $chapter_definition->title;
             $db_model->completionexpected = $lti->completionexpected;
-            $db_model->position = $hub->position;
+            $db_model->position = $chapter_definition->position;
 
             $db_model->course_id = $lti->course_id;
             $db_model->course_name = $lti->course_name;
@@ -425,11 +423,10 @@ function query_quiz_courses($courses) {
  * Função para buscar atividades de lti
  *
  * @param $courses
- * @param bool $is_tcc
  * @internal param \type $tcc_definition_id
  * @return array
  */
-function query_lti_courses($courses, $is_tcc = false) {
+function query_lti_courses($courses) {
     global $DB;
 
     if (empty($courses)) {
@@ -442,6 +439,7 @@ function query_lti_courses($courses, $is_tcc = false) {
     foreach ($courses as $course) {
 
         $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
+
         $course_name = $DB->get_field('course', 'fullname', array('id' => $course));
 
         foreach ($ltis as $lti) {
@@ -456,7 +454,6 @@ function query_lti_courses($courses, $is_tcc = false) {
             if (!$object) {
                 // Ocorreu alguma falha
                 continue;
-                //return false;
             }
 
             $object->id = $lti->id;

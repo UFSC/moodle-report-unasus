@@ -200,7 +200,40 @@ class dado_atividades_vs_notas extends unasus_data {
 
 }
 
-class dado_tcc_concluido extends dado_tcc_portfolio_concluido {}
+class dado_tcc_concluido extends unasus_data {
+
+    const ATIVIDADE_NAO_CONCLUIDA = 0;
+    const ATIVIDADE_CONCLUIDA = 1;
+
+    function __construct($tipo, $chapter) {
+        $this->tipo = $tipo;
+        $this->chapter = $chapter;
+    }
+
+    public function __toString() {
+        return '';
+    }
+
+    public function get_css_class() {
+        switch ($this->tipo) {
+            case dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA:
+                return 'nao_concluido';
+                break;
+            case dado_tcc_concluido::ATIVIDADE_CONCLUIDA:
+                return 'concluido';
+                break;
+        }
+    }
+
+    public static function get_legend() {
+        $legend = array();
+        $legend['nao_concluido'] = 'Atividade não concluída';
+        $legend['concluido'] = 'Atividade concluída';
+
+        return $legend;
+    }
+
+}
 
 class dado_tcc_portfolio_concluido extends unasus_data {
 
@@ -219,7 +252,6 @@ class dado_tcc_portfolio_concluido extends unasus_data {
     }
 
     public function get_css_class() {
-        global $CFG;
         switch ($this->tipo) {
             case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_CONCLUIDA:
                 return 'nao_concluido';
@@ -248,7 +280,47 @@ class dado_tcc_portfolio_concluido extends unasus_data {
 
 }
 
-class dado_tcc_entrega_atividades extends dado_tcc_portfolio_entrega_atividades {}
+class dado_tcc_entrega_atividades extends unasus_data {
+
+    const ATIVIDADE_RASCUNHO = 1;
+    const ATIVIDADE_REVISAO = 2;
+    const ATIVIDADE_AVALIADO = 3;
+    const ATIVIDADE_NAO_APLICADO = 4;
+
+    function __construct($tipo, $chapter) {
+        $this->tipo = $tipo;
+        $this->chapter = $chapter;
+    }
+
+    public function __toString() {
+        return '';
+    }
+
+    public function get_css_class() {
+        switch ($this->tipo) {
+            case dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO:
+                return 'rascunho';
+            case dado_tcc_entrega_atividades::ATIVIDADE_REVISAO:
+                return 'revisao';
+            case dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO:
+                return 'avaliado';
+            case dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+        }
+    }
+
+    public static function get_legend() {
+
+        $legend = array();
+        $legend['rascunho'] = 'Rascunho';
+        $legend['revisao'] = 'Avaliando';
+        $legend['avaliado'] = 'Avaliado';
+        $legend['nao_aplicado'] = 'Novo';
+
+        return $legend;
+    }
+
+}
 
 class dado_tcc_portfolio_entrega_atividades extends unasus_data {
 

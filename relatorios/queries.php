@@ -20,7 +20,7 @@ defined('MOODLE_INTERNAL') || die;
  * @throws Exception
  * @return string
  */
-function query_alunos_grupo_tutoria() {
+function query_alunos_relationship() {
 
     /** @var $report Factory */
     $report = Factory::singleton();
@@ -45,7 +45,7 @@ function query_alunos_grupo_tutoria() {
         $query_polo = "  AND uid.data IN ({$polos}) ";
     }
 
-    $query_alunos_relationship_tutoria = "
+    $query_relationship = "
          SELECT u.id,
                 u.firstname,
                 u.lastname,
@@ -64,7 +64,7 @@ function query_alunos_grupo_tutoria() {
                     WHERE shortname = 'polo')
                 )
                 {$query_cohort}
-          WHERE rg.id=:grupo_tutoria {$query_polo}
+          WHERE rg.id=:grupo {$query_polo}
           GROUP BY u.id";
 
     return "SELECT DISTINCT u.id,
@@ -75,12 +75,12 @@ function query_alunos_grupo_tutoria() {
                    u.grupo_id AS grupo_id,
                    (e.id = ue.enrolid IS NOT NULL) AS enrol
               FROM (
-                      {$query_alunos_relationship_tutoria}
+                      {$query_relationship}
                    ) u
               JOIN {user_enrolments} ue
                 ON (ue.userid = u.id)
         INNER JOIN {enrol} e
-                ON (e.id = ue.enrolid AND e.courseid =:enrol_courseid)";
+                ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
 }
 
 function query_alunos_grupo_orientacao() {
@@ -126,7 +126,7 @@ function query_alunos_grupo_orientacao() {
  * @return string
  */
 function query_postagens_forum() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -281,7 +281,7 @@ function query_uso_sistema_tutor() {
  * @return string
  */
 function query_potenciais_evasoes() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS user_id,
                    u.polo,
@@ -321,7 +321,7 @@ function query_potenciais_evasoes() {
  *
  */
 function query_atividades() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -370,7 +370,7 @@ function query_atividades() {
  *
  */
 function query_nota_final() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -419,7 +419,7 @@ function query_nota_final() {
  *
  */
 function query_quiz() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -452,7 +452,7 @@ function query_quiz() {
 }
 
 function query_alunos_modulos() {
-    $alunos_grupo_tutoria = query_alunos_grupo_tutoria();
+    $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -496,13 +496,11 @@ class LtiPortfolioQuery {
      */
     private function &query_estudantes_by_grupo_tutoria($grupo_tutoria) {
 
+        global $DB;
         // Se a consulta já foi executada, não é necessário refazê-la
         if (isset($this->estudantes_grupo_tutoria[$grupo_tutoria])) {
             return $this->estudantes_grupo_tutoria[$grupo_tutoria];
         }
-
-        // Middleware para as queries sql
-        $middleware = Middleware::singleton();
 
         /** @var $report Factory */
         $report = Factory::singleton();
@@ -511,51 +509,53 @@ class LtiPortfolioQuery {
         $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_grupo_tutoria();
+        $query_alunos = query_alunos_relationship();
         $params = array(
-                'curso_ufsc' => $report->get_curso_ufsc(),
+                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'relationship_id' => $relationship->id,
-                'grupo_tutoria' => $grupo_tutoria,
-                'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE);
+                'grupo' => $grupo_tutoria
+        );
 
-        $this->estudantes_grupo_tutoria[$grupo_tutoria] = $middleware->get_records_sql($query_alunos, $params);
+        $this->estudantes_grupo_tutoria[$grupo_tutoria] = $DB->get_records_sql($query_alunos, $params);
 
         return $this->estudantes_grupo_tutoria[$grupo_tutoria];
     }
 
     /**
-     * @param $grupo
+     * @param $grupo_orientacao
      * @throws Exception
      * @throws dml_read_exception
      * @internal param $grupo_orientacao
      * @return array
      */
-    private function &query_estudantes_by_grupo_orientacao($grupo) {
+    private function &query_estudantes_by_grupo_orientacao($grupo_orientacao) {
+
+        global $DB;
 
         // Se a consulta já foi executada, não é necessário refazê-la
-        if (isset($this->estudantes_grupo_orientacao[$grupo])) {
-            return $this->estudantes_grupo_orientacao[$grupo];
+        if (isset($this->estudantes_grupo_orientacao[$grupo_orientacao])) {
+            return $this->estudantes_grupo_orientacao[$grupo_orientacao];
         }
 
-        // Middleware para as queries sql
-        $middleware = Middleware::singleton();
+        /** @var $report Factory */
+        $report = Factory::singleton();
 
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
+        $relationship = grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
+        $cohort_estudantes = grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_grupo_orientacao();
+        $query_alunos = query_alunos_relationship();
 
         $params = array(
-                'curso_ufsc' => $factory->get_curso_ufsc(),
-                'orientador_id' => $grupo
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'relationship_id' => $relationship->id,
+                'grupo' => $grupo_orientacao
         );
 
-        $this->estudantes_grupo_orientacao[$grupo] = $middleware->get_records_sql($query_alunos, $params);
+        $this->estudantes_grupo_orientacao[$grupo_orientacao] = $DB->get_records_sql($query_alunos, $params);
 
-        return $this->estudantes_grupo_orientacao[$grupo];
-
+        return $this->estudantes_grupo_orientacao[$grupo_orientacao];
     }
 
 
@@ -588,20 +588,20 @@ class LtiPortfolioQuery {
 
     /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de orientação
-     * @param $grupo
+     * @param $grupo_orientacao
      * @param report_unasus_lti_activity $atividade
      * @internal param int $grupo_tutoria
      * @return array
      */
-    private function &query_report_data_by_grupo_orientacao($grupo, &$atividade) {
+    private function &query_report_data_by_grupo_orientacao($grupo_orientacao, &$atividade) {
 
         // Se a consulta já foi executada, não é necessário refazê-la
-        if (isset($this->report_estudantes_grupo_orientacao[$grupo])) {
-            return $this->report_estudantes_grupo_orientacao[$grupo];
+        if (isset($this->report_estudantes_grupo_orientacao[$grupo_orientacao])) {
+            return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
         }
 
         $user_ids = array();
-        $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
+        $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo_orientacao);
 
         foreach ($estudantes as $aluno) {
             $user_ids[$aluno->id] = $aluno->id;
@@ -609,9 +609,9 @@ class LtiPortfolioQuery {
 
         // WS Client
         $client = new SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
-        $this->report_estudantes_grupo_orientacao[$grupo] = $client->get_report_data_tcc($user_ids);
+        $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
 
-        return $this->report_estudantes_grupo_orientacao[$grupo];
+        return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
     }
 
     /**
@@ -688,6 +688,7 @@ class LtiPortfolioQuery {
         if ($is_orientacao) {
             $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
             $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
+
         } else {
             $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo);
             $result =& $this->query_report_data_by_grupo_tutoria($grupo, $atividade);
@@ -703,47 +704,30 @@ class LtiPortfolioQuery {
 
         foreach ($result as $r) {
 
-            $userid = $r->tcc->user_id;
-            $estudante = $estudantes[$userid];
-            $found = false;
-            $is_tcc = false;
+            $status_abstract = ($r->tcc->abstract == null) ? 'null' : $r->tcc->abstract->state;
 
-            //Verifica se é hub portfólio
-            if (!isset($r->tcc->hubs)) {
-                $res = $r->tcc->hubs_tcc;
-                $is_tcc = true;
-            } else {
-                $res = $r->tcc->hubs;
+            $chapters = $r->tcc->chapters;
+
+            $userid = $r->tcc->user_id;
+            if( !isset($estudantes[$userid])){
+                continue;
             }
 
-            // Processando hubs encontrados
-            foreach ($res as $hub) {
+            $estudante = $estudantes[$userid];
+            $found = false;
 
-                $hub = ($is_tcc) ? $hub->hubs_tcc : $hub->hub;
-
-                // Só vamos processar o hub que corresponde a posição da atividade
-                if ($hub->position != $atividade->position) {
-                    continue;
-                }
+            // Processando capítulos encontrados
+            foreach ($chapters as $chapter) {
 
                 $found = true;
 
                 // criar dado
                 $model = new stdClass();
                 $model->userid = $userid;
-                $model->grade = $hub->grade;
+                $model->status = $chapter->chapter->state;
 
-                $model->status = $hub->state;
-
-                if (!empty($hub->grade_date)) {
-                    $grade_date = new DateTime($hub->grade_date);
-                    $model->grade_date = $grade_date->getTimestamp();
-                } else {
-                    $model->grade_date = false;
-                }
-
-                if (!empty($hub->state_date)) {
-                    $submission_date = new DateTime($hub->state_date);
+                if (!empty($chapter->state_date)) {
+                    $submission_date = new DateTime($chapter->state_date);
                     $model->submission_date = $submission_date->getTimestamp();
                 } else {
                     $model->submission_date = false;
@@ -752,9 +736,17 @@ class LtiPortfolioQuery {
                 $model->cohort = $estudante->cohort;
                 $model->polo = $estudante->polo;
 
-                $model->status_abstract = (isset($r->tcc->abstract->state)) ? $r->tcc->abstract->state : null;
-                $model->status_presentation = (isset($r->tcc->presentation->state)) ? $r->tcc->presentation->state : null;
-                $model->status_final_considerations = (isset($r->tcc->final_considerations->state)) ? $r->tcc->final_considerations->state : null;
+               for($position=1; $position <= 5; $position++){
+                   $status_chapter = 'status_chapter' . $position;
+                   // Se estado default é 'draft' e não há conteúdo no capítulo, vai para estado 'Novo'
+                   if($chapter->chapter->state == 'draft' && $chapter->chapter->content == null){
+                       $model->$status_chapter = 'null';
+                   } else{
+                       $model->$status_chapter =  $chapter->chapter->state;
+                   }
+               }
+
+                $model->status_abstract = $status_abstract;
 
                 $output[] = $model;
             }

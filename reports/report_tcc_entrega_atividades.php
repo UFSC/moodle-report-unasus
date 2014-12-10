@@ -27,7 +27,7 @@ class report_tcc_entrega_atividades extends Factory {
 
     public function get_dados() {
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_estudantes = grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -49,73 +49,66 @@ class report_tcc_entrega_atividades extends Factory {
                         $lista_atividades[] = new dado_nao_aplicado();
                         continue;
                     }
+                }
 
-                    // Se a atividade não foi entregue
-                    if ($atividade->has_submitted()) {
+                $j = 0;
 
-                        switch ($atividade->status) {
+                for ($i = 0; $i <= 4; $i++) {
+
+                    if($j == 0){
+                        switch ($aluno[$j]->status_abstract){
+                            case 'null': // Não concluiu atividades do moodle para fazer o abstract ainda
+                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
+                                break;
+                            case 'review':
+                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                                break;
                             case 'draft':
                                 $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
                                 break;
-                            case 'revision':
-                            case 'sent_to_admin_for_revision':
-                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
-                                break;
-                            case 'evaluation':
-                            case 'sent_to_admin_for_evaluation':
-                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIACAO;
-                                break;
-                            case 'admin_evaluation_ok':
-                            case 'terminated':
+                            default:
                                 $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
                                 break;
-                            default:
-                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_ACESSADO;
-                                break;
                         }
-                    } else {
-                        // Atividade não acessada
-                        $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
+
+                        $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, 'abstract');
+                        $j+=5;
                     }
 
-                    $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, $atividade->source_activity->id, $atraso);
-                }
+                    $status_chapter = 'status_chapter1';
 
-                $state = $aluno[0]->status_abstract;
-
-                for ($i = 0; $i <= 2; $i++) {
-
-                    switch ($state) {
+                    switch ($aluno[$i]->$status_chapter){
+                        case 'review':
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                            break;
                         case 'draft':
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
                             break;
-                        case 'revision':
-                        case 'sent_to_admin_for_revision':
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
-                            break;
-                        case 'evaluation':
-                        case 'sent_to_admin_for_evaluation':
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIACAO;
-                            break;
-                        case 'admin_evaluation_ok':
-                        case 'terminated':
+                        case 'done':
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
                             break;
-                        default:
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_ACESSADO;
+                        default: // Não concluiu atividades do moodle para fazer o abstract ainda
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
                             break;
                     }
-                    $lista_atividades[] = new dado_tcc_portfolio_entrega_atividades($tipo, null, $atraso);
 
-                    $state = ($i == 0) ? $aluno[0]->status_presentation : $aluno[0]->status_final_considerations;
+                    $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, $status_chapter);
+
+                    if($status_chapter == 'status_chapter1'){
+                        $status_chapter = 'status_chapter2';
+                    } else if ($status_chapter == 'status_chapter2'){
+                        $status_chapter = 'status_chapter3';
+                    } else if ($status_chapter == 'status_chapter3'){
+                        $status_chapter = 'status_chapter4';
+                    } else
+                        $status_chapter = 'status_chapter5';
                 }
 
                 $estudantes[] = $lista_atividades;
-
                 $lista_atividades = null;
 
             }
-            $dados[grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            $dados[grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);
@@ -125,10 +118,7 @@ class report_tcc_entrega_atividades extends Factory {
         $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
 
         foreach ($header as $key => $modulo) {
-            array_push($modulo, 'Resumo');
-            array_push($modulo, 'Introdução');
-            array_push($modulo, 'Considerações Finais');
-
+            array_unshift($modulo, 'Resumo');
             $header[$key] = $modulo;
         }
 

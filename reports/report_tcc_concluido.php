@@ -28,7 +28,7 @@ class report_tcc_concluido extends Factory {
     public function get_dados() {
 
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_estudantes = grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -45,42 +45,49 @@ class report_tcc_concluido extends Factory {
                 $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
-                    $atraso = null;
 
                     if ($atividade instanceof report_unasus_data_empty) {
                         $lista_atividades[] = new dado_nao_aplicado();
                         continue;
                     }
-
-                    // Se a atividade não foi entregue
-                    if ($atividade->has_evaluated()) {
-                        // E não tem entrega prazo
-                        $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
-                    } else {
-                        //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
-                        $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
-                    }
-                    $lista_atividades[] = new dado_tcc_concluido($tipo, $atividade->source_activity->id, $atraso);
                 }
 
-                $chapter = 'abstract';
+                $chapter = 'chapter1';
+                $j = 0;
 
-                for ($i = 0; $i <= 2; $i++) {
+                for ($i = 0; $i <= 4; $i++) {
 
-                    if ($aluno[0]->has_evaluated_chapters($chapter))
+                    if($j == 0){
+                        if ($aluno[$j]->has_evaluated_chapters('abstract'))
+                            $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
+                        else
+                            $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
+
+                        $lista_atividades[] = new dado_tcc_concluido($tipo, 'abstract');
+                        $j+=5;
+                    }
+
+                    if ($aluno[$i]->has_evaluated_chapters($chapter))
                         $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
                     else
                         $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
 
-                    $lista_atividades[] = new dado_tcc_concluido($tipo, null, $atraso);
+                    $lista_atividades[] = new dado_tcc_concluido($tipo, $chapter);
 
-                    $chapter = ($i == 0) ? 'presentation' : 'final_considerations';
+                    if($chapter == 'chapter1'){
+                        $chapter = 'chapter2';
+                    } else if ($chapter == 'chapter2'){
+                        $chapter = 'chapter3';
+                    } else if ($chapter == 'chapter3'){
+                        $chapter = 'chapter4';
+                    } else
+                        $chapter = 'chapter5';
                 }
 
                 $estudantes[] = $lista_atividades;
                 $lista_atividades = null;
             }
-            $dados[grupos_tutoria::grupo_orientacao_to_string($this->get_curso_ufsc(), $grupo_id)] = $estudantes;
+            $dados[grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);
@@ -90,10 +97,7 @@ class report_tcc_concluido extends Factory {
         $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
 
         foreach ($header as $key => $modulo) {
-            array_push($modulo, 'Resumo');
-            array_push($modulo, 'Introdução');
-            array_push($modulo, 'Considerações Finais');
-
+            array_unshift($modulo, 'Resumo');
             $header[$key] = $modulo;
         }
 

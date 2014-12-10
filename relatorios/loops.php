@@ -23,7 +23,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
     $report = Factory::singleton();
 
     $grupos = ($is_orientacao)
-              ?  grupos_tutoria::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
+              ?  grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
               :  grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
 
     $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
@@ -58,8 +58,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         'assignmentid2' => $atividade->id,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo_tutoria' => $grupo->id);
-
+                        'grupo' => $grupo->id);
 
                     $result = $middleware->get_records_sql($query_atividades, $params);
 
@@ -93,7 +92,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo_tutoria' => $grupo->id,
+                        'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
                     $result = $middleware->get_records_sql($query_forum, $params);
@@ -128,7 +127,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo_tutoria' => $grupo->id,
+                        'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
                     $result = $middleware->get_records_sql($query_quiz, $params);
@@ -157,19 +156,10 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 
-                    $result = ($is_orientacao) ? $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true)
-                                               : $lti_query_object->get_report_data($atividade, $grupo->id);
+                    $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
-                    // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
-
-                        if (isset($l->not_found)) {
-                            $data = new report_unasus_data_empty($atividade, $l);
-                        } else {
-                            $data = new report_unasus_data_lti($atividade, $l);
-                        }
-
-                        // Agrupa os dados por usuário
+                        $data = new report_unasus_data_lti($atividade, $l);
                         $group_array_do_grupo->add($l->userid, $data);
                     }
                 }
@@ -182,7 +172,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                     'enrol_courseid' => $courseid,
                     'relationship_id' => $relationship->id,
                     'cohort_relationship_id' => $cohort_estudantes->id,
-                    'grupo_tutoria' => $grupo->id);
+                    'grupo' => $grupo->id);
 
                 $result = $middleware->get_records_sql($query_nota_final, $params);
                 if ($result != false) {
@@ -287,7 +277,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'assignmentid3' => $atividade->id,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo_tutoria' => $grupo->id);
+                        'grupo' => $grupo->id);
 
                     $result = $middleware->get_records_sql($query_atividades, $params);
 
@@ -312,7 +302,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo_tutoria' => $grupo->id,
+                        'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
                     $result = $middleware->get_records_sql($query_forum, $params);
@@ -341,7 +331,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'enrol_courseid'=> $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo_tutoria' => $grupo->id,
+                        'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
                     $result = $middleware->get_records_sql($query_quiz, $params);
