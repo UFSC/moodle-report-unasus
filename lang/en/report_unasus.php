@@ -3,6 +3,7 @@ $string['pluginname'] = 'Relatórios UNA-SUS';
 $string['unasus:view'] = 'Visualizar listagem de relatórios da UNA-SUS';
 $string['unasus:view_all'] = 'Visualizar relatórios de todos estudantes';
 $string['unasus:view_tutoria'] = 'Visualizar relatórios dos estudantes do seu grupo de tutoria';
+$string['unasus:view_orientacao'] = 'Visualizar relatórios dos estudantes do seu grupo de orientação';
 $string['unasus_navigation_name'] = 'UNA-SUS';
 $string['filter_header'] = 'Filtrar Resultados';
 

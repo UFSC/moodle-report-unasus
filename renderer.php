@@ -463,6 +463,12 @@ class report_unasus_renderer extends plugin_renderer_base {
             $report->tutores_selecionados = array($USER->id);
         }
 
+        // Se o usuário conectado tiver a permissão de visualizar como orientador apenas,
+        // alteramos o que vai ser enviado para o filtro de orientador.
+        if (has_capability('report/unasus:view_orientacao', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->orientadores_selecionados = array($USER->id);
+        }
+
         $dados_method = $report->get_dados();
         $header_method = $report->get_table_header();
 
@@ -493,6 +499,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         // alteramos o que vai ser enviado para o filtro de tutor.
         if (has_capability('report/unasus:view_tutoria', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
             $report->tutores_selecionados = array($USER->id);
+        }
+
+        // Se o usuário conectado tiver a permissão de visualizar como orientador apenas,
+        // alteramos o que vai ser enviado para o filtro de orientador.
+        if (has_capability('report/unasus:view_orientacao', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->orientadores_selecionados = array($USER->id);
         }
 
         $dados_method = $report->get_dados();
@@ -554,6 +566,12 @@ class report_unasus_renderer extends plugin_renderer_base {
             $report->tutores_selecionados = array($USER->id);
         }
 
+        // Se o usuário conectado tiver a permissão de visualizar como orientador apenas,
+        // alteramos o que vai ser enviado para o filtro de orientador.
+        if (has_capability('report/unasus:view_orientacao', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->orientadores_selecionados = array($USER->id);
+        }
+
         $table = $this->default_table($report->get_dados(), $report->get_table_header());
 
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
@@ -607,6 +625,12 @@ class report_unasus_renderer extends plugin_renderer_base {
         // alteramos o que vai ser enviado para o filtro de tutor.
         if (has_capability('report/unasus:view_tutoria', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
             $report->tutores_selecionados = array($USER->id);
+        }
+
+        // Se o usuário conectado tiver a permissão de visualizar como orientador apenas,
+        // alteramos o que vai ser enviado para o filtro de orientador.
+        if (has_capability('report/unasus:view_orientacao', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->orientadores_selecionados = array($USER->id);
         }
 
         $PAGE->requires->js_init_call('M.report_unasus.init_graph', array(
