@@ -23,7 +23,15 @@ $capabilities = array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSECAT,
         'archetypes' => array()
+    ),
+
+    'report/unasus:view_orientacao' => array(
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSECAT,
+        'archetypes' => array()
     )
+
 );
 
 

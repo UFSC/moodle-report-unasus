@@ -6,6 +6,10 @@ class report_tcc_concluido extends Factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = false;
+
+        // Filtro orientadores
+        $this->mostrar_filtro_orientadores = true;
+
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;

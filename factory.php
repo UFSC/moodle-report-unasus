@@ -53,6 +53,7 @@ class Factory {
     public $mostrar_filtro_polos;
     public $mostrar_filtro_modulos;
     public $mostrar_filtro_tutores;
+    public $mostrar_filtro_orientadores;
     public $mostrar_filtro_intervalo_tempo;
     public $mostrar_aviso_intervalo_tempo;
 
@@ -113,6 +114,7 @@ class Factory {
                 break;
             case 3:
                 $this->agrupar_relatorios = AGRUPAR_ORIENTADORES;
+                break;
             default:
                 $this->agrupar_relatorios = AGRUPAR_TUTORES;
                 break;
