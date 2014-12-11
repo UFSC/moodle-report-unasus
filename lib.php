@@ -16,10 +16,13 @@ function report_unasus_relatorios_validos_list() {
         'acesso_tutor',
         'uso_sistema_tutor',
         'potenciais_evasoes',
-        'tcc_portfolio_consolidado',
+        // Relatórios desativados para nova versão do TCC - ticket #7528
+        /*'tcc_portfolio_consolidado',
         'tcc_portfolio_concluido',
-        'tcc_portfolio_entrega_atividades',
-        'tcc_consolidado',
+        'tcc_portfolio_entrega_atividades',*/
+
+        #fixme: Relatório ainda em construção
+        //'tcc_consolidado',
         'tcc_entrega_atividades',
         'tcc_concluido');
 }

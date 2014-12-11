@@ -141,8 +141,16 @@ class report_unasus_renderer extends plugin_renderer_base {
         if ($report->mostrar_filtro_polos) {
             // Dropdown list
             $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
-            $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
-            $output .= html_writer::select(array('Tutores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+
+            if($report->mostrar_filtro_tutores){
+                $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
+                $output .= html_writer::select(array('Tutores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+            }
+
+            if($report->mostrar_filtro_orientadores){
+                $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
+                $output .= html_writer::select(array('Orientadores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+            }
         }
 
         // Div para os 3 filtros
@@ -191,6 +199,16 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
                 $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
+            }
+
+            if ($report->mostrar_filtro_orientadores) {
+                // Filtro de Orientadores
+                $selecao_orientadores_post = array_key_exists('orientadores', $_POST) ? $_POST['orientadores'] : '';
+                $filter_orientadores = html_writer::label('Filtrar Orientadores:', 'multiple_tutor');
+                $filter_orientadores .= html_writer::select(grupo_orientacao::get_orientadores($report->get_categoria_turma_ufsc()), 'orientadores[]', $selecao_orientadores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+                $orientadores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
+                $orientadores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
+                $output .= html_writer::tag('div', $filter_orientadores . $orientadores_all . ' / ' . $orientadores_none, array('class' => 'multiple_list'));
             }
         }
 
