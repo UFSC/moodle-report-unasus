@@ -315,7 +315,7 @@ class dado_tcc_entrega_atividades extends unasus_data {
         $legend['rascunho'] = 'Rascunho';
         $legend['revisao'] = 'Avaliando';
         $legend['avaliado'] = 'Avaliado';
-        $legend['nao_aplicado'] = 'Novo';
+        $legend['nao_aplicado'] = 'Não editado';
 
         return $legend;
     }
