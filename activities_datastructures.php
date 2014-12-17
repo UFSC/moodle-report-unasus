@@ -495,6 +495,8 @@ class report_unasus_data_lti extends report_unasus_data {
     public $status_chapter4; // Metodologia
     public $status_chapter5; // Resultados Esperados
     public $status_abstract; // Resumo
+    public $state_date;
+    public $state_date_abstract;
 
     private static $submitted_status = array('review', 'draft'); // Revisão e Rascunho
     private static $evaluated_status = array('done'); // Avaliado
@@ -515,6 +517,9 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->status_chapter5 = $db_model->status_chapter5;
 
         $this->status_abstract = $db_model->status_abstract;
+        $this->state_date_abstract = $db_model->state_date_abstract;
+
+        $this->state_date = $db_model->state_date;
     }
 
     public function has_submitted() {

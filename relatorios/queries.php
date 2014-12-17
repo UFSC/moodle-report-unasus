@@ -705,6 +705,7 @@ class LtiPortfolioQuery {
         foreach ($result as $r) {
 
             $status_abstract = ($r->tcc->abstract == null) ? 'null' : $r->tcc->abstract->state;
+            $state_date_abstract = ($r->tcc->abstract == null) ? 'null' :  $r->tcc->abstract->state_date;
 
             $chapters = $r->tcc->chapters;
 
@@ -747,6 +748,9 @@ class LtiPortfolioQuery {
                }
 
                 $model->status_abstract = $status_abstract;
+                $model->state_date_abstract = $state_date_abstract;
+
+                $model->state_date = ($chapter->chapter->state_date == null) ? 'null' : $chapter->chapter->state_date;
 
                 $output[] = $model;
             }
