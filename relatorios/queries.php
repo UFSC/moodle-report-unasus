@@ -705,6 +705,7 @@ class LtiPortfolioQuery {
         foreach ($result as $r) {
 
             $status_abstract = ($r->tcc->abstract == null) ? 'null' : $r->tcc->abstract->state;
+            $state_date_abstract = ($r->tcc->abstract == null) ? 'null' :  $r->tcc->abstract->state_date;
 
             $chapters = $r->tcc->chapters;
 
@@ -726,8 +727,8 @@ class LtiPortfolioQuery {
                 $model->userid = $userid;
                 $model->status = $chapter->chapter->state;
 
-                if (!empty($chapter->state_date)) {
-                    $submission_date = new DateTime($chapter->state_date);
+                if (!empty($chapter->chapter->state_date)) {
+                    $submission_date = new DateTime($chapter->chapter->state_date);
                     $model->submission_date = $submission_date->getTimestamp();
                 } else {
                     $model->submission_date = false;
@@ -736,17 +737,16 @@ class LtiPortfolioQuery {
                 $model->cohort = $estudante->cohort;
                 $model->polo = $estudante->polo;
 
-               for($position=1; $position <= 5; $position++){
-                   $status_chapter = 'status_chapter' . $position;
-                   // Se estado default é 'draft' e não há conteúdo no capítulo, vai para estado 'Novo'
-                   if($chapter->chapter->state == 'draft' && $chapter->chapter->content == null){
-                       $model->$status_chapter = 'null';
-                   } else{
-                       $model->$status_chapter =  $chapter->chapter->state;
-                   }
-               }
+
+                for($position=1; $position <= 5; $position++) {
+                    $status_chapter = 'status_chapter' . $position;
+                    $model->$status_chapter =  $chapter->chapter->state;
+                }
 
                 $model->status_abstract = $status_abstract;
+                $model->state_date_abstract = $state_date_abstract;
+
+                $model->state_date = ($chapter->chapter->state_date == null) ? 'null' : $chapter->chapter->state_date;
 
                 $output[] = $model;
             }

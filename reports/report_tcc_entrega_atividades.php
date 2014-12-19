@@ -39,6 +39,9 @@ class report_tcc_entrega_atividades extends Factory {
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, false, true);
 
+        $atraso = 0;
+        $datetime = new DateTime(date('Y-m-d'));
+
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
             $estudantes = array();
@@ -60,22 +63,31 @@ class report_tcc_entrega_atividades extends Factory {
                 for ($i = 0; $i <= 4; $i++) {
 
                     if($j == 0){
+
                         switch ($aluno[$j]->status_abstract){
                             case 'null': // Não concluiu atividades do moodle para fazer o abstract ainda
                                 $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
                                 break;
                             case 'review':
                                 $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                                if($aluno[$j]->state_date_abstract != 'null'){
+                                    $datetime1 = new DateTime($aluno[$i]->state_date_abstract);
+                                    $atraso = $datetime1->diff($datetime)->days;
+                                }
                                 break;
                             case 'draft':
                                 $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
+                                if($aluno[$j]->state_date_abstract != 'null'){
+                                    $datetime1 = new DateTime($aluno[$i]->state_date_abstract);
+                                    $atraso = $datetime1->diff($datetime)->days;
+                                }
                                 break;
                             default:
                                 $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
                                 break;
                         }
 
-                        $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, 'abstract');
+                        $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, 'abstract', $atraso);
                         $j+=5;
                     }
 
@@ -84,9 +96,17 @@ class report_tcc_entrega_atividades extends Factory {
                     switch ($aluno[$i]->$status_chapter){
                         case 'review':
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                            if($aluno[$i]->state_date != 'null'){
+                                $datetime1 = new DateTime($aluno[$i]->state_date);
+                                $atraso = $datetime1->diff($datetime)->days;
+                            }
                             break;
                         case 'draft':
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
+                            if($aluno[$i]->state_date != 'null'){
+                                $datetime1 = new DateTime($aluno[$i]->state_date);
+                                $atraso = $datetime1->diff($datetime)->days;
+                            }
                             break;
                         case 'done':
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
@@ -96,7 +116,7 @@ class report_tcc_entrega_atividades extends Factory {
                             break;
                     }
 
-                    $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, $status_chapter);
+                    $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, $status_chapter, $atraso);
 
                     if($status_chapter == 'status_chapter1'){
                         $status_chapter = 'status_chapter2';

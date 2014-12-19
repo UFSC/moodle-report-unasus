@@ -287,12 +287,24 @@ class dado_tcc_entrega_atividades extends unasus_data {
     const ATIVIDADE_AVALIADO = 3;
     const ATIVIDADE_NAO_APLICADO = 4;
 
-    function __construct($tipo, $chapter) {
+    private $atraso;
+
+    function __construct($tipo, $chapter, $atraso = 0) {
         $this->tipo = $tipo;
         $this->chapter = $chapter;
+        $this->atraso = $atraso;
     }
 
     public function __toString() {
+        $dia = ($this->atraso == 1) ? ' dia' : ' dias';
+        switch ($this->tipo) {
+            case dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO:
+                return ($this->atraso == 0) ? '<b>' . 'Hoje' . '</b>' : '<b>' . $this->atraso . $dia . '</b>';
+                break;
+            case dado_tcc_entrega_atividades::ATIVIDADE_REVISAO:
+                return ($this->atraso == 0) ? '<b>' . 'Hoje' . '</b>' : '<b>' . $this->atraso . $dia . '</b>';
+                break;
+        }
         return '';
     }
 
