@@ -237,7 +237,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     $count = 0;
 
     // Listagem da atividades por tutor ou orientador
-    if($is_orientacao){
+/*    if($is_orientacao){
         $ids_orientadores = '(';
         foreach($grupos as $grupo_or){
             $count++;
@@ -246,8 +246,15 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
         }
         $ids_orientadores .= ')';
 
-        $total_alunos = get_count_estudantes_orientacao($ids_orientadores, $report->get_curso_ufsc());
-    }else{
+        // Arrumar esta função
+        $total_alunos = get_count_estudantes($report->get_categoria_turma_ufsc());
+    } else{*/
+//        $total_alunos = get_count_estudantes($report->get_categoria_turma_ufsc());
+//    }
+
+    if($is_orientacao){
+        $total_alunos = get_count_estudantes_orientacao($report->get_categoria_turma_ufsc());
+    } else {
         $total_alunos = get_count_estudantes($report->get_categoria_turma_ufsc());
     }
 
@@ -360,15 +367,16 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_alunos(0);
                     }
 
-                    $result = ($is_orientacao) ? $lti_query_object->get_report_data($atividade, $grupo->username_orientador, true)
-                                               : $lti_query_object->get_report_data($atividade, $grupo->id);
+                    /*echo '<pre>';
+                    die(print_r($array_das_atividades));*/
 
-                    if($is_orientacao){
-                        $lti_query_object->count_lti_report($array_das_atividades, $total_alunos, $atividade, $grupo->username_orientador, $is_orientacao);
-                    }else{
-                        // $total_alunos = Calcula total por atividade LTI, $array_das_atividades = para cada grupo de tutoria preenche com 'dado_atividades_alunos'
-                        $lti_query_object->count_lti_report($array_das_atividades, $total_alunos, $atividade, $grupo->id);
-                    }
+                    $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
+
+                    echo '<pre>';
+                    die(print_r($result));
+
+                    // $total_alunos = Calcula total por atividade LTI, $array_das_atividades = para cada grupo de tutoria preenche com 'dado_atividades_alunos'
+                    $lti_query_object->count_lti_report($array_das_atividades, $total_alunos, $atividade, $grupo->id, $is_orientacao);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $l) {
@@ -388,6 +396,9 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                 $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total_alunos[$grupo->id], $count_atividades);
             }
         }
+
+        /*echo '<pre>';
+        die(print_r($array_das_atividades));*/
 
         $lista_atividade[$grupo->id] = $array_das_atividades;
 

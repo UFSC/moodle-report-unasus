@@ -41,19 +41,23 @@ function get_count_estudantes($categoria_turma) {
     return $result;
 }
 
-#TODO Roberto: remover esta função e trocar por ...
-function get_count_estudantes_orientacao($ids_orientadores, $curso_ufsc) {
+function get_count_estudantes_orientacao($categoria_turma) {
     $middleware = Middleware::singleton();
 
-    $query = "SELECT u.id,
-                     COUNT(DISTINCT ao.username_aluno) AS count
-                FROM {view_Alunos_Orientadores} ao
-                JOIN {user} u
-                  ON (ao.username_orientador=u.username)
-               WHERE u.id IN $ids_orientadores AND ao.curso = :curso_ufsc
-            GROUP BY u.id";
+    $relationship = grupo_orientacao::get_relationship_orientacao($categoria_turma);
+    $cohort_estudantes = grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
 
-    $params = array('ids_orientadores' => $ids_orientadores, 'curso_ufsc' => $curso_ufsc);
+    $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
+                FROM {relationship_groups} rg
+           LEFT JOIN {relationship_members} rm
+                  ON (rg.relationshipid=:relationship_id
+                 AND rg.id=rm.relationshipgroupid
+                 AND rm.relationshipcohortid=:cohort_id)
+          INNER JOIN {user} u
+                  ON (u.id=rm.userid)
+            GROUP BY rg.name
+            ORDER BY rg.id";
+    $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
 
     $result = $middleware->get_records_sql_menu($query, $params);
 

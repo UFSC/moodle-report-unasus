@@ -713,6 +713,9 @@ class LtiPortfolioQuery {
                 continue;
             }
 
+            /*echo '<pre>';
+            die(print_r($result));*/
+
             $estudante = $estudantes[$userid];
             $found = false;
 
@@ -721,10 +724,13 @@ class LtiPortfolioQuery {
 
                 $found = true;
 
+                /*echo '<pre>';
+                (print_r($chapter));*/
+
                 // criar dado
                 $model = new stdClass();
                 $model->userid = $userid;
-                $model->status = $chapter->chapter->state;
+                $model->status = $chapter->state;
 
                 if (!empty($chapter->state_date)) {
                     $submission_date = new DateTime($chapter->state_date);
@@ -738,11 +744,11 @@ class LtiPortfolioQuery {
 
                for($position=1; $position <= 5; $position++){
                    $status_chapter = 'status_chapter' . $position;
-                   // Se estado default é 'draft' e não há conteúdo no capítulo, vai para estado 'Novo'
-                   if($chapter->chapter->state == 'draft' && $chapter->chapter->content == null){
+                   // Se estado default é 'draft' e não há conteúdo no capítulo, vai para estado 'Não Editado'
+                   if($chapter->state == 'draft' && $chapter->content == null){
                        $model->$status_chapter = 'null';
                    } else{
-                       $model->$status_chapter =  $chapter->chapter->state;
+                       $model->$status_chapter =  $chapter->state;
                    }
                }
 
