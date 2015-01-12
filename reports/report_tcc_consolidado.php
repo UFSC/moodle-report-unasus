@@ -6,11 +6,15 @@ class report_tcc_consolidado extends Factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = false;
+
+        // Filtro orientadores
+        $this->mostrar_filtro_orientadores = true;
+
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
-        $this->mostrar_filtro_polos = false;
-        $this->mostrar_filtro_cohorts = false;
+        $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_cohorts = true;
         $this->mostrar_filtro_modulos = true;
         $this->mostrar_filtro_intervalo_tempo = false;
         $this->mostrar_aviso_intervalo_tempo = false;

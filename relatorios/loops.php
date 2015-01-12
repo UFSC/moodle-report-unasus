@@ -220,7 +220,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
     // Recupera dados auxiliares
     $grupos = ($is_orientacao)
-            ?  grupos_tutoria::get_grupos_orientacao($report->get_curso_ufsc(), $report->orientadores_selecionados)
+            ?  grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
             :  grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
