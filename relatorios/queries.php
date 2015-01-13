@@ -705,6 +705,7 @@ class LtiPortfolioQuery {
         foreach ($result as $r) {
 
             $status_abstract = ($r->tcc->abstract == null) ? 'null' : $r->tcc->abstract->state;
+            $state_date_abstract = ($r->tcc->abstract == null) ? 'null' :  $r->tcc->abstract->state_date;
 
             $chapters = $r->tcc->chapters;
 
@@ -712,9 +713,6 @@ class LtiPortfolioQuery {
             if( !isset($estudantes[$userid])){
                 continue;
             }
-
-            /*echo '<pre>';
-            die(print_r($result));*/
 
             $estudante = $estudantes[$userid];
             $found = false;
@@ -724,13 +722,13 @@ class LtiPortfolioQuery {
 
                 $found = true;
 
-                /*echo '<pre>';
-                (print_r($chapter));*/
-
                 // criar dado
                 $model = new stdClass();
                 $model->userid = $userid;
-                $model->status = $chapter->state;
+
+                if(!(isset($chapter->state))) {
+                    $chapter = $chapter->chapter;
+                }
 
                 if (!empty($chapter->state_date)) {
                     $submission_date = new DateTime($chapter->state_date);
@@ -742,17 +740,17 @@ class LtiPortfolioQuery {
                 $model->cohort = $estudante->cohort;
                 $model->polo = $estudante->polo;
 
-               for($position=1; $position <= 5; $position++){
-                   $status_chapter = 'status_chapter' . $position;
-                   // Se estado default é 'draft' e não há conteúdo no capítulo, vai para estado 'Não Editado'
-                   if($chapter->state == 'draft' && $chapter->content == null){
-                       $model->$status_chapter = 'null';
-                   } else{
-                       $model->$status_chapter =  $chapter->state;
-                   }
-               }
-
                 $model->status_abstract = $status_abstract;
+                $model->state_date_abstract = $state_date_abstract;
+
+                $model->status = $chapter->state;
+
+                for($position=1; $position <= 5; $position++) {
+                    $status_chapter = 'status_chapter' . $position;
+                    $model->$status_chapter =  $chapter->state;
+                }
+
+                $model->state_date = ($chapter->state_date == null) ? 'null' : $chapter->state_date;
 
                 $output[] = $model;
             }
