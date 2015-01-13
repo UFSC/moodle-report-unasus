@@ -30,6 +30,7 @@ class report_tcc_consolidado extends Factory {
         echo $renderer->page_avaliacoes_em_atraso($this);
     }
 
+    #fixme: Ajustar para o novo TCC
     public function render_report_csv($name_report) {
 
         header('Content-Type: text/csv');
@@ -86,9 +87,6 @@ class report_tcc_consolidado extends Factory {
         /* Resultados */
         $result_array = loop_atividades_e_foruns_sintese(null, null, null, null, true);
 
-        /*echo '<pre>';
-        die(print_r($result_array));*/
-
         /* Retorno da função loop_atividades */
         $total_alunos = $result_array['total_alunos'];
         $lista_atividade = $result_array['lista_atividade'];
@@ -108,10 +106,6 @@ class report_tcc_consolidado extends Factory {
         /* Loop nas atividades para calcular os somatorios para sintese */
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
             foreach ($array_dados as $aluno) {
-//                $bool_atividades = array();
-
-                /*echo '<pre>';
-                die(print_r($grupo_id));*/
 
                 $chapter = 'chapter1';
                 $j = 0;
@@ -120,33 +114,27 @@ class report_tcc_consolidado extends Factory {
 
                     if($j == 0){
                         if ($aluno[$j]->has_evaluated_chapters('abstract')){
-                            $total_abstract->increment($grupo_id, $aluno[$i]->source_activity->position);
+                            $total_abstract->inc($grupo_id, $aluno[$i]->source_activity->position);
                         }
-//                        $lista_atividades[] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id));
                         $j+=5;
                     }
 
                     if ($aluno[$i]->has_evaluated_chapters($chapter)) {
                         switch ($chapter) {
                             case 'chapter1':
-                                $total_chapter1->increment($grupo_id, $aluno[$i]->source_activity->position);
-//                                $lista_atividades[] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id));
+                                $total_chapter1->inc($grupo_id, $aluno[$i]->source_activity->position);
                                 break;
                             case 'chapter2':
-                                $total_chapter2->increment($grupo_id, $aluno[$i]->source_activity->position);
-//                                $lista_atividades[] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id));
+                                $total_chapter2->inc($grupo_id, $aluno[$i]->source_activity->position);
                                 break;
                             case 'chapter3':
-                                $total_chapter3->increment($grupo_id, $aluno[$i]->source_activity->position);
-//                                $lista_atividades[] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id));
+                                $total_chapter3->inc($grupo_id, $aluno[$i]->source_activity->position);
                                 break;
                             case 'chapter4':
-                                $total_chapter4->increment($grupo_id, $aluno[$i]->source_activity->position);
-//                                $lista_atividades[] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id));
+                                $total_chapter4->inc($grupo_id, $aluno[$i]->source_activity->position);
                                 break;
                             case 'chapter5':
-                                $total_chapter5->increment($grupo_id, $aluno[$i]->source_activity->position);
-//                                $lista_atividades[] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id));
+                                $total_chapter5->inc($grupo_id, $aluno[$i]->source_activity->position);
                                 break;
                         }
                     }
@@ -163,73 +151,49 @@ class report_tcc_consolidado extends Factory {
             }
         }
 
-        /*echo '<pre>';
-        die(print_r($total_chapter3->get($grupo_id)));*/
-
-        /*echo '<pre>';
-        die(print_r($lista_atividade));*/
-
         $dados = array();
-        $total_atividades_concluidos = new dado_somatorio_grupo();
-        $total_atividades_alunos = new dado_somatorio_grupo();
 
-        foreach ($lista_atividade as $grupo_id => $grupo) {
-            /* Coluna nome orientador */
+/*      $total_atividades_concluidos = new dado_somatorio_grupo();
+        $total_atividades_alunos = new dado_somatorio_grupo();*/
 
-            $data = array();
-            $data[] = grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
+        /* Coluna nome orientador */
+        $data = array();
+        $data[] = grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
-            /* Grupo vazio, imprimir apenas o nome do tutor */
-            if (empty($grupo)) {
-                $dados[] = $data;
-                continue;
-            }
-
-            /*echo '<pre>';
-            die(print_r($lista_atividade));*/
-
-            foreach ($grupo as $ltiid => $lti) {
-                if (isset($total_alunos[$grupo_id])) {
-                    /*$lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id, $ltiid));
-                    $lti['tcc'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id, $ltiid));*/
-
-                    $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id));
-                    $lti[1] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id));
-                    $lti[2] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id));
-                    $lti[3] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id));
-                    $lti[4] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id));
-                    $lti[5] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id));
-
-                    $i = 2;
-                    /* Preencher relatorio */
-                    foreach ($lti as $id => $dado_atividade) {
-
-                        /* Coluna não acessado e concluído para cada modulo dentro do grupo */
-                        if ($dado_atividade instanceof dado_atividades_alunos) {
-
-                           /* if($lti['abstract']){
-                                $data[1] = $dado_atividade;
-                            } else {*/
-                                $data[$i] = $dado_atividade;
-//                            }
-
-                            /*echo '<pre>';
-                            (print_r($data));*/
-
-                            /*$total_atividades_concluidos->add($ltiid, $id, $dado_atividade->get_count());
-                            $total_atividades_alunos->add($ltiid, $id, $dado_atividade->get_total());*/
-                        }
-                        $i++;
-                    }
-                    /*echo '<pre>';
-                    die(print_r($data));*/
-                }
-            }
-            /*echo '<pre>';
-            die(print_r($data));*/
-
+        /* Grupo vazio, imprimir apenas o nome do tutor */
+        /*if (empty($grupo)) {
             $dados[] = $data;
+        }*/
+
+        if (isset($total_alunos[$grupo_id])) {
+            /*$lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id, $ltiid));
+            $lti['tcc'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id, $ltiid));*/
+
+            $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[1]);
+            $lti['chapter1'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id)[1]);
+            $lti['chapter2'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id)[1]);
+            $lti['chapter3'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[1]);
+            $lti['chapter4'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[1]);
+            $lti['chapter5'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[1]);
+
+            $i = 2;
+            /* Preencher relatorio */
+            foreach ($lti as $id => $dado_atividade) {
+
+                /* Coluna não acessado e concluído para cada modulo dentro do grupo */
+                if ($dado_atividade instanceof dado_atividades_alunos) {
+                    $data[$i] = $dado_atividade;
+
+                    /*$total_atividades_concluidos->add($ltiid, $id, $dado_atividade->get_count());
+                    $total_atividades_alunos->add($ltiid, $id, $dado_atividade->get_total());*/
+                }
+                $i++;
+            }
         }
+
+        $dados[] = $data;
+
+//        }
 //        /* Linha total alunos com atividades concluidas  */
 //        $data_total = array(new dado_texto(html_writer::tag('strong', 'Total por curso'), 'total'));
 //        $count_alunos = $total_atividades_alunos->get();
@@ -240,9 +204,6 @@ class report_tcc_consolidado extends Factory {
 //            }
 //        }
 //        array_unshift($dados, $data_total);
-
-        /*echo '<pre>';
-        die(print_r($dados));*/
 
         return $dados;
     }

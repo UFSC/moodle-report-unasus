@@ -641,23 +641,20 @@ class LtiPortfolioQuery {
         if (empty($result)) {
             return; // grupo sem membros cadastrados
         }
-        $is_tcc = false;
 
         foreach ($result as $r) {
-            //Verifica se é hub portfólio
-            if (!isset($r->tcc->hubs)) {
-                $res = $r->tcc->hubs_tcc;
-                $is_tcc = true;
-            } else {
-                $res = $r->tcc->hubs;
-            }
+
+            $chapters = $r->tcc->chapters;
 
             // Processando hubs encontrados
-            foreach ($res as $hub) {
-                $hub = ($is_tcc) ? $hub->hubs_tcc : $hub->hub;
+            foreach ($chapters as $chapter) {
+
+                if(!(isset($chapter->state))) {
+                    $chapter = $chapter->chapter;
+                }
 
                 // Inicializar
-                $position = $hub->position;
+                $position = $chapter->position;
                 if (!array_key_exists($position, $count_alunos)) {
                     $count_alunos[$position] = 0;
                 }
@@ -665,9 +662,9 @@ class LtiPortfolioQuery {
             }
         }
 
-        // array_atividade[lti_id][hubposition]
-        foreach ($count_alunos as $position => $count_hub) {
-            $lista_atividades[$atividade->id][$position] = new dado_atividades_alunos($count_hub);
+        // array_atividade[lti_id][chapter_position]
+        foreach ($count_alunos as $position => $count_chapter) {
+            $lista_atividades[$atividade->id][$position] = new dado_atividades_alunos($count_chapter);
         }
     }
 
@@ -688,7 +685,6 @@ class LtiPortfolioQuery {
         if ($is_orientacao) {
             $estudantes =& $this->query_estudantes_by_grupo_orientacao($grupo);
             $result =& $this->query_report_data_by_grupo_orientacao($grupo, $atividade);
-
         } else {
             $estudantes =& $this->query_estudantes_by_grupo_tutoria($grupo);
             $result =& $this->query_report_data_by_grupo_tutoria($grupo, $atividade);

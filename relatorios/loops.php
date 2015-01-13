@@ -367,13 +367,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_alunos(0);
                     }
 
-                    /*echo '<pre>';
-                    die(print_r($array_das_atividades));*/
-
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
-
-                    echo '<pre>';
-                    die(print_r($result));
 
                     // $total_alunos = Calcula total por atividade LTI, $array_das_atividades = para cada grupo de tutoria preenche com 'dado_atividades_alunos'
                     $lti_query_object->count_lti_report($array_das_atividades, $total_alunos, $atividade, $grupo->id, $is_orientacao);
@@ -396,9 +390,6 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                 $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total_alunos[$grupo->id], $count_atividades);
             }
         }
-
-        /*echo '<pre>';
-        die(print_r($array_das_atividades));*/
 
         $lista_atividade[$grupo->id] = $array_das_atividades;
 
