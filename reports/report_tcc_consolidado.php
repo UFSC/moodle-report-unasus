@@ -106,6 +106,9 @@ class report_tcc_consolidado extends Factory {
         /* Loop nas atividades para calcular os somatorios para sintese */
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
             foreach ($array_dados as $aluno) {
+                $bool_atividades = array();
+
+                $bool_atividades[$grupo_id]['tcc_completo'] = 1;
 
                 $chapter = 'chapter1';
                 $j = 0;
@@ -115,6 +118,8 @@ class report_tcc_consolidado extends Factory {
                     if($j == 0){
                         if ($aluno[$j]->has_evaluated_chapters('abstract')){
                             $total_abstract->inc($grupo_id, $aluno[$i]->source_activity->position);
+                        } else {
+                            $bool_atividades[$grupo_id]['tcc_completo'] = 0;
                         }
                         $j+=5;
                     }
@@ -137,6 +142,8 @@ class report_tcc_consolidado extends Factory {
                                 $total_chapter5->inc($grupo_id, $aluno[$i]->source_activity->position);
                                 break;
                         }
+                    } else {
+                        $bool_atividades[$grupo_id]['tcc_completo'] = 0;
                     }
 
                     if($chapter == 'chapter1'){
@@ -147,6 +154,11 @@ class report_tcc_consolidado extends Factory {
                         $chapter = 'chapter4';
                     } else
                         $chapter = 'chapter5';
+                }
+
+                foreach ($bool_atividades as $id => $bool_atividade) {
+                    $total_tcc_completo->inc($grupo_id, $bool_atividade['tcc_completo']);
+//                    $total_nao_acessadas->inc($grupo_id, $id, $bool_atividade['has_activity'] && $bool_atividade['nao_acessado']);
                 }
             }
         }
@@ -163,8 +175,7 @@ class report_tcc_consolidado extends Factory {
             $data[] = grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
             if (isset($total_alunos[$grupo_id])) {
-                /*$lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id, $ltiid));
-                $lti['tcc'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id, $ltiid));*/
+//              $lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id, $ltiid));
 
                 $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[1]);
                 $lti['chapter1'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id)[1]);
@@ -172,6 +183,9 @@ class report_tcc_consolidado extends Factory {
                 $lti['chapter3'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[1]);
                 $lti['chapter4'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[1]);
                 $lti['chapter5'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[1]);
+
+                $lti['tcc'] = (!isset($total_tcc_completo->get($grupo_id)[1])) ? new dado_atividades_alunos($total_alunos[$grupo_id], 0)
+                                                                               : new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id)[1]);
 
                 $i = 2;
                 /* Preencher relatorio */
@@ -217,8 +231,8 @@ class report_tcc_consolidado extends Factory {
 
         foreach ($header as $key => $modulo) {
             array_unshift($modulo, 'Resumo');
-            array_push($modulo, 'Não acessado');
             array_push($modulo, 'Concluído');
+            array_push($modulo, 'Não acessado');
 
             $header[$key] = $modulo;
         }
