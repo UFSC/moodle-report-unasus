@@ -153,57 +153,61 @@ class report_tcc_consolidado extends Factory {
 
         $dados = array();
 
-/*      $total_atividades_concluidos = new dado_somatorio_grupo();
-        $total_atividades_alunos = new dado_somatorio_grupo();*/
+        $total_atividades_concluidos = new dado_somatorio_grupo();
+        $total_atividades_alunos = new dado_somatorio_grupo();
 
-        /* Coluna nome orientador */
-        $data = array();
-        $data[] = grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
+        foreach ($lista_atividade as $grupo_id => $grupo) {
 
-        /* Grupo vazio, imprimir apenas o nome do tutor */
-        /*if (empty($grupo)) {
-            $dados[] = $data;
-        }*/
+            /* Coluna nome orientador */
+            $data = array();
+            $data[] = grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
-        if (isset($total_alunos[$grupo_id])) {
-            /*$lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id, $ltiid));
-            $lti['tcc'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id, $ltiid));*/
+            if (isset($total_alunos[$grupo_id])) {
+                /*$lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id, $ltiid));
+                $lti['tcc'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id, $ltiid));*/
 
-            $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[1]);
-            $lti['chapter1'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id)[1]);
-            $lti['chapter2'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id)[1]);
-            $lti['chapter3'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[1]);
-            $lti['chapter4'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[1]);
-            $lti['chapter5'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[1]);
+                $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[1]);
+                $lti['chapter1'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id)[1]);
+                $lti['chapter2'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id)[1]);
+                $lti['chapter3'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[1]);
+                $lti['chapter4'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[1]);
+                $lti['chapter5'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[1]);
 
-            $i = 2;
-            /* Preencher relatorio */
-            foreach ($lti as $id => $dado_atividade) {
+                $i = 2;
+                /* Preencher relatorio */
+                foreach ($lti as $id => $dado_atividade) {
 
-                /* Coluna não acessado e concluído para cada modulo dentro do grupo */
-                if ($dado_atividade instanceof dado_atividades_alunos) {
-                    $data[$i] = $dado_atividade;
+                    /* Coluna não acessado e concluído para cada modulo dentro do grupo */
+                    if ($dado_atividade instanceof dado_atividades_alunos) {
+                        $data[$i] = $dado_atividade;
 
-                    /*$total_atividades_concluidos->add($ltiid, $id, $dado_atividade->get_count());
-                    $total_atividades_alunos->add($ltiid, $id, $dado_atividade->get_total());*/
+                        $total_atividades_concluidos->add($grupo_id, $id, $dado_atividade->get_count());
+                        $total_atividades_alunos->add($grupo_id, $id, $dado_atividade->get_total());
+                    }
+                    $i++;
                 }
-                $i++;
+            }
+
+            $dados[] = $data;
+        }
+
+        /* Linha total alunos com atividades concluidas  */
+        $data_total = array(new dado_texto(html_writer::tag('strong', 'Total por curso'), 'total'));
+        $count_alunos = $total_atividades_alunos->get();
+        $concluidos = $total_atividades_concluidos->get();
+
+        foreach ($total_atividades_concluidos->get() as $ltiid => $lti) {
+            foreach ($lti as $id => $count) {
+                if(sizeof($data_total) == sizeof($lti)+1){
+                    $data_total[$id]->set_total($data_total[$id]->get_total() + $count_alunos[$ltiid][$id]);
+                    $data_total[$id]->set_count($data_total[$id]->get_count() + $concluidos[$ltiid][$id]);
+                } else {
+                    $data_total[$id] = new dado_atividades_alunos($count_alunos[$ltiid][$id], $count);
+                }
             }
         }
 
-        $dados[] = $data;
-
-//        }
-//        /* Linha total alunos com atividades concluidas  */
-//        $data_total = array(new dado_texto(html_writer::tag('strong', 'Total por curso'), 'total'));
-//        $count_alunos = $total_atividades_alunos->get();
-//
-//        foreach ($total_atividades_concluidos->get() as $ltiid => $lti) {
-//            foreach ($lti as $id => $count) {
-//                $data_total[] = new dado_atividades_total($count_alunos[$ltiid][$id], $count);
-//            }
-//        }
-//        array_unshift($dados, $data_total);
+        array_unshift($dados, $data_total);
 
         return $dados;
     }

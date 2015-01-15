@@ -234,23 +234,6 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
     $associativo_atividade = array();
     $lista_atividade = array();
-    $count = 0;
-
-    // Listagem da atividades por tutor ou orientador
-/*    if($is_orientacao){
-        $ids_orientadores = '(';
-        foreach($grupos as $grupo_or){
-            $count++;
-            $ids_orientadores .= (count($grupos) != $count) ? $grupo_or->id.','
-                                                         : $grupo_or->id;
-        }
-        $ids_orientadores .= ')';
-
-        // Arrumar esta função
-        $total_alunos = get_count_estudantes($report->get_categoria_turma_ufsc());
-    } else{*/
-//        $total_alunos = get_count_estudantes($report->get_categoria_turma_ufsc());
-//    }
 
     if($is_orientacao){
         $total_alunos = get_count_estudantes_orientacao($report->get_categoria_turma_ufsc());

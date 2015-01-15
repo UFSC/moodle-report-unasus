@@ -653,8 +653,16 @@ class dado_atividades_alunos extends unasus_data {
         return $this->total;
     }
 
+    public function set_total($total){
+        $this->total = $total;
+    }
+
     public function get_count() {
         return $this->count;
+    }
+
+    public function set_count($count){
+        $this->count = $count;
     }
 
     public function __toString() {
@@ -670,19 +678,8 @@ class dado_atividades_alunos extends unasus_data {
 }
 
 /**
- * Class dado_atividades_total
- */
-class dado_atividades_total extends dado_atividades_alunos {
-
-    public function get_css_class() {
-        return 'total center';
-    }
-
-}
-
-/**
  * Class dado_somatorio_grupo
- * Relatorio Portfolio, TCC consolidados
+ * Relatorio TCC consolidados
  */
 class dado_somatorio_grupo extends unasus_data {
 
