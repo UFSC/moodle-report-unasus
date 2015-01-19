@@ -117,6 +117,7 @@ class report_tcc_consolidado extends Factory {
                     if($j == 0){
                         if ($aluno[$j]->has_evaluated_chapters('abstract')){
                             $total_abstract->inc($grupo_id, $aluno[$i]->source_activity->position);
+                            $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                         } else {
                             $bool_atividades[$grupo_id]['tcc_completo'] = 0;
 
@@ -127,27 +128,34 @@ class report_tcc_consolidado extends Factory {
                         $j+=5;
                     }
 
+                    // Verifica se os capítulos foram avaliados, ou seja, estado 'done'
                     if ($aluno[$i]->has_evaluated_chapters($chapter)) {
                         switch ($chapter) {
                             case 'chapter1':
                                 $total_chapter1->inc($grupo_id, $aluno[$i]->source_activity->position);
+                                $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
                             case 'chapter2':
                                 $total_chapter2->inc($grupo_id, $aluno[$i]->source_activity->position);
+                                $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
                             case 'chapter3':
                                 $total_chapter3->inc($grupo_id, $aluno[$i]->source_activity->position);
+                                $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
                             case 'chapter4':
                                 $total_chapter4->inc($grupo_id, $aluno[$i]->source_activity->position);
+                                $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
                             case 'chapter5':
                                 $total_chapter5->inc($grupo_id, $aluno[$i]->source_activity->position);
+                                $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
                         }
                     } else {
                         $bool_atividades[$grupo_id]['tcc_completo'] = 0;
 
+                        // Verifica se os capítulos foram submetidos para avaliação mas não avaliados, ou seja, estados 'review' e 'draft'.
                         if($aluno[$i]->has_submitted()){
                             $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                         }
@@ -197,9 +205,6 @@ class report_tcc_consolidado extends Factory {
                 $i = 2;
                 /* Preencher relatorio */
                 foreach ($lti as $id => $dado_atividade) {
-
-                    /*echo '<pre>';
-                    die(print_r($lti));*/
 
                     /* Coluna não acessado e concluído para cada modulo dentro do grupo */
                     if ($dado_atividade instanceof dado_atividades_alunos) {
