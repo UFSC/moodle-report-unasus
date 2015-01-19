@@ -30,7 +30,6 @@ class report_tcc_consolidado extends Factory {
         echo $renderer->page_avaliacoes_em_atraso($this);
     }
 
-    #fixme: Ajustar para o novo TCC
     public function render_report_csv($name_report) {
 
         header('Content-Type: text/csv');
@@ -43,6 +42,7 @@ class report_tcc_consolidado extends Factory {
         $fp = fopen('php://output', 'w');
 
         $data_header = array('Orientadores');
+        $data_header[1] = 'Resumo';
         $first_line = array('');
 
         foreach ($header as $h) {
@@ -52,7 +52,7 @@ class report_tcc_consolidado extends Factory {
                 $first_line[] = $course_name;
             }
             $n = count($h);
-            for ($i = 0; $i < $n; $i++) {
+            for ($i = 1; $i < $n+1; $i++) {
                 if (isset($h[$i]->name)) {
                     $element = $h[$i]->name;
                     $data_header[] = $element;
@@ -64,11 +64,8 @@ class report_tcc_consolidado extends Factory {
                     continue;
 
                 if ($i == $n - 2) {
-                    $data_header[] = 'Não Acessado';
                     $data_header[] = 'Concluído';
-                    $data_header[] = 'Resumo';
-                    $data_header[] = 'Introdução';
-                    $data_header[] = 'Considerações Finais';
+                    $data_header[] = 'Não Acessado';
                 }
             }
         }
@@ -120,7 +117,6 @@ class report_tcc_consolidado extends Factory {
                     if($j == 0){
                         if ($aluno[$j]->has_evaluated_chapters('abstract')){
                             $total_abstract->inc($grupo_id, $aluno[$i]->source_activity->position);
-//                            $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                         } else {
                             $bool_atividades[$grupo_id]['tcc_completo'] = 0;
 
@@ -132,7 +128,6 @@ class report_tcc_consolidado extends Factory {
                     }
 
                     if ($aluno[$i]->has_evaluated_chapters($chapter)) {
-//                        $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                         switch ($chapter) {
                             case 'chapter1':
                                 $total_chapter1->inc($grupo_id, $aluno[$i]->source_activity->position);
@@ -153,7 +148,7 @@ class report_tcc_consolidado extends Factory {
                     } else {
                         $bool_atividades[$grupo_id]['tcc_completo'] = 0;
 
-                        if($aluno[$i]->has_submitted($chapter)){
+                        if($aluno[$i]->has_submitted()){
                             $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                         }
                     }
@@ -202,6 +197,9 @@ class report_tcc_consolidado extends Factory {
                 $i = 2;
                 /* Preencher relatorio */
                 foreach ($lti as $id => $dado_atividade) {
+
+                    /*echo '<pre>';
+                    die(print_r($lti));*/
 
                     /* Coluna não acessado e concluído para cada modulo dentro do grupo */
                     if ($dado_atividade instanceof dado_atividades_alunos) {
