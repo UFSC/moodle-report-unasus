@@ -373,10 +373,11 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $header_keys = array_keys($header);
         if (isset($header_keys[0]) && is_array($header[$header_keys[0]])) { // Double Header
-            if($relatorio == 'tcc_consolidado')
+            if($relatorio == 'report_tcc_consolidado'){
                 $table->build_double_header($header, 'Orientadores');
-            else
+            }  else{
                 $table->build_double_header($header, 'Tutores');
+            }
         } else {
             $table->build_single_header($header);
         }
@@ -490,7 +491,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $dados_method = $report->get_dados();
         $header_method = $report->get_table_header();
 
-        $table = $this->table_tutores($dados_method, $header_method);
+        $table = $this->table_tutores($dados_method, $header_method, get_class($report));
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
