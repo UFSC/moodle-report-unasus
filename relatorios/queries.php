@@ -742,7 +742,7 @@ class LtiPortfolioQuery {
                 $model->status = $status;
             }
 
-            $model->status['abstract'] = $status_abstract;
+            array_unshift($model->status, $status_abstract);
 
             foreach ($state_date_chapters as $state_date) {
                 $model->state_date = $state_date;

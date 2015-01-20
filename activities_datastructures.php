@@ -508,27 +508,8 @@ class report_unasus_data_lti extends report_unasus_data {
         return !is_null($this->submission_date) && in_array($this->status, self::$submitted_status);
     }
 
-    public function has_evaluated() {
-        return in_array($this->status, self::$evaluated_status);
-    }
-
     public function has_evaluated_chapters($chapter) {
-        switch ($chapter){
-            case 'abstract': $status = $this->status_abstract;
-                break;
-            case 'chapter1': $status = $this->status_chapter1;
-                break;
-            case 'chapter2': $status = $this->status_chapter2;
-                break;
-            case 'chapter3': $status = $this->status_chapter3;
-                break;
-            case 'chapter4': $status = $this->status_chapter4;
-                break;
-            default: $status = $this->status_chapter5;
-                break;
-        }
-
-        return in_array($status, self::$evaluated_status);
+        return in_array($this->status[$chapter], self::$evaluated_status);
     }
 
 }
