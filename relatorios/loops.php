@@ -159,8 +159,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
                     foreach ($result as $l) {
-                        $data = new report_unasus_data_lti($atividade, $l);
-                        $group_array_do_grupo->add($l->userid, $data);
+                        $data = new report_unasus_data_lti($l);
+                        $group_array_do_grupo->add_exclusive($l->userid, $data);
                     }
                 }
             }
