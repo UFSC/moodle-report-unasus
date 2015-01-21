@@ -21,8 +21,7 @@ function report_unasus_relatorios_validos_list() {
         'tcc_portfolio_concluido',
         'tcc_portfolio_entrega_atividades',*/
 
-        #fixme: Relatório ainda em construção
-        //'tcc_consolidado',
+        'tcc_consolidado',
         'tcc_entrega_atividades',
         'tcc_concluido');
 }
