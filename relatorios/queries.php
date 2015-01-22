@@ -748,7 +748,7 @@ class LtiPortfolioQuery {
                 $model->state_date = $state_date;
             }
 
-            $model->state_date['abstract'] = $state_date_abstract;
+            array_unshift($model->state_date, $state_date_abstract);
 
             $output[$userid] = $model;
 
