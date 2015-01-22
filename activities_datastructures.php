@@ -508,6 +508,10 @@ class report_unasus_data_lti extends report_unasus_data {
         return !is_null($this->submission_date) && in_array($this->status, self::$submitted_status);
     }
 
+    public function has_submitted_chapters($chapter) {
+        return in_array($this->status[$chapter], self::$submitted_status);
+    }
+
     public function has_evaluated_chapters($chapter) {
         return in_array($this->status[$chapter], self::$evaluated_status);
     }

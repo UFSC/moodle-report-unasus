@@ -105,50 +105,38 @@ class report_tcc_consolidado extends Factory {
             foreach ($array_dados as $aluno) {
                 $bool_atividades = array();
 
-                $chapter = 'chapter1';
-
                 $bool_atividades[$grupo_id]['tcc_completo'] = 1;
                 $bool_atividades[$grupo_id]['nao_acessado'] = 1;
 
-                $j = 0;
+                $status = $aluno[0]->status;
 
-                for ($i = 0; $i <= 4; $i++) {
-
-                    if($j == 0){
-                        if ($aluno[$j]->has_evaluated_chapters('abstract')){
-                            $total_abstract->inc($grupo_id, $aluno[$i]->source_activity->position);
-                            $bool_atividades[$grupo_id]['nao_acessado'] = 0;
-                        } else {
-                            $bool_atividades[$grupo_id]['tcc_completo'] = 0;
-
-                            if($aluno[$j]->has_submitted()){
-                                $bool_atividades[$grupo_id]['nao_acessado'] = 0;
-                            }
-                        }
-                        $j+=5;
-                    }
+                foreach ($status as $chapter => $state) {
 
                     // Verifica se os capítulos foram avaliados, ou seja, estado 'done'
-                    if ($aluno[$i]->has_evaluated_chapters($chapter)) {
+                    if ($aluno[0]->has_evaluated_chapters($chapter)) {
                         switch ($chapter) {
-                            case 'chapter1':
-                                $total_chapter1->inc($grupo_id, $aluno[$i]->source_activity->position);
+                            case 0:
+                                $total_abstract->inc($grupo_id, $chapter);
                                 $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
-                            case 'chapter2':
-                                $total_chapter2->inc($grupo_id, $aluno[$i]->source_activity->position);
+                            case 1:
+                                $total_chapter1->inc($grupo_id, $chapter);
                                 $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
-                            case 'chapter3':
-                                $total_chapter3->inc($grupo_id, $aluno[$i]->source_activity->position);
+                            case 2:
+                                $total_chapter2->inc($grupo_id, $chapter);
                                 $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
-                            case 'chapter4':
-                                $total_chapter4->inc($grupo_id, $aluno[$i]->source_activity->position);
+                            case 3:
+                                $total_chapter3->inc($grupo_id, $chapter);
                                 $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
-                            case 'chapter5':
-                                $total_chapter5->inc($grupo_id, $aluno[$i]->source_activity->position);
+                            case 4:
+                                $total_chapter4->inc($grupo_id, $chapter);
+                                $bool_atividades[$grupo_id]['nao_acessado'] = 0;
+                                break;
+                            case 5:
+                                $total_chapter5->inc($grupo_id, $chapter);
                                 $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                                 break;
                         }
@@ -156,19 +144,10 @@ class report_tcc_consolidado extends Factory {
                         $bool_atividades[$grupo_id]['tcc_completo'] = 0;
 
                         // Verifica se os capítulos foram submetidos para avaliação mas não avaliados, ou seja, estados 'review' e 'draft'.
-                        if($aluno[$i]->has_submitted()){
+                        if ($aluno[0]->has_submitted_chapters($chapter)) {
                             $bool_atividades[$grupo_id]['nao_acessado'] = 0;
                         }
                     }
-
-                    if($chapter == 'chapter1'){
-                        $chapter = 'chapter2';
-                    } else if ($chapter == 'chapter2'){
-                        $chapter = 'chapter3';
-                    } else if ($chapter == 'chapter3'){
-                        $chapter = 'chapter4';
-                    } else
-                        $chapter = 'chapter5';
                 }
 
                 foreach ($bool_atividades as $id => $bool_atividade) {
@@ -190,30 +169,28 @@ class report_tcc_consolidado extends Factory {
             $data[] = grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
             if (isset($total_alunos[$grupo_id])) {
-                $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[1]);
+                $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[0]);
                 $lti['chapter1'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id)[1]);
-                $lti['chapter2'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id)[1]);
-                $lti['chapter3'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[1]);
-                $lti['chapter4'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[1]);
-                $lti['chapter5'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[1]);
+                $lti['chapter2'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id)[2]);
+                $lti['chapter3'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[3]);
+                $lti['chapter4'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[4]);
+                $lti['chapter5'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[5]);
 
                 $lti['tcc'] = (!isset($total_tcc_completo->get($grupo_id)[1])) ? new dado_atividades_alunos($total_alunos[$grupo_id], 0)
                                                                                : new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id)[1]);
 
                 $lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id)[$grupo_id]);
 
-                $i = 2;
                 /* Preencher relatorio */
                 foreach ($lti as $id => $dado_atividade) {
 
                     /* Coluna não acessado e concluído para cada modulo dentro do grupo */
                     if ($dado_atividade instanceof dado_atividades_alunos) {
-                        $data[$i] = $dado_atividade;
+                        $data[] = $dado_atividade;
 
                         $total_atividades_concluidos->add($grupo_id, $id, $dado_atividade->get_count());
                         $total_atividades_alunos->add($grupo_id, $id, $dado_atividade->get_total());
                     }
-                    $i++;
                 }
             }
 

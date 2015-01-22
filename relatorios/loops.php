@@ -359,10 +359,10 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     foreach ($result as $l) {
 
                         if (!isset($l->not_found)) {
-                            $data = new report_unasus_data_lti($atividade, $l);
+                            $data = new report_unasus_data_lti($l);
 
                             // Agrupa os dados por usuário
-                            $group_array_do_grupo->add($l->userid, $data);
+                            $group_array_do_grupo->add_exclusive($l->userid, $data);
                         }
                     }
                 }
