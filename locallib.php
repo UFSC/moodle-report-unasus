@@ -463,9 +463,6 @@ function query_lti_courses($courses) {
                 continue;
             }
 
-            /*echo '<pre>';
-            die(print_r($ltis));*/
-
             $object->id = $lti->id;
             $object->course_id = $course;
             $object->course_name = $course_name;
