@@ -56,36 +56,15 @@ class report_tcc_concluido extends Factory {
                     }
                 }
 
-                $chapter = 'chapter1';
-                $j = 0;
+                $status = $aluno[0]->status;
 
-                for ($i = 0; $i <= 4; $i++) {
-
-                    if($j == 0){
-                        if ($aluno[$j]->has_evaluated_chapters('abstract'))
-                            $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
-                        else
-                            $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
-
-                        $lista_atividades[] = new dado_tcc_concluido($tipo, 'abstract');
-                        $j+=5;
-                    }
-
-                    if ($aluno[$i]->has_evaluated_chapters($chapter))
+                foreach ($status as $chapter => $state) {
+                    if ($aluno[0]->has_evaluated_chapters($chapter))
                         $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
                     else
                         $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
 
                     $lista_atividades[] = new dado_tcc_concluido($tipo, $chapter);
-
-                    if($chapter == 'chapter1'){
-                        $chapter = 'chapter2';
-                    } else if ($chapter == 'chapter2'){
-                        $chapter = 'chapter3';
-                    } else if ($chapter == 'chapter3'){
-                        $chapter = 'chapter4';
-                    } else
-                        $chapter = 'chapter5';
                 }
 
                 $estudantes[] = $lista_atividades;

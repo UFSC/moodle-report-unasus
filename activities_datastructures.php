@@ -489,35 +489,17 @@ class report_unasus_data_quiz extends report_unasus_data {
 class report_unasus_data_lti extends report_unasus_data {
 
     public $status;
-    public $status_chapter1; // Introdução
-    public $status_chapter2; // Objetivo
-    public $status_chapter3; // Revisão da Literatura
-    public $status_chapter4; // Metodologia
-    public $status_chapter5; // Resultados Esperados
-    public $status_abstract; // Resumo
     public $state_date;
-    public $state_date_abstract;
 
     private static $submitted_status = array('review', 'draft'); // Revisão e Rascunho
     private static $evaluated_status = array('done'); // Avaliado
 
-    public function __construct(report_unasus_activity &$source_activity, $db_model) {
-        parent::__construct($source_activity);
+    public function __construct($db_model) {
 
         $this->userid = $db_model->userid;
         $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
         $this->polo = $db_model->polo;
-        $this->submission_date = $db_model->submission_date;
         $this->status = $db_model->status;
-
-        $this->status_chapter1 = $db_model->status_chapter1;
-        $this->status_chapter2 = $db_model->status_chapter2;
-        $this->status_chapter3 = $db_model->status_chapter3;
-        $this->status_chapter4 = $db_model->status_chapter4;
-        $this->status_chapter5 = $db_model->status_chapter5;
-
-        $this->status_abstract = $db_model->status_abstract;
-        $this->state_date_abstract = $db_model->state_date_abstract;
 
         $this->state_date = $db_model->state_date;
     }
@@ -526,27 +508,12 @@ class report_unasus_data_lti extends report_unasus_data {
         return !is_null($this->submission_date) && in_array($this->status, self::$submitted_status);
     }
 
-    public function has_evaluated() {
-        return in_array($this->status, self::$evaluated_status);
+    public function has_submitted_chapters($chapter) {
+        return in_array($this->status[$chapter], self::$submitted_status);
     }
 
     public function has_evaluated_chapters($chapter) {
-        switch ($chapter){
-            case 'abstract': $status = $this->status_abstract;
-                break;
-            case 'chapter1': $status = $this->status_chapter1;
-                break;
-            case 'chapter2': $status = $this->status_chapter2;
-                break;
-            case 'chapter3': $status = $this->status_chapter3;
-                break;
-            case 'chapter4': $status = $this->status_chapter4;
-                break;
-            default: $status = $this->status_chapter5;
-                break;
-        }
-
-        return in_array($status, self::$evaluated_status);
+        return in_array($this->status[$chapter], self::$evaluated_status);
     }
 
 }

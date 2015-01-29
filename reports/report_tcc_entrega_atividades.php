@@ -58,78 +58,38 @@ class report_tcc_entrega_atividades extends Factory {
                     }
                 }
 
-                $j = 0;
+                $status = $aluno[0]->status;
+                $state_date = $aluno[0]->state_date;
 
-                for ($i = 0; $i <= 4; $i++) {
-
-                    if($j == 0){
-
-                        switch ($aluno[$j]->status_abstract){
-                            case 'null': // Não concluiu atividades do moodle para fazer o abstract ainda
-                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
-                                break;
-                            case 'review':
-                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
-                                if($aluno[$j]->state_date_abstract != 'null'){
-                                    $datetime1 = new DateTime($aluno[$i]->state_date_abstract);
-                                    $atraso = $datetime1->diff($datetime)->days;
-                                }
-                                break;
-                            case 'draft':
-                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
-                                if($aluno[$j]->state_date_abstract != 'null'){
-                                    $datetime1 = new DateTime($aluno[$i]->state_date_abstract);
-                                    $atraso = $datetime1->diff($datetime)->days;
-                                }
-                                break;
-                            default:
-                                $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
-                                break;
-                        }
-
-                        $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, 'abstract', $atraso);
-                        $j+=5;
-                    }
-
-                    $status_chapter = 'status_chapter1';
-
-                    switch ($aluno[$i]->$status_chapter){
+                foreach ($status as $chapter => $state) {
+                    switch ($state){
+                        case 'done':
+                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
+                            break;
                         case 'review':
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
-                            if($aluno[$i]->state_date != 'null'){
-                                $datetime1 = new DateTime($aluno[$i]->state_date);
+                            if($state_date[$chapter] != 'null'){
+                                $datetime1 = new DateTime($state_date[$chapter]);
                                 $atraso = $datetime1->diff($datetime)->days;
                             }
                             break;
                         case 'draft':
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
-                            if($aluno[$i]->state_date != 'null'){
-                                $datetime1 = new DateTime($aluno[$i]->state_date);
+                            if($state_date[$chapter] != 'null'){
+                                $datetime1 = new DateTime($state_date[$chapter]);
                                 $atraso = $datetime1->diff($datetime)->days;
                             }
                             break;
-                        case 'done':
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
-                            break;
-                        default: // Não concluiu atividades do moodle para fazer o abstract ainda
+                        default: // Estado ou 'null' ou 'empty'
                             $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
                             break;
                     }
 
-                    $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, $status_chapter, $atraso);
-
-                    if($status_chapter == 'status_chapter1'){
-                        $status_chapter = 'status_chapter2';
-                    } else if ($status_chapter == 'status_chapter2'){
-                        $status_chapter = 'status_chapter3';
-                    } else if ($status_chapter == 'status_chapter3'){
-                        $status_chapter = 'status_chapter4';
-                    } else
-                        $status_chapter = 'status_chapter5';
+                    $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, $chapter, $atraso);
                 }
 
-                $estudantes[] = $lista_atividades;
-                $lista_atividades = null;
+            $estudantes[] = $lista_atividades;
+            $lista_atividades = null;
 
             }
             $dados[grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;

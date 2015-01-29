@@ -697,6 +697,8 @@ class LtiPortfolioQuery {
         }
 
         $output = array();
+        $status_chapters = array();
+        $state_date_chapters = array();
 
         foreach ($result as $r) {
 
@@ -713,43 +715,42 @@ class LtiPortfolioQuery {
             $estudante = $estudantes[$userid];
             $found = false;
 
+            // criar dado
+            $model = new stdClass();
+            $model->userid = $userid;
+
+            $model->cohort = $estudante->cohort;
+            $model->polo = $estudante->polo;
+
             // Processando capítulos encontrados
             foreach ($chapters as $chapter) {
 
                 $found = true;
 
-                // criar dado
-                $model = new stdClass();
-                $model->userid = $userid;
-
                 if(!(isset($chapter->state))) {
                     $chapter = $chapter->chapter;
                 }
 
-                if (!empty($chapter->state_date)) {
-                    $submission_date = new DateTime($chapter->state_date);
-                    $model->submission_date = $submission_date->getTimestamp();
-                } else {
-                    $model->submission_date = false;
-                }
+                $position = $chapter->position;
 
-                $model->cohort = $estudante->cohort;
-                $model->polo = $estudante->polo;
+                $status_chapters[$userid][$position] = $chapter->state;
 
-                $model->status_abstract = $status_abstract;
-                $model->state_date_abstract = $state_date_abstract;
-
-                $model->status = $chapter->state;
-
-                for($position=1; $position <= 5; $position++) {
-                    $status_chapter = 'status_chapter' . $position;
-                    $model->$status_chapter =  $chapter->state;
-                }
-
-                $model->state_date = ($chapter->state_date == null) ? 'null' : $chapter->state_date;
-
-                $output[] = $model;
+                $state_date_chapters[$userid][$position] = ($chapter->state_date == null) ? 'null' : $chapter->state_date;
             }
+
+            foreach ($status_chapters as $status) {
+                $model->status = $status;
+            }
+
+            array_unshift($model->status, $status_abstract);
+
+            foreach ($state_date_chapters as $state_date) {
+                $model->state_date = $state_date;
+            }
+
+            array_unshift($model->state_date, $state_date_abstract);
+
+            $output[$userid] = $model;
 
             // Marcando usuário que não possuem dados correspondentes na pesquisa
             if (!$found) {

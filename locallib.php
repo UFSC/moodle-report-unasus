@@ -283,6 +283,9 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
+    /*echo '<pre>';
+    die(print_r($group_array));*/
+
     // Uniar com as atividades LTI
     process_header_atividades_lti($courses, $group_array);
 
@@ -459,6 +462,9 @@ function query_lti_courses($courses) {
                 // Ocorreu alguma falha
                 continue;
             }
+
+            /*echo '<pre>';
+            die(print_r($ltis));*/
 
             $object->id = $lti->id;
             $object->course_id = $course;
@@ -652,6 +658,13 @@ class GroupArray {
         }
 
         array_push($this->data[$key], $value);
+    }
+
+    function add_exclusive($key, $value) {
+        if (!array_key_exists($key, $this->data)) {
+            $this->data[$key] = array();
+            array_push($this->data[$key], $value);
+        }
     }
 
     function get($key) {
