@@ -43,12 +43,12 @@ class report_tcc_consolidado extends Factory {
 
         $data_header = array('Orientadores');
         $data_header[1] = 'Resumo';
-        $first_line = array('');
+        $first_line = array();
 
         foreach ($header as $h) {
 
-            if (isset($h[0]->course_name)) {
-                $course_name = $h[0]->course_name;
+            if (isset($h[1]->course_name)) {
+                $course_name = $h[1]->course_name;
                 $first_line[] = $course_name;
             }
             $n = count($h);
@@ -57,15 +57,11 @@ class report_tcc_consolidado extends Factory {
                     $element = $h[$i]->name;
                     $data_header[] = $element;
                 }
-                //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
-                if ($i < $n - 1) {
-                    $first_line[] = '';
-                } else
-                    continue;
 
                 if ($i == $n - 2) {
-                    $data_header[] = 'Concluído';
+                    $data_header[] = 'Atividades Concluídas';
                     $data_header[] = 'Não Acessado';
+                    $data_header[] = 'Avaliado';
                 }
             }
         }
@@ -100,6 +96,8 @@ class report_tcc_consolidado extends Factory {
         $total_chapter4 = new dado_somatorio_grupo();
         $total_chapter5 = new dado_somatorio_grupo();
 
+        $total_avaliados = new dado_somatorio_grupo();
+
         /* Loop nas atividades para calcular os somatorios para sintese */
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
             foreach ($array_dados as $aluno) {
@@ -109,6 +107,10 @@ class report_tcc_consolidado extends Factory {
                 $bool_atividades[$grupo_id]['nao_acessado'] = 1;
 
                 $status = $aluno[0]->status;
+
+                if($aluno[0]->grade_tcc != null){
+                    $total_avaliados->inc($grupo_id, 0);
+                }
 
                 foreach ($status as $chapter => $state) {
 
@@ -181,6 +183,8 @@ class report_tcc_consolidado extends Factory {
 
                 $lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id)[$grupo_id]);
 
+                $lti['avaliado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_avaliados->get($grupo_id)[0]);
+
                 /* Preencher relatorio */
                 foreach ($lti as $id => $dado_atividade) {
 
@@ -223,8 +227,9 @@ class report_tcc_consolidado extends Factory {
 
         foreach ($header as $key => $modulo) {
             array_unshift($modulo, 'Resumo');
-            array_push($modulo, 'Concluído');
+            array_push($modulo, 'Atividades Concluídas');
             array_push($modulo, 'Não acessado');
+            array_push($modulo, 'Avaliado');
 
             $header[$key] = $modulo;
         }

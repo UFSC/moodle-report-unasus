@@ -490,6 +490,7 @@ class report_unasus_data_lti extends report_unasus_data {
 
     public $status;
     public $state_date;
+    public $grade_tcc;
 
     private static $submitted_status = array('review', 'draft'); // Revisão e Rascunho
     private static $evaluated_status = array('done'); // Avaliado
@@ -500,8 +501,8 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
         $this->polo = $db_model->polo;
         $this->status = $db_model->status;
-
         $this->state_date = $db_model->state_date;
+        $this->grade_tcc = $db_model->grade_tcc;
     }
 
     public function has_submitted() {

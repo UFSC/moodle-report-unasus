@@ -722,6 +722,8 @@ class LtiPortfolioQuery {
             $model->cohort = $estudante->cohort;
             $model->polo = $estudante->polo;
 
+            $model->grade_tcc = $r->tcc->grade;
+
             // Processando capítulos encontrados
             foreach ($chapters as $chapter) {
 
