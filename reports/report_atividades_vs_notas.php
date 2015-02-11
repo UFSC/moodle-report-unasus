@@ -183,9 +183,11 @@ class report_atividades_vs_notas extends Factory {
      * @return array Array[tutores][aluno][unasus_data]
      */
     public function get_dados() {
+
         // Dado Auxiliar
         $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+
         $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
 
         // Consultas
@@ -193,7 +195,7 @@ class report_atividades_vs_notas extends Factory {
         $query_forum = query_postagens_forum();
         $query_quiz = query_quiz();
 
-
+        $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -208,7 +210,6 @@ class report_atividades_vs_notas extends Factory {
             foreach ($array_dados as $id_aluno => $aluno) {
 
                 $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
-
 
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
@@ -257,6 +258,32 @@ class report_atividades_vs_notas extends Factory {
                     $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->source_activity->id, $atividade->grade, $atraso);
                 }
 
+                $lti_query_object = new LtiPortfolioQuery();
+
+                foreach($grupos as $grupo){
+                    foreach ($this->atividades_cursos as $courseid => $atividades) {
+                        foreach ($atividades as $activity) {
+
+                            if (is_a($activity, 'report_unasus_lti_activity')) {
+                                $result = $lti_query_object->get_report_data($activity, $grupo->id);
+
+                                foreach ($result as $l) {
+                                    $grade = null;
+
+                                    if(isset($l->grade_tcc)){
+                                        $type = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO;
+                                        $grade = $l->grade_tcc;
+                                    } else {
+                                        $type = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                                    }
+                                }
+                                $lista_atividades[] = new dado_atividades_vs_notas($type, $activity->id, $grade);
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 $estudantes[] = $lista_atividades;
 
                 // Unir os alunos de acordo com o polo deles
@@ -291,7 +318,7 @@ class report_atividades_vs_notas extends Factory {
      * @return array
      */
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
@@ -300,6 +327,20 @@ class report_atividades_vs_notas extends Factory {
 
             $header[$course_link] = $atividades;
         }
+
+        foreach ($header as $key => $modulo) {
+            array_push($modulo, 'TCC');
+            $header[$key] = $modulo;
+        }
+
+        /*foreach($this->modulos_selecionados as $modulo_selected) {
+            if($modulo_selected == 258 || $modulo_selected == 230 ){
+                foreach ($header as $key => $modulo) {
+                    array_push($modulo, 'TCC');
+                    $header[$key] = $modulo;
+                }
+            }
+        }*/
 
         return $header;
     }
