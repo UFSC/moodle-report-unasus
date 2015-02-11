@@ -96,6 +96,8 @@ class report_boletim extends Factory {
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
 
+        $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
+
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
@@ -133,6 +135,34 @@ class report_boletim extends Factory {
                         $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota);
                     }
                 }
+
+                $tam_lista_atividades = sizeof($lista_atividades);
+                $lti_query_object = new LtiPortfolioQuery();
+
+                foreach($grupos as $grupo){
+                    foreach ($this->atividades_cursos as $courseid => $atividades) {
+                        foreach ($atividades as $activity) {
+
+                            if (is_a($activity, 'report_unasus_lti_activity') && sizeof($lista_atividades) <= $tam_lista_atividades) {
+                                $result = $lti_query_object->get_report_data($activity, $grupo->id);
+
+                                foreach ($result as $l) {
+                                    $grade = null;
+
+                                    if(isset($l->grade_tcc)){
+                                        $type = dado_boletim::ATIVIDADE_COM_NOTA;
+                                        $grade = $l->grade_tcc;
+                                    } else {
+                                        $type = dado_boletim::ATIVIDADE_SEM_NOTA;
+                                    }
+                                }
+                                $lista_atividades[] = new dado_boletim($type, $activity->id, $grade);
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 $estudantes[] = $lista_atividades;
 
                 // Agrupamento dos estudantes pelo seu polo
@@ -159,7 +189,7 @@ class report_boletim extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
@@ -168,6 +198,16 @@ class report_boletim extends Factory {
 
             $header[$course_link] = $atividades;
         }
+
+        foreach ($header as $key => $modulo) {
+            $course_id = $modulo[0]->course_id;
+
+            if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
+                array_push($modulo, 'TCC');
+                $header[$key] = $modulo;
+            }
+        }
+
         return $header;
     }
 
