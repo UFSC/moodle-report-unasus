@@ -258,13 +258,14 @@ class report_atividades_vs_notas extends Factory {
                     $lista_atividades[] = new dado_atividades_vs_notas($tipo, $atividade->source_activity->id, $atividade->grade, $atraso);
                 }
 
+                $tam_lista_atividades = sizeof($lista_atividades);
                 $lti_query_object = new LtiPortfolioQuery();
 
                 foreach($grupos as $grupo){
                     foreach ($this->atividades_cursos as $courseid => $atividades) {
                         foreach ($atividades as $activity) {
 
-                            if (is_a($activity, 'report_unasus_lti_activity')) {
+                            if (is_a($activity, 'report_unasus_lti_activity') && sizeof($lista_atividades) <= $tam_lista_atividades) {
                                 $result = $lti_query_object->get_report_data($activity, $grupo->id);
 
                                 foreach ($result as $l) {
