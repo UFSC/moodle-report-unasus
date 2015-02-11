@@ -25,6 +25,9 @@ define('AGRUPAR_POLOS', 'POLOS');
 define('AGRUPAR_COHORTS', 'COHORTS');
 define('AGRUPAR_ORIENTADORES', 'ORIENTADORES');
 
+define('TCC-Turma-A', 230);
+define('TCC-Turma-B', 258);
+
 use local_ufsc\ufsc;
 
 class Factory {

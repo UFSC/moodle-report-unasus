@@ -330,18 +330,13 @@ class report_atividades_vs_notas extends Factory {
         }
 
         foreach ($header as $key => $modulo) {
-            array_push($modulo, 'TCC');
-            $header[$key] = $modulo;
-        }
+            $course_id = $modulo[0]->course_id;
 
-        /*foreach($this->modulos_selecionados as $modulo_selected) {
-            if($modulo_selected == 258 || $modulo_selected == 230 ){
-                foreach ($header as $key => $modulo) {
-                    array_push($modulo, 'TCC');
-                    $header[$key] = $modulo;
-                }
+            if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
+                array_push($modulo, 'TCC');
+                $header[$key] = $modulo;
             }
-        }*/
+        }
 
         return $header;
     }
