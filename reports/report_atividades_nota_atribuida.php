@@ -134,9 +134,12 @@ class report_atividades_nota_atribuida extends Factory {
 
             foreach ($grupo as $atividades) {
 
+                // Array contêm os capítulos do TCC
                 if (is_array($atividades)) {
+                    $data[] = $atividade;
                     break;
                 } else {
+                    $atividade = $atividades;
                     $data[] = $atividades;
                 }
             }
