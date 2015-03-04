@@ -87,7 +87,6 @@ class report_atividades_nota_atribuida extends Factory {
         $lista_atividade = $result_array['lista_atividade'];
         $associativo_atividade = $result_array['associativo_atividade'];
 
-
         $somatorio_total_atrasos = array();
         $atividades_alunos_grupos = $this->get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
 
@@ -95,15 +94,15 @@ class report_atividades_nota_atribuida extends Factory {
             foreach ($array_dados as $aluno) {
 
                 foreach ($aluno as $atividade) {
+
                     /** @var report_unasus_data $atividade */
                     if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                         $somatorio_total_atrasos[$grupo_id] = 0;
                     }
 
-
                     if ($atividade->has_grade() && $atividade->is_grade_needed()) {
 
-                        /** @var dado_atividades_alunos $dado */
+                        /** @var dado_atividades_alunos $dado **/
                         unset($dado); // estamos trabalhando com ponteiro, não podemos atribuir null ou alteramos o array.
 
                         if (is_a($atividade, 'report_unasus_data_activity')) {
@@ -132,11 +131,11 @@ class report_atividades_nota_atribuida extends Factory {
         foreach ($lista_atividade as $grupo_id => $grupo) {
             $data = array();
             $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
+
             foreach ($grupo as $atividades) {
+
                 if (is_array($atividades)) {
-                    foreach ($atividades as $atividade) {
-                        $data[] = $atividade;
-                    }
+                    break;
                 } else {
                     $data[] = $atividades;
                 }
@@ -160,6 +159,7 @@ class report_atividades_nota_atribuida extends Factory {
         $data_total[] = new dado_media($somatorio_total_alunos_atividades_concluidas, $somatorio_total_alunos);
 
         $dados[] = $data_total;
+
         return $dados;
     }
 
