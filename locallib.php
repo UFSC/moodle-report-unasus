@@ -258,7 +258,7 @@ function get_agrupamentos_membros($courses) {
  * @throws Exception
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false) {
+function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
@@ -283,11 +283,11 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
-    /*echo '<pre>';
-    die(print_r($group_array));*/
-
-    // Uniar com as atividades LTI
-    process_header_atividades_lti($courses, $group_array);
+    // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
+    // Nos relatórios de atividades o TCC é tratado apenas como uma atividade.
+    if($buscar_lti) {
+        process_header_atividades_lti($courses, $group_array);
+    }
 
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = query_courses_com_nota_final($courses);

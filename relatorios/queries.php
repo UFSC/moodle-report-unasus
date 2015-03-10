@@ -581,7 +581,7 @@ class LtiPortfolioQuery {
 
         // WS Client
         $client = new SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
-        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data($user_ids);
+        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data_tcc($user_ids);
 
         return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
     }

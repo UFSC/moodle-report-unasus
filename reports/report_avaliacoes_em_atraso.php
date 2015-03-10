@@ -127,9 +127,7 @@ class report_avaliacoes_em_atraso extends Factory {
             $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
             foreach ($grupo as $atividades) {
                 if (is_array($atividades)) {
-                    foreach ($atividades as $atividade) {
-                        $data[] = $atividade;
-                    }
+                    break;
                 } else {
                     $data[] = $atividades;
                 }
