@@ -116,18 +116,15 @@ class report_modulos_concluidos extends Factory {
     }
 
     public function get_table_header(){
-        $modulos = $this->get_modulos_ids();
 
-        $nome_modulos = get_id_nome_modulos($this->get_categoria_turma_ufsc());
-        if (is_null($this->modulos_selecionados)) {
-            $modulos = get_id_modulos();
-        }
+        $activities = $this->get_table_header_modulos_atividades();
 
         $header = array();
         $header[] = 'Estudantes';
-        foreach ($modulos as $modulo) {
-            $header[] = new dado_modulo($modulo, $nome_modulos[$modulo]);
+        foreach ($activities as $h) {
+            $header[] = new dado_modulo($h[0]->course_id, $h[0]->course_name);
         }
+
         return $header;
     }
 }
