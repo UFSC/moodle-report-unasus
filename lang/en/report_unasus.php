@@ -55,6 +55,9 @@ $string['avaliacoes_em_atraso_help'] = 'OBJETIVO: Acompanhar o estado das avali�
 $string['atividades_nota_atribuida'] = 'Síntese: atividades concluídas';
 $string['atividades_nota_atribuida_help'] = 'OBJETIVO: Acompanhar o estado das avalições que tiveram ou não notas atribuidas por um tutor';
 
+$string['atividades_concluidas_agrupadas'] = 'Sintese: atividades concluidas agrupadas';
+$string['atividades_concluidas_agrupadas_help'] = 'OBJETIVO: Acompanhar o estado de conclusão dos eixos e total do curso';
+
 $string['acesso_tutor'] = 'Uso do sistema pelo tutor (acessos)';
 $string['acesso_tutor_help'] = 'Objetivo: Visualizar se o tutor acessou o moodle em uma data';
 
