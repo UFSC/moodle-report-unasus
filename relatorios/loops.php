@@ -227,7 +227,8 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     $lti_query_object = new LtiPortfolioQuery();
 
     // FIXME: reescrever o código para não necessitar duas passadas no loop para esse caso
-    if (is_null($loop) && $report->get_relatorio() == 'atividades_nota_atribuida') {
+    if ((is_null($loop) && $report->get_relatorio() == 'atividades_nota_atribuida') ||
+        (is_null($loop) && $report->get_relatorio() == 'atividades_concluidas_agrupadas')) {
         $loop = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, true);
         $atividades_alunos_grupos = $report->get_dados_alunos_atividades_concluidas($loop['associativo_atividade'])->somatorio_modulos;
     }
