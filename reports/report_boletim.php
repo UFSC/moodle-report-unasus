@@ -139,25 +139,26 @@ class report_boletim extends Factory {
                 $tam_lista_atividades = sizeof($lista_atividades);
                 $lti_query_object = new LtiPortfolioQuery();
 
+                // MONTAGEM DA NOTA DO tcc
                 foreach($grupos as $grupo){
                     foreach ($this->atividades_cursos as $courseid => $atividades) {
                         foreach ($atividades as $activity) {
 
+                            // FIXME: no report de boletim deve trazer apenas as ativadades pricipais (moodle) e não os capítulos do TCC
                             if (is_a($activity, 'report_unasus_lti_activity') && sizeof($lista_atividades) <= $tam_lista_atividades) {
                                 $result = $lti_query_object->get_report_data($activity, $grupo->id);
 
-                                foreach ($result as $l) {
-                                    $grade = null;
+                                $tcc = $result[$id_aluno];
+                                $grade = null;
 
-                                    if(isset($l->grade_tcc)){
-                                        $type = dado_boletim::ATIVIDADE_COM_NOTA;
-                                        $grade = $l->grade_tcc;
-                                    } else {
-                                        $type = dado_boletim::ATIVIDADE_SEM_NOTA;
-                                    }
+                                if(isset($tcc->grade_tcc)){
+                                    $type = dado_boletim::ATIVIDADE_COM_NOTA;
+                                    $grade = $tcc->grade_tcc;
+                                } else {
+                                    $type = dado_boletim::ATIVIDADE_SEM_NOTA;
                                 }
                                 $lista_atividades[] = new dado_boletim($type, $activity->id, $grade);
-                                break;
+                                break 3;
                             }
                         }
                     }
