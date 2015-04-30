@@ -74,8 +74,8 @@ class report_unasus_assign_activity extends report_unasus_activity {
 
     public function __toString() {
         $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
-        $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id));
-        return html_writer::link($atividade_url, $this->name);
+        $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
+        return html_writer::link($atividade_url, $this->name, array('target' => '_blank'));
     }
 
 }
@@ -95,8 +95,8 @@ class report_unasus_forum_activity extends report_unasus_activity {
 
     public function __toString() {
         $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
-        $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id));
-        return html_writer::link($forum_url, $this->name);
+        $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
+        return html_writer::link($forum_url, $this->name, array('target' => '_blank'));
     }
 
 }
@@ -118,8 +118,8 @@ class report_unasus_quiz_activity extends report_unasus_activity {
 
     public function __toString() {
         $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
-        $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id));
-        return html_writer::link($quiz_url, $this->name);
+        $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
+        return html_writer::link($quiz_url, $this->name, array('target' => '_blank'));
     }
 
 }
@@ -145,8 +145,8 @@ class report_unasus_lti_activity extends report_unasus_activity {
      * @todo verificar parametro 'lti', tá vindo vazio e dado erro na linha seguinte $cm->id
      */
     public function __toString() {
-        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->course_module_id));
-        return html_writer::link($lti_url, $this->name);
+        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->course_module_id, 'target' => '_blank'));
+        return html_writer::link($lti_url, $this->name, array('target' => '_blank'));
     }
 
 }
@@ -530,9 +530,9 @@ class report_unasus_final_grade {
     }
 
     public function __toString() {
-        $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id));
+        $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id, 'target' => '_blank'));
         $text = (is_null($this->name) || $this->name == '') ? 'Média Final ' : $this->name;
-        return html_writer::link($gradebook_url, $text);
+        return html_writer::link($gradebook_url, $text, array('target' => '_blank'));
     }
 
 }

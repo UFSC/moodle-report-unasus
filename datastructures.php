@@ -1057,9 +1057,9 @@ class dado_modulo extends unasus_data {
     }
 
     public function __toString() {
-        $course_url = new moodle_url('/course/view.php', array('id' => $this->id));
+        $course_url = new moodle_url('/course/view.php', array('id' => $this->id, 'target' => '_blank'));
 
-        return html_writer::link($course_url, $this->nome);
+        return html_writer::link($course_url, $this->nome, array('target' => '_blank'));
     }
 
     public function get_css_class() {

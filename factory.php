@@ -338,9 +338,9 @@ class Factory {
         $atividades_cursos = $group_array->get_assoc();
         $header = array();
 
-        foreach ($atividades_cursos as $course_id => $atividades) {
+        foreach ($atividades_cursos as $course_module_id => $atividades) {
             if (!empty($atividades)) {
-                $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
+                $course_url = new moodle_url('/mod/lti/view.php', array('id' => $atividades[0]->course_module_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
                 $header[$course_link] = $atividades;
             }
