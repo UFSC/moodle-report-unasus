@@ -9,6 +9,7 @@ function report_unasus_relatorios_validos_list() {
         'modulos_concluidos',
         'avaliacoes_em_atraso',
         'atividades_nota_atribuida',
+        'atividades_concluidas_agrupadas',
         'entrega_de_atividades',
         'atividades_vs_notas',
         // - relatório desativado segundo o ticket #4460 'historico_atribuicao_notas',

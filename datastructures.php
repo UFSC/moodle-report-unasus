@@ -812,8 +812,9 @@ class dado_media extends unasus_data {
         return "{$soma} <br /> {$this->format_grade($media)}%";
     }
 
+    /* Aguardar reestruturação do design dos relatórios para inserir já o novo css */
     public function get_css_class() {
-        return 'media';
+//        return 'media';
     }
 
 }
