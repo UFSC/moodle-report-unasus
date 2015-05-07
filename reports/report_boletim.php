@@ -196,8 +196,8 @@ class report_boletim extends Factory {
         foreach ($atividades_cursos as $course_id => $atividades) {
 
             if(isset($atividades[0]->course_name)){
-                $course_url = new moodle_url('/course/view.php', array('id' => $course_id));
-                $course_link = html_writer::link($course_url, $atividades[0]->course_name);
+                $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
+                $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
                 $header[$course_link] = $atividades;
             }
         }
