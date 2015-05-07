@@ -497,7 +497,7 @@ class dado_boletim extends unasus_data {
     public function get_css_class() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return ($this->nota >= 7) ? 'na_media' : 'abaixo_media_nota';
+                return ($this->nota >= 70) ? 'na_media' : 'abaixo_media_nota';
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
@@ -507,9 +507,9 @@ class dado_boletim extends unasus_data {
 
     public static function get_legend() {
         $legend = array();
-        $legend['na_media'] = 'Atividade avaliada com nota acima de 7';
-        $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 7';
-        $legend['abaixo_media'] = 'Média final abaixo de 7';
+        $legend['na_media'] = 'Atividade avaliada com nota acima de 70';
+        $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 70';
+        $legend['abaixo_media'] = 'Média final abaixo de 70';
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
 
         return $legend;
@@ -544,7 +544,7 @@ class dado_nota_final extends unasus_data {
     public function get_css_class() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return ($this->nota >= 7) ? 'na_media' : 'abaixo_media';
+                return ($this->nota >= 70) ? 'na_media' : 'abaixo_media';
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
