@@ -144,6 +144,12 @@ class report_atividades_nota_atribuida extends Factory {
                 }
             }
 
+            $data_sliced = array_slice($data, 1);
+
+            foreach ($data_sliced as $activity) {
+                $somatorio_total_alunos_atividades_concluidas_modulo[$grupo_id][] = $activity->get_count();
+            }
+
             /* Coluna  N° Alunos com atividades concluídas */
             $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
             $data[] = new dado_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
@@ -155,10 +161,27 @@ class report_atividades_nota_atribuida extends Factory {
 
         /* Linha total alunos com atividades concluidas  */
         $data_total = array(html_writer::tag('strong', 'Total alunos com atividade concluida / Total alunos'));
-        $count = count($data) - 2;
-        for ($i = 0; $i < $count; $i++) {
-            $data_total[] = '';
+
+        $total_activities_modulo[] = 0;
+
+        foreach ($somatorio_total_alunos_atividades_concluidas_modulo as $modulos) {
+            $count = sizeof($modulos);
+            for($i = 0; $i < $count; $i++){
+                if(!isset($total_activities_modulo[$i])){
+                    $total_activities_modulo[$i] = $modulos[$i];
+                } else {
+                    $total_activities_modulo[$i] += $modulos[$i];
+                }
+            }
         }
+
+        $num_columns = sizeof($total_activities_modulo);
+
+        /* Colunas de somatório das atividades dos módulos */
+        for($i = 0; $i < $num_columns; $i++){
+            $data_total[] = new dado_media($total_activities_modulo[$i], $somatorio_total_alunos);
+        }
+
         $data_total[] = new dado_media($somatorio_total_alunos_atividades_concluidas, $somatorio_total_alunos);
 
         $dados[] = $data_total;
