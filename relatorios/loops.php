@@ -16,8 +16,8 @@ defined('MOODLE_INTERNAL') || die;
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
 function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_nota_final = null, $is_activity = false, $is_orientacao = false) {
-    // Middleware para as queries sql
-    $middleware = Middleware::singleton();
+
+    global $DB;
 
     /** @var $report Factory */
     $report = Factory::singleton();
@@ -60,7 +60,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id);
 
-                    $result = $middleware->get_records_sql($query_atividades, $params);
+                    $result = $DB->get_records_sql($query_atividades, $params);
 
                     // Para cada resultado da query de atividades
                     foreach ($result as $r) {
@@ -95,7 +95,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
-                    $result = $middleware->get_records_sql($query_forum, $params);
+                    $result = $DB->get_records_sql($query_forum, $params);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $f) {
@@ -130,7 +130,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
-                    $result = $middleware->get_records_sql($query_quiz, $params);
+                    $result = $DB->get_records_sql($query_quiz, $params);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $q) {
@@ -174,7 +174,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                     'cohort_relationship_id' => $cohort_estudantes->id,
                     'grupo' => $grupo->id);
 
-                $result = $middleware->get_records_sql($query_nota_final, $params);
+                $result = $DB->get_records_sql($query_nota_final, $params);
                 if ($result != false) {
                     foreach ($result as $nf) {
                         /** @var report_unasus_data_nota_final $data */
@@ -210,7 +210,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
  * )
  */
 function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $loop = null, $is_orientacao = false) {
-    $middleware = Middleware::singleton();
+
+    global $DB;
 
     /** @var $report Factory */
     $report = Factory::singleton();
@@ -270,7 +271,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id);
 
-                    $result = $middleware->get_records_sql($query_atividades, $params);
+                    $result = $DB->get_records_sql($query_atividades, $params);
 
                     foreach ($result as $r) {
 
@@ -296,7 +297,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
-                    $result = $middleware->get_records_sql($query_forum, $params);
+                    $result = $DB->get_records_sql($query_forum, $params);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $f) {
@@ -325,7 +326,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
 
-                    $result = $middleware->get_records_sql($query_quiz, $params);
+                    $result = $DB->get_records_sql($query_quiz, $params);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $q) {

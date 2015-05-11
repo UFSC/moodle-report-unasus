@@ -136,7 +136,8 @@ function query_postagens_forum() {
                    gg.grade,
                    gg.timemodified,
                    fp.itemid,
-                   userid_posts IS NOT NULL AS has_post
+                   userid_posts IS NOT NULL AS has_post,
+                   grademax
               FROM (
 
                     {$alunos_grupo_tutoria}
@@ -155,7 +156,12 @@ function query_postagens_forum() {
                    ) fp
                 ON (fp.userid_posts=u.id)
          LEFT JOIN (
-                      SELECT gg.userid, gg.rawgrade AS grade, gg.timemodified, gg.itemid, f.id as forumid
+                      SELECT gg.userid,
+                             gg.rawgrade AS grade,
+                             gg.timemodified,
+                             gg.itemid,
+                             f.id as forumid,
+                             gi.grademax
                         FROM {forum} f
                         JOIN {grade_items} gi
                           ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
@@ -377,7 +383,8 @@ function query_nota_final() {
                    u.cohort,
                    gradeitemid AS gradeitemid,
                    courseid,
-                   finalgrade AS grade
+                   finalgrade AS grade,
+                   grademax
               FROM (
 
                     {$alunos_grupo_tutoria}
@@ -392,7 +399,8 @@ function query_nota_final() {
                               gi.courseid,
                               gg.userid AS userid,
                               gg.id AS gradegradeid,
-                              gg.finalgrade
+                              gg.finalgrade,
+                              gi.grademax AS grademax
                         FROM {grade_items} gi
                         JOIN {grade_grades} gg
                           ON (gi.id = gg.itemid AND gi.itemtype LIKE 'course' AND itemmodule IS NULL)

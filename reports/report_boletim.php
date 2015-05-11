@@ -114,6 +114,7 @@ class report_boletim extends Factory {
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
                     $nota = null;
+                    $grademax = (isset($atividade->grademax)) ? $atividade->grademax : 100;
 
                     // Não se aplica para este estudante
                     if (is_a($atividade, 'report_unasus_data_empty')) {
@@ -127,6 +128,12 @@ class report_boletim extends Factory {
                         $nota = $atividade->grade;
                     } else {
                         $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
+                    }
+
+                    /* Modificação do range da nota para 0-100, caso necessário */
+
+                    if($nota <= 10 && $grademax == 10){
+                        $nota *= 10;
                     }
 
                     if (is_a($atividade, 'report_unasus_data_nota_final')) {

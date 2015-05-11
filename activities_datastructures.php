@@ -466,6 +466,7 @@ class report_unasus_data_forum extends report_unasus_data {
         }
         $this->submission_date = $db_model->submission_date;
         $this->grade_date = $db_model->timemodified;
+        $this->grademax = $db_model->grademax;
     }
 
 }
@@ -563,6 +564,7 @@ class report_unasus_data_nota_final extends report_unasus_data {
     public function __construct($db_model) {
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
+        $this->grademax = $db_model->grademax;
         // FIXME: esse dado não define o cohort, precisa definir.
 
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
