@@ -58,7 +58,7 @@ $string['atividades_nota_atribuida_help'] = "OBJETIVO: Acompanhar o estado das a
         "Caso a atividade necessite de envio e o estudante ainda não tenha enviado a atividade, o tutor não apresentará essa atividade como atraso, pois está pendente o envio do estudante.";
 
 $string['atividades_concluidas_agrupadas'] = 'Sintese: atividades concluidas agrupadas';
-$string['atividades_concluidas_agrupadas_help'] = "OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor dentro do prazo estabelecido para o módulo. \n\n".
+$string['atividades_concluidas_agrupadas_help'] = "OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor dentro do prazo estabelecido para a atividade, agrupado por módulo. \n\n".
         "Os critérios para a verificação do atraso são: a atividade precisar de nota, o estudante ter enviado a atividade (caso o envio seja necessário), e o estudante não ter recebido a nota dentro do prazo de encerramento da atividade. \n\n ".
         "Caso a atividade necessite de envio e o estudante ainda não tenha enviado a atividade, o tutor não apresentará essa atividade como atraso, pois está pendente o envio do estudante.";
 
