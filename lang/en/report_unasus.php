@@ -50,13 +50,17 @@ $string['boletim_help'] = 'Notas das atividades realizadas pelo aluno';
 $string['boletim_table_header'] = 'Boletim';
 
 $string['avaliacoes_em_atraso'] = 'Síntese: avaliações em atraso';
-$string['avaliacoes_em_atraso_help'] = 'OBJETIVO: Acompanhar o estado das avalições que foram ou não corrigidas por um tutor';
+$string['avaliacoes_em_atraso_help'] = 'OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor';
 
 $string['atividades_nota_atribuida'] = 'Síntese: atividades concluídas';
-$string['atividades_nota_atribuida_help'] = 'OBJETIVO: Acompanhar o estado das avalições que tiveram ou não notas atribuidas por um tutor';
+$string['atividades_nota_atribuida_help'] = "OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor dentro do prazo estabelecido para a atividade. \n\n".
+        "Os critérios para a verificação do atraso são: a atividade precisar de nota, o estudante ter enviado a atividade (caso o envio seja necessário), e o estudante não ter recebido a nota dentro do prazo de encerramento da atividade. \n\n".
+        "Caso a atividade necessite de envio e o estudante ainda não tenha enviado a atividade, o tutor não apresentará essa atividade como atraso, pois está pendente o envio do estudante.";
 
 $string['atividades_concluidas_agrupadas'] = 'Sintese: atividades concluidas agrupadas';
-$string['atividades_concluidas_agrupadas_help'] = 'OBJETIVO: Acompanhar o estado de conclusão dos eixos e total do curso';
+$string['atividades_concluidas_agrupadas_help'] = "OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor dentro do prazo estabelecido para a atividade, agrupado por módulo. \n\n".
+        "Os critérios para a verificação do atraso são: a atividade precisar de nota, o estudante ter enviado a atividade (caso o envio seja necessário), e o estudante não ter recebido a nota dentro do prazo de encerramento da atividade. \n\n ".
+        "Caso a atividade necessite de envio e o estudante ainda não tenha enviado a atividade, o tutor não apresentará essa atividade como atraso, pois está pendente o envio do estudante.";
 
 $string['acesso_tutor'] = 'Uso do sistema pelo tutor (acessos)';
 $string['acesso_tutor_help'] = 'Objetivo: Visualizar se o tutor acessou o moodle em uma data';
