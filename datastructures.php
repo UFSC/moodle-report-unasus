@@ -81,6 +81,8 @@ class report_unasus_student extends report_unasus_person {
  */
 abstract class unasus_data {
 
+    const MEDIA = 70;
+
     /**
      * Dependendo do tipo do dado ele deve ser apresentado de uma forma diferente
      * Assim esta função é feita para definir qual classe de css deve ser aplicada
@@ -476,11 +478,13 @@ class dado_boletim extends unasus_data {
     private $tipo;
     private $atividade_id;
     private $nota;
+    private $grademax;
 
-    function __construct($tipo, $atividade_id, $nota = 0) {
+    function __construct($tipo, $atividade_id, $nota = 0, $grademax = 100) {
         $this->tipo = $tipo;
         $this->atividade_id = $atividade_id;
         $this->nota = $nota;
+        $this->grademax = $grademax;
     }
 
     public function __toString() {
@@ -497,7 +501,7 @@ class dado_boletim extends unasus_data {
     public function get_css_class() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return ($this->nota >= 70) ? 'na_media' : 'abaixo_media_nota';
+                return (($this->nota / $this->grademax * 100) >= dado_nota_final::MEDIA) ? 'na_media' : 'abaixo_media_nota';
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
@@ -507,9 +511,9 @@ class dado_boletim extends unasus_data {
 
     public static function get_legend() {
         $legend = array();
-        $legend['na_media'] = 'Atividade avaliada com nota acima de 70';
-        $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 70';
-        $legend['abaixo_media'] = 'Média final abaixo de 70';
+        $legend['na_media'] = 'Atividade avaliada com nota acima de 70 %';
+        $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 70 %';
+        $legend['abaixo_media'] = 'Média final abaixo de 70 %';
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
 
         return $legend;
@@ -524,10 +528,12 @@ class dado_nota_final extends unasus_data {
 
     private $tipo;
     private $nota;
+    private $grademax;
 
-    function __construct($tipo, $nota = 0) {
+    function __construct($tipo, $nota = 0, $grademax = 100) {
         $this->tipo = $tipo;
         $this->nota = $nota;
+        $this->grademax = $grademax;
     }
 
     public function __toString() {
@@ -544,7 +550,7 @@ class dado_nota_final extends unasus_data {
     public function get_css_class() {
         switch ($this->tipo) {
             case dado_boletim::ATIVIDADE_COM_NOTA:
-                return ($this->nota >= 70) ? 'na_media' : 'abaixo_media';
+                return (($this->nota / $this->grademax * 100) >= dado_nota_final::MEDIA) ? 'na_media' : 'abaixo_media';
                 break;
             case dado_boletim::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';

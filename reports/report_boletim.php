@@ -132,14 +132,11 @@ class report_boletim extends Factory {
 
                     /* Modificação do range da nota para 0-100, caso necessário */
 
-                    if($nota <= 10 && $grademax == 10){
-                        $nota *= 10;
-                    }
 
                     if (is_a($atividade, 'report_unasus_data_nota_final')) {
-                        $lista_atividades[] = new dado_nota_final($tipo, $nota);
+                        $lista_atividades[] = new dado_nota_final($tipo, $nota, $grademax);
                     } else {
-                        $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota);
+                        $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota, $grademax);
                     }
                 }
 
@@ -164,7 +161,9 @@ class report_boletim extends Factory {
                                 } else {
                                     $type = dado_boletim::ATIVIDADE_SEM_NOTA;
                                 }
-                                $lista_atividades[] = new dado_boletim($type, $activity->id, $grade);
+                                $grademax = (isset($activity->grademax)) ? $activity->grademax : 100;
+
+                                $lista_atividades[] = new dado_boletim($type, $activity->id, $grade, $grademax);
                                 break 3;
                             }
                         }
