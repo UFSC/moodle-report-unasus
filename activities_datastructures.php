@@ -422,7 +422,7 @@ class report_unasus_data_activity extends report_unasus_data {
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float) $db_model->grade;
         }
-
+        $this->grademax = $db_model->grademax;
         $this->status = $db_model->status;
         $this->submission_date = (!is_null($db_model->submission_date)) ? $db_model->submission_date : $db_model->submission_modified;
         $this->grade_date = (!is_null($db_model->grade_created)) ? $db_model->grade_created : $db_model->grade_modified;
@@ -466,6 +466,7 @@ class report_unasus_data_forum extends report_unasus_data {
         }
         $this->submission_date = $db_model->submission_date;
         $this->grade_date = $db_model->timemodified;
+        $this->grademax = $db_model->grademax;
     }
 
 }
@@ -480,6 +481,7 @@ class report_unasus_data_quiz extends report_unasus_data {
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float) $db_model->grade;
         }
+        $this->grademax = $db_model->grademax;
         $this->submission_date = $db_model->submission_date;
         $this->grade_date = $db_model->grade_date;
     }
@@ -503,6 +505,7 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->status = $db_model->status;
         $this->state_date = $db_model->state_date;
         $this->grade_tcc = $db_model->grade_tcc;
+        $this->grademax = $db_model->grademax;
     }
 
     public function has_submitted() {
@@ -563,6 +566,7 @@ class report_unasus_data_nota_final extends report_unasus_data {
     public function __construct($db_model) {
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
+        $this->grademax = $db_model->grademax;
         // FIXME: esse dado não define o cohort, precisa definir.
 
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
