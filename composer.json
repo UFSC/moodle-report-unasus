@@ -1,5 +1,5 @@
 {
-    "name": "moodle-ufsc/report-unasus",
+    "name": "unasus/report-unasus",
     "description": "Relatórios gerenciais da UNASUS (equipe Roberto)",
     "license": "GPLv3",
     "type": "moodle-report",
