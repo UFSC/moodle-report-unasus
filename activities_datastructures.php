@@ -128,11 +128,9 @@ class report_unasus_db_activity extends report_unasus_activity {
 
     public function __construct($db_model) {
 
-        $has_grade = ((int) $db_model->grade) == 0 ? false : true;
-
-        parent::__construct(true, $has_grade);
-        $this->id = $db_model->db_id;
-        $this->name = $db_model->db_name;
+        parent::__construct(true, false);
+        $this->id = $db_model->database_id;
+        $this->name = $db_model->database_name;
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
@@ -140,7 +138,7 @@ class report_unasus_db_activity extends report_unasus_activity {
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('db', $this->id, $this->course_id, null, IGNORE_MISSING);
+        $cm = get_coursemodule_from_instance('data', $this->id, $this->course_id, null, IGNORE_MISSING);
         $db_url = new moodle_url('/mod/data/view.php', array('id' => $cm->id, 'target' => '_blank'));
         return html_writer::link($db_url, $this->name, array('target' => '_blank'));
     }
