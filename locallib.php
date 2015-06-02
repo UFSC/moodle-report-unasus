@@ -269,6 +269,9 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
 
+    $databases = query_database_courses($courses);
+    $scorms = query_scorm_courses($courses);
+
     $group_array = new GroupArray();
 
     foreach ($assigns as $atividade) {
@@ -281,6 +284,14 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
 
     foreach ($quizes as $quiz) {
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
+    }
+
+    foreach ($databases as $database) {
+        $group_array->add($database->course_id, new report_unasus_db_activity($database));
+    }
+
+    foreach ($scorms as $scorm) {
+        $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm));
     }
 
     // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
@@ -425,6 +436,25 @@ function query_quiz_courses($courses) {
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
+function query_database_courses($courses) {
+    global $DB;
+
+    $string_courses = get_modulos_validos($courses);
+
+    $query = "";
+
+    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+}
+
+function query_scorm_courses($courses) {
+    global $DB;
+
+    $string_courses = get_modulos_validos($courses);
+
+    $query = "";
+
+    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+}
 
 /**
  * Função para buscar atividades de lti
