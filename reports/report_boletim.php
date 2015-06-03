@@ -91,6 +91,17 @@ class report_boletim extends Factory {
         $query_forum = query_postagens_forum();
         $query_nota_final = query_nota_final();
 
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
+
+        foreach ($atividades_cursos as $course_id => $atividades) {
+            foreach ($atividades as $atividade) {
+                if($atividade instanceof report_unasus_db_activity) {
+                    $coursemodule = $atividade->cm_id;
+                    $query_atividades_database[$coursemodule] = query_database($coursemodule);
+                }
+            }
+        }
+
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
