@@ -365,6 +365,18 @@ function query_atividades() {
     ";
 }
 
+function query_database($coursemoduleid) {
+    global $DB;
+
+    $query = "SELECT cmc.userid,
+                     cmc.completionstate
+                FROM moodle_unasus_cp.course_modules_completion cmc
+               WHERE coursemoduleid = :coursemoduleid;
+    ";
+
+    return $DB->get_records_sql($query, array('coursemoduleid' => $coursemoduleid));
+}
+
 /**
  * Query para a nota final dos alunos em um dado modulo
  *

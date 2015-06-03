@@ -441,12 +441,13 @@ function query_database_courses($courses) {
 
     $string_courses = get_modulos_validos($courses);
 
-    $query = "SELECT DISTINCT d.id AS database_id,
+    $query = "SELECT d.id AS database_id,
                      d.name AS database_name,
 	                 cm.completionexpected,
 	                 c.id AS course_id,
 	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-	                 cm.groupingid AS grouping_id
+	                 cm.groupingid AS grouping_id,
+	                 cm.id AS cm_id
                 FROM course AS c
            LEFT JOIN data AS d
                   ON (c.id = d.course AND c.id != :siteid)
@@ -455,6 +456,7 @@ function query_database_courses($courses) {
                 JOIN modules m
                   ON (m.id = cm.module AND m.name LIKE 'data')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+            GROUP BY database_id
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));

@@ -135,6 +135,7 @@ class report_unasus_db_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->cm_id = $db_model->cm_id;
     }
 
     public function __toString() {
