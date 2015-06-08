@@ -141,11 +141,10 @@ class report_boletim extends Factory {
                         $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
                     }
 
-                    /* Modificação do range da nota para 0-100, caso necessário */
-
-
                     if (is_a($atividade, 'report_unasus_data_nota_final')) {
-                        $lista_atividades[] = new dado_nota_final($tipo, $nota, $grademax);
+                        if (isset($nota)) {
+                            $lista_atividades[] = new dado_nota_final($tipo, $nota, $grademax);
+                        }
                     } else {
                         $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota, $grademax);
                     }
@@ -181,12 +180,12 @@ class report_boletim extends Factory {
                     }
                 }
 
+                /* Como atividades databases não são atividades com nota, é apresentado apenas o item com não se aplica */
+
                 foreach ($query_atividades_database as $activity_id => $atividades) {
                     foreach ($atividades as $user){
                         if ($user->userid == $id_aluno){
-                            $type = ($user->completionstate == 1) ? dado_boletim::ATIVIDADE_COM_NOTA :
-                                                                    dado_boletim::ATIVIDADE_SEM_NOTA;
-                            $lista_atividades[] = new dado_boletim($type, $activity_id);
+                            $lista_atividades[] = new dado_nao_aplicado();
                         }
                     }
                 }
@@ -217,7 +216,7 @@ class report_boletim extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, true);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
