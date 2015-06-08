@@ -195,6 +195,17 @@ class report_atividades_vs_notas extends Factory {
         $query_forum = query_postagens_forum();
         $query_quiz = query_quiz();
 
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
+
+        foreach ($atividades_cursos as $course_id => $atividades) {
+            foreach ($atividades as $atividade) {
+                if($atividade instanceof report_unasus_db_activity) {
+                    $coursemodule = $atividade->cm_id;
+                    $query_atividades_database[$coursemodule] = query_database($coursemodule);
+                }
+            }
+        }
+
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
@@ -285,6 +296,15 @@ class report_atividades_vs_notas extends Factory {
                     }
                 }
 
+                foreach ($query_atividades_database as $activity_id => $atividades) {
+                    foreach ($atividades as $user){
+                        if ($user->userid == $id_aluno){
+                            $type = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                            $lista_atividades[] = new dado_atividades_vs_notas($type, $activity_id);
+                        }
+                    }
+                }
+
                 $estudantes[] = $lista_atividades;
 
                 // Unir os alunos de acordo com o polo deles
@@ -319,7 +339,7 @@ class report_atividades_vs_notas extends Factory {
      * @return array
      */
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, true);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
