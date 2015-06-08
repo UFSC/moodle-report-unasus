@@ -370,7 +370,9 @@ function query_database($coursemoduleid) {
 
     $query = "SELECT cmc.userid,
                      cmc.completionstate
-                FROM moodle_unasus_cp.course_modules_completion cmc
+                FROM {user} u
+                JOIN {course_modules_completion} cmc
+                  ON u.id = cmc.userid
                WHERE coursemoduleid = :coursemoduleid;
     ";
 

@@ -286,6 +286,8 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
 
+
+
     foreach ($databases as $database) {
         if ($header) {
             $group_array->add($database->course_id, new report_unasus_db_activity($database));
