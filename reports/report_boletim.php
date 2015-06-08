@@ -181,6 +181,16 @@ class report_boletim extends Factory {
                     }
                 }
 
+                foreach ($query_atividades_database as $activity_id => $atividades) {
+                    foreach ($atividades as $user){
+                        if ($user->userid == $id_aluno){
+                            $type = ($user->completionstate == 1) ? dado_boletim::ATIVIDADE_COM_NOTA :
+                                                                    dado_boletim::ATIVIDADE_SEM_NOTA;
+                            $lista_atividades[] = new dado_boletim($type, $activity_id);
+                        }
+                    }
+                }
+
                 $estudantes[] = $lista_atividades;
 
                 // Agrupamento dos estudantes pelo seu polo
@@ -211,7 +221,6 @@ class report_boletim extends Factory {
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
-
             if(isset($atividades[0]->course_name)){
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
