@@ -287,7 +287,7 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     }
 
     foreach ($databases as $database) {
-        $group_array->add($database->course_id, new report_unasus_db_activity($database));
+        $group_array->add($database->cm_id, new report_unasus_db_activity($database));
     }
 
    /* foreach ($scorms as $scorm) {
@@ -456,7 +456,6 @@ function query_database_courses($courses) {
                 JOIN modules m
                   ON (m.id = cm.module AND m.name LIKE 'data')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
-            GROUP BY database_id
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
