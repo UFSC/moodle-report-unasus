@@ -123,6 +123,17 @@ class report_entrega_de_atividades extends Factory {
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
 
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
+
+        foreach ($atividades_cursos as $course_id => $atividades) {
+            foreach ($atividades as $atividade) {
+                if($atividade instanceof report_unasus_db_activity) {
+                    $coursemodule = $atividade->cm_id;
+                    $query_atividades_database[$coursemodule] = query_database($coursemodule);
+                }
+            }
+        }
+
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         // Recupera dados auxiliares
@@ -206,6 +217,16 @@ class report_entrega_de_atividades extends Factory {
                     }
                 }
 
+                foreach ($query_atividades_database as $activity_id => $atividades) {
+                    foreach ($atividades as $user){
+                        if ($user->userid == $id_aluno){
+                            $type = ($user->completionstate == 1) ?  dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO :
+                                                                     dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                            $lista_atividades[] = new dado_entrega_de_atividades($type, $activity_id);
+                        }
+                    }
+                }
+
                 $estudantes[] = $lista_atividades;
                 // Unir os alunos de acordo com o polo deles
                 if ($this->agrupar_relatorios == AGRUPAR_POLOS) {
@@ -228,7 +249,7 @@ class report_entrega_de_atividades extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, true);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
