@@ -93,6 +93,8 @@ class report_boletim extends Factory {
 
         $atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
 
+        $query_atividades_database = array();
+
         foreach ($atividades_cursos as $course_id => $atividades) {
             foreach ($atividades as $atividade) {
                 if($atividade instanceof report_unasus_db_activity) {
@@ -182,10 +184,12 @@ class report_boletim extends Factory {
 
                 /* Como atividades databases não são atividades com nota, é apresentado apenas o item com não se aplica */
 
-                foreach ($query_atividades_database as $activity_id => $atividades) {
-                    foreach ($atividades as $user){
-                        if ($user->userid == $id_aluno){
-                            $lista_atividades[] = new dado_nao_aplicado();
+                if (!empty($query_atividades_database)) {
+                    foreach ($query_atividades_database as $activity_id => $atividades) {
+                        foreach ($atividades as $user){
+                            if ($user->userid == $id_aluno){
+                                $lista_atividades[] = new dado_nao_aplicado();
+                            }
                         }
                     }
                 }
