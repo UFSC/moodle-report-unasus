@@ -197,6 +197,8 @@ class report_atividades_vs_notas extends Factory {
 
         $atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
 
+        $query_atividades_database = array();
+
         foreach ($atividades_cursos as $course_id => $atividades) {
             foreach ($atividades as $atividade) {
                 if($atividade instanceof report_unasus_db_activity) {
@@ -295,12 +297,13 @@ class report_atividades_vs_notas extends Factory {
                         }
                     }
                 }
-
-                foreach ($query_atividades_database as $activity_id => $atividades) {
-                    foreach ($atividades as $user){
-                        if ($user->userid == $id_aluno){
-                            $type = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                            $lista_atividades[] = new dado_atividades_vs_notas($type, $activity_id);
+                if (!empty($query_atividades_database)) {
+                    foreach ($query_atividades_database as $activity_id => $atividades) {
+                        foreach ($atividades as $user){
+                            if ($user->userid == $id_aluno){
+                                $type = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                                $lista_atividades[] = new dado_atividades_vs_notas($type, $activity_id);
+                            }
                         }
                     }
                 }
