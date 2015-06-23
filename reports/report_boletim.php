@@ -88,22 +88,19 @@ class report_boletim extends Factory {
 
         global $DB;
 
-        $query = '';
-        $params = '';
-
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
-
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
-
         $relationship = grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
         $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+
+        $atividade_nota_final = new \StdClass();
 
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             foreach ($this->atividades_cursos as $courseid => $atividades) {
+                array_push($atividades, $atividade_nota_final);
+
                 foreach ($atividades as $atividade) {
 
                     switch (get_class($atividade)) {
@@ -139,11 +136,22 @@ class report_boletim extends Factory {
                                 'grupo' => $grupo->id,
                                 'forumid' => $atividade->id);
                             $query = query_quiz();
+                            break;
+                        default:
+                            $params = array(
+                                'courseid' => $courseid,
+                                'enrol_courseid' => $courseid,
+                                'relationship_id' => $relationship->id,
+                                'cohort_relationship_id' => $cohort_estudantes->id,
+                                'grupo' => $grupo->id);
+                            $query = query_nota_final();
+                            break;
                     }
 
                     $result = $DB->get_records_sql($query, $params);
 
                     foreach ($result as $r){
+                        // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
@@ -158,26 +166,22 @@ class report_boletim extends Factory {
                         } else {
                             $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
                         }
-                        #fixme: Falta inserir atividade com nota final
 
-                        $lista_atividades[$r->userid][$atividade->id] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                        if (isset($atividade->id)) {
+                            $lista_atividades[$r->userid][$atividade->id] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                        } else {
+                            $lista_atividades[$r->userid]['nota_final'] = new dado_nota_final($tipo, $nota, $grademax);
+                        }
                     }
                 }
             }
         }
 
-        echo '<pre>';
-        die(print_r($lista_atividades));
-
         $dados = array();
-
-        $estudantes[] = $lista_atividades;
-
-        $lista_atividades = null;
 
         // Ou pelo grupo de tutoria do estudante
         if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
+            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $lista_atividades;
         }
 
         return $dados;
