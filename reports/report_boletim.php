@@ -85,13 +85,16 @@ class report_boletim extends Factory {
     }
 
     public function get_dados() {
+
+        global $DB;
+
         // Consultas
         $query_atividades = query_atividades();
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
         $query_nota_final = query_nota_final();
 
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
+        /*$atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
 
         $query_atividades_database = array();
 
@@ -102,7 +105,7 @@ class report_boletim extends Factory {
                     $query_atividades_database[$coursemodule] = query_database($coursemodule);
                 }
             }
-        }
+        }*/
 
         // Recupera dados auxiliares
         $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
@@ -111,11 +114,84 @@ class report_boletim extends Factory {
 
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
+        $relationship = grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
+        $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+
+        $associativo_atividades = array();
+
+        // Para cada grupo de tutoria
+        foreach ($grupos as $grupo) {
+            $group_array_do_grupo = new GroupArray();
+
+            foreach ($this->atividades_cursos as $courseid => $atividades) {
+                foreach ($atividades as $atividade) {
+
+                    /*switch (get_class($atividade)) {
+                        case 'report_unasus_assign_activity':
+                            $params = array(
+                                'courseid' => $courseid,
+                                'enrol_courseid' => $courseid,
+                                'assignmentid' => $atividade->id,
+                                'assignmentid2' => $atividade->id,
+                                'relationship_id' => $relationship->id,
+                                'cohort_relationship_id' => $cohort_estudantes->id,
+                                'grupo' => $grupo->id);
+                            $query = $query_atividades;
+                            break;
+                        default:
+                            echo 'forum or other';
+                    }
+
+                    $result = $DB->get_records_sql($query, $params);*/
+
+                    if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades)) {
+                        $params = array(
+                            'courseid' => $courseid,
+                            'enrol_courseid' => $courseid,
+                            'assignmentid' => $atividade->id,
+                            'assignmentid2' => $atividade->id,
+                            'relationship_id' => $relationship->id,
+                            'cohort_relationship_id' => $cohort_estudantes->id,
+                            'grupo' => $grupo->id);
+
+                        $result = $DB->get_records_sql($query_atividades, $params);
+
+                        foreach ($result as $r){
+                            $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
+
+                            $nota = null;
+                            $grademax = (isset($r->grademax)) ? $r->grademax : 100;
+
+                            //Atividade tem nota
+                            if (isset($r->grade)) {
+                                $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
+                                $nota = $r->grade;
+                            } else {
+                                $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
+                            }
+                            #fixme: Falta inserir atividade com nota final
+
+                            $lista_atividades[$r->userid][$atividade->id] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                        }
+                    }
+                }
+            }
+        }
+
+        echo '<pre>';
+        die(print_r($lista_atividades));
+
+
+
+
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_nota_final);
+
+        /*echo '<pre>';
+        die(print_r($associativo_atividades));*/
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -152,7 +228,7 @@ class report_boletim extends Factory {
                     }
                 }
 
-                $tam_lista_atividades = sizeof($lista_atividades);
+               /* $tam_lista_atividades = sizeof($lista_atividades);
                 $lti_query_object = new LtiPortfolioQuery();
 
                 // MONTAGEM DA NOTA DO tcc
@@ -180,11 +256,11 @@ class report_boletim extends Factory {
                             }
                         }
                     }
-                }
+                }*/
 
                 /* Como atividades databases não são atividades com nota, é apresentado apenas o item com não se aplica */
 
-                if (!empty($query_atividades_database)) {
+                /*if (!empty($query_atividades_database)) {
                     foreach ($query_atividades_database as $activity_id => $atividades) {
                         foreach ($atividades as $user){
                             if ($user->userid == $id_aluno){
@@ -192,7 +268,7 @@ class report_boletim extends Factory {
                             }
                         }
                     }
-                }
+                }*/
 
                 $estudantes[] = $lista_atividades;
 
@@ -209,6 +285,9 @@ class report_boletim extends Factory {
 
                 $lista_atividades = null;
             }
+
+            /*echo '<pre>';
+            die(print_r($estudantes));*/
 
             // Ou pelo grupo de tutoria do estudante
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
