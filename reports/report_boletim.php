@@ -96,8 +96,11 @@ class report_boletim extends Factory {
 
         $atividade_nota_final = new \StdClass();
 
+        $dados = array();
+
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
+            $estudantes = array();
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
 
@@ -173,15 +176,17 @@ class report_boletim extends Factory {
                             $lista_atividades[$r->userid]['nota_final'] = new dado_nota_final($tipo, $nota, $grademax);
                         }
                     }
+
+                    // Auxiliar para agrupar tutores corretamente
+                    $estudantes = $lista_atividades;
                 }
             }
-        }
 
-        $dados = array();
+            if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
+                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
+            }
 
-        // Ou pelo grupo de tutoria do estudante
-        if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $lista_atividades;
+            $lista_atividades = null;
         }
 
         return $dados;
