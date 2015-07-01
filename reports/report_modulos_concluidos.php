@@ -33,17 +33,11 @@ class report_modulos_concluidos extends Factory {
 
     public function get_dados(){
 
-        global $DB;
-
         $modulos = $this->modulos_selecionados;
 
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
-        $relationship = grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
-        $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
-
-        $course_id = $this->get_curso_moodle();
 
         $dados = array();
 
@@ -54,50 +48,12 @@ class report_modulos_concluidos extends Factory {
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 foreach ($atividades as $atividade) {
 
-                    switch (get_class($atividade)) {
-                        case 'report_unasus_assign_activity':
-                            $params = array(
-                                'courseid' => $courseid,
-                                'enrol_courseid' => $courseid,
-                                'assignmentid' => $atividade->id,
-                                'assignmentid2' => $atividade->id,
-                                'relationship_id' => $relationship->id,
-                                'cohort_relationship_id' => $cohort_estudantes->id,
-                                'grupo' => $grupo->id);
-                            $query = query_atividades();
-                            break;
-                        case 'report_unasus_forum_activity':
-                            $params = array(
-                                'courseid' => $courseid,
-                                'enrol_courseid' => $courseid,
-                                'relationship_id' => $relationship->id,
-                                'cohort_relationship_id' => $cohort_estudantes->id,
-                                'grupo' => $grupo->id,
-                                'forumid' => $atividade->id);
-                            $query = query_postagens_forum();
-                            break;
-                        case 'report_unasus_quiz_activity':
-                            $params = array(
-                                'assignmentid' => $atividade->id,
-                                'assignmentid2' => $atividade->id,
-                                'courseid' => $courseid,
-                                'enrol_courseid' => $courseid,
-                                'relationship_id' => $relationship->id,
-                                'cohort_relationship_id' => $cohort_estudantes->id,
-                                'grupo' => $grupo->id,
-                                'forumid' => $atividade->id);
-                            $query = query_quiz();
-                            break;
-                        default:
-                            break;
-                    }
-
-                    $result = $DB->get_records_sql($query, $params);
+                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
-                            $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $course_id, $r->polo, $r->cohort);
+                            $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
                         $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);

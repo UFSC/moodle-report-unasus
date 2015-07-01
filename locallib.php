@@ -926,3 +926,51 @@ function dot_chart_com_tutores_com_acesso($dados) {
     }
     return false;
 }
+
+function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report){
+
+    global $DB;
+
+    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
+    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+
+    switch ($nome_atividade) {
+        case 'report_unasus_assign_activity':
+            $params = array(
+                'courseid' => $courseid,
+                'enrol_courseid' => $courseid,
+                'assignmentid' => $atividade->id,
+                'assignmentid2' => $atividade->id,
+                'relationship_id' => $relationship->id,
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'grupo' => $grupo->id);
+            $query = query_atividades();
+            break;
+        case 'report_unasus_forum_activity':
+            $params = array(
+                'courseid' => $courseid,
+                'enrol_courseid' => $courseid,
+                'relationship_id' => $relationship->id,
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'grupo' => $grupo->id,
+                'forumid' => $atividade->id);
+            $query = query_postagens_forum();
+            break;
+        case 'report_unasus_quiz_activity':
+            $params = array(
+                'assignmentid' => $atividade->id,
+                'assignmentid2' => $atividade->id,
+                'courseid' => $courseid,
+                'enrol_courseid' => $courseid,
+                'relationship_id' => $relationship->id,
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'grupo' => $grupo->id,
+                'forumid' => $atividade->id);
+            $query = query_quiz();
+            break;
+        default:
+            break;
+    }
+
+    return $DB->get_records_sql($query, $params);
+}
