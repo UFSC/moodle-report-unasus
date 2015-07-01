@@ -100,15 +100,15 @@ class report_modulos_concluidos extends Factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $course_id, $r->polo, $r->cohort);
                         }
 
-                        $full_grade[$r->userid] = grade_get_course_grade($r->userid, $course_id);
+                        $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
 
                         if(isset($full_grade[$r->userid])){
                             $final_grade = $full_grade[$r->userid]->str_grade;
                         } else if(empty($final_grade)){
                             $final_grade = 'Não há atividades avaliativas para o módulo';
                         }
-                        if (!array_key_exists($course_id, $lista_atividades)) {
-                            $lista_atividades[$r->userid][$course_id] = new dado_modulos_concluidos(sizeof($modulos), $final_grade, $atividade);
+                        if (!array_key_exists($atividade->course_id, $lista_atividades)) {
+                            $lista_atividades[$r->userid][$atividade->course_id] = new dado_modulos_concluidos(sizeof($modulos), $final_grade, $atividade);
                         }
                     }
 
