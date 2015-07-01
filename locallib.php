@@ -927,7 +927,7 @@ function dot_chart_com_tutores_com_acesso($dados) {
     return false;
 }
 
-function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report){
+function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false){
 
     global $DB;
 
@@ -969,6 +969,16 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report)
             $query = query_quiz();
             break;
         default:
+            if($is_boletim){ //Nota final para relatório boletim
+                $params = array(
+                    'courseid' => $courseid,
+                    'enrol_courseid' => $courseid,
+                    'relationship_id' => $relationship->id,
+                    'cohort_relationship_id' => $cohort_estudantes->id,
+                    'grupo' => $grupo->id);
+                $query = query_nota_final();
+                break;
+            }
             break;
     }
 
