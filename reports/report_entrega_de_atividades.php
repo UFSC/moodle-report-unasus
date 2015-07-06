@@ -118,138 +118,60 @@ class report_entrega_de_atividades extends Factory {
      */
 
     public function get_dados() {
-        // Consultas
-        $query_atividades = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
-
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids());
-
-        $query_atividades_database = array();
-
-        foreach ($atividades_cursos as $course_id => $atividades) {
-            foreach ($atividades as $atividade) {
-                if($atividade instanceof report_unasus_db_activity) {
-                    $coursemodule = $atividade->cm_id;
-                    $query_atividades_database[$coursemodule] = query_database($coursemodule);
-                }
-            }
-        }
-
-        $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
-
-        /*  associativo_atividades[modulo][id_aluno][atividade]
-         *
-         * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
-         */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-                $query_atividades, $query_forum, $query_quiz);
+        $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         $dados = array();
-        foreach ($associativo_atividades as $grupo_id => $array_dados) {
+
+        // Para cada grupo de tutoria
+        foreach ($grupos as $grupo) {
             $estudantes = array();
-            foreach ($array_dados as $id_aluno => $aluno) {
-                $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
+            foreach ($this->atividades_cursos as $courseid => $atividades) {
+                foreach ($atividades as $atividade) {
+                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
-                foreach ($aluno as $atividade) {
-                    /** @var report_unasus_data $atividade */
-                    $atraso = null;
-
-                    // Não se aplica para este estudante
-                    if (is_a($atividade, 'report_unasus_data_empty')) {
-                        $lista_atividades[] = new dado_nao_aplicado();
-                        continue;
-                    }
-
-                    // Se a atividade não foi entregue
-                    if (!$atividade->has_submitted()) {
-
-                        if (!$atividade->source_activity->has_deadline()) {
-                            // E não tem entrega prazo
-                            $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                        } elseif ($atividade->is_a_future_due()) {
-                            //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
-                            $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
-                        } else {
-                            // Atividade nao entregue e atrasada
-                            $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
-                        }
-                    } else {
-
-                        // Entrega atrasada
-                        if ($atividade->is_submission_due()) {
-                            $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                        } else {
-                            $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
+                    foreach ($result as $r){
+                        // Evita que o objeto do estudante seja criado em toda iteração do loop
+                        if (!(isset($lista_atividades[$r->userid][0]))) {
+                            $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        $atraso = $atividade->submission_due_days();
-                    }
-                    $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->source_activity->id, $atraso);
-                }
+                        $atraso = null;
 
-                $tam_lista_atividades = sizeof($lista_atividades);
-                $lti_query_object = new LtiPortfolioQuery();
+                        // Se a atividade não foi entregue
+                        if (!$atividade->has_submitted()) {
 
-                foreach($grupos as $grupo){
-                    foreach ($this->atividades_cursos as $courseid => $atividades) {
-                        foreach ($atividades as $activity) {
-
-                            if (is_a($activity, 'report_unasus_lti_activity') && sizeof($lista_atividades) <= $tam_lista_atividades) {
-                                $result = $lti_query_object->get_report_data($activity, $grupo->id);
-
-                                foreach ($result as $l) {
-                                    $grade = null;
-
-                                    if(isset($l->grade_tcc)){
-                                        $type = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
-                                    } else {
-                                        $type = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                                    }
-                                }
-                                $lista_atividades[] = new dado_entrega_de_atividades($type, $activity->id);
-                                break;
+                            if (!$atividade->source_activity->has_deadline()) {
+                                // E não tem entrega prazo
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                            } elseif ($atividade->is_a_future_due()) {
+                                //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
+                            } else {
+                                // Atividade nao entregue e atrasada
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
                             }
-                        }
-                    }
-                }
+                        } else {
 
-                if (!empty($query_atividades_database)) {
-                    foreach ($query_atividades_database as $activity_id => $atividades) {
-                        foreach ($atividades as $user){
-                            if ($user->userid == $id_aluno){
-                                $type = ($user->completionstate == 1) ?  dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO :
-                                    dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                                $lista_atividades[] = new dado_entrega_de_atividades($type, $activity_id);
+                            // Entrega atrasada
+                            if ($atividade->is_submission_due()) {
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                            } else {
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
                             }
+
+                            $atraso = $atividade->submission_due_days();
                         }
+                        $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->source_activity->id, $atraso);
+
                     }
                 }
-
-                $estudantes[] = $lista_atividades;
-                // Unir os alunos de acordo com o polo deles
-                if ($this->agrupar_relatorios == AGRUPAR_POLOS) {
-                    $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
-                }
-                // Unir os alunos de acordo com o cohort deles
-                if ($this->agrupar_relatorios == AGRUPAR_COHORTS) {
-                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
-                    $dados[$key][] = $lista_atividades;
-                }
-                $lista_atividades = null;
-            }
-            // Ou unir os alunos de acordo com o tutor dele
-            if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
             }
         }
 
-        return ($dados);
+
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
