@@ -365,18 +365,25 @@ function query_atividades() {
     ";
 }
 
-function query_database($coursemoduleid) {
-    global $DB;
+function query_database() {
 
-    $query = "SELECT cmc.userid,
-                     cmc.completionstate
-                FROM {user} u
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   cmc.userid,
+                   cmc.completionstate
+                FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
                 JOIN {course_modules_completion} cmc
                   ON u.id = cmc.userid
                WHERE coursemoduleid = :coursemoduleid;
     ";
 
-    return $DB->get_records_sql($query, array('coursemoduleid' => $coursemoduleid));
 }
 
 /**

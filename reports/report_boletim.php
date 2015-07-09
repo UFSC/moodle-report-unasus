@@ -97,8 +97,12 @@ class report_boletim extends Factory {
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             $estudantes = array();
+
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
+
+                /*echo '<pre>';
+                die(print_r($atividades));*/
 
                 foreach ($atividades as $atividade) {
 
@@ -117,6 +121,8 @@ class report_boletim extends Factory {
                         if (isset($r->grade)) {
                             $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
                             $nota = $r->grade;
+                        } else if(isset($r->completionstate)) {
+                            $tipo = $r->completionstate;
                         } else {
                             $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
                         }
@@ -127,6 +133,9 @@ class report_boletim extends Factory {
                             $lista_atividades[$r->userid]['nota_final'] = new dado_nota_final($tipo, $nota, $grademax);
                         }
                     }
+
+                    /*echo '<pre>';
+                    die(print_r($atividades));*/
 
                     // Auxiliar para agrupar tutores corretamente
                     $estudantes = $lista_atividades;
@@ -139,6 +148,9 @@ class report_boletim extends Factory {
 
             $lista_atividades = null;
         }
+
+        echo '<pre>';
+        die(print_r($dados));
 
         return $dados;
     }
