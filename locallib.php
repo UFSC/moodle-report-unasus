@@ -272,6 +272,9 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
 
 //    $scorms = query_scorm_courses($courses);
 
+    /*echo '<pre>';
+    die(print_r($databases));*/
+
     $group_array = new GroupArray();
 
     foreach ($assigns as $atividade) {
@@ -285,8 +288,6 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     foreach ($quizes as $quiz) {
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
     }
-
-
 
     foreach ($databases as $database) {
         if ($header) {
@@ -325,6 +326,8 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     if (empty($atividades)) {
         print_error('no_valid_activity_found_error', 'report_unasus');
     }
+
+
 
     return $atividades;
 }
@@ -967,6 +970,17 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
                 'grupo' => $grupo->id,
                 'forumid' => $atividade->id);
             $query = query_quiz();
+            break;
+        case 'report_unasus_db_activity':
+            $params = array(
+                'courseid' => $courseid,
+                'enrol_courseid' => $courseid,
+                'relationship_id' => $relationship->id,
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'grupo' => $grupo->id,
+                'coursemoduleid' => $atividade->cm_id
+            );
+            $query = query_database();
             break;
         default:
             if($is_boletim){ //Nota final para relatório boletim
