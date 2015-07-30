@@ -375,7 +375,8 @@ function query_database() {
                    u.polo,
                    u.cohort,
                    cmc.userid,
-                   cmc.completionstate
+                   cmc.completionstate,
+                   'db_activity' as name_activity
                 FROM (
 
                     {$alunos_grupo_tutoria}
