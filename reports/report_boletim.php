@@ -101,9 +101,6 @@ class report_boletim extends Factory {
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
 
-                /*echo '<pre>';
-                die(print_r($atividades));*/
-
                 foreach ($atividades as $atividade) {
 
                     $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
@@ -134,9 +131,6 @@ class report_boletim extends Factory {
                         }
                     }
 
-                    /*echo '<pre>';
-                    die(print_r($atividades));*/
-
                     // Auxiliar para agrupar tutores corretamente
                     $estudantes = $lista_atividades;
                 }
@@ -148,9 +142,6 @@ class report_boletim extends Factory {
 
             $lista_atividades = null;
         }
-
-        echo '<pre>';
-        die(print_r($dados));
 
         return $dados;
     }
