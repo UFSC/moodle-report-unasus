@@ -137,7 +137,8 @@ function query_postagens_forum() {
                    gg.timemodified,
                    fp.itemid,
                    userid_posts IS NOT NULL AS has_post,
-                   gg.grademax
+                   gg.grademax,
+                   'forum_activity' as name_activity
               FROM (
 
                     {$alunos_grupo_tutoria}
@@ -338,7 +339,8 @@ function query_atividades() {
                    sub.timemodified AS submission_modified,
                    gr.timemodified AS grade_modified,
                    gr.timecreated AS grade_created,
-                   sub.status
+                   sub.status,
+                   'assign_activity' as name_activity
               FROM (
 
                       {$alunos_grupo_tutoria}
@@ -407,7 +409,8 @@ function query_nota_final() {
                    gradeitemid AS gradeitemid,
                    courseid,
                    finalgrade AS grade,
-                   grademax
+                   grademax,
+                   'nota_final_activity' as name_activity
               FROM (
 
                     {$alunos_grupo_tutoria}
@@ -458,7 +461,8 @@ function query_quiz() {
                    qg.grade,
                    gi.grademax,
                    qg.timemodified AS grade_date,
-                   qa.timefinish AS submission_date
+                   qa.timefinish AS submission_date,
+                   'quiz_activity' as name_activity
               FROM (
 
                     {$alunos_grupo_tutoria}

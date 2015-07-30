@@ -111,12 +111,6 @@ class report_entrega_de_atividades extends Factory {
         return ($dados);
     }
 
-    /**
-     * Geração de dados dos tutores e seus respectivos alunos.
-     *
-     * @return array Array[tutores][aluno][unasus_data]
-     */
-
     public function get_dados() {
 
         // Recupera dados auxiliares
@@ -133,6 +127,19 @@ class report_entrega_de_atividades extends Factory {
                     $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
                     foreach ($result as $r){
+
+                        switch ($r->name_activity){
+                            case 'assign_activity':
+                                $data = new report_unasus_data_activity($atividade, $r);
+                                break;
+                            case 'forum_activity':
+                                $data = new report_unasus_data_forum($atividade, $r);
+                                break;
+                            case 'quiz_activity':
+                                $data = new report_unasus_data_quiz($atividade, $r);
+                                break;
+                        }
+
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
@@ -141,12 +148,12 @@ class report_entrega_de_atividades extends Factory {
                         $atraso = null;
 
                         // Se a atividade não foi entregue
-                        if (!$atividade->has_submitted()) {
+                        if (!$data->has_submitted()) {
 
-                            if (!$atividade->source_activity->has_deadline()) {
+                            if (!$data->source_activity->has_deadline()) {
                                 // E não tem entrega prazo
                                 $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                            } elseif ($atividade->is_a_future_due()) {
+                            } elseif ($data->is_a_future_due()) {
                                 //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
                                 $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
                             } else {
@@ -156,22 +163,32 @@ class report_entrega_de_atividades extends Factory {
                         } else {
 
                             // Entrega atrasada
-                            if ($atividade->is_submission_due()) {
+                            if ($data->is_submission_due()) {
                                 $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
                             } else {
                                 $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
                             }
 
-                            $atraso = $atividade->submission_due_days();
+                            $atraso = $data->submission_due_days();
                         }
-                        $lista_atividades[] = new dado_entrega_de_atividades($tipo, $atividade->source_activity->id, $atraso);
+                        $lista_atividades[$r->userid][$atividade->id] = new dado_entrega_de_atividades($tipo, $atividade->id, $atraso);
+                    }
 
+                    // Auxiliar para agrupar tutores corretamente
+                    if(!empty($lista_atividades)){
+                        $estudantes = $lista_atividades;
                     }
                 }
             }
+
+            if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
+                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
+            }
+
+            $lista_atividades = null;
         }
 
-
+        return $dados;
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
