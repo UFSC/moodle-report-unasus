@@ -384,7 +384,8 @@ function query_database() {
                    ) u
                 JOIN {course_modules_completion} cmc
                   ON u.id = cmc.userid
-               WHERE coursemoduleid = :coursemoduleid;
+               WHERE coursemoduleid = :coursemoduleid
+               ORDER BY u.firstname;
     ";
 
 }
