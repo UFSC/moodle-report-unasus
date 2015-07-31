@@ -69,7 +69,9 @@ class report_modulos_concluidos extends Factory {
                     }
 
                     // Auxiliar para agrupar tutores corretamente
-                    $estudantes = $lista_atividades;
+                    if(!empty($lista_atividades)){
+                        $estudantes = $lista_atividades;
+                    }
                 }
             }
 

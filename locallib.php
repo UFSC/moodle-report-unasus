@@ -258,7 +258,7 @@ function get_agrupamentos_membros($courses) {
  * @throws Exception
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $header = false) {
+function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
@@ -268,12 +268,7 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     $assigns = query_assign_courses($courses);
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
-    $databases = $header ? query_database_courses_h($courses) : query_database_courses($courses);
-
-//    $scorms = query_scorm_courses($courses);
-
-    /*echo '<pre>';
-    die(print_r($databases));*/
+    $databases = query_database_courses($courses);
 
     $group_array = new GroupArray();
 
@@ -290,11 +285,7 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     }
 
     foreach ($databases as $database) {
-        if ($header) {
-            $group_array->add($database->course_id, new report_unasus_db_activity($database));
-        } else {
-            $group_array->add($database->cm_id, new report_unasus_db_activity($database));
-        }
+        $group_array->add($database->course_id, new report_unasus_db_activity($database));
     }
 
    /* foreach ($scorms as $scorm) {
@@ -446,31 +437,6 @@ function query_quiz_courses($courses) {
 }
 
 function query_database_courses($courses) {
-    global $DB;
-
-    $string_courses = get_modulos_validos($courses);
-
-    $query = "SELECT d.id AS database_id,
-                     d.name AS database_name,
-	                 cm.completionexpected,
-	                 c.id AS course_id,
-	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-	                 cm.groupingid AS grouping_id,
-	                 cm.id AS cm_id
-                FROM course AS c
-           LEFT JOIN data AS d
-                  ON (c.id = d.course AND c.id != :siteid)
-                JOIN course_modules cm
-                  ON (cm.course = c.id)
-                JOIN modules m
-                  ON (m.id = cm.module AND m.name LIKE 'data')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
-            ORDER BY c.sortorder";
-
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
-}
-
-function query_database_courses_h($courses) {
     global $DB;
 
     $string_courses = get_modulos_validos($courses);
@@ -742,6 +708,13 @@ class GroupArray {
             $this->data[$key] = array();
             array_push($this->data[$key], $value);
         }
+    }
+
+    function add_index($key, $index, $value) {
+        if (!array_key_exists($key, $this->data)) {
+            $this->data[$key][$index] = array();
+        }
+        array_push($this->data[$key][$index], $value);
     }
 
     function get($key) {

@@ -124,10 +124,10 @@ class report_boletim extends Factory {
                             $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
                         }
 
-                        if (isset($atividade->id)) {
+                        if ($r->name_activity == 'nota_final_activity') {
+                            $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
+                        } else if (!get_class($atividade) == 'report_unasus_db_activity') {
                             $lista_atividades[$r->userid][$atividade->id] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
-                        } else {
-                            $lista_atividades[$r->userid]['nota_final'] = new dado_nota_final($tipo, $nota, $grademax);
                         }
                     }
 
@@ -147,14 +147,19 @@ class report_boletim extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, true);
+
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
             if(isset($atividades[0]->course_name)){
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
-                $header[$course_link] = $atividades;
+                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130) { // Módulo de Controle Acadêmico só apresenta média final pois não possui atividades com nota
+                    $header[$course_link][0] = end($atividades);
+                } else {
+                    $header[$course_link] = $atividades;
+                }
             }
         }
 
