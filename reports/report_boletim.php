@@ -126,8 +126,8 @@ class report_boletim extends Factory {
 
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
-                        } else if (!get_class($atividade) == 'report_unasus_db_activity') {
-                            $lista_atividades[$r->userid][$atividade->id] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                        } else if (!($atividade->course_id ==  131 || $atividade->course_id ==  129 || $atividade->course_id ==  130)) {
+                            $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
                         }
                     }
 
@@ -155,7 +155,8 @@ class report_boletim extends Factory {
             if(isset($atividades[0]->course_name)){
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
-                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130) { // Módulo de Controle Acadêmico só apresenta média final pois não possui atividades com nota
+                // Módulo de 'Controle Acadêmico', 'Ambiente de Tutoria' e 'Apresentação do Curso' só apresentam média final pois não possuem atividades com nota
+                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130) {
                     $header[$course_link][0] = end($atividades);
                 } else {
                     $header[$course_link] = $atividades;
