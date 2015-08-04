@@ -41,14 +41,21 @@ class report_modulos_concluidos extends Factory {
 
         $dados = array();
 
+        $atividade_nota_final = new \StdClass();
+
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             $estudantes = array();
 
             foreach ($this->atividades_cursos as $courseid => $atividades) {
+
+                array_push($atividades, $atividade_nota_final);
+
+                $database_courses = ($courseid == 129 || $courseid == 130 || $courseid == 131);
+
                 foreach ($atividades as $atividade) {
 
-                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
+                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
@@ -56,15 +63,28 @@ class report_modulos_concluidos extends Factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
+                        if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id) && ($database_courses)){
+                            $nota = null;
+                            if (isset($r->grade)) {
+                                $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO;
+                                $nota = $r->grade;
+                            } else {
+                                $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                            }
 
-                        if(isset($full_grade[$r->userid])){
-                            $final_grade = $full_grade[$r->userid]->str_grade;
-                        } else if(empty($final_grade)){
-                            $final_grade = 'Não há atividades avaliativas para o módulo';
-                        }
-                        if (!array_key_exists($atividade->course_id, $lista_atividades)) {
-                            $lista_atividades[$r->userid][$atividade->course_id] = new dado_modulos_concluidos(sizeof($modulos), $final_grade, $atividade);
+                            $lista_atividades[$r->userid][] = new dado_modulos_concluidos(sizeof($modulos), $nota, $atividade);
+
+                        } else if ( !($database_courses) && isset($atividade->course_id)) {
+                            $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
+
+                            if(isset($full_grade[$r->userid])){
+                                $final_grade = $full_grade[$r->userid]->str_grade;
+                            } else if(empty($final_grade)){
+                                $final_grade = 'Não há atividades avaliativas para o módulo';
+                            }
+                            if (!array_key_exists($atividade->course_id, $lista_atividades)) {
+                                $lista_atividades[$r->userid][$atividade->course_id] = new dado_modulos_concluidos(sizeof($modulos), $final_grade, $atividade);
+                            }
                         }
                     }
 
