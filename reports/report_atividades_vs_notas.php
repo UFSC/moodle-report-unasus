@@ -186,13 +186,18 @@ class report_atividades_vs_notas extends Factory {
         $dados = array();
         $atraso = 0;
 
+        $atividade_nota_final = new \StdClass();
+
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             $estudantes = array();
             foreach ($this->atividades_cursos as $courseid => $atividades) {
+                array_push($atividades, $atividade_nota_final);
+
+                $database_courses = ($courseid == 129 || $courseid == 130 || $courseid == 131);
 
                 foreach ($atividades as $atividade) {
-                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
+                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
                     foreach ($result as $r) {
 
@@ -206,51 +211,66 @@ class report_atividades_vs_notas extends Factory {
                             case 'quiz_activity':
                                 $data = new report_unasus_data_quiz($atividade, $r);
                                 break;
-                            case 'db_activity':
-                                $data = new report_unasus_data_empty($atividade, $r);
-                                break;
                         }
 
-                        // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        //Se atividade não tem data de entrega, não tem entrega e nem nota
-                        if (!$atividade->has_deadline() && !$data->has_submitted() && !$data->has_grade()) {
-                            $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                        } else {
+                        if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id)
+                           && ($database_courses)){
 
-                            //Atividade pro futuro
-                            if ($data->is_a_future_due()) {
-                                $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
+                            $nota = null;
+
+                            if (isset($r->grade)) {
+                                $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO;
+                                $nota = $r->grade;
+                            } else {
+                                $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             }
 
-                            //Entrega atrasada
-                            if ($data->is_submission_due()) {
-                                $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
-                            }
+                            $lista_atividades[$r->userid][] = new dado_atividades_vs_notas($tipo, 0, $nota);
 
-                            //Atividade entregue e necessita de nota
-                            if ($data->is_grade_needed()) {
-                                $atraso = $data->grade_due_days();
-                                $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
-                            }
+                        } else if ( !($database_courses)) {
 
-                            //Atividade tem nota
-                            if ($data->has_grade()) {
-                                $atraso = $data->grade_due_days();
+                            //Se atividade não tem data de entrega, não tem entrega e nem nota
+                            if (!$data->has_submitted() && !$data->has_grade()) {
+                                $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                            } else {
 
-                                //Verifica se a correcao foi dada com ou sem atraso
-                                if ($atraso > get_prazo_avaliacao()) {
-                                    $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO;
-                                } else {
-                                    $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO;
+                                //Atividade pro futuro
+                                if ($data->is_a_future_due()) {
+                                    $tipo = dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA;
+                                }
+
+                                //Entrega atrasada
+                                if ($data->is_submission_due()) {
+                                    $tipo = dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE;
+                                }
+
+                                //Atividade entregue e necessita de nota
+                                if ($data->is_grade_needed()) {
+                                    $atraso = $data->grade_due_days();
+                                    $tipo = dado_atividades_vs_notas::CORRECAO_ATRASADA;
+                                }
+
+                                //Atividade tem nota
+                                if ($data->has_grade()) {
+                                    $atraso = $data->grade_due_days();
+
+                                    //Verifica se a correcao foi dada com ou sem atraso
+                                    if ($atraso > get_prazo_avaliacao()) {
+                                        $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO;
+                                    } else {
+                                        $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO;
+                                    }
                                 }
                             }
-                        }
 
-                        $lista_atividades[$r->userid][$atividade->id] = new dado_atividades_vs_notas($tipo, $atividade->id, $data->grade, $atraso);
+                            if(isset($atividade->id)){
+                                $lista_atividades[$r->userid][$atividade->id] = new dado_atividades_vs_notas($tipo, $atividade->id, $data->grade, $atraso);
+                            }
+                        }
                     }
 
                     // Auxiliar para agrupar tutores corretamente
@@ -280,17 +300,28 @@ class report_atividades_vs_notas extends Factory {
      * @return array
      */
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, true);
+
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
-            $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
-            $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
 
-            $header[$course_link] = $atividades;
+            if(isset($atividades[0]->course_name)){
+                $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
+                $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
+                // Módulo de 'Controle Acadêmico', 'Ambiente de Tutoria' e 'Apresentação do Curso' só apresentam média final pois não possuem atividades com nota
+                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130) {
+                    $header[$course_link][] = 'Média Final';
+                } else {
+                    $header[$course_link] = $atividades;
+                }
+            }
         }
 
         foreach ($header as $key => $modulo) {
+            if (!isset($modulo[0]->course_id)){
+                break;
+            }
             $course_id = $modulo[0]->course_id;
 
             if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
