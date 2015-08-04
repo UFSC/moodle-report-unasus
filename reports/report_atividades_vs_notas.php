@@ -217,8 +217,7 @@ class report_atividades_vs_notas extends Factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id)
-                           && ($database_courses)){
+                        if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id) && ($database_courses)){
 
                             $nota = null;
 
