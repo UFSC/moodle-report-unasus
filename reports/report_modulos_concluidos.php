@@ -64,15 +64,14 @@ class report_modulos_concluidos extends Factory {
                         }
 
                         if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id) && ($database_courses)){
-                            $nota = null;
+                            $grade = null;
+
                             if (isset($r->grade)) {
-                                $tipo = dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO;
                                 $nota = $r->grade;
-                            } else {
-                                $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                                $grade = substr($nota, 0, strpos($nota, '.') + 3);
                             }
 
-                            $lista_atividades[$r->userid][] = new dado_modulos_concluidos(sizeof($modulos), $nota, $atividade);
+                            $lista_atividades[$r->userid][] = new dado_modulos_concluidos(sizeof($modulos), $grade, $atividade);
 
                         } else if ( !($database_courses) && isset($atividade->course_id)) {
                             $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
