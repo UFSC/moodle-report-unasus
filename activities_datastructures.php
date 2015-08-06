@@ -533,6 +533,16 @@ class report_unasus_data_quiz extends report_unasus_data {
 
 }
 
+class report_unasus_data_db extends report_unasus_data {
+
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
+        parent::__construct($source_activity);
+
+        $this->userid = $db_model->userid;
+    }
+
+}
+
 class report_unasus_data_lti extends report_unasus_data {
 
     public $status;
