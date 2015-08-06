@@ -79,8 +79,9 @@ class report_atividades_nota_atribuida extends Factory {
         $query_atividades = query_atividades();
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
+        $query_database = query_database();
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz);
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, null, false, $query_database);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
@@ -111,6 +112,8 @@ class report_atividades_nota_atribuida extends Factory {
                             $dado =& $lista_atividade[$grupo_id]['forum_' . $atividade->source_activity->id];
                         } elseif (is_a($atividade, 'report_unasus_data_quiz')) {
                             $dado =& $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id];
+                        } elseif (is_a($atividade, 'report_unasus_data_db')) {
+                            $dado =& $lista_atividade[$grupo_id]['database'.$atividade->source_activity->id];
                         } elseif (is_a($atividade, 'report_unasus_data_lti')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
                         }
@@ -207,6 +210,7 @@ class report_atividades_nota_atribuida extends Factory {
     function get_dados_alunos_atividades_concluidas($associativo_atividade) {
         $somatorio_total_modulo = array();
         $somatorio_total_grupo = array();
+        $alunos_grupo = array();
 
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
             foreach ($array_dados as $dados_aluno) {

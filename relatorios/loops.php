@@ -209,7 +209,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $loop = null, $is_orientacao = false, $query_database) {
+function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $loop = null, $is_orientacao = false, $query_database=null) {
 
     global $DB;
 
