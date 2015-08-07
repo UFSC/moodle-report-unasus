@@ -390,6 +390,47 @@ function query_database() {
 
 }
 
+function query_database_adjusted() {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   gg.databaseid,
+                   gg.grade,
+                   gg.grademax,
+                   gg.itemname,
+                   'db_activity' as name_activity
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN (
+                        SELECT gg.userid,
+                               gg.rawgrade AS grade,
+                               gg.itemid,
+                               d.id as databaseid,
+                               gi.grademax,
+                               gi.itemname
+                          FROM {data} d
+                          JOIN {grade_items} gi
+                            ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                                gi.itemmodule = 'data'  AND gi.iteminstance = d.id)
+                          JOIN {grade_grades} gg
+                            ON (gg.itemid = gi.id)
+                         GROUP BY gg.userid, gg.itemid
+                   ) gg
+               ON (gg.userid = u.id)
+         GROUP BY userid
+         ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
+}
+
+
 /**
  * Query para a nota final dos alunos em um dado modulo
  *
