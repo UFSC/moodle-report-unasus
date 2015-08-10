@@ -940,6 +940,7 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
             break;
         case 'report_unasus_db_activity':
             $params = array(
+                'id_activity' => $atividade->id,
                 'courseid' => $courseid,
                 'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
@@ -947,7 +948,7 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
                 'grupo' => $grupo->id,
                 'coursemoduleid' => $atividade->cm_id
             );
-            $query = query_database();
+            $query = query_database_adjusted();
             break;
         default:
             if($is_boletim){ //Nota final para relatório boletim

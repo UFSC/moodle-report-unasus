@@ -119,18 +119,13 @@ class report_entrega_de_atividades extends Factory {
 
         $dados = array();
 
-        $atividade_nota_final = new \StdClass();
-
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             $estudantes = array();
             foreach ($this->atividades_cursos as $courseid => $atividades) {
-                array_push($atividades, $atividade_nota_final);
-
-                $database_courses = ($courseid == 129 || $courseid == 130 || $courseid == 131);
 
                 foreach ($atividades as $atividade) {
-                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
                     foreach ($result as $r){
 
@@ -144,6 +139,9 @@ class report_entrega_de_atividades extends Factory {
                             case 'quiz_activity':
                                 $data = new report_unasus_data_quiz($atividade, $r);
                                 break;
+                            case 'db_activity':
+                                $data = new report_unasus_data_db($atividade, $r);
+                                break;
                         }
 
                         $atraso = null;
@@ -153,48 +151,31 @@ class report_entrega_de_atividades extends Factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id)
-                            && ($database_courses)){
+                        // Se a atividade não foi entregue
+                        if (!$data->has_submitted()) {
 
-                            $nota = null;
-
-                            if (isset($r->grade)) {
+                            if (!$data->source_activity->has_deadline()) {
+                                // E não tem entrega prazo
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                            } elseif ($data->is_a_future_due()) {
+                                //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
+                            } else {
+                                // Atividade nao entregue e atrasada
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
+                            }
+                        } else {
+                            // Entrega atrasada
+                            if ($data->is_submission_due()) {
+                                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                            } else {
                                 $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
-                            } else {
-                                $tipo = dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             }
 
-                            $lista_atividades[$r->userid][] = new dado_entrega_de_atividades($tipo, 0);
-
-                        } else if ( !($database_courses)) {
-                            // Se a atividade não foi entregue
-                            if (!$data->has_submitted()) {
-
-                                if (!$data->source_activity->has_deadline()) {
-                                    // E não tem entrega prazo
-                                    $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                                } elseif ($data->is_a_future_due()) {
-                                    //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
-                                    $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
-                                } else {
-                                    // Atividade nao entregue e atrasada
-                                    $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
-                                }
-                            } else {
-                                // Entrega atrasada
-                                if ($data->is_submission_due()) {
-                                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
-                                } else {
-                                    $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
-                                }
-
-                                $atraso = $data->submission_due_days();
-                            }
-
-                            if(isset($atividade->id)){
-                                $lista_atividades[$r->userid][$atividade->id] = new dado_entrega_de_atividades($tipo, $atividade->id, $atraso);
-                            }
+                            $atraso = $data->submission_due_days();
                         }
+
+                        $lista_atividades[$r->userid][$atividade->id] = new dado_entrega_de_atividades($tipo, $atividade->id, $atraso);
                     }
 
                     // Auxiliar para agrupar tutores corretamente
@@ -221,8 +202,8 @@ class report_entrega_de_atividades extends Factory {
         foreach ($atividades_cursos as $course_id => $atividades) {
             $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
             $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
-            if($course_id ==  131 || $course_id ==  129 || $course_id ==  130) {
-                $header[$course_link][] = 'Atividades ' . $atividades[0]->course_name;
+            if($course_id == 130) {
+                return $header;
             } else {
                 $header[$course_link] = $atividades;
             }
