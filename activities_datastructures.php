@@ -128,7 +128,7 @@ class report_unasus_db_activity extends report_unasus_activity {
 
     public function __construct($db_model) {
 
-        parent::__construct(true, false);
+        parent::__construct(true, true);
         $this->id = $db_model->database_id;
         $this->name = $db_model->database_name;
         $this->deadline = $db_model->completionexpected;
@@ -539,6 +539,26 @@ class report_unasus_data_db extends report_unasus_data {
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
+        $this->databaseid = $db_model->databaseid;
+        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+            $this->grade = (float) $db_model->grade;
+        }
+        $this->grademax = $db_model->grademax;
+        $this->itemname = $db_model->itemname;
+        $this->submission_date = $db_model->submission_date;
+
+    }
+
+   public function has_grade() {
+        return !is_null($this->grade);
+    }
+
+    public function is_grade_needed() {
+        return $this->source_activity->has_grade;
+    }
+
+    public function has_submitted() {
+        return !is_null($this->submission_date) && $this->has_grade();
     }
 
 }

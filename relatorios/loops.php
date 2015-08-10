@@ -346,6 +346,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     $array_das_atividades['database_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
+                        'id_activity' => $atividade->id,
                         'courseid' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,

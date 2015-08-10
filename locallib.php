@@ -288,10 +288,6 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         $group_array->add($database->course_id, new report_unasus_db_activity($database));
     }
 
-   /* foreach ($scorms as $scorm) {
-        $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm));
-    }*/
-
     // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
     // Nos relatórios de atividades o TCC é tratado apenas como uma atividade.
     if($buscar_lti) {
@@ -317,8 +313,6 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     if (empty($atividades)) {
         print_error('no_valid_activity_found_error', 'report_unasus');
     }
-
-
 
     return $atividades;
 }
