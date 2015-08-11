@@ -399,7 +399,7 @@ function query_database_adjusted() {
                    u.cohort,
                    gg.itemid,
                    d.id AS databaseid,
-                   gg.rawgrade AS grade,
+                   gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
                    gi.timecreated AS submission_date,
