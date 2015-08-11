@@ -456,16 +456,6 @@ function query_database_courses($courses) {
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
-/*function query_scorm_courses($courses) {
-    global $DB;
-
-    $string_courses = get_modulos_validos($courses);
-
-    $query = "";
-
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
-}*/
-
 /**
  * Função para buscar atividades de lti
  *

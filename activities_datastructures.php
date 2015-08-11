@@ -558,7 +558,7 @@ class report_unasus_data_db extends report_unasus_data {
     }
 
     public function has_submitted() {
-        return !is_null($this->submission_date) && $this->has_grade();
+        return $this->submission_date && $this->has_grade() && $this->grade == $this->grademax;
     }
 
 }
