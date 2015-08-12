@@ -150,9 +150,7 @@ class report_unasus_scorm_activity extends report_unasus_activity {
 
     public function __construct($db_model) {
 
-        $has_grade = ((int) $db_model->grade) == 0 ? false : true;
-
-        parent::__construct(true, $has_grade);
+        parent::__construct(true, true);
         $this->id = $db_model->scorm_id;
         $this->name = $db_model->scorm_name;
         $this->deadline = $db_model->completionexpected;
@@ -162,7 +160,7 @@ class report_unasus_scorm_activity extends report_unasus_activity {
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('db', $this->id, $this->course_id, null, IGNORE_MISSING);
+        $cm = get_coursemodule_from_instance('scorm', $this->id, $this->course_id, null, IGNORE_MISSING);
         $scorm_url = new moodle_url('/mod/scorm/view.php', array('id' => $cm->id, 'target' => '_blank'));
         return html_writer::link($scorm_url, $this->name, array('target' => '_blank'));
     }
@@ -562,6 +560,25 @@ class report_unasus_data_db extends report_unasus_data {
     }
 
 }
+
+class report_unasus_data_scorm extends report_unasus_data {
+
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
+        parent::__construct($source_activity);
+
+        $this->userid = $db_model->userid;
+        $this->databaseid = $db_model->databaseid;
+        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+            $this->grade = (float) $db_model->grade;
+        }
+        $this->grademax = $db_model->grademax;
+        $this->itemname = $db_model->itemname;
+        $this->submission_date = $db_model->submission_date;
+
+    }
+
+}
+
 
 class report_unasus_data_lti extends report_unasus_data {
 

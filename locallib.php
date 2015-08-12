@@ -269,6 +269,7 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
     $databases = query_database_courses($courses);
+    $scorms = query_scorm_courses($courses);
 
     $group_array = new GroupArray();
 
@@ -286,6 +287,10 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
 
     foreach ($databases as $database) {
         $group_array->add($database->course_id, new report_unasus_db_activity($database));
+    }
+
+    foreach ($scorms as $scorm) {
+        $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm));
     }
 
     // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
@@ -451,6 +456,32 @@ function query_database_courses($courses) {
                   ON (m.id = cm.module AND m.name LIKE 'data')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
             GROUP BY database_id
+            ORDER BY c.sortorder";
+
+    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+}
+
+function query_scorm_courses($courses) {
+    global $DB;
+
+    $string_courses = get_modulos_validos($courses);
+
+    $query = "SELECT s.id AS scorm_id,
+                     s.name AS scorm_name,
+	                 cm.completionexpected,
+	                 c.id AS course_id,
+	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
+	                 cm.groupingid AS grouping_id,
+	                 cm.id AS cm_id
+                FROM course AS c
+           LEFT JOIN scorm AS s
+                  ON (c.id = s.course AND c.id != :siteid)
+                JOIN course_modules cm
+                  ON (cm.course = c.id)
+                JOIN modules m
+                  ON (m.id = cm.module AND m.name LIKE 'scorm')
+               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+            GROUP BY scorm_id
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -939,6 +970,17 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
                 'coursemoduleid' => $atividade->cm_id
             );
             $query = query_database_adjusted();
+            break;
+        case 'report_unasus_scorm_activity':
+            $params = array(
+                'id_activity' => $atividade->id,
+                'courseid' => $courseid,
+                'enrol_courseid' => $courseid,
+                'relationship_id' => $relationship->id,
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'grupo' => $grupo->id,
+            );
+            $query = query_scorm();
             break;
         default:
             if($is_boletim){ //Nota final para relatório boletim

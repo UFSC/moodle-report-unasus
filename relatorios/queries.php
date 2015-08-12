@@ -423,6 +423,39 @@ function query_database_adjusted() {
 
 }
 
+function query_scorm () {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   s.id AS scormid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gi.timecreated AS submission_date,
+                   'scorm_activity' as name_activity
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN {grade_grades} gg
+                ON gg.userid = u.id
+         LEFT JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'scorm'  AND gg.itemid = gi.id)
+         LEFT JOIN {scorm} s
+                ON gi.iteminstance = s.id
+             WHERE s.id = :id_activity
+          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
+}
+
 
 /**
  * Query para a nota final dos alunos em um dado modulo
