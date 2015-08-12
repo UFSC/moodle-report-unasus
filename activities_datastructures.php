@@ -567,16 +567,26 @@ class report_unasus_data_scorm extends report_unasus_data {
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
-        $this->databaseid = $db_model->databaseid;
+        $this->scormid = $db_model->scormid;
         if (!is_null($db_model->grade) && $db_model->grade != -1) {
             $this->grade = (float) $db_model->grade;
         }
         $this->grademax = $db_model->grademax;
         $this->itemname = $db_model->itemname;
         $this->submission_date = $db_model->submission_date;
-
     }
 
+    public function has_grade() {
+        return !is_null($this->grade);
+    }
+
+    public function is_grade_needed() {
+        return $this->source_activity->has_grade;
+    }
+
+    public function has_submitted() {
+        return $this->submission_date && $this->has_grade() && $this->grade == $this->grademax;
+    }
 }
 
 

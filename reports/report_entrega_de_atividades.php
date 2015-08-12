@@ -142,6 +142,9 @@ class report_entrega_de_atividades extends Factory {
                             case 'db_activity':
                                 $data = new report_unasus_data_db($atividade, $r);
                                 break;
+                            case 'scorm_activity':
+                                $data = new report_unasus_data_scorm($atividade, $r);
+                                break;
                         }
 
                         $atraso = null;

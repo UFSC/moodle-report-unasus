@@ -444,12 +444,11 @@ function query_scorm () {
                    ) u
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u.id
-         LEFT JOIN {grade_items} gi
-                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+              JOIN {grade_items} gi
+                ON (gi.itemtype = 'mod' AND
                     gi.itemmodule = 'scorm'  AND gg.itemid = gi.id)
-         LEFT JOIN {scorm} s
+              JOIN {scorm} s
                 ON gi.iteminstance = s.id
-             WHERE s.id = :id_activity
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";

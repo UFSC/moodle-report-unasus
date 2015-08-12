@@ -118,15 +118,13 @@ class report_boletim extends Factory {
                         if (isset($r->grade)) {
                             $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
                             $nota = $r->grade;
-                        } else if(isset($r->completionstate)) {
-                            $tipo = $r->completionstate;
                         } else {
                             $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
                         }
 
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
-                        } else if (!($atividade->course_id ==  131 || $atividade->course_id ==  129 || $atividade->course_id ==  130)) {
+                        } else if (!($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
                             $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
                         }
                     }
@@ -156,7 +154,7 @@ class report_boletim extends Factory {
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
                 // Módulo de 'Controle Acadêmico', 'Ambiente de Tutoria' e 'Apresentação do Curso' só apresentam média final pois não possuem atividades com nota
-                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130) {
+                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130 || $course_id == 108) {
                     $header[$course_link][0] = end($atividades);
                 } else {
                     $header[$course_link] = $atividades;
