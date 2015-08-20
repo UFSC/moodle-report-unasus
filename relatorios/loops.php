@@ -209,7 +209,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $loop = null, $is_orientacao = false, $query_database=null) {
+function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $loop = null, $is_orientacao = false, $query_database = null, $query_scorm = null) {
 
     global $DB;
 
@@ -370,6 +370,35 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($d->userid, $data);
+                    }
+                } elseif (is_a($atividade, 'report_unasus_scorm_activity') && !empty($query_scorm)) {
+
+                    $array_das_atividades['database_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+
+                    $params = array(
+                        'id_activity' => $atividade->id,
+                        'courseid' => $modulo,
+                        'enrol_courseid' => $modulo,
+                        'relationship_id' => $relationship->id,
+                        'cohort_relationship_id' => $cohort_estudantes->id,
+                        'grupo' => $grupo->id,
+                    );
+
+                    $result = $DB->get_records_sql($query_database, $params);
+
+                    // para cada aluno adiciona a listagem de atividades
+                    foreach ($result as $s) {
+
+                        if (!empty($atividade->grouping) &&
+                            !$report->is_member_of($atividade->grouping, $atividade->course_id, $s->userid)
+                        ) {
+                            $data = new report_unasus_data_empty($atividade, $s);
+                        } else {
+                            $data = new report_unasus_data_scorm($atividade, $s);
+                        }
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($s->userid, $data);
                     }
                 } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
 

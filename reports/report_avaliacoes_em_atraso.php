@@ -79,8 +79,9 @@ class report_avaliacoes_em_atraso extends Factory {
         $query_quiz = query_quiz();
         $query_forum = query_postagens_forum();
         $query_database = query_database_adjusted();
+        $query_scorm = query_scorm();
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, null, false, $query_database);
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, null, false, $query_database, $query_scorm);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
@@ -113,6 +114,9 @@ class report_avaliacoes_em_atraso extends Factory {
 
                         }  elseif (is_a($atividade, 'report_unasus_data_db')) {
                             $dado =& $lista_atividade[$grupo_id]['database_'. $atividade->source_activity->id];
+
+                        }  elseif (is_a($atividade, 'report_unasus_data_scorm')) {
+                            $dado =& $lista_atividade[$grupo_id]['scorm_'. $atividade->source_activity->id];
 
                         }  elseif (is_a($atividade, 'report_unasus_data_lti')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
