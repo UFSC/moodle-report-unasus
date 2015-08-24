@@ -211,6 +211,9 @@ class report_atividades_vs_notas extends Factory {
                             case 'quiz_activity':
                                 $data = new report_unasus_data_quiz($atividade, $r);
                                 break;
+                            case 'scorm_activity':
+                                $data = new report_unasus_data_scorm($atividade, $r);
+                                break;
                         }
 
                         if (!(isset($lista_atividades[$r->userid][0]))) {
