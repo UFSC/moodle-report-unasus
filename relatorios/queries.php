@@ -137,7 +137,8 @@ function query_postagens_forum() {
                    gg.timemodified,
                    fp.itemid,
                    userid_posts IS NOT NULL AS has_post,
-                   gg.grademax
+                   gg.grademax,
+                   'forum_activity' as name_activity
               FROM (
 
                     {$alunos_grupo_tutoria}
@@ -338,7 +339,8 @@ function query_atividades() {
                    sub.timemodified AS submission_modified,
                    gr.timemodified AS grade_modified,
                    gr.timecreated AS grade_created,
-                   sub.status
+                   sub.status,
+                   'assign_activity' as name_activity
               FROM (
 
                       {$alunos_grupo_tutoria}
@@ -365,6 +367,95 @@ function query_atividades() {
     ";
 }
 
+function query_database() {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   cmc.userid,
+                   cmc.completionstate,
+                   'db_activity' as name_activity
+                FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+                JOIN {course_modules_completion} cmc
+                  ON u.id = cmc.userid
+               WHERE coursemoduleid = :coursemoduleid
+               ORDER BY u.firstname;
+    ";
+
+}
+
+function query_database_adjusted() {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   d.id AS databaseid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gi.timecreated AS submission_date,
+                   'db_activity' as name_activity
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN {grade_grades} gg
+                ON gg.userid = u.id
+              JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'data'  AND gg.itemid = gi.id)
+              JOIN {data} d
+                ON gi.iteminstance = d.id
+             WHERE d.id = :id_activity
+          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
+}
+
+function query_scorm () {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   s.id AS scormid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gi.timecreated AS submission_date,
+                   'scorm_activity' as name_activity
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN {grade_grades} gg
+                ON gg.userid = u.id
+              JOIN {grade_items} gi
+                ON (gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'scorm'  AND gg.itemid = gi.id)
+              JOIN {scorm} s
+                ON gi.iteminstance = s.id
+          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
+}
+
+
 /**
  * Query para a nota final dos alunos em um dado modulo
  *
@@ -386,7 +477,8 @@ function query_nota_final() {
                    gradeitemid AS gradeitemid,
                    courseid,
                    finalgrade AS grade,
-                   grademax
+                   grademax,
+                   'nota_final_activity' as name_activity
               FROM (
 
                     {$alunos_grupo_tutoria}
@@ -437,7 +529,8 @@ function query_quiz() {
                    qg.grade,
                    gi.grademax,
                    qg.timemodified AS grade_date,
-                   qa.timefinish AS submission_date
+                   qa.timefinish AS submission_date,
+                   'quiz_activity' as name_activity
               FROM (
 
                     {$alunos_grupo_tutoria}

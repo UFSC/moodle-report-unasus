@@ -85,126 +85,80 @@ class report_boletim extends Factory {
     }
 
     public function get_dados() {
-        // Consultas
-        $query_atividades = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
-        $query_nota_final = query_nota_final();
 
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
-
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
-        /*  associativo_atividades[modulo][id_aluno][atividade]
-         *
-         * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
-         */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_nota_final);
+        $atividade_nota_final = new \StdClass();
 
         $dados = array();
-        foreach ($associativo_atividades as $grupo_id => $array_dados) {
+
+        // Para cada grupo de tutoria
+        foreach ($grupos as $grupo) {
             $estudantes = array();
-            foreach ($array_dados as $id_aluno => $aluno) {
-                // FIXME: se o dado for do tipo 'report_unasus_data_nota_final' não possui 'cohort', corrigir a estrutura para suportar cohort.
-                $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
 
-                foreach ($aluno as $atividade) {
-                    /** @var report_unasus_data $atividade */
-                    $nota = null;
-                    $grademax = (isset($atividade->grademax)) ? $atividade->grademax : 100;
+            foreach ($this->atividades_cursos as $courseid => $atividades) {
+                array_push($atividades, $atividade_nota_final);
 
-                    // Não se aplica para este estudante
-                    if (is_a($atividade, 'report_unasus_data_empty')) {
-                        $lista_atividades[] = new dado_nao_aplicado();
-                        continue;
-                    }
+                foreach ($atividades as $atividade) {
 
-                    //Atividade tem nota
-                    if ($atividade->has_grade()) {
-                        $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
-                        $nota = $atividade->grade;
-                    } else {
-                        $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
-                    }
+                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
-                    /* Modificação do range da nota para 0-100, caso necessário */
+                    foreach ($result as $r){
+                        // Evita que o objeto do estudante seja criado em toda iteração do loop
+                        if (!(isset($lista_atividades[$r->userid][0]))) {
+                            $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
+                        }
 
+                        $nota = null;
+                        $grademax = (isset($r->grademax)) ? $r->grademax : 100;
 
-                    if (is_a($atividade, 'report_unasus_data_nota_final')) {
-                        $lista_atividades[] = new dado_nota_final($tipo, $nota, $grademax);
-                    } else {
-                        $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota, $grademax);
-                    }
-                }
+                        //Atividade tem nota
+                        if (isset($r->grade)) {
+                            $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
+                            $nota = $r->grade;
+                        } else {
+                            $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
+                        }
 
-                $tam_lista_atividades = sizeof($lista_atividades);
-                $lti_query_object = new LtiPortfolioQuery();
-
-                // MONTAGEM DA NOTA DO tcc
-                foreach($grupos as $grupo){
-                    foreach ($this->atividades_cursos as $courseid => $atividades) {
-                        foreach ($atividades as $activity) {
-
-                            // FIXME: no report de boletim deve trazer apenas as ativadades pricipais (moodle) e não os capítulos do TCC
-                            if (is_a($activity, 'report_unasus_lti_activity') && sizeof($lista_atividades) <= $tam_lista_atividades) {
-                                $result = $lti_query_object->get_report_data($activity, $grupo->id);
-
-                                $tcc = $result[$id_aluno];
-                                $grade = null;
-
-                                if(isset($tcc->grade_tcc)){
-                                    $type = dado_boletim::ATIVIDADE_COM_NOTA;
-                                    $grade = $tcc->grade_tcc;
-                                } else {
-                                    $type = dado_boletim::ATIVIDADE_SEM_NOTA;
-                                }
-                                $grademax = (isset($activity->grademax)) ? $activity->grademax : 100;
-
-                                $lista_atividades[] = new dado_boletim($type, $activity->id, $grade, $grademax);
-                                break 3;
-                            }
+                        if ($r->name_activity == 'nota_final_activity') {
+                            $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
+                        } else if (!($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
+                            $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
                         }
                     }
+
+                    // Auxiliar para agrupar tutores corretamente
+                    $estudantes = $lista_atividades;
                 }
-
-                $estudantes[] = $lista_atividades;
-
-                // Agrupamento dos estudantes pelo seu polo
-                if ($this->agrupar_relatorios == AGRUPAR_POLOS) {
-                    $dados[$nomes_polos[$lista_atividades[0]->polo]][] = $lista_atividades;
-                }
-
-                // Unir os alunos de acordo com o cohort deles
-                if ($this->agrupar_relatorios == AGRUPAR_COHORTS) {
-                    $key = isset($lista_atividades[0]->cohort) ? $nomes_cohorts[$lista_atividades[0]->cohort] : get_string('cohort_empty', 'report_unasus');
-                    $dados[$key][] = $lista_atividades;
-                }
-
-                $lista_atividades = null;
             }
 
-            // Ou pelo grupo de tutoria do estudante
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
+                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
             }
+
+            $lista_atividades = null;
         }
 
         return $dados;
     }
 
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
+
         $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
-
             if(isset($atividades[0]->course_name)){
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
-                $header[$course_link] = $atividades;
+                // Módulo de 'Controle Acadêmico', 'Ambiente de Tutoria' e 'Apresentação do Curso' só apresentam média final pois não possuem atividades com nota
+                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130 || $course_id == 108) {
+                    $header[$course_link][0] = end($atividades);
+                } else {
+                    $header[$course_link] = $atividades;
+                }
             }
         }
 

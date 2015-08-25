@@ -915,7 +915,7 @@ class dado_modulos_concluidos extends unasus_data {
     private $atividades_pendentes = array();
 
 
-    function __construct($numero_atividades_modulo, $final_grade, $atividade) {
+    function __construct($numero_atividades_modulo, $final_grade, $atividade, $estado = null) {
         $this->numero_atividades_modulo = $numero_atividades_modulo;
         $this->atividades_nao_realizadas = 0;
         $this->estado = dado_modulos_concluidos::MODULO_CONCLUIDO;
