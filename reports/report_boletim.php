@@ -115,11 +115,11 @@ class report_boletim extends Factory {
                         $grademax = (isset($r->grademax)) ? $r->grademax : 100;
 
                         //Atividade tem nota
-                        if (isset($r->grade)) {
+                        if ( !isset($r->grade) || $r->grade == -1) {
+                            $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
+                        } else {
                             $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
                             $nota = $r->grade;
-                        } else {
-                            $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
                         }
 
                         if ($r->name_activity == 'nota_final_activity') {
