@@ -86,6 +86,8 @@ class report_boletim extends Factory {
 
     public function get_dados() {
 
+        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), get_course_id());
+
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
@@ -98,10 +100,23 @@ class report_boletim extends Factory {
         foreach ($grupos as $grupo) {
             $estudantes = array();
 
+<<<<<<< Updated upstream
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
 
                 foreach ($atividades as $atividade) {
+=======
+                    if (is_a($atividade, 'report_unasus_data_nota_final')) {
+                        $lista_atividades[] = new dado_nota_final($tipo, $nota, $grademax);
+                    } else {
+                        if (! array_search($atividade->source_activity->id, $atividades_config_curso)){
+                            continue;
+                        } else {
+                            $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota, $grademax);
+                        }
+                    }
+                }
+>>>>>>> Stashed changes
 
                     $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 

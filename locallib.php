@@ -918,6 +918,7 @@ function dot_chart_com_tutores_com_acesso($dados) {
     return false;
 }
 
+<<<<<<< Updated upstream
 function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false){
 
     global $DB;
@@ -997,4 +998,10 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
     }
 
     return $DB->get_records_sql($query, $params);
+=======
+function get_activities_config_report($categoryid, $courseid) {
+    global $DB;
+    return $DB->get_records_menu('activities_course_config', array('categoryid' => $categoryid, 'courseid' => $courseid));
+
+>>>>>>> Stashed changes
 }
