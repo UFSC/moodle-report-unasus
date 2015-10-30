@@ -90,9 +90,6 @@ class report_boletim extends Factory {
 
         $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
-        /*echo '<pre>';
-        die(print_r($atividades_config_curso));*/
-
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
@@ -112,9 +109,6 @@ class report_boletim extends Factory {
 
                     $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
-                    /*echo '<pre>';
-                    die(print_r($result));*/
-
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
@@ -131,12 +125,6 @@ class report_boletim extends Factory {
                             $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
                             $nota = $r->grade;
                         }
-
-                        /*echo '<pre>';
-                        print_r($atividade->id);
-                        echo '--;';
-                        echo 'atividade';
-                        die(print_r($atividade->id));*/
 
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
@@ -166,8 +154,6 @@ class report_boletim extends Factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
-
         $atividades_cursos = get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this);
         $header = array();
 
@@ -183,11 +169,6 @@ class report_boletim extends Factory {
                 }
             }
         }
-
-       /* echo '<pre>';
-        print_r($atividades_config_curso);
-        echo '<br>';
-        die(print_r($header));*/
 
         foreach ($header as $key => $modulo) {
             $course_id = $modulo[0]->course_id;

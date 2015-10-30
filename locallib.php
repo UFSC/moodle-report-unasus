@@ -264,6 +264,7 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
         throw new Exception("Falha ao obter as atividades, curso não informado.");
     }
 
+    #fixme: Alterar para parâmetros genéricos de todos cursos
     $atividades_config_curso = get_activities_config_report(75, 257);
 
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
@@ -298,11 +299,15 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     }
 
     foreach ($databases as $database) {
-        $group_array->add($database->course_id, new report_unasus_db_activity($database));
+        if(array_search($database->database_id, $atividades_config_curso)){
+            $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
+        }
     }
 
     foreach ($scorms as $scorm) {
-        $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm));
+        if(array_search($scorm->scorm_id, $atividades_config_curso)){
+            $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
+        }
     }
 
     // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
