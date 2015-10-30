@@ -593,6 +593,9 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $table = $this->default_table($report->get_dados(), $report->get_table_header());
 
+       /* echo '<pre>';
+        die(print_r($report->get_table_header()));*/
+
         $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();

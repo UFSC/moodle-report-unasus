@@ -86,7 +86,12 @@ class report_boletim extends Factory {
 
     public function get_dados() {
 
-        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), get_course_id());
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+
+        /*echo '<pre>';
+        die(print_r($atividades_config_curso));*/
 
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
@@ -100,25 +105,15 @@ class report_boletim extends Factory {
         foreach ($grupos as $grupo) {
             $estudantes = array();
 
-<<<<<<< Updated upstream
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
 
                 foreach ($atividades as $atividade) {
-=======
-                    if (is_a($atividade, 'report_unasus_data_nota_final')) {
-                        $lista_atividades[] = new dado_nota_final($tipo, $nota, $grademax);
-                    } else {
-                        if (! array_search($atividade->source_activity->id, $atividades_config_curso)){
-                            continue;
-                        } else {
-                            $lista_atividades[] = new dado_boletim($tipo, $atividade->source_activity->id, $nota, $grademax);
-                        }
-                    }
-                }
->>>>>>> Stashed changes
 
                     $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+
+                    /*echo '<pre>';
+                    die(print_r($result));*/
 
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
@@ -137,10 +132,18 @@ class report_boletim extends Factory {
                             $nota = $r->grade;
                         }
 
+                        /*echo '<pre>';
+                        print_r($atividade->id);
+                        echo '--;';
+                        echo 'atividade';
+                        die(print_r($atividade->id));*/
+
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
                         } else if (!($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
-                            $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                            if (array_search($atividade->id, $atividades_config_curso)){
+                                $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                            }
                         }
                     }
 
@@ -161,7 +164,11 @@ class report_boletim extends Factory {
 
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
 
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+
+        $atividades_cursos = get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
@@ -176,6 +183,11 @@ class report_boletim extends Factory {
                 }
             }
         }
+
+       /* echo '<pre>';
+        print_r($atividades_config_curso);
+        echo '<br>';
+        die(print_r($header));*/
 
         foreach ($header as $key => $modulo) {
             $course_id = $modulo[0]->course_id;

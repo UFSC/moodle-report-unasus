@@ -55,9 +55,76 @@ abstract class report_unasus_activity {
     abstract function __toString();
 }
 
-class report_unasus_assign_activity extends report_unasus_activity {
+abstract class report_unasus_activity_config {
+
+    public $id;
+    public $name;
+    public $deadline;
+    public $has_submission;
+    public $has_grade;
+    public $course_id;
+    public $course_name;
+    public $grouping;
+
+    public function __construct($has_submission, $has_grade) {
+        if (!is_bool($has_submission) || !is_bool($has_grade)) {
+            throw new InvalidArgumentException;
+        }
+
+        $this->has_submission = $has_submission;
+        $this->has_grade = $has_grade;
+    }
+
+    /**
+     * Esta atividade possui um prazo?
+     *
+     * @return bool true se tiver prazo definido ou false caso contrário
+     */
+    public function has_deadline() {
+        return (!empty($this->deadline));
+    }
+
+    /**
+     * Esta atividade possui uma entrega?
+     *
+     * @return bool true se tiver entrega, seja de arquivo ou texto online
+     */
+    public function has_submission() {
+        return (!empty($this->has_submission));
+    }
+
+    /**
+     * Esta atividade tem agrupamento?
+     */
+    public function has_grouping() {
+        return (!empty($this->grouping));
+    }
+}
+
+class report_unasus_assign_activity_config /*extends report_unasus_activity_config*/ {
 
     public function __construct($db_model) {
+
+        $this->id = $db_model->assign_id;
+        $this->name = $db_model->assign_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+
+//    public function toString($config) {
+//
+//        if(array_search($this->id, $config)) {
+//            $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
+//            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
+//            return html_writer::link($atividade_url, $this->name, array('target' => '_blank'));
+//        }
+//    }
+
+}
+
+class report_unasus_assign_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $config) {
 
         $has_submission = !$db_model->nosubmissions;
         $has_grade = ((int) $db_model->grade) == 0 ? false : true;
@@ -70,14 +137,16 @@ class report_unasus_assign_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
-        $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($atividade_url, $this->name, array('target' => '_blank'));
+        if(array_search($this->id, $this->config)) {
+            $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
+            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($atividade_url, $this->name, array('target' => '_blank'));
+        }
     }
-
 }
 
 class report_unasus_forum_activity extends report_unasus_activity {

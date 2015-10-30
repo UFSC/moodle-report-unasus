@@ -258,14 +258,20 @@ function get_agrupamentos_membros($courses) {
  * @throws Exception
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true) {
+function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $config = false) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
     }
 
+    $atividades_config_curso = get_activities_config_report(75, 257);
+
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
     $assigns = query_assign_courses($courses);
+
+    /*echo '<pre>';
+    die(print_r($atividades_config_curso));*/
+
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
     $databases = query_database_courses($courses);
@@ -274,16 +280,23 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     $group_array = new GroupArray();
 
     foreach ($assigns as $atividade) {
-        $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade));
+
+        /*if($config){
+            $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade, $atividades_config_curso));
+
+        } else*/ if(array_search($atividade->assign_id, $atividades_config_curso)){
+            $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
+            $group_array->add($atividade->course_id, $assign_object);
+        }
     }
 
-    foreach ($foruns as $forum) {
+    /*foreach ($foruns as $forum) {
         $group_array->add($forum->course_id, new report_unasus_forum_activity($forum));
     }
 
     foreach ($quizes as $quiz) {
         $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
-    }
+    }*/
 
     foreach ($databases as $database) {
         $group_array->add($database->course_id, new report_unasus_db_activity($database));
@@ -918,8 +931,8 @@ function dot_chart_com_tutores_com_acesso($dados) {
     return false;
 }
 
-<<<<<<< Updated upstream
-function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false){
+function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false)
+{
 
     global $DB;
 
@@ -984,7 +997,7 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
             $query = query_scorm();
             break;
         default:
-            if($is_boletim){ //Nota final para relatório boletim
+            if ($is_boletim) { //Nota final para relatório boletim
                 $params = array(
                     'courseid' => $courseid,
                     'enrol_courseid' => $courseid,
@@ -998,10 +1011,17 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
     }
 
     return $DB->get_records_sql($query, $params);
-=======
-function get_activities_config_report($categoryid, $courseid) {
-    global $DB;
-    return $DB->get_records_menu('activities_course_config', array('categoryid' => $categoryid, 'courseid' => $courseid));
+}
 
->>>>>>> Stashed changes
+function get_activities_config_report($categoryid, $courses) {
+    global $DB;
+
+    $string_courses = get_modulos_validos($courses);
+
+    $query = "SELECT *
+                FROM {activities_course_config} AS config
+               WHERE config.courseid IN ({$string_courses}) AND config.categoryid = :categoryid
+           ";
+
+    return $DB->get_records_sql_menu($query, array('categoryid' => $categoryid));
 }
