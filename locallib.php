@@ -269,9 +269,6 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
     $assigns = query_assign_courses($courses);
 
-    /*echo '<pre>';
-    die(print_r($atividades_config_curso));*/
-
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
     $databases = query_database_courses($courses);
@@ -281,22 +278,24 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
 
     foreach ($assigns as $atividade) {
 
-        /*if($config){
-            $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade, $atividades_config_curso));
-
-        } else*/ if(array_search($atividade->assign_id, $atividades_config_curso)){
+        if(array_search($atividade->assign_id, $atividades_config_curso)){
             $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
             $group_array->add($atividade->course_id, $assign_object);
         }
     }
 
-    /*foreach ($foruns as $forum) {
-        $group_array->add($forum->course_id, new report_unasus_forum_activity($forum));
+    foreach ($foruns as $forum) {
+
+        if(array_search($forum->forum_id, $atividades_config_curso)){
+            $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
+        }
     }
 
     foreach ($quizes as $quiz) {
-        $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
-    }*/
+        if(array_search($quiz->quiz_id, $atividades_config_curso)){
+            $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
+        }
+    }
 
     foreach ($databases as $database) {
         $group_array->add($database->course_id, new report_unasus_db_activity($database));

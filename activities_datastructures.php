@@ -101,7 +101,7 @@ abstract class report_unasus_activity_config {
     }
 }
 
-class report_unasus_assign_activity_config /*extends report_unasus_activity_config*/ {
+class report_unasus_assign_activity_config {
 
     public function __construct($db_model) {
 
@@ -110,16 +110,6 @@ class report_unasus_assign_activity_config /*extends report_unasus_activity_conf
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
     }
-
-//    public function toString($config) {
-//
-//        if(array_search($this->id, $config)) {
-//            $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
-//            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
-//            return html_writer::link($atividade_url, $this->name, array('target' => '_blank'));
-//        }
-//    }
-
 }
 
 class report_unasus_assign_activity extends report_unasus_activity {
@@ -149,9 +139,20 @@ class report_unasus_assign_activity extends report_unasus_activity {
     }
 }
 
-class report_unasus_forum_activity extends report_unasus_activity {
+class report_unasus_forum_activity_config {
 
     public function __construct($db_model) {
+
+        $this->id = $db_model->forum_id;
+        $this->name = $db_model->forum_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+}
+
+class report_unasus_forum_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $config) {
         parent::__construct(true, true);
 
         $this->id = $db_model->forum_id;
@@ -160,19 +161,33 @@ class report_unasus_forum_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
-        $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($forum_url, $this->name, array('target' => '_blank'));
+        if(array_search($this->id, $this->config)) {
+            $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
+            $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($forum_url, $this->name, array('target' => '_blank'));
+        }
     }
 
 }
 
-class report_unasus_quiz_activity extends report_unasus_activity {
+class report_unasus_quiz_activity_config {
 
     public function __construct($db_model) {
+
+        $this->id = $db_model->quiz_id;
+        $this->name = $db_model->quiz_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+}
+
+class report_unasus_quiz_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $config) {
 
         $has_grade = ((int) $db_model->grade) == 0 ? false : true;
 
@@ -183,12 +198,15 @@ class report_unasus_quiz_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
-        $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($quiz_url, $this->name, array('target' => '_blank'));
+        if(array_search($this->id, $this->config)) {
+            $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
+            $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($quiz_url, $this->name, array('target' => '_blank'));
+        }
     }
 
 }
