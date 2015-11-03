@@ -154,7 +154,7 @@ class report_boletim extends Factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_cursos = get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this);
+        $atividades_cursos = get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {

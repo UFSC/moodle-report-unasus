@@ -258,18 +258,20 @@ function get_agrupamentos_membros($courses) {
  * @throws Exception
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $config = false) {
+function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $categoryid = 0) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
     }
 
-    #fixme: Alterar para parâmetros genéricos de todos cursos
-    $atividades_config_curso = get_activities_config_report(75, 257);
+    $atividades_config_curso = array();
+
+    if ($categoryid != 0){
+        $atividades_config_curso = get_activities_config_report($categoryid, $courses);
+    }
 
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
     $assigns = query_assign_courses($courses);
-
     $foruns = query_forum_courses($courses);
     $quizes = query_quiz_courses($courses);
     $databases = query_database_courses($courses);
@@ -279,7 +281,12 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
 
     foreach ($assigns as $atividade) {
 
-        if(array_search($atividade->assign_id, $atividades_config_curso)){
+        if (!empty($atividades_config_curso)){
+            if(array_search($atividade->assign_id, $atividades_config_curso)){
+                $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
+                $group_array->add($atividade->course_id, $assign_object);
+            }
+        } else {
             $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
             $group_array->add($atividade->course_id, $assign_object);
         }
@@ -287,25 +294,41 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
 
     foreach ($foruns as $forum) {
 
-        if(array_search($forum->forum_id, $atividades_config_curso)){
+        if (!empty($atividades_config_curso)){
+            if(array_search($forum->forum_id, $atividades_config_curso)) {
+                $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
+            }
+        } else {
             $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
         }
     }
 
     foreach ($quizes as $quiz) {
-        if(array_search($quiz->quiz_id, $atividades_config_curso)){
+        if (!empty($atividades_config_curso)){
+            if(array_search($quiz->quiz_id, $atividades_config_curso)){
+                $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
+            }
+        } else {
             $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
         }
     }
 
     foreach ($databases as $database) {
-        if(array_search($database->database_id, $atividades_config_curso)){
+        if (!empty($atividades_config_curso)){
+            if(array_search($database->database_id, $atividades_config_curso)){
+                $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
+            }
+        } else {
             $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
         }
     }
 
     foreach ($scorms as $scorm) {
-        if(array_search($scorm->scorm_id, $atividades_config_curso)){
+        if (!empty($atividades_config_curso)){
+            if(array_search($scorm->scorm_id, $atividades_config_curso)){
+                $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
+            }
+        } else {
             $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
         }
     }
