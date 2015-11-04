@@ -316,7 +316,7 @@ class Factory {
         /** @var $factory Factory */
         $factory = Factory::singleton();
 
-        $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, true);
+        $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $factory->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
