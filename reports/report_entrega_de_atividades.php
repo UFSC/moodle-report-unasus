@@ -113,6 +113,10 @@ class report_entrega_de_atividades extends Factory {
 
     public function get_dados() {
 
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
@@ -178,7 +182,10 @@ class report_entrega_de_atividades extends Factory {
                             $atraso = $data->submission_due_days();
                         }
 
-                        $lista_atividades[$r->userid][$atividade->id] = new dado_entrega_de_atividades($tipo, $atividade->id, $atraso);
+                        if (array_search($atividade->id, $atividades_config_curso)){
+                            $lista_atividades[$r->userid][$atividade->id] = new dado_entrega_de_atividades($tipo, $atividade->id, $atraso);
+                        }
+
                     }
 
                     // Auxiliar para agrupar tutores corretamente
@@ -199,7 +206,8 @@ class report_entrega_de_atividades extends Factory {
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, true);
+
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
