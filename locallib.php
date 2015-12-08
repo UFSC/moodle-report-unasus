@@ -8,7 +8,7 @@ require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/queries.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/loops.php');
-
+require_once($CFG->dirroot . '/report/unasus/sistematcc.php');
 
 function get_datetime_from_unixtime($unixtime) {
     return date_create(date("Y-m-d H:m:s", $unixtime));
@@ -376,7 +376,6 @@ function process_header_atividades_lti($courses, GroupArray &$group_array) {
     // Nenhuma atividade lti encontrada,
     // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
     if (empty($ltis)) {
-
         return;
     }
 
@@ -385,18 +384,24 @@ function process_header_atividades_lti($courses, GroupArray &$group_array) {
 
         foreach ($lti->tcc_definition->chapter_definitions as $chapter_definition) {
 
-            $chapter_definition = $chapter_definition->chapter_definition;
-
             // sub-atividade simulada
             $db_model = new stdClass();
+
+            foreach ($lti->course_id as $c) {
+                foreach ($c as $id_course => $course_name) {
+                    $db_model->course_id = $id_course;
+                    $db_model->course_name = $course_name;
+                }
+            }
+
+            $chapter_definition = $chapter_definition->chapter_definition;
+
             $db_model->id = $lti->id;
             $db_model->course_module_id = $lti->course_module_id;
             $db_model->name = $chapter_definition->title;
             $db_model->completionexpected = $lti->completionexpected;
             $db_model->position = $chapter_definition->position;
 
-            $db_model->course_id = $lti->course_id;
-            $db_model->course_name = $lti->course_name;
             $db_model->baseurl = $lti->baseurl;
             $db_model->consumer_key = $lti->config['resourcekey'];
             $db_model->grouping_id = $lti->grouping_id;
@@ -546,35 +551,39 @@ function query_lti_courses($courses) {
 
     foreach ($courses as $course) {
 
-        $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
+        foreach ($course as $course_id => $c) {
+            foreach ($c as $id_course => $course_name) {
+                $ltis = $DB->get_records_sql(query_lti(), array('course' => $id_course));
 
-        $course_name = $DB->get_field('course', 'fullname', array('id' => $course));
+                $course_name = $DB->get_field('course', 'fullname', array('id' => $id_course));
 
-        foreach ($ltis as $lti) {
-            $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
-            $customparameters = get_tcc_definition($config['customparameters']);
-            $consumer_key = $config['resourcekey'];
+                foreach ($ltis as $lti) {
+                    $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
+                    $customparameters = get_tcc_definition($config['customparameters']);
+                    $consumer_key = $config['resourcekey'];
 
-            // WS Client
-            $client = new SistemaTccClient($lti->baseurl, $consumer_key);
-            $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+                    // WS Client
+                    $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+                    $object = $client->get_tcc_definition($customparameters['tcc_definition']);
 
-            if (!$object) {
-                // Ocorreu alguma falha
-                continue;
+                    if (!$object) {
+                        // Ocorreu alguma falha
+                        continue;
+                    }
+
+                    $object->id = $lti->id;
+                    $object->course_id = $course;
+                    $object->course_name = $course_name;
+                    $object->course_module_id = $lti->cmid;
+                    $object->config = $config;
+                    $object->custom_parameters = $customparameters;
+                    $object->completionexpected = $lti->completionexpected;
+                    $object->grouping_id = $lti->grouping_id;
+                    $object->baseurl = $lti->baseurl;
+
+                    array_push($lti_activities, $object);
+                }
             }
-
-            $object->id = $lti->id;
-            $object->course_id = $course;
-            $object->course_name = $course_name;
-            $object->course_module_id = $lti->cmid;
-            $object->config = $config;
-            $object->custom_parameters = $customparameters;
-            $object->completionexpected = $lti->completionexpected;
-            $object->grouping_id = $lti->grouping_id;
-            $object->baseurl = $lti->baseurl;
-
-            array_push($lti_activities, $object);
         }
     }
 
