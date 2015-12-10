@@ -725,9 +725,11 @@ class report_unasus_table extends html_table {
             foreach ($activities as $activity) {
                 $activity_cell = new html_table_cell($activity);
                 $activity_cell->header = true;
+                $activity_cell->attributes = array('class' => 'rotate');
+//                $activity_cell->style = array('class' => '');
                 /* box */
                 if (in_array($count, $ultima_atividade_modulo)) {
-                    $activity_cell->attributes = array('class' => 'ultima_atividade');
+                    $activity_cell->attributes = array('class' => 'ultima_atividade rotate');
                 }
                 $heading2[] = $activity_cell;
                 $count++;
