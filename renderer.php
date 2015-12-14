@@ -424,7 +424,16 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $table_title = get_string($this->report_name . "_table_header", 'report_unasus');
         $table->headspan = array(1, $header_size);
-        $table->head = array('Estudante', $table_title);
+
+        $student = new html_table_cell('Estudantes');
+        $student->header = true;
+        $student->attributes = array('class' => 'title estudante');
+
+        $heading1 = array();
+        $heading1[] = $student;
+        $heading1[] = $table_title;
+
+        $table->head = $heading1;
 
         foreach ($dadostabela as $tutor => $alunos) {
 
