@@ -132,7 +132,9 @@ class report_unasus_assign_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
-            $name = $this->name == 'Nota da Avaliação Presencial' ? 'Pres.' : $this->name;
+            $nome = strtolower(trim($this->name));
+
+            $name = $nome == 'nota da avaliação presencial' ? 'Pres.' : $this->name;
 
             $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
             $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
@@ -206,7 +208,20 @@ class report_unasus_quiz_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
-            $name = ($this->name == 'Questões avaliativas' || $this->name == 'Questões Avaliativas')  ? 'Quest.' : $this->name;
+
+            switch (strtolower($this->name)) {
+                case 'questões avaliativas - enfermeiros':
+                    $name = 'Q.Enf.';
+                    break;
+                case 'questões avaliativas - médicos':
+                    $name = 'Q.Méd.';
+                    break;
+                case 'questões avaliativas - dentistas':
+                    $name = 'Q.Dent.';
+                    break;
+                default:
+                    $name = 'Quest.';
+            }
 
             $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
             $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
