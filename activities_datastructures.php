@@ -132,9 +132,11 @@ class report_unasus_assign_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
+            $name = $this->name == 'Nota da Avaliação Presencial' ? 'Pres.' : $this->name;
+
             $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
             $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($atividade_url, $this->name, array('target' => '_blank'));
+            return html_writer::link($atividade_url, $name, array('target' => '_blank'));
         }
     }
 }
@@ -166,9 +168,10 @@ class report_unasus_forum_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
+            $name = $this->name == 'Fórum de debates' ? 'Fórum' : $this->name;
             $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
             $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($forum_url, $this->name, array('target' => '_blank'));
+            return html_writer::link($forum_url, $name, array('target' => '_blank'));
         }
     }
 
@@ -203,9 +206,11 @@ class report_unasus_quiz_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
+            $name = ($this->name == 'Questões avaliativas' || $this->name == 'Questões Avaliativas')  ? 'Quest.' : $this->name;
+
             $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
             $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($quiz_url, $this->name, array('target' => '_blank'));
+            return html_writer::link($quiz_url, $name, array('target' => '_blank'));
         }
     }
 
@@ -751,7 +756,7 @@ class report_unasus_final_grade {
 
     public function __toString() {
         $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id, 'target' => '_blank'));
-        $text = (is_null($this->name) || $this->name == '') ? 'Média Final ' : $this->name;
+        $text = (is_null($this->name) || $this->name == '') ? 'M.Final ' : $this->name;
         return html_writer::link($gradebook_url, $text, array('target' => '_blank'));
     }
 
