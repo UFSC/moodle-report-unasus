@@ -681,6 +681,13 @@ class report_unasus_table extends html_table {
     // Data 1  |  Data 2  |  Data 3
     // Data 4  |  Date 5  |  Data 6
     function build_single_header($coluns) {
+        $student = new html_table_cell('Estudantes');
+        $student->header = true;
+        $student->attributes = array('class' => 'title estudante');
+
+        array_shift($coluns);
+        array_unshift($coluns, $student);
+
         $this->head = $coluns;
     }
 
@@ -691,14 +698,16 @@ class report_unasus_table extends html_table {
     function build_double_header($grouped_coluns, $person_name = 'Estudantes') {
 
         $this->data = array();
-        $blank = new html_table_cell();
-        $blank->attributes = array('class' => 'blank');
+
+        /*$blank = new html_table_cell();
+        $blank->attributes = array('class' => 'blank');*/
+
         $student = new html_table_cell($person_name);
         $student->header = true;
-        $student->attributes = array('class' => 'ultima_atividade');
+        $student->attributes = array('class' => 'ultima_atividade title estudante');
 
-        $heading1 = array(); // Primeira linha
-        $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha
+        /*$heading1 = array(); // Primeira linha
+        $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha*/
 
         $heading2 = array(); // Segunda linha
         $heading2[] = $student;
@@ -715,18 +724,16 @@ class report_unasus_table extends html_table {
 
         $count = 1;
         foreach ($grouped_coluns as $module_name => $activities) {
-            $module_cell = new html_table_cell($module_name);
+            /*$module_cell = new html_table_cell($module_name);
             $module_cell->header = true;
             $module_cell->colspan = count($activities);
             $module_cell->attributes = array('class' => 'modulo_header');
-            $heading1[] = $module_cell;
-
+            $heading1[] = $module_cell;*/
 
             foreach ($activities as $activity) {
                 $activity_cell = new html_table_cell($activity);
                 $activity_cell->header = true;
                 $activity_cell->attributes = array('class' => 'rotate');
-//                $activity_cell->style = array('class' => '');
                 /* box */
                 if (in_array($count, $ultima_atividade_modulo)) {
                     $activity_cell->attributes = array('class' => 'ultima_atividade rotate');
@@ -736,10 +743,20 @@ class report_unasus_table extends html_table {
             }
         }
 
-        $this->data[] = new html_table_row($heading1);
-        $this->data[] = new html_table_row($heading2);
+//        $this->data[] = new html_table_row($heading1);
+//        $this->data[] = new html_table_row($heading2);
+
+//        $this->head = $heading2;
     }
 
+}
+
+class html_table_cell_header extends html_table_cell {
+
+    public function __construct($text = null) {
+        $this->text = $text;
+        $this->attributes['class'] = '';
+    }
 }
 
 /**
