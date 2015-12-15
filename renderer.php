@@ -630,7 +630,13 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             foreach ($report->get_table_header() as $module_name => $activities) {
                 foreach ($activities as $activity) {
-                    $output .= html_writer::tag('th', $activity, array('class' => 'cell rotate'));
+                    if (! is_object($activity)){
+                        $class = is_numeric($activity[0]) ? '' : 'rotate';
+                    } else {
+                        $class = 'rotate';
+                    }
+
+                    $output .= html_writer::tag('th', $activity, array('class' => $class));
                 }
             }
 

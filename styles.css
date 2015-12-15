@@ -276,7 +276,7 @@ h1 {
 }
 
 h2 {
-  font-size: 24px !important;
+  font-size: 24px;
 }
 
 h3 {
@@ -369,7 +369,7 @@ body {
 
 .atividades_vs_notas .rotate {
   margin: 0 !important;
-    width: 5px !important;
+  width: 5px !important;
   padding: 0 !important;
   text-align: left !important;
 }
