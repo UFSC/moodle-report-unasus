@@ -243,7 +243,7 @@ table.relatorio-unasus.estudante_sem_atividade_avaliada {
 }
 
 .relatorio-wrapper {
-  overflow: auto;
+  overflow: auto !important;
 }
 
 .relatorio-unasus.botao-ocultar {
@@ -318,8 +318,9 @@ body {
   -ms-transform: rotate(-90deg) !important;
   -o-transform: rotate(-90deg) !important;
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3) !important;
-  width: 0 !important;
+  width: 43px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
   font-size: 12px !important;
+    padding: 8px;
 }
 .rotate a {
   margin: 0 !important;
@@ -414,7 +415,7 @@ body {
 .boletim .c19,
 .boletim .c20 {
   width: 43px !important;
-  padding: 0;
+  /*padding: 0;*/
   margin: 0;
   font-size: 12px !important;
   text-align: center;
@@ -422,12 +423,6 @@ body {
 .entrega_de_atividades thead th,
 .boletim thead th {
   height: 50px !important;
-}
-.entrega_de_atividades .rotate,
-.boletim .rotate {
-  margin: 0;
-  padding: 0 !important;
-  text-align: left !important;
 }
 .entrega_de_atividades .estudante,
 .boletim .estudante {
@@ -814,7 +809,7 @@ thead {
   font-size: 12px !important;
 }
 
-.estudante cell {
+.estudante .cell {
   font-size: 12px;
 }
 

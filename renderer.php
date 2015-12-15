@@ -287,10 +287,6 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return html_table
      */
     public function default_table($dadostabela, $header, $table, $tipo_cabecalho = 'Estudante') {
-        //criacao da tabela
-        /*$table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";*/
-//        $table->tablealign = 'center';
 
         // varre o header em busca da ultima atividade de cada módulo
         // utilizada na iteraçao das ativides para aplicar classe CSS que desenha a borda em torno dos módulos
@@ -306,8 +302,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         // que não existe no moodle API
         $header_keys = array_keys($header);
         if (isset($header_keys[0]) && is_array($header[$header_keys[0]])) { // Double Header
-            /*$table->build_double_header($header, $tipo_cabecalho);
-            $table->attributes['class'] .= " divisao-por-modulos";*/
         } else {
             $table->build_single_header($header);
         }
@@ -321,6 +315,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $cel_tutor->colspan = $ultimo_alvo + 1; // expande a célula com nome dos tutores
 
             $row_tutor = new html_table_row();
+            $row_tutor->attributes = array('class' => 'r1');
             $row_tutor->cells[] = $cel_tutor;
             $table->data[] = $row_tutor;
 
@@ -328,16 +323,15 @@ class report_unasus_renderer extends plugin_renderer_base {
             $count = 0;
             foreach ($alunos as $aluno) {
                 $row = new html_table_row();
+                $row_tutor->attributes = array('class' => 'r0');
                 foreach ($aluno as $valor) {
                     if (is_a($valor, 'unasus_data')) {
                         $cell = new html_table_cell($valor);
                         if (in_array($count, $ultima_atividade_modulo)) {
                             // Aplica a classe CSS para criar o contorno dos modulos na tabela
-                            $cell->attributes = array(
-                                'class' => $valor->get_css_class() . "ultima_atividade");
+                            $cell->attributes = array('class' => $valor->get_css_class() . " ultima_atividade");
                         } else {
-                            $cell->attributes = array(
-                                'class' => $valor->get_css_class());
+                            $cell->attributes = array('class' => $valor->get_css_class());
                         }
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
@@ -601,43 +595,51 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         /* Ajustes para o cabeçalho duplo de alguns relatórios */
 
+        $class = 'relatorio-unasus ' . $report->get_relatorio() . ' generaltable divisao-por-modulos';
+
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable divisao-por-modulos";
+        $table->attributes['class'] = $class;
 
-        $ultima_atividade_modulo = array();
-        $ultimo_alvo = 0;
-        $ultima_atividade_modulo[] = $ultimo_alvo;
-        foreach ($report->get_table_header() as $module_name => $activities) {
-            $ultimo_alvo += count($activities);
+        // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
+        // que não existe no moodle API
+        $header_keys = array_keys($report->get_table_header());
+
+        if (isset($header_keys[0]) && is_array($report->get_table_header()[$header_keys[0]])) {
+            $ultima_atividade_modulo = array();
+            $ultimo_alvo = 0;
             $ultima_atividade_modulo[] = $ultimo_alvo;
-        }
-
-        $output .= html_writer::start_tag('table', array('class' => 'relatorio-unasus atividades_vs_notas generaltable divisao-por-modulos'));
-        $output .= html_writer::start_tag('thead');
-        $output .= html_writer::start_tag('tr', array('class' => 'r0'));
-        $output .= html_writer::tag('td', '', array('class' => 'blank'));
-
-        foreach ($report->get_table_header() as $module_name => $activities) {
-            $output .= html_writer::tag('th', $module_name, array('class' => 'modulo_header cell c1', 'colspan' => count($activities)));
-        }
-
-        $output .= html_writer::end_tag('tr');
-        $output .= html_writer::start_tag('tr', array('class' => 'r1'));
-
-        $output .= html_writer::tag('th', 'Estudante', array('class' => 'ultima_atividade title estudante'));
-
-        foreach ($report->get_table_header() as $module_name => $activities) {
-            foreach ($activities as $activity) {
-                $output .= html_writer::tag('th', $activity, array('class' => 'cell rotate'));
+            foreach ($report->get_table_header() as $module_name => $activities) {
+                $ultimo_alvo += count($activities);
+                $ultima_atividade_modulo[] = $ultimo_alvo;
             }
+
+            $output .= html_writer::start_tag('div', array('class' => 'relatorio-wrapper'));
+            $output .= html_writer::start_tag('table', array('class' => $class));
+            $output .= html_writer::start_tag('thead');
+            $output .= html_writer::start_tag('tr', array('class' => 'r0'));
+            $output .= html_writer::tag('td', '', array('class' => 'blank'));
+
+            foreach ($report->get_table_header() as $module_name => $activities) {
+                $output .= html_writer::tag('th', $module_name, array('class' => 'modulo_header cell c1', 'colspan' => count($activities)));
+            }
+
+            $output .= html_writer::end_tag('tr');
+            $output .= html_writer::start_tag('tr', array('class' => 'r1'));
+
+            $output .= html_writer::tag('th', 'Estudante', array('class' => 'ultima_atividade title estudante'));
+
+            foreach ($report->get_table_header() as $module_name => $activities) {
+                foreach ($activities as $activity) {
+                    $output .= html_writer::tag('th', $activity, array('class' => 'cell rotate'));
+                }
+            }
+
+            $output .= html_writer::end_tag('tr');
+
+            $output .= html_writer::end_tag('thead');
+            $output .= html_writer::end_tag('table');
+            $output .= html_writer::end_tag('div');
         }
-
-        $output .= html_writer::end_tag('tr');
-
-        $output .= html_writer::end_tag('thead');
-        $output .= html_writer::end_tag('table');
-
-        /* ------------------------------------------------------------- */
 
         $table = $this->default_table($report->get_dados(), $report->get_table_header(), $table);
 
