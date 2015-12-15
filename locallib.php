@@ -699,15 +699,15 @@ class report_unasus_table extends html_table {
 
         $this->data = array();
 
-        /*$blank = new html_table_cell();
-        $blank->attributes = array('class' => 'blank');*/
+        $blank = new html_table_cell();
+        $blank->attributes = array('class' => 'blank');
 
         $student = new html_table_cell($person_name);
         $student->header = true;
         $student->attributes = array('class' => 'ultima_atividade title estudante');
 
-        /*$heading1 = array(); // Primeira linha
-        $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha*/
+        $heading1 = array(); // Primeira linha
+        $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha
 
         $heading2 = array(); // Segunda linha
         $heading2[] = $student;
@@ -724,11 +724,11 @@ class report_unasus_table extends html_table {
 
         $count = 1;
         foreach ($grouped_coluns as $module_name => $activities) {
-            /*$module_cell = new html_table_cell($module_name);
+            $module_cell = new html_table_cell($module_name);
             $module_cell->header = true;
             $module_cell->colspan = count($activities);
             $module_cell->attributes = array('class' => 'modulo_header');
-            $heading1[] = $module_cell;*/
+            $heading1[] = $module_cell;
 
             foreach ($activities as $activity) {
                 $activity_cell = new html_table_cell($activity);
@@ -743,10 +743,8 @@ class report_unasus_table extends html_table {
             }
         }
 
-//        $this->data[] = new html_table_row($heading1);
-//        $this->data[] = new html_table_row($heading2);
-
-//        $this->head = $heading2;
+        $this->data[] = new html_table_row($heading1);
+        $this->data[] = new html_table_row($heading2);
     }
 
 }
