@@ -595,23 +595,23 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         /* Ajustes para o cabeçalho duplo de alguns relatórios */
 
-        $class = 'relatorio-unasus ' . $report->get_relatorio() . ' generaltable divisao-por-modulos';
-
-        $table = new report_unasus_table();
-        $table->attributes['class'] = $class;
+        $class = 'relatorio-unasus ' . $report->get_relatorio() . ' generaltable divisao-por-modulos fixed';
 
         // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
         // que não existe no moodle API
         $header_keys = array_keys($report->get_table_header());
 
-        if (isset($header_keys[0]) && is_array($report->get_table_header()[$header_keys[0]])) {
-            $ultima_atividade_modulo = array();
-            $ultimo_alvo = 0;
+        $ultima_atividade_modulo = array();
+        $ultimo_alvo = 0;
+        $ultima_atividade_modulo[] = $ultimo_alvo;
+        foreach ($report->get_table_header() as $module_name => $activities) {
+            $ultimo_alvo += count($activities);
             $ultima_atividade_modulo[] = $ultimo_alvo;
-            foreach ($report->get_table_header() as $module_name => $activities) {
-                $ultimo_alvo += count($activities);
-                $ultima_atividade_modulo[] = $ultimo_alvo;
-            }
+        }
+
+        if (isset($header_keys[0]) && is_array($report->get_table_header()[$header_keys[0]])) {
+
+            /* Dados do cabeçalho */
 
             $output .= html_writer::start_tag('div', array('class' => 'relatorio-wrapper'));
             $output .= html_writer::start_tag('table', array('class' => $class));
@@ -643,13 +643,54 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::end_tag('tr');
 
             $output .= html_writer::end_tag('thead');
+
+            /* Dados da tabela */
+
+            $output .= html_writer::start_tag('tbody');
+
+            foreach ($report->get_dados() as $tutor => $alunos) {
+
+                $output .= html_writer::start_tag('tr', array('class' => 'r0'));
+                $output .= html_writer::tag('td', $tutor, array('class' => 'tutor', 'colspan' => $ultimo_alvo + 1));
+                $output .= html_writer::end_tag('tr');
+
+                $count = 0;
+                $count_cell = 1;
+                foreach ($alunos as $aluno) {
+                    $output .= html_writer::start_tag('tr', array('class' => 'r1'));
+
+                    foreach ($aluno as $valor) {
+                        if (is_a($valor, 'unasus_data')) {
+                            if (in_array($count, $ultima_atividade_modulo)) {
+                                // Aplica a classe CSS para criar o contorno dos modulos na tabela
+                                $output .= html_writer::tag('td', $valor, array('class' => $valor->get_css_class() . " ultima_atividade cell c" . $count_cell));
+                            } else {
+                                $output .= html_writer::tag('td', $valor, array('class' => $valor->get_css_class() . ' cell c' . $count_cell));
+                            }
+                        } else { // Aluno
+                            $output .= html_writer::tag('th', $valor, array('class' => 'estudante ultima_atividade', 'scope' => 'row'));
+                        }
+                        $count++;
+                        $count_cell++;
+                    }
+                    $output .= html_writer::end_tag('tr');
+                    $count = 0;
+                    $count_cell = 1;
+                }
+            }
+
+            $output .= html_writer::end_tag('tbody');
+
             $output .= html_writer::end_tag('table');
             $output .= html_writer::end_tag('div');
+        } else {
+            $table = new report_unasus_table();
+            $table->attributes['class'] = $class;
+
+            $table = $this->default_table($report->get_dados(), $report->get_table_header(), $table, $class);
+
+            $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
         }
-
-        $table = $this->default_table($report->get_dados(), $report->get_table_header(), $table);
-
-        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
 
         $output .= $this->default_footer();
         return $output;

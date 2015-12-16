@@ -3,7 +3,7 @@
 /*/////////////////////////////////////// Original ////////////////////////////////////*/
 
 table.flexible, .generaltable {
-    width: 100%;
+    width: 100% !important;
     margin-bottom: 0px !important;
 }
 
@@ -387,6 +387,17 @@ body {
 .entrega_de_atividades .c18,
 .entrega_de_atividades .c19,
 .entrega_de_atividades .c20,
+.entrega_de_atividades .c21,
+.entrega_de_atividades .c22,
+.entrega_de_atividades .c23,
+.entrega_de_atividades .c24,
+.entrega_de_atividades .c25,
+.entrega_de_atividades .c25,
+.entrega_de_atividades .c26,
+.entrega_de_atividades .c27,
+.entrega_de_atividades .c28,
+.entrega_de_atividades .c29,
+.entrega_de_atividades .c30,
 .boletim .c1,
 .boletim .c2,
 .boletim .c3,
@@ -680,7 +691,7 @@ table.flexible thead th .r1,
 /*//////////////// Trava da tabela ////////////////*/
 thead,
 tbody {
-  display: block;
+  display: block !important;
 }
 
 tbody {
