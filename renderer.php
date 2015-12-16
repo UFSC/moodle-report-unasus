@@ -629,13 +629,15 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::tag('th', 'Estudante', array('class' => 'ultima_atividade title estudante'));
 
             foreach ($report->get_table_header() as $module_name => $activities) {
+                $count_ = 1;
                 foreach ($activities as $activity) {
                     if (! is_object($activity)){
-                        $class = is_numeric($activity[0]) ? '' : 'rotate';
+                        $class = is_numeric($activity[0]) ? '' : 'rotate cell c' . $count_;
                     } else {
-                        $class = 'rotate';
+                        $class = 'rotate cell c' . $count_;
                     }
 
+                    $count_++;
                     $output .= html_writer::tag('th', $activity, array('class' => $class));
                 }
             }

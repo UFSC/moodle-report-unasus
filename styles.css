@@ -114,8 +114,7 @@ legend {
 
 .relatorio-unasus.atividades_vs_notas .sem_prazo,
 .relatorio-unasus.entrega_de_atividades .sem_prazo,
-.relatorio-unasus.boletim
-.sem_nota {
+.relatorio-unasus.boletim .sem_nota {
   color: #fff;
   background: #ddd;
 }
@@ -336,33 +335,6 @@ body {
   text-align: left;
 }
 
-.atividades_vs_notas .c1,
-.atividades_vs_notas .c2,
-.atividades_vs_notas .c3,
-.atividades_vs_notas .c4,
-.atividades_vs_notas .c5,
-.atividades_vs_notas .c6,
-.atividades_vs_notas .c7,
-.atividades_vs_notas .c8,
-.atividades_vs_notas .c9,
-.atividades_vs_notas .c10,
-.atividades_vs_notas .c11,
-.atividades_vs_notas .c12,
-.atividades_vs_notas .c13,
-.atividades_vs_notas .c14,
-.atividades_vs_notas .c15,
-.atividades_vs_notas .c16,
-.atividades_vs_notas .c17,
-.atividades_vs_notas .c18,
-.atividades_vs_notas .c19,
-.atividades_vs_notas .c20 {
-  width: 43px !important;
-  /*padding: 0;*/
-  margin: 0;
-  font-size: 12px !important;
-  text-align: center;
-}
-
 .atividades_vs_notas thead th {
   height: 50px !important;
 }
@@ -417,13 +389,65 @@ body {
 .boletim .c17,
 .boletim .c18,
 .boletim .c19,
-.boletim .c20 {
+.boletim .c20,
+.boletim .c21,
+.boletim .c22,
+.boletim .c23,
+.boletim .c24,
+.boletim .c25,
+.boletim .c26,
+.boletim .c27,
+.boletim .c28,
+.boletim .c29,
+.boletim .c30,
+.boletim .c31,
+.boletim .c32,
+.boletim .c33,
+.boletim .c34,
+.boletim .c35,
+.atividades_vs_notas .c1,
+.atividades_vs_notas .c2,
+.atividades_vs_notas .c3,
+.atividades_vs_notas .c4,
+.atividades_vs_notas .c5,
+.atividades_vs_notas .c6,
+.atividades_vs_notas .c7,
+.atividades_vs_notas .c8,
+.atividades_vs_notas .c9,
+.atividades_vs_notas .c10,
+.atividades_vs_notas .c11,
+.atividades_vs_notas .c12,
+.atividades_vs_notas .c13,
+.atividades_vs_notas .c14,
+.atividades_vs_notas .c15,
+.atividades_vs_notas .c16,
+.atividades_vs_notas .c17,
+.atividades_vs_notas .c18,
+.atividades_vs_notas .c19,
+.atividades_vs_notas .c20,
+.atividades_vs_notas .c21,
+.atividades_vs_notas .c22,
+.atividades_vs_notas .c23,
+.atividades_vs_notas .c24,
+.atividades_vs_notas .c25,
+.atividades_vs_notas .c26,
+.atividades_vs_notas .c27,
+.atividades_vs_notas .c28,
+.atividades_vs_notas .c29,
+.atividades_vs_notas .c30,
+.atividades_vs_notas .c31,
+.atividades_vs_notas .c32,
+.atividades_vs_notas .c33,
+.atividades_vs_notas .c34,
+.atividades_vs_notas .c35 {
   width: 43px !important;
-  /*padding: 0;*/
-  margin: 0;
+  padding: 8px !important;
+  margin: 0 !important;
   font-size: 12px !important;
   text-align: center;
+  min-width: 43px;
 }
+
 .entrega_de_atividades thead th,
 .atividades_vs_notas thead th,
 .boletim thead th {
@@ -697,6 +721,7 @@ tbody {
 tbody {
   height: 500px;
   overflow: auto;
+  margin-right: -15px;
 }
 
 /*//////////////////////////////////////////////////*/
