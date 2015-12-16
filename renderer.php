@@ -566,7 +566,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String $output
      */
     public function build_report($report) {
-        global $USER;
+        global $USER, $PAGE;
         raise_memory_limit(MEMORY_EXTRA);
 
         $output = $this->default_header();
@@ -669,7 +669,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                                 $output .= html_writer::tag('td', $valor, array('class' => $valor->get_css_class() . ' cell c' . $count_cell));
                             }
                         } else { // Aluno
-                            $output .= html_writer::tag('th', $valor, array('class' => 'estudante ultima_atividade', 'scope' => 'row'));
+                            $output .= html_writer::tag('th', $valor, array('class' => 'estudante position', 'scope' => 'row'));
                         }
                         $count++;
                         $count_cell++;
@@ -692,6 +692,14 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
         }
+
+        $module = array(
+            'name'      => 'gradereport_grader',
+            'fullpath'  => '/grade/report/grader/module.js',
+            'requires'  => array('base', 'dom', 'event', 'event-mouseenter', 'event-key', 'io-queue', 'json-parse', 'overlay')
+        );
+
+        $PAGE->requires->js_init_call('M.report_unasus.fixed_columns');
 
         $output .= $this->default_footer();
         return $output;
