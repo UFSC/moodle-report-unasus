@@ -336,7 +336,7 @@ body {
   text-align: left;
 }
 
-.atividades_vs_notas .c1 .rotate,
+.atividades_vs_notas .c1,
 .atividades_vs_notas .c2,
 .atividades_vs_notas .c3,
 .atividades_vs_notas .c4,
@@ -357,7 +357,7 @@ body {
 .atividades_vs_notas .c19,
 .atividades_vs_notas .c20 {
   width: 43px !important;
-  padding: 0;
+  /*padding: 0;*/
   margin: 0;
   font-size: 12px !important;
   text-align: center;
@@ -365,13 +365,6 @@ body {
 
 .atividades_vs_notas thead th {
   height: 50px !important;
-}
-
-.atividades_vs_notas .rotate {
-  margin: 0 !important;
-  width: 5px !important;
-  padding: 0 !important;
-  text-align: left !important;
 }
 
 .entrega_de_atividades .c1,
@@ -421,10 +414,12 @@ body {
   text-align: center;
 }
 .entrega_de_atividades thead th,
+.atividades_vs_notas thead th,
 .boletim thead th {
   height: 50px !important;
 }
 .entrega_de_atividades .estudante,
+.atividades_vs_notas .estudante,
 .boletim .estudante {
   font-size: 12px !important;
 }
@@ -583,6 +578,7 @@ body {
   height: 200px;
 }
 
+.atividades_vs_notas th td,
 .entrega_de_atividades th td {
   height: 200px;
 }
@@ -664,6 +660,12 @@ body {
   padding-top: 10px;
   font-size: 12px !important;
   word-wrap: break-word !important;
+}
+
+.acesso_tutor .rotate {
+    width: 43px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
+    font-size: 12px !important;
+    padding: 8px;
 }
 
 /* .navbar .nav>li>a, .navbar .nav>li>a:hover, .usermenu .login, .usermenu .moodle-actionmenu .toggle-display .userbutton {
