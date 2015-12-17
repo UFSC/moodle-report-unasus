@@ -551,38 +551,71 @@ function query_lti_courses($courses) {
 
     foreach ($courses as $course) {
 
-        foreach ($course as $course_id => $c) {
-            foreach ($c as $id_course => $course_name) {
-                $ltis = $DB->get_records_sql(query_lti(), array('course' => $id_course));
+        if (is_array($course)){
+            foreach ($course as $course_id => $c) {
+                foreach ($c as $id_course => $course_name) {
+                    $ltis = $DB->get_records_sql(query_lti(), array('course' => $id_course));
 
-                $course_name = $DB->get_field('course', 'fullname', array('id' => $id_course));
+                    $course_name = $DB->get_field('course', 'fullname', array('id' => $id_course));
 
-                foreach ($ltis as $lti) {
-                    $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
-                    $customparameters = get_tcc_definition($config['customparameters']);
-                    $consumer_key = $config['resourcekey'];
+                    foreach ($ltis as $lti) {
+                        $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
+                        $customparameters = get_tcc_definition($config['customparameters']);
+                        $consumer_key = $config['resourcekey'];
 
-                    // WS Client
-                    $client = new SistemaTccClient($lti->baseurl, $consumer_key);
-                    $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+                        // WS Client
+                        $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+                        $object = $client->get_tcc_definition($customparameters['tcc_definition']);
 
-                    if (!$object) {
-                        // Ocorreu alguma falha
-                        continue;
+                        if (!$object) {
+                            // Ocorreu alguma falha
+                            continue;
+                        }
+
+                        $object->id = $lti->id;
+                        $object->course_id = $course;
+                        $object->course_name = $course_name;
+                        $object->course_module_id = $lti->cmid;
+                        $object->config = $config;
+                        $object->custom_parameters = $customparameters;
+                        $object->completionexpected = $lti->completionexpected;
+                        $object->grouping_id = $lti->grouping_id;
+                        $object->baseurl = $lti->baseurl;
+
+                        array_push($lti_activities, $object);
                     }
-
-                    $object->id = $lti->id;
-                    $object->course_id = $course;
-                    $object->course_name = $course_name;
-                    $object->course_module_id = $lti->cmid;
-                    $object->config = $config;
-                    $object->custom_parameters = $customparameters;
-                    $object->completionexpected = $lti->completionexpected;
-                    $object->grouping_id = $lti->grouping_id;
-                    $object->baseurl = $lti->baseurl;
-
-                    array_push($lti_activities, $object);
                 }
+            }
+        } else {
+            $ltis = $DB->get_records_sql(query_lti(), array('course' => $course));
+
+            $course_name = $DB->get_field('course', 'fullname', array('id' => $course));
+
+            foreach ($ltis as $lti) {
+                $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
+                $customparameters = get_tcc_definition($config['customparameters']);
+                $consumer_key = $config['resourcekey'];
+
+                // WS Client
+                $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+                $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+
+                if (!$object) {
+                    // Ocorreu alguma falha
+                    continue;
+                }
+
+                $object->id = $lti->id;
+                $object->course_id = $course;
+                $object->course_name = $course_name;
+                $object->course_module_id = $lti->cmid;
+                $object->config = $config;
+                $object->custom_parameters = $customparameters;
+                $object->completionexpected = $lti->completionexpected;
+                $object->grouping_id = $lti->grouping_id;
+                $object->baseurl = $lti->baseurl;
+
+                array_push($lti_activities, $object);
             }
         }
     }
