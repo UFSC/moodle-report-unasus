@@ -19,15 +19,15 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
 
     global $DB;
 
-    /** @var $report Factory */
-    $report = Factory::singleton();
+    /** @var $report report_unasus_factory */
+    $report = report_unasus_factory::singleton();
 
     $grupos = ($is_orientacao)
-              ?  grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
-              :  grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
+              ?  local_tutores_grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
+              :  local_tutores_grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
-    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -41,7 +41,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
     // Para cada grupo de tutoria
     foreach ($grupos as $grupo) {
 
-        $group_array_do_grupo = new GroupArray();
+        $group_array_do_grupo = new report_unasus_GroupArray();
 
         // Para cada modulo e suas atividades
         foreach ($report->atividades_cursos as $courseid => $atividades) {
@@ -213,16 +213,16 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
     global $DB;
 
-    /** @var $report Factory */
-    $report = Factory::singleton();
+    /** @var $report report_unasus_factory */
+    $report = report_unasus_factory::singleton();
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
-    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Recupera dados auxiliares
     $grupos = ($is_orientacao)
-            ?  grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
-            :  grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
+            ?  local_tutores_grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
+            :  local_tutores_grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -238,9 +238,9 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     $lista_atividade = array();
 
     if($is_orientacao){
-        $total_alunos = get_count_estudantes_orientacao($report->get_categoria_turma_ufsc());
+        $total_alunos = report_unasus_get_count_estudantes_orientacao($report->get_categoria_turma_ufsc());
     } else {
-        $total_alunos = get_count_estudantes($report->get_categoria_turma_ufsc());
+        $total_alunos = report_unasus_get_count_estudantes($report->get_categoria_turma_ufsc());
     }
 
     $total_atividades = 0;
@@ -251,7 +251,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
     // Executa Consulta
     foreach ($grupos as $grupo) {
-        $group_array_do_grupo = new GroupArray();
+        $group_array_do_grupo = new report_unasus_GroupArray();
         $array_das_atividades = array();
 
         foreach ($report->atividades_cursos as $modulo => $atividades) {
@@ -260,7 +260,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                 if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades) && array_search($atividade->id, $config)) {
 
                     // para cada assign um novo dado de avaliacao em atraso
-                    $array_das_atividades['atividade_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['atividade_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array('courseid' => $modulo,
                         'enrol_courseid' => $modulo,
@@ -287,7 +287,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     }
                 } elseif (is_a($atividade, 'report_unasus_forum_activity') && !empty($query_forum) && array_search($atividade->id, $config)) {
 
-                    $array_das_atividades['forum_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['forum_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'courseid' => $modulo,
@@ -314,7 +314,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     }
                 } elseif (is_a($atividade, 'report_unasus_quiz_activity') && !empty($query_quiz) && array_search($atividade->id, $config)) {
 
-                    $array_das_atividades['quiz_' . $atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['quiz_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'assignmentid' => $atividade->id,
@@ -343,7 +343,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     }
                 } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_database) && array_search($atividade->id, $config)) {
 
-                    $array_das_atividades['database_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['database_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'id_activity' => $atividade->id,
@@ -373,7 +373,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     }
                 } elseif (is_a($atividade, 'report_unasus_scorm_activity') && !empty($query_scorm) && array_search($atividade->id, $config)) {
 
-                    $array_das_atividades['database_'.$atividade->id] = new dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['database_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'id_activity' => $atividade->id,
@@ -408,7 +408,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     }
 
                     if(isset($total_alunos[$grupo->id])){
-                        $array_das_atividades[$atividade->id][$atividade->position] = new dado_atividades_alunos(0);
+                        $array_das_atividades[$atividade->id][$atividade->position] = new report_unasus_dado_atividades_alunos_render(0);
                     }
 
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
@@ -431,7 +431,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
             if (isset($atividades_alunos_grupos)) {
                 $count_atividades = isset($atividades_alunos_grupos[$grupo->id][$modulo]) ? $atividades_alunos_grupos[$grupo->id][$modulo] : 0;
-                $array_das_atividades['modulo_' . $modulo] = new dado_atividades_alunos($total_alunos[$grupo->id], $count_atividades);
+                $array_das_atividades['modulo_' . $modulo] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo->id], $count_atividades);
             }
         }
 

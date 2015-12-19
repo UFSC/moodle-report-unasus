@@ -6,7 +6,7 @@ require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
 
 
-class report_modulos_concluidos extends Factory {
+class report_modulos_concluidos extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -36,8 +36,8 @@ class report_modulos_concluidos extends Factory {
         $modulos = $this->modulos_selecionados;
 
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
+        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         $dados = array();
 
@@ -55,7 +55,7 @@ class report_modulos_concluidos extends Factory {
 
                 foreach ($atividades as $atividade) {
 
-                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+                    $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
@@ -71,7 +71,7 @@ class report_modulos_concluidos extends Factory {
                                 $grade = substr($nota, 0, strpos($nota, '.') + 3);
                             }
 
-                            $lista_atividades[$r->userid][] = new dado_modulos_concluidos(sizeof($modulos), $grade, $atividade);
+                            $lista_atividades[$r->userid][] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $grade, $atividade);
 
                         } else if ( !($database_courses) && isset($atividade->course_id)) {
                             $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
@@ -82,7 +82,7 @@ class report_modulos_concluidos extends Factory {
                                 $final_grade = 'Não há atividades avaliativas para o módulo';
                             }
                             if (!array_key_exists($atividade->course_id, $lista_atividades)) {
-                                $lista_atividades[$r->userid][$atividade->course_id] = new dado_modulos_concluidos(sizeof($modulos), $final_grade, $atividade);
+                                $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $atividade);
                             }
                         }
                     }
@@ -95,7 +95,7 @@ class report_modulos_concluidos extends Factory {
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
+                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
             }
 
             $lista_atividades = null;
@@ -111,7 +111,7 @@ class report_modulos_concluidos extends Factory {
         $header = array();
         $header[] = 'Estudantes';
         foreach ($activities as $h) {
-            $header[] = new dado_modulo($h[0]->course_id, $h[0]->course_name);
+            $header[] = new report_unasus_dado_modulo_render($h[0]->course_id, $h[0]->course_name);
         }
 
         return $header;

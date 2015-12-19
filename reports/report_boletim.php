@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_boletim extends Factory {
+class report_boletim extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -88,11 +88,11 @@ class report_boletim extends Factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
+        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         $atividade_nota_final = new \StdClass();
 
@@ -107,7 +107,7 @@ class report_boletim extends Factory {
 
                 foreach ($atividades as $atividade) {
 
-                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+                    $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
@@ -120,17 +120,17 @@ class report_boletim extends Factory {
 
                         //Atividade tem nota
                         if ( !isset($r->grade) || $r->grade == -1) {
-                            $tipo = dado_boletim::ATIVIDADE_SEM_NOTA;
+                            $tipo = report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA;
                         } else {
-                            $tipo = dado_boletim::ATIVIDADE_COM_NOTA;
+                            $tipo = report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA;
                             $nota = $r->grade;
                         }
 
                         if ($r->name_activity == 'nota_final_activity') {
-                            $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
+                            $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
                         } else if (!($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
                             if (array_search($atividade->id, $atividades_config_curso)){
-                                $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                                $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);
                             }
                         }
                     }
@@ -141,7 +141,7 @@ class report_boletim extends Factory {
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
+                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
             }
 
             $lista_atividades = null;
@@ -154,7 +154,7 @@ class report_boletim extends Factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_cursos = get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
+        $atividades_cursos = report_unasus_get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {

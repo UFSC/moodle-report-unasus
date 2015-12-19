@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_entrega_de_atividades extends Factory {
+class report_entrega_de_atividades extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -98,7 +98,7 @@ class report_entrega_de_atividades extends Factory {
                     }
                 }
             }
-            $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] =
+            $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] =
                     array($count_nao_entregue_mas_no_prazo,
                             $count_nao_entregue_fora_prazo,
                             $count_sem_prazo,
@@ -115,11 +115,11 @@ class report_entrega_de_atividades extends Factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
         // Recupera dados auxiliares
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
+        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         $dados = array();
 
@@ -129,7 +129,7 @@ class report_entrega_de_atividades extends Factory {
             foreach ($this->atividades_cursos as $courseid => $atividades) {
 
                 foreach ($atividades as $atividade) {
-                    $result = get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
+                    $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
                     foreach ($result as $r){
 
@@ -163,27 +163,27 @@ class report_entrega_de_atividades extends Factory {
 
                             if (!$data->source_activity->has_deadline()) {
                                 // E não tem entrega prazo
-                                $tipo = dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             } elseif ($data->is_a_future_due()) {
                                 //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
-                                $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
                             } else {
                                 // Atividade nao entregue e atrasada
-                                $tipo = dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
                             }
                         } else {
                             // Entrega atrasada
                             if ($data->is_submission_due()) {
-                                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO;
                             } else {
-                                $tipo = dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO;
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_NO_PRAZO;
                             }
 
                             $atraso = $data->submission_due_days();
                         }
 
                         if (array_search($atividade->id, $atividades_config_curso)){
-                            $lista_atividades[$r->userid][$atividade->id] = new dado_entrega_de_atividades($tipo, $atividade->id, $atraso);
+                            $lista_atividades[$r->userid][$atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
                         }
 
                     }
@@ -196,7 +196,7 @@ class report_entrega_de_atividades extends Factory {
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
+                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
             }
 
             $lista_atividades = null;
@@ -207,7 +207,7 @@ class report_entrega_de_atividades extends Factory {
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
 
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
+        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {

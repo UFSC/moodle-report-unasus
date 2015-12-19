@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_avaliacoes_em_atraso extends Factory {
+class report_avaliacoes_em_atraso extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -77,7 +77,7 @@ class report_avaliacoes_em_atraso extends Factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
         // Consulta
         $query_atividades = query_atividades();
@@ -105,7 +105,7 @@ class report_avaliacoes_em_atraso extends Factory {
 
                     if (!$atividade->has_grade() && $atividade->is_grade_needed()) {
 
-                        /** @var dado_atividades_alunos $dado */
+                        /** @var report_unasus_dado_atividades_alunos_render $dado */
                         unset($dado); // estamos trabalhando com ponteiro, não podemos atribuir null ou alteramos o array.
 
                         if (is_a($atividade, 'report_unasus_data_activity')) {
@@ -138,7 +138,7 @@ class report_avaliacoes_em_atraso extends Factory {
         $dados = array();
         foreach ($lista_atividade as $grupo_id => $grupo) {
             $data = array();
-            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
+            $data[] = local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
             foreach ($grupo as $atividades) {
                 if (is_array($atividades)) {
                     break;
@@ -147,7 +147,7 @@ class report_avaliacoes_em_atraso extends Factory {
                 }
             }
             $somatorio_atrasos = isset($somatorio_total_atrasos[$grupo_id]) ? $somatorio_total_atrasos[$grupo_id] : 0;
-            $data[] = new dado_media($somatorio_atrasos, $total_alunos[$grupo_id] * $total_atividades);
+            $data[] = new report_unasus_dado_media_render($somatorio_atrasos, $total_alunos[$grupo_id] * $total_atividades);
             $dados[] = $data;
         }
 

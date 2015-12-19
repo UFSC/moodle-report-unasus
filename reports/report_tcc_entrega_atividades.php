@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_tcc_entrega_atividades extends Factory {
+class report_tcc_entrega_atividades extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = false;
@@ -31,7 +31,7 @@ class report_tcc_entrega_atividades extends Factory {
 
     public function get_dados() {
         // Recupera dados auxiliares
-        $nomes_estudantes = grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_estudantes = local_tutores_grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -53,7 +53,7 @@ class report_tcc_entrega_atividades extends Factory {
                     $atraso = null;
 
                     if ($atividade instanceof report_unasus_data_empty) {
-                        $lista_atividades[] = new dado_nao_aplicado();
+                        $lista_atividades[] = new report_unasus_dado_nao_aplicado_render();
                         continue;
                     }
                 }
@@ -64,35 +64,35 @@ class report_tcc_entrega_atividades extends Factory {
                 foreach ($status as $chapter => $state) {
                     switch ($state){
                         case 'done':
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO;
+                            $tipo = report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_AVALIADO;
                             break;
                         case 'review':
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_REVISAO;
+                            $tipo = report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_REVISAO;
                             if($state_date[$chapter] != 'null'){
                                 $datetime1 = new DateTime($state_date[$chapter]);
                                 $atraso = $datetime1->diff($datetime)->days;
                             }
                             break;
                         case 'draft':
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO;
+                            $tipo = report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_RASCUNHO;
                             if($state_date[$chapter] != 'null'){
                                 $datetime1 = new DateTime($state_date[$chapter]);
                                 $atraso = $datetime1->diff($datetime)->days;
                             }
                             break;
                         default: // Estado ou 'null' ou 'empty'
-                            $tipo = dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO;
+                            $tipo = report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_NAO_APLICADO;
                             break;
                     }
 
-                    $lista_atividades[] = new dado_tcc_entrega_atividades($tipo, $chapter, $atraso);
+                    $lista_atividades[] = new report_unasus_dado_tcc_entrega_atividades_render($tipo, $chapter, $atraso);
                 }
 
             $estudantes[] = $lista_atividades;
             $lista_atividades = null;
 
             }
-            $dados[grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
+            $dados[local_tutores_grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);

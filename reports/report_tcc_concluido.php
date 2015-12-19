@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_tcc_concluido extends Factory {
+class report_tcc_concluido extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = false;
@@ -32,7 +32,7 @@ class report_tcc_concluido extends Factory {
     public function get_dados() {
 
         // Recupera dados auxiliares
-        $nomes_estudantes = grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_estudantes = local_tutores_grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -51,7 +51,7 @@ class report_tcc_concluido extends Factory {
                     /** @var report_unasus_data $atividade */
 
                     if ($atividade instanceof report_unasus_data_empty) {
-                        $lista_atividades[] = new dado_nao_aplicado();
+                        $lista_atividades[] = new report_unasus_dado_nao_aplicado_render();
                         continue;
                     }
                 }
@@ -60,17 +60,17 @@ class report_tcc_concluido extends Factory {
 
                 foreach ($status as $chapter => $state) {
                     if ($aluno[0]->has_evaluated_chapters($chapter))
-                        $tipo = dado_tcc_concluido::ATIVIDADE_CONCLUIDA;
+                        $tipo = report_unasus_dado_tcc_concluido_render::ATIVIDADE_CONCLUIDA;
                     else
-                        $tipo = dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA;
+                        $tipo = report_unasus_dado_tcc_concluido_render::ATIVIDADE_NAO_CONCLUIDA;
 
-                    $lista_atividades[] = new dado_tcc_concluido($tipo, $chapter);
+                    $lista_atividades[] = new report_unasus_dado_tcc_concluido_render($tipo, $chapter);
                 }
 
                 $estudantes[] = $lista_atividades;
                 $lista_atividades = null;
             }
-            $dados[grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
+            $dados[local_tutores_grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
         }
 
         return ($dados);

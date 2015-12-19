@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_atividades_concluidas_agrupadas extends Factory {
+class report_atividades_concluidas_agrupadas extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -104,7 +104,7 @@ class report_atividades_concluidas_agrupadas extends Factory {
 
                     if ($atividade->has_grade() && $atividade->is_grade_needed()) {
 
-                        /** @var dado_atividades_alunos $dado **/
+                        /** @var report_unasus_dado_atividades_alunos_render $dado **/
                         unset($dado); // estamos trabalhando com ponteiro, não podemos atribuir null ou alteramos o array.
 
                         if (is_a($atividade, 'report_unasus_data_activity')) {
@@ -141,7 +141,7 @@ class report_atividades_concluidas_agrupadas extends Factory {
 
         foreach ($lista_atividade as $grupo_id => $grupo) {
             $data = array();
-            $data[] = grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
+            $data[] = local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
             foreach ($grupo as $key => $atividades) {
                 $key = substr($key, 0, 6);
@@ -166,7 +166,7 @@ class report_atividades_concluidas_agrupadas extends Factory {
 
             /* Coluna  N° Alunos com atividades concluídas grupo */
             $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
-            $data[] = new dado_media($somatorioalunosgrupos, $total_alunos[$grupo_id]);
+            $data[] = new report_unasus_dado_media_render($somatorioalunosgrupos, $total_alunos[$grupo_id]);
 
             $dados[] = $data;
             $somatorio_total_alunos_atividades_concluidas += $somatorioalunosgrupos;
@@ -193,11 +193,11 @@ class report_atividades_concluidas_agrupadas extends Factory {
 
         /* Colunas de somatório dos módulos */
         for($i = 0; $i < $num_columns; $i++){
-            $data_total[] = new dado_media($total_activities_modulo[$i], $somatorio_total_alunos);
+            $data_total[] = new report_unasus_dado_media_render($total_activities_modulo[$i], $somatorio_total_alunos);
         }
 
         /* Última coluna de somatórios */
-        $data_total[] = new dado_media($somatorio_total_alunos_atividades_concluidas, $somatorio_total_alunos);
+        $data_total[] = new report_unasus_dado_media_render($somatorio_total_alunos_atividades_concluidas, $somatorio_total_alunos);
 
         $dados[] = $data_total;
 
@@ -211,7 +211,7 @@ class report_atividades_concluidas_agrupadas extends Factory {
         $header = array();
         $header[] = 'Tutores';
         foreach ($activities as $h) {
-            $header[] = new dado_modulo($h[0]->course_id, $h[0]->course_name);
+            $header[] = new report_unasus_dado_modulo_render($h[0]->course_id, $h[0]->course_name);
         }
 
         $header[''] = get_string('column_aluno_atividade_concluida', 'report_unasus');
@@ -235,7 +235,7 @@ class report_atividades_concluidas_agrupadas extends Factory {
 
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
             foreach ($array_dados as $dados_aluno) {
-                $alunos_grupo[$grupo_id][] = new dado_atividades_nota_atribuida_alunos($dados_aluno);
+                $alunos_grupo[$grupo_id][] = new report_unasus_dado_atividades_nota_atribuida_alunos_render($dados_aluno);
             }
         }
 
@@ -243,7 +243,7 @@ class report_atividades_concluidas_agrupadas extends Factory {
             $somatorio_total_modulo[$grupo_id] = array();
 
             foreach ($alunos_por_grupo as $dados_aluno) {
-                /** @var dado_atividades_nota_atribuida_alunos $dados_aluno */
+                /** @var report_unasus_dado_atividades_nota_atribuida_alunos_render $dados_aluno */
 
                 foreach ($this->atividades_cursos as $course_id => $activities) {
                     // Inicializa o contador pra cada curso e pra cada grupo

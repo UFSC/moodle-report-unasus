@@ -30,7 +30,7 @@ define('TCC-Turma-B', 258);
 
 use local_ufsc\ufsc;
 
-class Factory {
+class report_unasus_factory {
 
     // Atributos globais
 
@@ -83,7 +83,7 @@ class Factory {
 
     protected function __construct() {
         // Atributos globais
-        $this->curso_moodle = get_course_id();
+        $this->curso_moodle = report_unasus_get_course_id();
 
         $this->categoria_curso_ufsc = ufsc::get_categoria_curso_ufsc($this->curso_moodle);
         $this->categoria_turma_ufsc = ufsc::get_categoria_turma_ufsc($this->curso_moodle);
@@ -95,13 +95,13 @@ class Factory {
         // Recupera os módulos enviados do filtro e caso nenhum tenha sido selecionado, retorna todos os possíveis.
         $modulos = optional_param_array('modulos', null, PARAM_INT);
         if (is_null($modulos)) {
-            $modulos = array_keys(get_id_nome_modulos($this->categoria_turma_ufsc));
+            $modulos = array_keys(report_unasus_get_id_nome_modulos($this->categoria_turma_ufsc));
         }
 
         // Valores definidos nos filtros
         $this->cohorts_selecionados = optional_param_array('cohorts', null, PARAM_INT);
         $this->modulos_selecionados = $modulos;
-        $this->atividades_cursos = get_atividades_cursos($modulos);
+        $this->atividades_cursos = report_unasus_get_atividades_cursos($modulos);
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
         $this->orientadores_selecionados = optional_param_array('orientadores', null, PARAM_INT);
@@ -123,13 +123,13 @@ class Factory {
                 break;
         }
 
-        $this->agrupamentos_membros = get_agrupamentos_membros($modulos);
+        $this->agrupamentos_membros = report_unasus_get_agrupamentos_membros($modulos);
 
         //Atributos especificos para os relatorios de uso sistema tutor e acesso tutor
         $data_inicio = optional_param('data_inicio', null, PARAM_TEXT);
         $data_fim = optional_param('data_fim', null, PARAM_TEXT);
 
-        if (date_interval_is_valid($data_inicio, $data_fim)) {
+        if (report_unasus_date_interval_is_valid($data_inicio, $data_fim)) {
             $this->data_inicio = $data_inicio;
             $this->data_fim = $data_fim;
         }
@@ -145,7 +145,7 @@ class Factory {
      * Fabrica um objeto com as definições dos relatórios que também é um singleton
      * 
      * @global type $CFG
-     * @return Factory
+     * @return report_unasus_factory
      * @throws Exception
      */
 
@@ -221,7 +221,7 @@ class Factory {
      * @return string nome de uma classe
      */
     public function get_estrutura_dados_relatorio() {
-        return "dado_{$this->relatorio}";
+        return "report_unasus_dado_{$this->relatorio}_render";
     }
 
     /**
@@ -313,10 +313,10 @@ class Factory {
     }
 
     function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
-        /** @var $factory Factory */
-        $factory = Factory::singleton();
+        /** @var $factory report_unasus_factory */
+        $factory = report_unasus_factory::singleton();
 
-        $atividades_cursos = get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $factory->get_categoria_turma_ufsc());
+        $atividades_cursos = report_unasus_get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $factory->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
@@ -332,8 +332,8 @@ class Factory {
 
     function get_table_header_tcc_portfolio_entrega_atividades($is_tcc = false) {
 
-        $group_array = new GroupArray();
-        process_header_atividades_lti($this->get_modulos_ids(), $group_array, $is_tcc);
+        $group_array = new report_unasus_GroupArray();
+        report_unasus_process_header_atividades_lti($this->get_modulos_ids(), $group_array, $is_tcc);
 
         $atividades_cursos = $group_array->get_assoc();
         $header = array();

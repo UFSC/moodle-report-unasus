@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_tcc_consolidado extends Factory {
+class report_tcc_consolidado extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = false;
@@ -86,17 +86,17 @@ class report_tcc_consolidado extends Factory {
         $associativo_atividade = $result_array['associativo_atividade'];
 
         /* Variaveis totais do relatorio */
-        $total_nao_acessadas = new dado_somatorio_grupo();
-        $total_tcc_completo = new dado_somatorio_grupo();
+        $total_nao_acessadas = new report_unasus_dado_somatorio_grupo_render();
+        $total_tcc_completo = new report_unasus_dado_somatorio_grupo_render();
 
-        $total_abstract = new dado_somatorio_grupo();
-        $total_chapter1 = new dado_somatorio_grupo();
-        $total_chapter2 = new dado_somatorio_grupo();
-        $total_chapter3 = new dado_somatorio_grupo();
-        $total_chapter4 = new dado_somatorio_grupo();
-        $total_chapter5 = new dado_somatorio_grupo();
+        $total_abstract = new report_unasus_dado_somatorio_grupo_render();
+        $total_chapter1 = new report_unasus_dado_somatorio_grupo_render();
+        $total_chapter2 = new report_unasus_dado_somatorio_grupo_render();
+        $total_chapter3 = new report_unasus_dado_somatorio_grupo_render();
+        $total_chapter4 = new report_unasus_dado_somatorio_grupo_render();
+        $total_chapter5 = new report_unasus_dado_somatorio_grupo_render();
 
-        $total_avaliados = new dado_somatorio_grupo();
+        $total_avaliados = new report_unasus_dado_somatorio_grupo_render();
 
         /* Loop nas atividades para calcular os somatorios para sintese */
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
@@ -161,35 +161,35 @@ class report_tcc_consolidado extends Factory {
 
         $dados = array();
 
-        $total_atividades_concluidos = new dado_somatorio_grupo();
-        $total_atividades_alunos = new dado_somatorio_grupo();
+        $total_atividades_concluidos = new report_unasus_dado_somatorio_grupo_render();
+        $total_atividades_alunos = new report_unasus_dado_somatorio_grupo_render();
 
         foreach ($lista_atividade as $grupo_id => $grupo) {
 
             /* Coluna nome orientador */
             $data = array();
-            $data[] = grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
+            $data[] = local_tutores_grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
             if (isset($total_alunos[$grupo_id])) {
-                $lti['abstract'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[0]);
-                $lti['chapter1'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter1->get($grupo_id)[1]);
-                $lti['chapter2'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter2->get($grupo_id)[2]);
-                $lti['chapter3'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[3]);
-                $lti['chapter4'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[4]);
-                $lti['chapter5'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[5]);
+                $lti['abstract'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_abstract->get($grupo_id)[0]);
+                $lti['chapter1'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_chapter1->get($grupo_id)[1]);
+                $lti['chapter2'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_chapter2->get($grupo_id)[2]);
+                $lti['chapter3'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_chapter3->get($grupo_id)[3]);
+                $lti['chapter4'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_chapter4->get($grupo_id)[4]);
+                $lti['chapter5'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_chapter5->get($grupo_id)[5]);
 
-                $lti['tcc'] = (!isset($total_tcc_completo->get($grupo_id)[1])) ? new dado_atividades_alunos($total_alunos[$grupo_id], 0)
-                                                                               : new dado_atividades_alunos($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id)[1]);
+                $lti['tcc'] = (!isset($total_tcc_completo->get($grupo_id)[1])) ? new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], 0)
+                                                                               : new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_tcc_completo->get($grupo_id)[1]);
 
-                $lti['acessado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id)[$grupo_id]);
+                $lti['acessado'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_nao_acessadas->get($grupo_id)[$grupo_id]);
 
-                $lti['avaliado'] = new dado_atividades_alunos($total_alunos[$grupo_id], $total_avaliados->get($grupo_id)[0]);
+                $lti['avaliado'] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo_id], $total_avaliados->get($grupo_id)[0]);
 
                 /* Preencher relatorio */
                 foreach ($lti as $id => $dado_atividade) {
 
                     /* Coluna não acessado e concluído para cada modulo dentro do grupo */
-                    if ($dado_atividade instanceof dado_atividades_alunos) {
+                    if ($dado_atividade instanceof report_unasus_dado_atividades_alunos_render) {
                         $data[] = $dado_atividade;
 
                         $total_atividades_concluidos->add($grupo_id, $id, $dado_atividade->get_count());
@@ -202,7 +202,7 @@ class report_tcc_consolidado extends Factory {
         }
 
         /* Linha total alunos com atividades concluidas  */
-        $data_total = array(new dado_texto(html_writer::tag('strong', 'Total por curso'), 'total'));
+        $data_total = array(new report_unasus_dado_texto_render(html_writer::tag('strong', 'Total por curso'), 'total'));
         $count_alunos = $total_atividades_alunos->get();
         $concluidos = $total_atividades_concluidos->get();
 
@@ -212,7 +212,7 @@ class report_tcc_consolidado extends Factory {
                     $data_total[$id]->set_total($data_total[$id]->get_total() + $count_alunos[$ltiid][$id]);
                     $data_total[$id]->set_count($data_total[$id]->get_count() + $concluidos[$ltiid][$id]);
                 } else {
-                    $data_total[$id] = new dado_atividades_alunos($count_alunos[$ltiid][$id], $count);
+                    $data_total[$id] = new report_unasus_dado_atividades_alunos_render($count_alunos[$ltiid][$id], $count);
                 }
             }
         }

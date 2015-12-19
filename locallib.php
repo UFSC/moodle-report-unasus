@@ -10,15 +10,15 @@ require_once($CFG->dirroot . '/report/unasus/relatorios/queries.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/loops.php');
 require_once($CFG->dirroot . '/report/unasus/sistematcc.php');
 
-function get_datetime_from_unixtime($unixtime) {
+function report_unasus_get_datetime_from_unixtime($unixtime) {
     return date_create(date("Y-m-d H:m:s", $unixtime));
 }
 
-function get_count_estudantes($categoria_turma) {
+function report_unasus_get_count_estudantes($categoria_turma) {
     $middleware = Middleware::singleton();
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($categoria_turma);
-    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
                 FROM {relationship_groups} rg
@@ -41,11 +41,11 @@ function get_count_estudantes($categoria_turma) {
     return $result;
 }
 
-function get_count_estudantes_orientacao($categoria_turma) {
+function report_unasus_get_count_estudantes_orientacao($categoria_turma) {
     $middleware = Middleware::singleton();
 
-    $relationship = grupo_orientacao::get_relationship_orientacao($categoria_turma);
-    $cohort_estudantes = grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($categoria_turma);
+    $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
 
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
                 FROM {relationship_groups} rg
@@ -74,7 +74,7 @@ function get_count_estudantes_orientacao($categoria_turma) {
  * @param int $categoria_curso
  * @return array (nome dos cohorts)
  */
-function get_nomes_cohorts($categoria_curso) {
+function report_unasus_get_nomes_cohorts($categoria_curso) {
     global $DB;
 
     $modulos = $DB->get_records_sql_menu(
@@ -94,12 +94,12 @@ function get_nomes_cohorts($categoria_curso) {
  * @param $categoria_turma
  * @return array
  */
-function get_polos($categoria_turma) {
+function report_unasus_get_polos($categoria_turma) {
     $academico = Middleware::singleton();
 
     #$relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
-    $relationship = grupos_tutoria::get_relationship_tutoria($categoria_turma);
-    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     $sql = "
           SELECT DISTINCT(ua.polo), ua.nomepolo
@@ -119,7 +119,7 @@ function get_polos($categoria_turma) {
     return $polos;
 }
 
-function get_final_grades($id_aluno, $course_id){
+function report_unasus_get_final_grades($id_aluno, $course_id){
 
     global $DB;
 
@@ -145,7 +145,7 @@ function get_final_grades($id_aluno, $course_id){
     return $DB->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
 }
 
-function get_id_nome_modulos($ufsc_category, $method = 'get_records_sql_menu') {
+function report_unasus_get_id_nome_modulos($ufsc_category, $method = 'get_records_sql_menu') {
     global $DB, $SITE;
 
     $sql = " SELECT DISTINCT(c.id),
@@ -186,8 +186,8 @@ function get_id_nome_modulos($ufsc_category, $method = 'get_records_sql_menu') {
  * @param $categoria_curso
  * @return array
  */
-function get_nome_modulos($categoria_curso) {
-    $modulos = get_id_nome_modulos($categoria_curso, 'get_records_sql');
+function report_unasus_get_nome_modulos($categoria_curso) {
+    $modulos = report_unasus_get_id_nome_modulos($categoria_curso, 'get_records_sql');
 
     // Interar para criar array dos modulos separados por grupos
     $listall = array();
@@ -208,7 +208,7 @@ function get_nome_modulos($categoria_curso) {
     return $listall;
 }
 
-function get_id_modulos() {
+function report_unasus_get_id_modulos() {
     global $DB, $SITE;
 
     $modulos = $DB->get_records_sql_menu(
@@ -221,7 +221,7 @@ function get_id_modulos() {
     return array_keys($modulos);
 }
 
-function get_id_nome_atividades() {
+function report_unasus_get_id_nome_atividades() {
     global $DB;
 
     $modulos = $DB->get_records_sql_menu("SELECT a.id, a.name FROM {assign} a");
@@ -234,7 +234,7 @@ function get_id_nome_atividades() {
  * @param array $courses array de ids dos cursos moodle
  * @return array(course_id => (userid1, userid2, ...))
  */
-function get_agrupamentos_membros($courses) {
+function report_unasus_get_agrupamentos_membros($courses) {
     global $DB;
 
     $groups = array();
@@ -256,9 +256,9 @@ function get_agrupamentos_membros($courses) {
  * @param bool $mostrar_nota_final
  * @param bool $mostrar_total
  * @throws Exception
- * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
+ * @return report_unasus_GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $categoryid = 0) {
+function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $categoryid = 0) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
@@ -267,17 +267,17 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     $atividades_config_curso = array();
 
     if ($categoryid != 0){
-        $atividades_config_curso = get_activities_config_report($categoryid, $courses);
+        $atividades_config_curso = report_unasus_get_activities_config_report($categoryid, $courses);
     }
 
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
-    $assigns = query_assign_courses($courses);
-    $foruns = query_forum_courses($courses);
-    $quizes = query_quiz_courses($courses);
-    $databases = query_database_courses($courses);
-    $scorms = query_scorm_courses($courses);
+    $assigns = report_unasus_query_assign_courses($courses);
+    $foruns = report_unasus_query_forum_courses($courses);
+    $quizes = report_unasus_query_quiz_courses($courses);
+    $databases = report_unasus_query_database_courses($courses);
+    $scorms = report_unasus_query_scorm_courses($courses);
 
-    $group_array = new GroupArray();
+    $group_array = new report_unasus_GroupArray();
 
     foreach ($assigns as $atividade) {
 
@@ -336,18 +336,18 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
     // Nos relatórios de atividades o TCC é tratado apenas como uma atividade.
     if($buscar_lti) {
-        process_header_atividades_lti($courses, $group_array);
+        report_unasus_process_header_atividades_lti($courses, $group_array);
     }
 
     if ($mostrar_nota_final) {
-        $cursos_com_nota_final = query_courses_com_nota_final($courses);
+        $cursos_com_nota_final = report_unasus_query_courses_com_nota_final($courses);
         foreach ($cursos_com_nota_final as $nota_final) {
             $group_array->add($nota_final->course_id, new report_unasus_final_grade($nota_final));
         }
     }
 
     if ($mostrar_total) {
-        $cursos_com_nota_final = query_courses_com_nota_final($courses);
+        $cursos_com_nota_final = report_unasus_query_courses_com_nota_final($courses);
         foreach ($cursos_com_nota_final as $nota_final) {
             $group_array->add($nota_final->course_id, new report_unasus_total_atividades_concluidas($nota_final));
         }
@@ -366,12 +366,12 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
  * Atividades LTI
  *
  * @param $courses
- * @param GroupArray $group_array
+ * @param report_unasus_GroupArray $group_array
  * @param bool $is_tcc
  * @return array
  */
-function process_header_atividades_lti($courses, GroupArray &$group_array) {
-    $ltis = query_lti_courses($courses);
+function report_unasus_process_header_atividades_lti($courses, report_unasus_GroupArray &$group_array) {
+    $ltis = report_unasus_query_lti_courses($courses);
 
     // Nenhuma atividade lti encontrada,
     // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
@@ -420,10 +420,10 @@ function process_header_atividades_lti($courses, GroupArray &$group_array) {
  * @global moodle_database $DB
  * @return moodle_recordset
  */
-function query_assign_courses($courses) {
+function report_unasus_query_assign_courses($courses) {
     global $DB, $SITE;
 
-    $string_courses = get_modulos_validos($courses);
+    $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT a.id AS assign_id,
                      a.name AS assign_name,
@@ -454,10 +454,10 @@ function query_assign_courses($courses) {
  * @param array $courses
  * @return moodle_recordset
  */
-function query_quiz_courses($courses) {
+function report_unasus_query_quiz_courses($courses) {
     global $DB;
 
-    $string_courses = get_modulos_validos($courses);
+    $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT q.id AS quiz_id,
                      q.name AS quiz_name,
@@ -480,10 +480,10 @@ function query_quiz_courses($courses) {
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
-function query_database_courses($courses) {
+function report_unasus_query_database_courses($courses) {
     global $DB;
 
-    $string_courses = get_modulos_validos($courses);
+    $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT d.id AS database_id,
                      d.name AS database_name,
@@ -506,10 +506,10 @@ function query_database_courses($courses) {
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
-function query_scorm_courses($courses) {
+function report_unasus_query_scorm_courses($courses) {
     global $DB;
 
-    $string_courses = get_modulos_validos($courses);
+    $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT s.id AS scorm_id,
                      s.name AS scorm_name,
@@ -539,7 +539,7 @@ function query_scorm_courses($courses) {
  * @internal param \type $tcc_definition_id
  * @return array
  */
-function query_lti_courses($courses) {
+function report_unasus_query_lti_courses($courses) {
     global $DB;
 
     if (empty($courses)) {
@@ -559,11 +559,11 @@ function query_lti_courses($courses) {
 
                     foreach ($ltis as $lti) {
                         $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
-                        $customparameters = get_tcc_definition($config['customparameters']);
+                        $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
                         $consumer_key = $config['resourcekey'];
 
                         // WS Client
-                        $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+                        $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
                         $object = $client->get_tcc_definition($customparameters['tcc_definition']);
 
                         if (!$object) {
@@ -592,11 +592,11 @@ function query_lti_courses($courses) {
 
             foreach ($ltis as $lti) {
                 $config = $DB->get_records_sql_menu(query_lti_config(), array('typeid' => $lti->typeid));
-                $customparameters = get_tcc_definition($config['customparameters']);
+                $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
                 $consumer_key = $config['resourcekey'];
 
                 // WS Client
-                $client = new SistemaTccClient($lti->baseurl, $consumer_key);
+                $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
                 $object = $client->get_tcc_definition($customparameters['tcc_definition']);
 
                 if (!$object) {
@@ -626,7 +626,7 @@ function query_lti_courses($courses) {
  * @param type $tcc_definition
  * @return array
  */
-function get_tcc_definition($tcc_definition) {
+function report_unasus_get_tcc_definition($tcc_definition) {
     $tcc_definition = explode(';', $tcc_definition);
     $arr = array();
 
@@ -639,10 +639,10 @@ function get_tcc_definition($tcc_definition) {
     return $arr;
 }
 
-function query_forum_courses($courses) {
+function report_unasus_query_forum_courses($courses) {
     global $DB;
 
-    $string_courses = get_modulos_validos($courses);
+    $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT f.id AS forum_id,
                      f.name AS forum_name,
@@ -668,10 +668,10 @@ function query_forum_courses($courses) {
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
-function query_courses_com_nota_final($courses) {
+function report_unasus_query_courses_com_nota_final($courses) {
     global $DB;
 
-    $string_courses = get_modulos_validos($courses);
+    $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT gi.id,
                      gi.courseid AS course_id,
@@ -693,18 +693,18 @@ function query_courses_com_nota_final($courses) {
  * @param array $modulos
  * @return string
  */
-function get_modulos_validos($modulos) {
+function report_unasus_get_modulos_validos($modulos) {
 
-    $string_modulos = empty($modulos) ? int_array_to_sql(get_id_modulos()) : int_array_to_sql($modulos);
+    $string_modulos = empty($modulos) ? report_unasus_int_array_to_sql(report_unasus_get_id_modulos()) : report_unasus_int_array_to_sql($modulos);
     return $string_modulos;
 }
 
-function get_prazo_avaliacao() {
+function report_unasus_get_prazo_avaliacao() {
     global $CFG;
     return (int) $CFG->report_unasus_prazo_avaliacao;
 }
 
-function get_prazo_maximo_avaliacao() {
+function report_unasus_get_prazo_maximo_avaliacao() {
     global $CFG;
     return (int) $CFG->report_unasus_prazo_maximo_avaliacao;
 }
@@ -790,7 +790,7 @@ class report_unasus_table extends html_table {
 
 }
 
-class html_table_cell_header extends html_table_cell {
+class report_unasus_html_table_cell_header extends html_table_cell {
 
     public function __construct($text = null) {
         $this->text = $text;
@@ -804,7 +804,7 @@ class html_table_cell_header extends html_table_cell {
  *
  * @author Gabriel Mazetto
  */
-class GroupArray {
+class report_unasus_GroupArray {
 
     private $data = array();
 
@@ -847,7 +847,9 @@ class GroupArray {
  * @param array $array
  * @return String
  */
-function int_array_to_sql($array) {
+
+// TODO: Trocar esta função por get_in_or_equal() em lib/dml/moodle_database.php
+function report_unasus_int_array_to_sql($array) {
     if (!is_array($array)) {
         return $array;
     }
@@ -861,10 +863,10 @@ function int_array_to_sql($array) {
  *
  * @return bool|string
  */
-function get_curso_ufsc_id() {
+function report_unasus_get_curso_ufsc_id() {
     global $DB;
 
-    $course = $DB->get_record('course', array('id' => get_course_id()), 'category', MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => report_unasus_get_course_id()), 'category', MUST_EXIST);
     $category = $DB->get_record('course_categories', array('id' => $course->category), 'id, idnumber, depth, path', MUST_EXIST);
 
     if ($category->depth > 1) {
@@ -879,7 +881,7 @@ function get_curso_ufsc_id() {
     return ($count) ? $curso_ufsc_id : false;
 }
 
-function get_course_id() {
+function report_unasus_get_course_id() {
     return required_param('course', PARAM_INT);
 }
 
@@ -894,7 +896,7 @@ function get_course_id() {
  * @date_format formato da data em DateTime()
  */
 
-function get_time_interval($data_inicio, $data_fim, $tempo_pulo, $date_format) {
+function report_unasus_get_time_interval($data_inicio, $data_fim, $tempo_pulo, $date_format) {
     // Intervalo de dias no formato d/m
     $interval = $data_inicio->diff($data_fim);
 
@@ -920,7 +922,7 @@ function get_time_interval($data_inicio, $data_fim, $tempo_pulo, $date_format) {
  * @param string $date_format formato da data em DateTime()
  * @return array
  */
-function get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date_format) {
+function report_unasus_get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date_format) {
     $data_inicio = date_create_from_format($date_format, $data_inicio);
     $data_fim = date_create_from_format($date_format, $data_fim);
     $interval = $data_inicio->diff($data_fim);
@@ -946,7 +948,7 @@ function get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date
 //moodleform is defined in formslib.php
 require_once("$CFG->libdir/formslib.php");
 
-class date_picker_moodle_form extends moodleform {
+class report_unasus_date_picker_moodle_form extends moodleform {
 
     function definition() {
         global $CFG;
@@ -971,8 +973,8 @@ class date_picker_moodle_form extends moodleform {
  * @param string $data_fim data
  * @return bool
  */
-function date_interval_is_valid($data_inicio, $data_fim) {
-    if (date_is_valid($data_inicio) && date_is_valid($data_fim)) {
+function report_unasus_date_interval_is_valid($data_inicio, $data_fim) {
+    if (report_unasus_date_is_valid($data_inicio) && report_unasus_date_is_valid($data_fim)) {
         $diferenca_datas = date_diff(date_create_from_format('d/m/Y', $data_inicio), date_create_from_format('d/m/Y', $data_fim));
         //intervalo de data de inicio menor que a de fim
         if ($diferenca_datas->invert == 0) {
@@ -988,7 +990,7 @@ function date_interval_is_valid($data_inicio, $data_fim) {
  * @param $str String data
  * @return bool
  */
-function date_is_valid($str) {
+function report_unasus_date_is_valid($str) {
     if (substr_count($str, '/') == 2) {
         list($d, $m, $y) = explode('/', $str);
         return checkdate($m, $d, sprintf('%04u', $y));
@@ -1006,7 +1008,7 @@ function date_is_valid($str) {
  * @param $dados array( tutores => datas => quantidade de acesso)
  * @return bool
  */
-function dot_chart_com_tutores_com_acesso($dados) {
+function report_unasus_dot_chart_com_tutores_com_acesso($dados) {
     foreach ($dados as $tutor) {
         foreach ($tutor as $dia) {
             if ($dia[0] != 0)
@@ -1016,13 +1018,13 @@ function dot_chart_com_tutores_com_acesso($dados) {
     return false;
 }
 
-function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false)
+function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false)
 {
 
     global $DB;
 
-    $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
-    $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     switch ($nome_atividade) {
         case 'report_unasus_assign_activity':
@@ -1098,10 +1100,10 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
     return $DB->get_records_sql($query, $params);
 }
 
-function get_activities_config_report($categoryid, $courses) {
+function report_unasus_get_activities_config_report($categoryid, $courses) {
     global $DB;
 
-    $string_courses = get_modulos_validos($courses);
+    $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT *
                 FROM {activities_course_config} AS config

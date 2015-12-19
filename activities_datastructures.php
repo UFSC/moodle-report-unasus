@@ -379,12 +379,12 @@ abstract class report_unasus_data {
             return false;
         }
 
-        $deadline = get_datetime_from_unixtime($this->source_activity->deadline);
+        $deadline = report_unasus_get_datetime_from_unixtime($this->source_activity->deadline);
 
         if ($this->has_submitted()) {
             // se foi enviada, o atraso será relacionado a um dado histórico
             // usaremos a diferença entre a data de envio e a data esperada
-            $duediff = $deadline->diff(get_datetime_from_unixtime($this->submission_date));
+            $duediff = $deadline->diff(report_unasus_get_datetime_from_unixtime($this->submission_date));
         } else {
             // se não foi enviada, o atraso será relacionado a um dado atual
             // usaremos a diferença entre data a atual e a data esperada
@@ -414,18 +414,18 @@ abstract class report_unasus_data {
         if ($this->source_activity->has_submission) {
             // se a atividade possui entrega ativada
             // o prazo é contato a partir da data de envio
-            $deadline = get_datetime_from_unixtime($this->submission_date);
+            $deadline = report_unasus_get_datetime_from_unixtime($this->submission_date);
         } else {
             // se a atividade não possui entrega ativada
             // o prazo é contato a partir da data esperada de entrega
-            $deadline = get_datetime_from_unixtime($this->source_activity->deadline);
+            $deadline = report_unasus_get_datetime_from_unixtime($this->source_activity->deadline);
         }
 
         if ($this->has_grade()) {
             // se possui nota, o atraso é relacionado a um dado histórico
             // usaremos a diferença do deadline com a data de envio da nota
 
-            $grade_datetime = get_datetime_from_unixtime($this->grade_date);
+            $grade_datetime = report_unasus_get_datetime_from_unixtime($this->grade_date);
             $duediff = $deadline->diff($grade_datetime);
         } else {
             // se não possui nota, o atraso é relacionado a um dado atual
@@ -579,8 +579,7 @@ abstract class report_unasus_data {
         if ($this->source_activity->deadline > $now) {
             return true;
         }
-
-        // Se ele nao tiver nota e sua entrega estiver atrasada ou necessita de nota, não é uma atividade pro futuro
+// Se ele nao tiver nota e sua entrega estiver atrasada ou necessita de nota, não é uma atividade pro futuro
         return false;
     }
 
@@ -722,6 +721,7 @@ class report_unasus_data_scorm extends report_unasus_data {
     public function has_submitted() {
         return $this->submission_date && $this->has_grade() && $this->grade == $this->grademax;
     }
+
 }
 
 
