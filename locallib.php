@@ -258,10 +258,16 @@ function get_agrupamentos_membros($courses) {
  * @throws Exception
  * @return GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true) {
+function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $categoryid = 0) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
+    }
+
+    $atividades_config_curso = array();
+
+    if ($categoryid != 0){
+        $atividades_config_curso = get_activities_config_report($categoryid, $courses);
     }
 
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
@@ -274,23 +280,57 @@ function get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_t
     $group_array = new GroupArray();
 
     foreach ($assigns as $atividade) {
-        $group_array->add($atividade->course_id, new report_unasus_assign_activity($atividade));
+
+        if (!empty($atividades_config_curso)){
+            if(array_search($atividade->assign_id, $atividades_config_curso)){
+                $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
+                $group_array->add($atividade->course_id, $assign_object);
+            }
+        } else {
+            $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
+            $group_array->add($atividade->course_id, $assign_object);
+        }
     }
 
     foreach ($foruns as $forum) {
-        $group_array->add($forum->course_id, new report_unasus_forum_activity($forum));
+
+        if (!empty($atividades_config_curso)){
+            if(array_search($forum->forum_id, $atividades_config_curso)) {
+                $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
+            }
+        } else {
+            $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
+        }
     }
 
     foreach ($quizes as $quiz) {
-        $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz));
+        if (!empty($atividades_config_curso)){
+            if(array_search($quiz->quiz_id, $atividades_config_curso)){
+                $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
+            }
+        } else {
+            $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
+        }
     }
 
     foreach ($databases as $database) {
-        $group_array->add($database->course_id, new report_unasus_db_activity($database));
+        if (!empty($atividades_config_curso)){
+            if(array_search($database->database_id, $atividades_config_curso)){
+                $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
+            }
+        } else {
+            $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
+        }
     }
 
     foreach ($scorms as $scorm) {
-        $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm));
+        if (!empty($atividades_config_curso)){
+            if(array_search($scorm->scorm_id, $atividades_config_curso)){
+                $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
+            }
+        } else {
+            $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
+        }
     }
 
     // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
@@ -641,6 +681,13 @@ class report_unasus_table extends html_table {
     // Data 1  |  Data 2  |  Data 3
     // Data 4  |  Date 5  |  Data 6
     function build_single_header($coluns) {
+        $student = new html_table_cell('Estudantes');
+        $student->header = true;
+        $student->attributes = array('class' => 'title estudante');
+
+        array_shift($coluns);
+        array_unshift($coluns, $student);
+
         $this->head = $coluns;
     }
 
@@ -651,11 +698,13 @@ class report_unasus_table extends html_table {
     function build_double_header($grouped_coluns, $person_name = 'Estudantes') {
 
         $this->data = array();
+
         $blank = new html_table_cell();
         $blank->attributes = array('class' => 'blank');
+
         $student = new html_table_cell($person_name);
         $student->header = true;
-        $student->attributes = array('class' => 'ultima_atividade');
+        $student->attributes = array('class' => 'ultima_atividade title estudante');
 
         $heading1 = array(); // Primeira linha
         $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha
@@ -681,13 +730,13 @@ class report_unasus_table extends html_table {
             $module_cell->attributes = array('class' => 'modulo_header');
             $heading1[] = $module_cell;
 
-
             foreach ($activities as $activity) {
                 $activity_cell = new html_table_cell($activity);
                 $activity_cell->header = true;
+                $activity_cell->attributes = array('class' => 'rotate');
                 /* box */
                 if (in_array($count, $ultima_atividade_modulo)) {
-                    $activity_cell->attributes = array('class' => 'ultima_atividade');
+                    $activity_cell->attributes = array('class' => 'ultima_atividade rotate');
                 }
                 $heading2[] = $activity_cell;
                 $count++;
@@ -698,6 +747,14 @@ class report_unasus_table extends html_table {
         $this->data[] = new html_table_row($heading2);
     }
 
+}
+
+class html_table_cell_header extends html_table_cell {
+
+    public function __construct($text = null) {
+        $this->text = $text;
+        $this->attributes['class'] = '';
+    }
 }
 
 /**
@@ -918,7 +975,8 @@ function dot_chart_com_tutores_com_acesso($dados) {
     return false;
 }
 
-function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false){
+function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false)
+{
 
     global $DB;
 
@@ -983,7 +1041,7 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
             $query = query_scorm();
             break;
         default:
-            if($is_boletim){ //Nota final para relatório boletim
+            if ($is_boletim) { //Nota final para relatório boletim
                 $params = array(
                     'courseid' => $courseid,
                     'enrol_courseid' => $courseid,
@@ -997,4 +1055,17 @@ function get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report,
     }
 
     return $DB->get_records_sql($query, $params);
+}
+
+function get_activities_config_report($categoryid, $courses) {
+    global $DB;
+
+    $string_courses = get_modulos_validos($courses);
+
+    $query = "SELECT *
+                FROM {activities_course_config} AS config
+               WHERE config.courseid IN ({$string_courses}) AND config.categoryid = :categoryid
+           ";
+
+    return $DB->get_records_sql_menu($query, array('categoryid' => $categoryid));
 }

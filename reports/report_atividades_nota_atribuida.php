@@ -75,6 +75,11 @@ class report_atividades_nota_atribuida extends Factory {
     }
 
     public function get_dados() {
+
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+
         // Consulta
         $query_atividades = query_atividades();
         $query_quiz = query_quiz();
@@ -83,7 +88,7 @@ class report_atividades_nota_atribuida extends Factory {
         $query_database = query_database_adjusted();
         $query_scorm = query_scorm();
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, null, false, $query_database, $query_scorm);
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, null, false, $query_database, $query_scorm, $atividades_config_curso);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];

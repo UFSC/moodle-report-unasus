@@ -55,9 +55,66 @@ abstract class report_unasus_activity {
     abstract function __toString();
 }
 
-class report_unasus_assign_activity extends report_unasus_activity {
+abstract class report_unasus_activity_config {
+
+    public $id;
+    public $name;
+    public $deadline;
+    public $has_submission;
+    public $has_grade;
+    public $course_id;
+    public $course_name;
+    public $grouping;
+
+    public function __construct($has_submission, $has_grade) {
+        if (!is_bool($has_submission) || !is_bool($has_grade)) {
+            throw new InvalidArgumentException;
+        }
+
+        $this->has_submission = $has_submission;
+        $this->has_grade = $has_grade;
+    }
+
+    /**
+     * Esta atividade possui um prazo?
+     *
+     * @return bool true se tiver prazo definido ou false caso contrário
+     */
+    public function has_deadline() {
+        return (!empty($this->deadline));
+    }
+
+    /**
+     * Esta atividade possui uma entrega?
+     *
+     * @return bool true se tiver entrega, seja de arquivo ou texto online
+     */
+    public function has_submission() {
+        return (!empty($this->has_submission));
+    }
+
+    /**
+     * Esta atividade tem agrupamento?
+     */
+    public function has_grouping() {
+        return (!empty($this->grouping));
+    }
+}
+
+class report_unasus_assign_activity_config {
 
     public function __construct($db_model) {
+
+        $this->id = $db_model->assign_id;
+        $this->name = $db_model->assign_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+}
+
+class report_unasus_assign_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $config) {
 
         $has_submission = !$db_model->nosubmissions;
         $has_grade = ((int) $db_model->grade) == 0 ? false : true;
@@ -70,19 +127,36 @@ class report_unasus_assign_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
-        $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($atividade_url, $this->name, array('target' => '_blank'));
-    }
+        if(array_search($this->id, $this->config)) {
+            $nome = strtolower(trim($this->name));
 
+            $name = $nome == 'nota da avaliação presencial' ? 'Presen' : $this->name;
+
+            $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
+            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($atividade_url, $name, array('target' => '_blank'));
+        }
+    }
+}
+
+class report_unasus_forum_activity_config {
+
+    public function __construct($db_model) {
+
+        $this->id = $db_model->forum_id;
+        $this->name = $db_model->forum_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
 }
 
 class report_unasus_forum_activity extends report_unasus_activity {
 
-    public function __construct($db_model) {
+    public function __construct($db_model, $config) {
         parent::__construct(true, true);
 
         $this->id = $db_model->forum_id;
@@ -91,19 +165,34 @@ class report_unasus_forum_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
-        $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($forum_url, $this->name, array('target' => '_blank'));
+        if(array_search($this->id, $this->config)) {
+            $name = $this->name == 'Fórum de debates' ? 'Fórum' : $this->name;
+            $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
+            $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($forum_url, $name, array('target' => '_blank'));
+        }
     }
 
 }
 
-class report_unasus_quiz_activity extends report_unasus_activity {
+class report_unasus_quiz_activity_config {
 
     public function __construct($db_model) {
+
+        $this->id = $db_model->quiz_id;
+        $this->name = $db_model->quiz_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+}
+
+class report_unasus_quiz_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $config) {
 
         $has_grade = ((int) $db_model->grade) == 0 ? false : true;
 
@@ -114,19 +203,48 @@ class report_unasus_quiz_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
-        $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($quiz_url, $this->name, array('target' => '_blank'));
+        if(array_search($this->id, $this->config)) {
+
+            switch (strtolower($this->name)) {
+                case 'questões avaliativas - enfermeiros':
+                    $name = 'Q.Enf.';
+                    break;
+                case 'questões avaliativas - médicos':
+                    $name = 'Q.Méd.';
+                    break;
+                case 'questões avaliativas - dentistas':
+                    $name = 'Q.Dent.';
+                    break;
+                default:
+                    $name = 'Quest.';
+            }
+
+            $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
+            $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($quiz_url, $name, array('target' => '_blank'));
+        }
     }
 
 }
 
-class report_unasus_db_activity extends report_unasus_activity {
+class report_unasus_db_activity_config {
 
     public function __construct($db_model) {
+
+        $this->id = $db_model->database_id;
+        $this->name = $db_model->database_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+}
+
+class report_unasus_db_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $config) {
 
         parent::__construct(true, true);
         $this->id = $db_model->database_id;
@@ -136,19 +254,33 @@ class report_unasus_db_activity extends report_unasus_activity {
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
         $this->cm_id = $db_model->cm_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('data', $this->id, $this->course_id, null, IGNORE_MISSING);
-        $db_url = new moodle_url('/mod/data/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($db_url, $this->name, array('target' => '_blank'));
+        if(array_search($this->id, $this->config)) {
+            $cm = get_coursemodule_from_instance('data', $this->id, $this->course_id, null, IGNORE_MISSING);
+            $db_url = new moodle_url('/mod/data/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($db_url, $this->name, array('target' => '_blank'));
+        }
     }
 
 }
 
-class report_unasus_scorm_activity extends report_unasus_activity {
+class report_unasus_scorm_activity_config {
 
     public function __construct($db_model) {
+
+        $this->id = $db_model->scorm_id;
+        $this->name = $db_model->scorm_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+}
+
+class report_unasus_scorm_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $config) {
 
         parent::__construct(true, true);
         $this->id = $db_model->scorm_id;
@@ -157,12 +289,15 @@ class report_unasus_scorm_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->config = $config;
     }
 
     public function __toString() {
-        $cm = get_coursemodule_from_instance('scorm', $this->id, $this->course_id, null, IGNORE_MISSING);
-        $scorm_url = new moodle_url('/mod/scorm/view.php', array('id' => $cm->id, 'target' => '_blank'));
-        return html_writer::link($scorm_url, $this->name, array('target' => '_blank'));
+        if(array_search($this->id, $this->config)) {
+            $cm = get_coursemodule_from_instance('scorm', $this->id, $this->course_id, null, IGNORE_MISSING);
+            $scorm_url = new moodle_url('/mod/scorm/view.php', array('id' => $cm->id, 'target' => '_blank'));
+            return html_writer::link($scorm_url, $this->name, array('target' => '_blank'));
+        }
     }
 
 }
@@ -636,7 +771,7 @@ class report_unasus_final_grade {
 
     public function __toString() {
         $gradebook_url = new moodle_url('/grade/report/grader/index.php', array('id' => $this->course_id, 'target' => '_blank'));
-        $text = (is_null($this->name) || $this->name == '') ? 'Média Final ' : $this->name;
+        $text = (is_null($this->name) || $this->name == '') ? 'M.Final ' : $this->name;
         return html_writer::link($gradebook_url, $text, array('target' => '_blank'));
     }
 

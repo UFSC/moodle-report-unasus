@@ -86,6 +86,10 @@ class report_boletim extends Factory {
 
     public function get_dados() {
 
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
@@ -125,7 +129,9 @@ class report_boletim extends Factory {
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new dado_nota_final($tipo, $nota, $grademax);
                         } else if (!($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
-                            $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                            if (array_search($atividade->id, $atividades_config_curso)){
+                                $lista_atividades[$r->userid][] = new dado_boletim($tipo, $atividade->id, $nota, $grademax);
+                            }
                         }
                     }
 
@@ -146,7 +152,9 @@ class report_boletim extends Factory {
 
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
 
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_cursos = get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {

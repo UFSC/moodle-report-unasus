@@ -179,6 +179,10 @@ class report_atividades_vs_notas extends Factory {
 
     public function get_dados() {
 
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_config_curso = get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+
         // Recupera dados auxiliares
         $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
@@ -270,7 +274,9 @@ class report_atividades_vs_notas extends Factory {
                             }
 
                             if(isset($atividade->id)){
-                                $lista_atividades[$r->userid][$atividade->id] = new dado_atividades_vs_notas($tipo, $atividade->id, $data->grade, $atraso);
+                                if (array_search($atividade->id, $atividades_config_curso)){
+                                    $lista_atividades[$r->userid][$atividade->id] = new dado_atividades_vs_notas($tipo, $atividade->id, $data->grade, $atraso);
+                                }
                             }
                         }
                     }
@@ -303,7 +309,7 @@ class report_atividades_vs_notas extends Factory {
      */
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
 
-        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false);
+        $atividades_cursos = get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
