@@ -9,7 +9,7 @@ Zend_Loader_Autoloader::autoload('Zend_Loader');
 /**
  * Classe para realizar requisições para o webservice do Sistema de TCC
  */
-class SistemaTccClient {
+class report_unasus_SistemaTccClient {
 
     /** @var string $url */
     private $url;

@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_potenciais_evasoes extends Factory {
+class report_potenciais_evasoes extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -77,9 +77,9 @@ class report_potenciais_evasoes extends Factory {
 
 
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
+        $nomes_cohorts = report_unasus_get_nomes_cohorts($this->get_categoria_curso_ufsc());
+        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_polos = report_unasus_get_polos($this->get_categoria_turma_ufsc());
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz);
 
@@ -97,7 +97,7 @@ class report_potenciais_evasoes extends Factory {
 
                     // para cada novo modulo ele cria uma entrada de dado_potenciais_evasoes com o maximo de atividades daquele modulo
                     if (!array_key_exists($atividade->source_activity->course_id, $dados_modulos)) {
-                        $dados_modulos[$atividade->source_activity->course_id] = new dado_potenciais_evasoes(sizeof($modulos[$atividade->source_activity->course_id]));
+                        $dados_modulos[$atividade->source_activity->course_id] = new report_unasus_dado_potenciais_evasoes_render(sizeof($modulos[$atividade->source_activity->course_id]));
                     }
 
                     // para cada atividade nao feita ele adiciona uma nova atividade nao realizada naquele modulo
@@ -129,7 +129,7 @@ class report_potenciais_evasoes extends Factory {
 
             // Ou unir os alunos de acordo com o tutor dele
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
+                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
             }
         }
         return $dados;
@@ -142,15 +142,15 @@ class report_potenciais_evasoes extends Factory {
     public function get_table_header() {
         $modulos = $this->get_modulos_ids();
 
-        $nome_modulos = get_id_nome_modulos($this->get_categoria_turma_ufsc());
+        $nome_modulos = report_unasus_get_id_nome_modulos($this->get_categoria_turma_ufsc());
         if (is_null($this->modulos_selecionados)) {
-            $modulos = get_id_modulos();
+            $modulos = report_unasus_get_id_modulos();
         }
 
         $header = array();
         $header[] = 'Estudantes';
         foreach ($modulos as $modulo) {
-            $header[] = new dado_modulo($modulo, $nome_modulos[$modulo]);
+            $header[] = new report_unasus_dado_modulo_render($modulo, $nome_modulos[$modulo]);
         }
         return $header;
     }

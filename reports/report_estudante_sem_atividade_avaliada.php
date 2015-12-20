@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_estudante_sem_atividade_avaliada extends Factory {
+class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -29,13 +29,13 @@ class report_estudante_sem_atividade_avaliada extends Factory {
     public function get_dados() {
 
         // Recupera dados auxiliares
-        $nomes_cohorts = get_nomes_cohorts($this->get_categoria_curso_ufsc());
-        $nomes_estudantes = grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $nomes_polos = get_polos($this->get_categoria_turma_ufsc());
+        $nomes_cohorts = report_unasus_get_nomes_cohorts($this->get_categoria_curso_ufsc());
+        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
+        $nomes_polos = report_unasus_get_polos($this->get_categoria_turma_ufsc());
 
-        $foruns_modulo = query_forum_courses($this->get_modulos_ids());
+        $foruns_modulo = report_unasus_query_forum_courses($this->get_modulos_ids());
 
-        $listagem_forum = new GroupArray();
+        $listagem_forum = new report_unasus_GroupArray();
         foreach ($foruns_modulo as $forum) {
             $listagem_forum->add($forum->course_id, $forum);
         }
@@ -54,7 +54,7 @@ class report_estudante_sem_atividade_avaliada extends Factory {
             $estudantes = array();
             foreach ($array_dados as $id_aluno => $aluno) {
 
-                $atividades_modulos = new GroupArray();
+                $atividades_modulos = new report_unasus_GroupArray();
 
                 foreach ($aluno as $atividade) {
                     /** @var report_unasus_data $atividade */
@@ -93,9 +93,9 @@ class report_estudante_sem_atividade_avaliada extends Factory {
                     $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
 
                     foreach ($ativ_mod as $key => $modulo) {
-                        $lista_atividades[] = new dado_modulo($key, $modulo[0]['atividade']->source_activity->course_name);
+                        $lista_atividades[] = new report_unasus_dado_modulo_render($key, $modulo[0]['atividade']->source_activity->course_name);
                         foreach ($modulo as $atividade) {
-                            $lista_atividades[] = new dado_atividade($atividade['atividade']);
+                            $lista_atividades[] = new report_unasus_dado_atividade_render($atividade['atividade']);
                         }
                     }
 
@@ -116,7 +116,7 @@ class report_estudante_sem_atividade_avaliada extends Factory {
 
             // Ou unir os alunos de acordo com o tutor dele
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
+                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id)] = $estudantes;
             }
         }
         return $dados;

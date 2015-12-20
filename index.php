@@ -35,8 +35,8 @@ require_once($CFG->dirroot . '/report/unasus/lib.php'); // biblioteca global
 require_once($CFG->dirroot . '/report/unasus/factory.php'); // fabrica de relatorios
 require_once($CFG->dirroot . '/report/unasus/sistematcc.php'); // client ws sistema de tcc
 
-/** @var $factory Factory */
-$report = Factory::singleton();
+/** @var $factory report_unasus_factory */
+$report = report_unasus_factory::singleton();
 
 // Usuário tem de estar logado no curso moodle
 require_login($report->get_curso_moodle());

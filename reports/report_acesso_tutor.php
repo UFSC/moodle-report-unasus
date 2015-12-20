@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_acesso_tutor extends Factory {
+class report_acesso_tutor extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -85,8 +85,8 @@ class report_acesso_tutor extends Factory {
     public function get_dados() {
         global $DB;
 
-        $relationship_tutoria = grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
-        $cohort_tutores = grupos_tutoria::get_relationship_cohort_tutores($relationship_tutoria->id);
+        $relationship_tutoria = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
+        $cohort_tutores = local_tutores_grupos_tutoria::get_relationship_cohort_tutores($relationship_tutoria->id);
 
         // Consulta
         $query = query_acesso_tutor($this->tutores_selecionados);
@@ -95,7 +95,7 @@ class report_acesso_tutor extends Factory {
         $result = $DB->get_recordset_sql($query, $params);
 
         //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]
-        $group_array = new GroupArray();
+        $group_array = new report_unasus_GroupArray();
         foreach ($result as $r) {
             $dia = $r->calendar_day;
             $mes = $r->calendar_month;
@@ -114,22 +114,22 @@ class report_acesso_tutor extends Factory {
         $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
 
         // Intervalo de dias no formato d/m/Y
-        $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
+        $dias_meses = report_unasus_get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
 
 
         //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
         //date interval acima
-        $result = new GroupArray();
+        $result = new report_unasus_GroupArray();
         foreach ($dados as $id => $datas) {
             foreach ($dias_meses as $dia) {
                 (in_array($dia, $datas)) ?
-                        $result->add($id, new dado_acesso_tutor(true)) :
-                        $result->add($id, new dado_acesso_tutor(false));
+                        $result->add($id, new report_unasus_dado_acesso_tutor_render(true)) :
+                        $result->add($id, new report_unasus_dado_acesso_tutor_render(false));
             }
         }
         $result = $result->get_assoc();
 
-        $nomes_tutores = grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
+        $nomes_tutores = local_tutores_grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
 
         //para cada resultado que estava no formato [id]=>[dados_acesso]
         // ele transforma para [tutor,dado_acesso1,dado_acesso2]
@@ -148,7 +148,7 @@ class report_acesso_tutor extends Factory {
     }
 
     public function get_table_header() {
-        return get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
+        return report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
     }
 
 }

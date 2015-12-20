@@ -22,12 +22,12 @@ defined('MOODLE_INTERNAL') || die;
  */
 function query_alunos_relationship() {
 
-    /** @var $report Factory */
-    $report = Factory::singleton();
+    /** @var $report report_unasus_factory */
+    $report = report_unasus_factory::singleton();
     $query_polo = ' ';
 
-    $cohorts = int_array_to_sql($report->cohorts_selecionados);
-    $polos = int_array_to_sql($report->polos_selecionados);
+    $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
+    $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
     if (!is_null($cohorts)) {
         $query_cohort = " JOIN {cohort_members} cm
@@ -188,12 +188,12 @@ function query_postagens_forum() {
  * @return string
  */
 function query_acesso_tutor() {
-    /** @var $factory Factory */
-    $factory = Factory::singleton();
+    /** @var $factory report_unasus_factory */
+    $factory = report_unasus_factory::singleton();
 
     $filtro_tutor = '';
     if (!is_null($factory->tutores_selecionados)) {
-        $tutores = int_array_to_sql($factory->tutores_selecionados);
+        $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
         $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
 
@@ -608,11 +608,11 @@ class LtiPortfolioQuery {
             return $this->estudantes_grupo_tutoria[$grupo_tutoria];
         }
 
-        /** @var $report Factory */
-        $report = Factory::singleton();
+        /** @var $report report_unasus_factory */
+        $report = report_unasus_factory::singleton();
 
-        $relationship = grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
-        $cohort_estudantes = grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
         $query_alunos = query_alunos_relationship();
@@ -644,11 +644,11 @@ class LtiPortfolioQuery {
             return $this->estudantes_grupo_orientacao[$grupo_orientacao];
         }
 
-        /** @var $report Factory */
-        $report = Factory::singleton();
+        /** @var $report report_unasus_factory */
+        $report = report_unasus_factory::singleton();
 
-        $relationship = grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
-        $cohort_estudantes = grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
+        $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
+        $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
         $query_alunos = query_alunos_relationship();
@@ -686,7 +686,7 @@ class LtiPortfolioQuery {
         }
 
         // WS Client
-        $client = new SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
+        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
         $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data_tcc($user_ids);
 
         return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
@@ -714,7 +714,7 @@ class LtiPortfolioQuery {
         }
 
         // WS Client
-        $client = new SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
+        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
         $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
 
         return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
@@ -770,7 +770,7 @@ class LtiPortfolioQuery {
 
         // array_atividade[lti_id][chapter_position]
         foreach ($count_alunos as $position => $count_chapter) {
-            $lista_atividades[$atividade->id][$position] = new dado_atividades_alunos($count_chapter);
+            $lista_atividades[$atividade->id][$position] = new report_unasus_dado_atividades_alunos_render($count_chapter);
         }
     }
 

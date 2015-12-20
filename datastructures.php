@@ -79,7 +79,7 @@ class report_unasus_student extends report_unasus_person {
 /**
  * Estrutura para auxiliar a renderização dos dados dos relatórios
  */
-abstract class unasus_data {
+abstract class report_unasus_data_render {
 
     const MEDIA = 70;
 
@@ -88,7 +88,10 @@ abstract class unasus_data {
      * Assim esta função é feita para definir qual classe de css deve ser aplicada
      * a um tipo de dado
      */
-    public abstract function get_css_class();
+    public function get_css_class() {
+        return '';
+    }
+//    public abstract function get_css_class();
 
     /**
      * Função para auxiliar na renderização dos relatórios, concordância para o caso de "um dia" e "mesmo dia"
@@ -118,7 +121,7 @@ abstract class unasus_data {
 
 }
 
-class dado_atividades_vs_notas extends unasus_data {
+class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_render {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_ATRASADA = 1;
@@ -142,22 +145,22 @@ class dado_atividades_vs_notas extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_ENTREGUE:
                 return 'não entregue';
                 break;
-            case dado_atividades_vs_notas::CORRECAO_ATRASADA:
+            case report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA:
                 return $this->dia_toString($this->atraso);
                 break;
-            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO:
                 return (String) $this->format_grade($this->nota);
                 break;
-            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO:
                 return (String) $this->format_grade($this->nota);
                 break;
-            case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'no prazo';
                 break;
-            case dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem prazo';
                 break;
         }
@@ -165,17 +168,17 @@ class dado_atividades_vs_notas extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_atividades_vs_notas::ATIVIDADE_NAO_ENTREGUE:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
-            case dado_atividades_vs_notas::CORRECAO_ATRASADA:
-                return ($this->atraso >= get_prazo_avaliacao()) ? 'muito_atraso' : 'pouco_atraso';
-            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_SEM_ATRASO:
+            case report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA:
+                return ($this->atraso >= report_unasus_get_prazo_avaliacao()) ? 'muito_atraso' : 'pouco_atraso';
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO:
                 return 'nota_atribuida';
-            case dado_atividades_vs_notas::ATIVIDADE_AVALIADA_COM_ATRASO:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO:
                 return 'nota_atribuida_atraso';
-            case dado_atividades_vs_notas::ATIVIDADE_NO_PRAZO_ENTREGA:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA:
                 return 'nao_realizada';
-            case dado_atividades_vs_notas::ATIVIDADE_SEM_PRAZO_ENTREGA:
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem_prazo';
             default:
                 return '';
@@ -185,10 +188,10 @@ class dado_atividades_vs_notas extends unasus_data {
     public static function get_legend() {
 
         $legend = array();
-        $legend['nota_atribuida'] = 'Nota atribuída no prazo (até '.get_prazo_avaliacao() * 24 .'hs)';
-        $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de '.get_prazo_avaliacao() * 24 .'hs)';
-        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até ".get_prazo_avaliacao()." dias após data de entrega)";
-        $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após ".get_prazo_maximo_avaliacao()." dias da data de entrega)";
+        $legend['nota_atribuida'] = 'Nota atribuída no prazo (até '.report_unasus_get_prazo_avaliacao() * 24 .'hs)';
+        $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de '.report_unasus_get_prazo_avaliacao() * 24 .'hs)';
+        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até ".report_unasus_get_prazo_avaliacao()." dias após data de entrega)";
+        $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após ".report_unasus_get_prazo_maximo_avaliacao()." dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperado';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
@@ -202,7 +205,7 @@ class dado_atividades_vs_notas extends unasus_data {
 
 }
 
-class dado_tcc_concluido extends unasus_data {
+class report_unasus_dado_tcc_concluido_render extends report_unasus_data_render {
 
     const ATIVIDADE_NAO_CONCLUIDA = 0;
     const ATIVIDADE_CONCLUIDA = 1;
@@ -218,10 +221,10 @@ class dado_tcc_concluido extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_tcc_concluido::ATIVIDADE_NAO_CONCLUIDA:
+            case report_unasus_dado_tcc_concluido_render::ATIVIDADE_NAO_CONCLUIDA:
                 return 'nao_concluido';
                 break;
-            case dado_tcc_concluido::ATIVIDADE_CONCLUIDA:
+            case report_unasus_dado_tcc_concluido_render::ATIVIDADE_CONCLUIDA:
                 return 'concluido';
                 break;
         }
@@ -237,7 +240,7 @@ class dado_tcc_concluido extends unasus_data {
 
 }
 
-class dado_tcc_portfolio_concluido extends unasus_data {
+class report_unasus_dado_tcc_portfolio_concluido_render extends report_unasus_data_render {
 
     const ATIVIDADE_NAO_CONCLUIDA = 0;
     const ATIVIDADE_CONCLUIDA = 1;
@@ -255,13 +258,13 @@ class dado_tcc_portfolio_concluido extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_CONCLUIDA:
+            case report_unasus_dado_tcc_portfolio_concluido_render::ATIVIDADE_NAO_CONCLUIDA:
                 return 'nao_concluido';
                 break;
-            case dado_tcc_portfolio_concluido::ATIVIDADE_CONCLUIDA:
+            case report_unasus_dado_tcc_portfolio_concluido_render::ATIVIDADE_CONCLUIDA:
                 return 'concluido';
                 break;
-            case dado_tcc_portfolio_concluido::ATIVIDADE_NAO_APLICADO:
+            case report_unasus_dado_tcc_portfolio_concluido_render::ATIVIDADE_NAO_APLICADO:
                 return 'nao_aplicado';
                 break;
         }
@@ -282,7 +285,7 @@ class dado_tcc_portfolio_concluido extends unasus_data {
 
 }
 
-class dado_tcc_entrega_atividades extends unasus_data {
+class report_unasus_dado_tcc_entrega_atividades_render extends report_unasus_data_render {
 
     const ATIVIDADE_RASCUNHO = 1;
     const ATIVIDADE_REVISAO = 2;
@@ -300,10 +303,10 @@ class dado_tcc_entrega_atividades extends unasus_data {
     public function __toString() {
         $dia = ($this->atraso == 1) ? ' dia' : ' dias';
         switch ($this->tipo) {
-            case dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO:
+            case report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_RASCUNHO:
                 return ($this->atraso == 0) ? '<b>' . 'Hoje' . '</b>' : '<b>' . $this->atraso . $dia . '</b>';
                 break;
-            case dado_tcc_entrega_atividades::ATIVIDADE_REVISAO:
+            case report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_REVISAO:
                 return ($this->atraso == 0) ? '<b>' . 'Hoje' . '</b>' : '<b>' . $this->atraso . $dia . '</b>';
                 break;
         }
@@ -312,13 +315,13 @@ class dado_tcc_entrega_atividades extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_tcc_entrega_atividades::ATIVIDADE_RASCUNHO:
+            case report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_RASCUNHO:
                 return 'rascunho';
-            case dado_tcc_entrega_atividades::ATIVIDADE_REVISAO:
+            case report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_REVISAO:
                 return 'revisao';
-            case dado_tcc_entrega_atividades::ATIVIDADE_AVALIADO:
+            case report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_AVALIADO:
                 return 'avaliado';
-            case dado_tcc_entrega_atividades::ATIVIDADE_NAO_APLICADO:
+            case report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_NAO_APLICADO:
                 return 'nao_aplicado';
         }
     }
@@ -336,7 +339,7 @@ class dado_tcc_entrega_atividades extends unasus_data {
 
 }
 
-class dado_tcc_portfolio_entrega_atividades extends unasus_data {
+class report_unasus_dado_tcc_portfolio_entrega_atividades_render extends report_unasus_data_render {
 
     const ATIVIDADE_NAO_ACESSADO = 0;
     const ATIVIDADE_RASCUNHO = 1;
@@ -357,17 +360,17 @@ class dado_tcc_portfolio_entrega_atividades extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_ACESSADO:
+            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_NAO_ACESSADO:
                 return 'nao_acessado';
-            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_RASCUNHO:
+            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_RASCUNHO:
                 return 'rascunho';
-            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_REVISAO:
+            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_REVISAO:
                 return 'revisao';
-            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIACAO:
+            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_AVALIACAO:
                 return 'avaliacao';
-            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_AVALIADO:
+            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_AVALIADO:
                 return 'avaliado';
-            case dado_tcc_portfolio_entrega_atividades::ATIVIDADE_NAO_APLICADO:
+            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_NAO_APLICADO:
                 return 'nao_aplicado';
         }
     }
@@ -391,7 +394,7 @@ class dado_tcc_portfolio_entrega_atividades extends unasus_data {
 
 }
 
-class dado_entrega_de_atividades extends unasus_data {
+class report_unasus_dado_entrega_de_atividades_render extends report_unasus_data_render {
 
     const ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO = 0;
     const ATIVIDADE_ENTREGUE_NO_PRAZO = 1;
@@ -411,19 +414,19 @@ class dado_entrega_de_atividades extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO:
                 return '';
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_NO_PRAZO:
                 return '';
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return $this->dia_toString($this->atraso);
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem prazo';
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
                 return '';
                 break;
         }
@@ -432,19 +435,19 @@ class dado_entrega_de_atividades extends unasus_data {
     public function get_css_class() {
         global $CFG;
         switch ($this->tipo) {
-            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO:
                 return 'nao_entregue_fora_do_prazo';
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_NO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_NO_PRAZO:
                 return 'no_prazo';
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
                 return ($this->atraso > $CFG->report_unasus_prazo_maximo_entrega) ? 'muito_atraso' : 'pouco_atraso';
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_SEM_PRAZO_ENTREGA:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem_prazo';
                 break;
-            case dado_entrega_de_atividades::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
                 return 'nao_entregue_mas_no_prazo';
                 break;
         }
@@ -470,7 +473,7 @@ class dado_entrega_de_atividades extends unasus_data {
 
 }
 
-class dado_boletim extends unasus_data {
+class report_unasus_dado_boletim_render extends report_unasus_data_render {
 
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
@@ -489,10 +492,10 @@ class dado_boletim extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_boletim::ATIVIDADE_COM_NOTA:
+            case report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA:
                 return (String) $this->format_grade($this->nota);
                 break;
-            case dado_boletim::ATIVIDADE_SEM_NOTA:
+            case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return '';
                 break;
         }
@@ -500,10 +503,10 @@ class dado_boletim extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_boletim::ATIVIDADE_COM_NOTA:
-                return (($this->nota / $this->grademax * 100) >= dado_nota_final::MEDIA) ? 'na_media' : 'abaixo_media_nota';
+            case report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA:
+                return (($this->nota / $this->grademax * 100) >= report_unasus_dado_nota_final_render::MEDIA) ? 'na_media' : 'abaixo_media_nota';
                 break;
-            case dado_boletim::ATIVIDADE_SEM_NOTA:
+            case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
                 break;
         }
@@ -521,7 +524,7 @@ class dado_boletim extends unasus_data {
 
 }
 
-class dado_nota_final extends unasus_data {
+class report_unasus_dado_nota_final_render extends report_unasus_data_render {
 
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
@@ -538,10 +541,10 @@ class dado_nota_final extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_boletim::ATIVIDADE_COM_NOTA:
+            case report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA:
                 return (String) $this->format_grade($this->nota);
                 break;
-            case dado_boletim::ATIVIDADE_SEM_NOTA:
+            case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return '';
                 break;
         }
@@ -549,10 +552,10 @@ class dado_nota_final extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_boletim::ATIVIDADE_COM_NOTA:
-                return (($this->nota / $this->grademax * 100) >= dado_nota_final::MEDIA) ? 'na_media' : 'abaixo_media';
+            case report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA:
+                return (($this->nota / $this->grademax * 100) >= report_unasus_dado_nota_final_render::MEDIA) ? 'na_media' : 'abaixo_media';
                 break;
-            case dado_boletim::ATIVIDADE_SEM_NOTA:
+            case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
                 break;
         }
@@ -568,7 +571,7 @@ class dado_nota_final extends unasus_data {
 
 }
 
-class dado_historico_atribuicao_notas extends unasus_data {
+class report_unasus_dado_historico_atribuicao_notas_render extends report_unasus_data_render {
 
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_NO_PRAZO = 1;
@@ -588,7 +591,7 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
     public function __toString() {
         switch ($this->tipo) {
-            case dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE:
+            case report_unasus_dado_historico_atribuicao_notas_render::ATIVIDADE_NAO_ENTREGUE:
                 return '';
                 break;
             default:
@@ -598,19 +601,19 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
     public function get_css_class() {
         switch ($this->tipo) {
-            case dado_historico_atribuicao_notas::ATIVIDADE_NAO_ENTREGUE:
+            case report_unasus_dado_historico_atribuicao_notas_render::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
                 break;
-            case dado_historico_atribuicao_notas::CORRECAO_NO_PRAZO:
+            case report_unasus_dado_historico_atribuicao_notas_render::CORRECAO_NO_PRAZO:
                 return 'no_prazo';
                 break;
-            case dado_historico_atribuicao_notas::CORRECAO_POUCO_ATRASO:
+            case report_unasus_dado_historico_atribuicao_notas_render::CORRECAO_POUCO_ATRASO:
                 return 'pouco_atraso';
                 break;
-            case dado_historico_atribuicao_notas::CORRECAO_MUITO_ATRASO:
+            case report_unasus_dado_historico_atribuicao_notas_render::CORRECAO_MUITO_ATRASO:
                 return 'muito_atraso';
                 break;
-            case dado_historico_atribuicao_notas::ATIVIDADE_ENTREGUE_NAO_AVALIADA:
+            case report_unasus_dado_historico_atribuicao_notas_render::ATIVIDADE_ENTREGUE_NAO_AVALIADA:
                 return 'nao_avaliada';
                 break;
         }
@@ -635,13 +638,13 @@ class dado_historico_atribuicao_notas extends unasus_data {
 
 }
 
-class dado_atividades_nota_atribuida extends dado_atividades_alunos {}
+class report_unasus_dado_atividades_nota_atribuida extends report_unasus_dado_atividades_alunos_render {}
 
 /**
  * Classe para relatorio sintese de atividades concluidas,
  * N° de alunos de concluiram as atividades
  */
-class dado_atividades_alunos extends unasus_data {
+class report_unasus_dado_atividades_alunos_render extends report_unasus_data_render {
 
     private $total;
     private $count;
@@ -672,7 +675,7 @@ class dado_atividades_alunos extends unasus_data {
     }
 
     public function __toString() {
-        $porcentagem = new dado_media($this->count, $this->total);
+        $porcentagem = new report_unasus_dado_media_render($this->count, $this->total);
 
         return "$porcentagem";
     }
@@ -687,7 +690,7 @@ class dado_atividades_alunos extends unasus_data {
  * Class dado_somatorio_grupo
  * Relatorio TCC consolidados
  */
-class dado_somatorio_grupo extends unasus_data {
+class report_unasus_dado_somatorio_grupo_render extends report_unasus_data_render {
 
     private $soma = array();
 
@@ -731,7 +734,7 @@ class dado_somatorio_grupo extends unasus_data {
     }
 }
 
-class dado_atividades_nota_atribuida_alunos extends unasus_data {
+class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_unasus_data_render {
 
     private $atividades_concluidas = array();
     private $total_atividades = array();
@@ -739,7 +742,7 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
     function __construct($dados_aluno) {
 
         foreach ($dados_aluno as $dado_atividade) {
-            /** @var report_unasus_data $dado_atividade */
+            /** @var report_unasus_data_render $dado_atividade */
 
             // Se o dado da atividade for do tipo vazio, não fazer nada.
             if ($dado_atividade instanceof report_unasus_data_empty) {
@@ -796,7 +799,7 @@ class dado_atividades_nota_atribuida_alunos extends unasus_data {
  * somatorio de media para incluir coluna Total de atividades concluídas por módulo
  * Ticket 5263
  */
-class dado_media extends unasus_data {
+class report_unasus_dado_media_render extends report_unasus_data_render {
 
     private $somatorio;
     private $total;
@@ -829,7 +832,7 @@ class dado_media extends unasus_data {
  * @TODO somatorio deve se auto-calcular
  *
  */
-class dado_somatorio extends unasus_data {
+class report_unasus_dado_somatorio_render extends report_unasus_data_render {
 
     private $sum;
 
@@ -850,7 +853,7 @@ class dado_somatorio extends unasus_data {
 /**
  * @TODO unir o dado_acesso com dado_tempo_acesso??
  */
-class dado_acesso_tutor extends unasus_data {
+class report_unasus_dado_acesso_tutor_render extends report_unasus_data_render {
 
     private $acesso;
 
@@ -876,7 +879,7 @@ class dado_acesso_tutor extends unasus_data {
 
 }
 
-class dado_uso_sistema_tutor extends unasus_data {
+class report_unasus_dado_uso_sistema_tutor_render extends report_unasus_data_render {
 
     private $acesso;
 
@@ -902,7 +905,7 @@ class dado_uso_sistema_tutor extends unasus_data {
 
 }
 
-class dado_modulos_concluidos extends unasus_data {
+class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_render {
 
     const MODULO_NAO_CONCLUIDO = 0;
     const MODULO_CONCLUIDO = 1;
@@ -918,7 +921,7 @@ class dado_modulos_concluidos extends unasus_data {
     function __construct($numero_atividades_modulo, $final_grade, $atividade, $estado = null) {
         $this->numero_atividades_modulo = $numero_atividades_modulo;
         $this->atividades_nao_realizadas = 0;
-        $this->estado = dado_modulos_concluidos::MODULO_CONCLUIDO;
+        $this->estado = report_unasus_dado_modulos_concluidos_render::MODULO_CONCLUIDO;
         $this->final_grade = $final_grade;
         $this->atividade = $atividade;
     }
@@ -958,7 +961,7 @@ class dado_modulos_concluidos extends unasus_data {
     public function add_atividade_nao_realizada() {
         $this->atividades_nao_realizadas++;
         if ($this->atividades_nao_realizadas == 1) {
-            $this->estado = dado_modulos_concluidos::MODULO_NAO_CONCLUIDO;
+            $this->estado = report_unasus_dado_modulos_concluidos_render::MODULO_NAO_CONCLUIDO;
         }
     }
 
@@ -980,7 +983,7 @@ class dado_modulos_concluidos extends unasus_data {
 
 }
 
-class dado_potenciais_evasoes extends unasus_data {
+class report_unasus_dado_potenciais_evasoes_render extends report_unasus_data_render {
 
     const MODULO_NAO_CONCLUIDO = 0;
     const MODULO_CONCLUIDO = 1;
@@ -993,7 +996,7 @@ class dado_potenciais_evasoes extends unasus_data {
     function __construct($total_atividades) {
         $this->total_atividades = $total_atividades;
         $this->atividades_nao_realizadas = 0;
-        $this->estado = dado_potenciais_evasoes::MODULO_CONCLUIDO;
+        $this->estado = report_unasus_dado_potenciais_evasoes_render::MODULO_CONCLUIDO;
     }
 
     public function __toString() {
@@ -1031,10 +1034,10 @@ class dado_potenciais_evasoes extends unasus_data {
     public function add_atividade_nao_realizada() {
         $this->atividades_nao_realizadas++;
         if ($this->atividades_nao_realizadas == 1) {
-            $this->estado = dado_potenciais_evasoes::MODULO_PARCIALMENTE_CONCLUIDO;
+            $this->estado = report_unasus_dado_potenciais_evasoes_render::MODULO_PARCIALMENTE_CONCLUIDO;
         }
         if ($this->atividades_nao_realizadas == $this->total_atividades) {
-            $this->estado = dado_potenciais_evasoes::MODULO_NAO_CONCLUIDO;
+            $this->estado = report_unasus_dado_potenciais_evasoes_render::MODULO_NAO_CONCLUIDO;
         }
     }
 
@@ -1053,7 +1056,7 @@ class dado_potenciais_evasoes extends unasus_data {
 
 }
 
-class dado_modulo extends unasus_data {
+class report_unasus_dado_modulo_render extends report_unasus_data_render {
 
     private $id;
     private $nome;
@@ -1075,7 +1078,7 @@ class dado_modulo extends unasus_data {
 
 }
 
-class dado_texto extends unasus_data {
+class report_unasus_dado_texto_render extends report_unasus_data_render {
 
     private $texto;
     private $class;
@@ -1086,7 +1089,7 @@ class dado_texto extends unasus_data {
     }
 
     public function __toString() {
-        return $this->texto;
+        return (string) $this->texto;
     }
 
     public function get_css_class() {
@@ -1095,7 +1098,7 @@ class dado_texto extends unasus_data {
 
 }
 
-class dado_atividade extends unasus_data {
+class report_unasus_dado_atividade_render extends report_unasus_data_render {
 
     private $atividade;
 
@@ -1116,7 +1119,7 @@ class dado_atividade extends unasus_data {
 /**
  * Representa um dado de cujo estudante não faz parte da atividade
  */
-class dado_nao_aplicado extends unasus_data {
+class report_unasus_dado_nao_aplicado_render extends report_unasus_data_render {
 
     public function __toString() {
         return 'N/A';

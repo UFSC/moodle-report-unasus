@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class report_uso_sistema_tutor extends Factory {
+class report_uso_sistema_tutor extends report_unasus_factory {
 
     protected function initialize() {
         $this->mostrar_filtro_tutores = true;
@@ -96,7 +96,7 @@ class report_uso_sistema_tutor extends Factory {
     function get_dados() {
 
         $middleware = Middleware::singleton();
-        $lista_tutores = grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
+        $lista_tutores = local_tutores_grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
 
         $query = query_uso_sistema_tutor();
 
@@ -125,11 +125,11 @@ class report_uso_sistema_tutor extends Factory {
 
         // Intervalo de dias no formato d/m
         $intervalo_tempo = $data_fim->diff($data_inicio)->days;
-        $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
+        $dias_meses = report_unasus_get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
 
         //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
         //date interval acima
-        $result = new GroupArray();
+        $result = new report_unasus_GroupArray();
         foreach ($dados as $id_user => $datas) {
 
             //quanto tempo ele ficou logado
@@ -138,10 +138,10 @@ class report_uso_sistema_tutor extends Factory {
             foreach ($dias_meses as $dia) {
                 if (array_key_exists($dia, $dados[$id_user])) {
                     $horas = (float) $dados[$id_user][$dia]['horas'];
-                    $result->add($id_user, new dado_uso_sistema_tutor($horas));
+                    $result->add($id_user, new report_unasus_dado_uso_sistema_tutor_render($horas));
                     $total_tempo += $horas;
                 } else {
-                    $result->add($id_user, new dado_uso_sistema_tutor('0'));
+                    $result->add($id_user, new report_unasus_dado_uso_sistema_tutor_render('0'));
                 }
             }
 
@@ -151,7 +151,7 @@ class report_uso_sistema_tutor extends Factory {
         $result = $result->get_assoc();
 
 
-        $nomes_tutores = grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
+        $nomes_tutores = local_tutores_grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
 
         //para cada resultado que estava no formato [id]=>[dados_acesso]
         // ele transforma para [tutor,dado_acesso1,dado_acesso2]
@@ -169,7 +169,7 @@ class report_uso_sistema_tutor extends Factory {
     }
 
     function get_table_header() {
-        $double_header = get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
+        $double_header = report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
         $double_header[''] = array('Media');
         $double_header[' '] = array('Total');
         return $double_header;
@@ -183,7 +183,7 @@ class report_uso_sistema_tutor extends Factory {
         $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
 
         // Intervalo de dias no formato d/m
-        $dias_meses = get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
+        $dias_meses = report_unasus_get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
 
         $dados_grafico = array();
         foreach ($dados['Tutores'] as $tutor) {
