@@ -258,7 +258,7 @@ function report_unasus_get_agrupamentos_membros($courses) {
  * @throws Exception
  * @return report_unasus_GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = true, $categoryid = 0) {
+function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = false, $categoryid = 0) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
@@ -531,6 +531,38 @@ function report_unasus_query_scorm_courses($courses) {
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+}
+
+function report_unasus_query_grades_lti() {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   l.id AS databaseid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gi.timecreated AS submission_date,
+                   'nota_final_tcc' as name_activity
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN {grade_grades} gg
+                ON gg.userid = u.id
+              JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
+              JOIN {lti} l
+                ON gi.iteminstance = l.id
+          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
 }
 
 /**
@@ -1133,6 +1165,16 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'grupo' => $grupo->id,
             );
             $query = query_lti_from_users();
+            break;
+        case 'report_unasus_lti_tcc':
+            $params = array(
+                'courseid' => $courseid,
+                'enrol_courseid' => $courseid,
+                'relationship_id' => $relationship->id,
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'grupo' => $grupo->id,
+            );
+            $query = report_unasus_query_grades_lti();
             break;
         default:
             if ($is_boletim) { //Nota final para relatório boletim

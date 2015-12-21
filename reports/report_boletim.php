@@ -96,6 +96,8 @@ class report_boletim extends report_unasus_factory {
 
         $atividade_nota_final = new \StdClass();
 
+        $atividade_tcc = new report_unasus_lti_tcc();
+
         $dados = array();
 
         // Para cada grupo de tutoria
@@ -104,6 +106,7 @@ class report_boletim extends report_unasus_factory {
 
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
+                array_push($atividades, $atividade_tcc);
 
                 foreach ($atividades as $atividade) {
 
@@ -128,7 +131,9 @@ class report_boletim extends report_unasus_factory {
 
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
-                        } else if (!($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
+                        } else if ($r->name_activity == 'nota_final_tcc' && array_search(1, $atividades_config_curso)){
+                            $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
+                        } else if (isset($atividade->course_id) && !($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
                             if (array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);
                             }
@@ -170,12 +175,17 @@ class report_boletim extends report_unasus_factory {
             }
         }
 
-        foreach ($header as $key => $modulo) {
-            $course_id = $modulo[0]->course_id;
+        $modulos_ids = $this->get_modulos_ids();
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
-            if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
-                array_push($modulo, 'TCC');
-                $header[$key] = $modulo;
+        if (array_search(1, $atividades_config_curso)) {
+            foreach ($header as $key => $modulo) {
+                $course_id = $modulo[0]->course_id;
+
+                if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
+                    array_push($modulo, 'TCC');
+                    $header[$key] = $modulo;
+                }
             }
         }
 

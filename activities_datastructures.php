@@ -345,6 +345,13 @@ class report_unasus_lti_activity extends report_unasus_activity {
 
 }
 
+class report_unasus_lti_tcc {
+
+    public function __construct() {
+    }
+
+}
+
 /**
  * Representa dados de usuário a respeito de alguma atividade
  *
