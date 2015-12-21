@@ -387,14 +387,10 @@ function report_unasus_process_header_atividades_lti($courses, report_unasus_Gro
             // sub-atividade simulada
             $db_model = new stdClass();
 
-            foreach ($lti->course_id as $c) {
-                foreach ($c as $id_course => $course_name) {
-                    $db_model->course_id = $id_course;
-                    $db_model->course_name = $course_name;
-                }
-            }
-
             $chapter_definition = $chapter_definition->chapter_definition;
+
+            $db_model->course_id = $lti->course_id;
+            $db_model->course_name = $lti->course_name;
 
             $db_model->id = $lti->id;
             $db_model->course_module_id = $lti->course_module_id;
