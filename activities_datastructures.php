@@ -134,7 +134,13 @@ class report_unasus_assign_activity extends report_unasus_activity {
         if(array_search($this->id, $this->config)) {
             $nome = strtolower(trim($this->name));
 
-            $name = $nome == 'nota da avaliação presencial' ? 'Presen' : $this->name;
+            if ($nome == 'nota da avaliação presencial') {
+                $name = 'Presen';
+            } else if ($nome == 'nota da leitura do módulo') {
+                $name = 'Leitura';
+            } else {
+                $name = $this->name;
+            }
 
             $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
             $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
