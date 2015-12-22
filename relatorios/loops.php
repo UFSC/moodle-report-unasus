@@ -209,7 +209,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $loop = null, $is_orientacao = false, $query_database = null, $query_scorm = null, $config = array()) {
+function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, $loop = null, $is_orientacao = false, $query_database = null, $query_scorm = null, $config = array()) {
 
     global $DB;
 
@@ -230,7 +230,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     // FIXME: reescrever o código para não necessitar duas passadas no loop para esse caso
     if ((is_null($loop) && $report->get_relatorio() == 'atividades_nota_atribuida') ||
         (is_null($loop) && $report->get_relatorio() == 'atividades_concluidas_agrupadas')) {
-        $loop = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, true);
+        $loop = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, true);
         $atividades_alunos_grupos = $report->get_dados_alunos_atividades_concluidas($loop['associativo_atividade'])->somatorio_modulos;
     }
 
@@ -256,7 +256,6 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
         foreach ($report->atividades_cursos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
-
                 if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades) && array_search($atividade->id, $config)) {
 
                     // para cada assign um novo dado de avaliacao em atraso
@@ -384,7 +383,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'grupo' => $grupo->id,
                     );
 
-                    $result = $DB->get_records_sql($query_database, $params);
+                    $result = $DB->get_records_sql($query_scorm, $params);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $s) {
@@ -400,7 +399,35 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($s->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_lti_activity')) {
+                } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti) && array_search($atividade->id, $config)) {
+                    $array_das_atividades['lti_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+
+                    $params = array(
+                        'id_activity' => $atividade->id,
+                        'courseid' => $modulo,
+                        'enrol_courseid' => $modulo,
+                        'relationship_id' => $relationship->id,
+                        'cohort_relationship_id' => $cohort_estudantes->id,
+                        'grupo' => $grupo->id,
+                    );
+
+                    $result = $DB->get_records_sql($query_lti, $params);
+
+                    // para cada aluno adiciona a listagem de atividades
+                    foreach ($result as $s) {
+
+                        if (!empty($atividade->grouping) &&
+                            !$report->is_member_of($atividade->grouping, $atividade->course_id, $s->userid)
+                        ) {
+                            $data = new report_unasus_data_empty($atividade, $s);
+                        } else {
+                            $data = new report_unasus_data_lti($atividade, $s);
+                        }
+
+                        // Agrupa os dados por usuário
+                        $group_array_do_grupo->add($s->userid, $data);
+                    }
+                } elseif (is_a($atividade, 'report_unasus_lti_activity_TCC')) {
 
                     // Criar o array caso ainda não tenha sido definido.
                     if (!isset($array_das_atividades[$atividade->id][$atividade->position])) {
@@ -420,7 +447,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     foreach ($result as $l) {
 
                         if (!isset($l->not_found)) {
-                            $data = new report_unasus_data_lti($l);
+                            $data = new report_unasus_data_lti_TCC($l);
 
                             // Agrupa os dados por usuário
                             $group_array_do_grupo->add_exclusive($l->userid, $data);

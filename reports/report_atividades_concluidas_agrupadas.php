@@ -76,13 +76,15 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
 
     public function get_dados() {
         // Consulta
-        $query_atividades = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
-        $query_database = query_database_adjusted();
-        $query_scorm = query_scorm();
+        $query_atividades   = query_atividades_from_users();
+        $query_quiz         = query_quiz_from_users();
+        $query_forum        = query_postagens_forum_from_users();
+        $query_database     = query_database_adjusted_from_users();
+        $query_scorm        = query_scorm_from_users();
+        $query_lti          = query_lti_from_users();
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, null, false, $query_database, $query_scorm);
+
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, null, false, $query_database, $query_scorm);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
@@ -123,6 +125,9 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
                             $dado =& $lista_atividade[$grupo_id]['scorm_'. $atividade->source_activity->id];
 
                         } elseif (is_a($atividade, 'report_unasus_data_lti')) {
+                            $dado =& $lista_atividade[$grupo_id]['lti_'. $atividade->source_activity->id];
+
+                        } elseif (is_a($atividade, 'report_unasus_data_lti_TCC')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
                         }
                         $dado->incrementar();

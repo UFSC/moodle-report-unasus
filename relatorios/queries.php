@@ -125,7 +125,7 @@ function query_alunos_grupo_orientacao() {
  *
  * @return string
  */
-function query_postagens_forum() {
+function query_postagens_forum_from_users() {
     $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
@@ -213,7 +213,7 @@ function query_acesso_tutor() {
           ORDER BY calendar_year, calendar_month, calendar_day";
 }
 
-function query_lti() {
+function query_lti_activities() {
 
     return "SELECT l.id,l.course, l.name, l.timecreated,
                    l.timemodified, l.grade, l.typeid,
@@ -232,7 +232,7 @@ function query_lti() {
              WHERE l.course =:course AND cm.visible=TRUE";
 }
 
-function query_lti_config() {
+function query_lti_activities_config() {
 
     return "SELECT
                    c.name AS name, c.value as value
@@ -287,7 +287,9 @@ function query_uso_sistema_tutor() {
  *
  * @return string
  */
-function query_potenciais_evasoes() {
+
+//TODO: REVER !
+function query_potenciais_evasoes_from_users() {
     $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS user_id,
@@ -327,7 +329,7 @@ function query_potenciais_evasoes() {
  * @return string
  *
  */
-function query_atividades() {
+function query_atividades_from_users() {
     $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,
@@ -367,7 +369,7 @@ function query_atividades() {
     ";
 }
 
-function query_database() {
+function query_database_from_users() {
 
     $alunos_grupo_tutoria = query_alunos_relationship();
 
@@ -390,7 +392,7 @@ function query_database() {
 
 }
 
-function query_database_adjusted() {
+function query_database_adjusted_from_users() {
 
     $alunos_grupo_tutoria = query_alunos_relationship();
 
@@ -402,7 +404,7 @@ function query_database_adjusted() {
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
-                   gi.timecreated AS submission_date,
+                   gg.timemodified AS submission_date,
                    'db_activity' as name_activity
               FROM (
 
@@ -423,7 +425,7 @@ function query_database_adjusted() {
 
 }
 
-function query_scorm () {
+function query_scorm_from_users () {
 
     $alunos_grupo_tutoria = query_alunos_relationship();
 
@@ -435,7 +437,7 @@ function query_scorm () {
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
-                   gi.timecreated AS submission_date,
+                   gg.timemodified AS submission_date,
                    'scorm_activity' as name_activity
               FROM (
 
@@ -455,6 +457,37 @@ function query_scorm () {
 
 }
 
+function query_lti_from_users () {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   s.id AS lti_id,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gg.timemodified AS submission_date,
+                   'lti_activity' as name_activity
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN {grade_grades} gg
+                ON gg.userid = u.id
+              JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
+              JOIN {scorm} s
+                ON gi.iteminstance = s.id
+          GROUP BY userid
+    ";
+//          ORDER BY grupo_id, u.firstname, u.lastname
+
+}
 
 /**
  * Query para a nota final dos alunos em um dado modulo
@@ -520,7 +553,7 @@ function query_nota_final() {
  * @return string
  *
  */
-function query_quiz() {
+function query_quiz_from_users() {
     $alunos_grupo_tutoria = query_alunos_relationship();
 
     return "SELECT u.id AS userid,

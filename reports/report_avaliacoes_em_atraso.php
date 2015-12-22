@@ -80,24 +80,30 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
         $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
         // Consulta
-        $query_atividades = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
-        $query_database = query_database_adjusted();
-        $query_scorm = query_scorm();
+        $query_atividades   = query_atividades_from_users();
+        $query_quiz         = query_quiz_from_users();
+        $query_forum        = query_postagens_forum_from_users();
+        $query_database     = query_database_adjusted_from_users();
+        $query_scorm        = query_scorm_from_users();
+        $query_lti          = query_lti_from_users();
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, null, false, $query_database, $query_scorm, $atividades_config_curso);
+
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, null, false, $query_database, $query_scorm, $atividades_config_curso);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
         $lista_atividade = $result_array['lista_atividade'];
         $associativo_atividade = $result_array['associativo_atividade'];
 
+        // Lista de dados das atividades por grupo (tutor ou polo)
         $somatorio_total_atrasos = array();
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
+            // $grupo_id => grupo (tutor ou polo)
+            // $array_dados => Lista de atividades do estudante
             foreach ($array_dados as $results) {
-
+                // $results => Lista de atividades do estudante
                 foreach ($results as $atividade) {
+                    // $atividade => Dados de cada atividade
                     /** @var report_unasus_data $atividade */
                     if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
                         $somatorio_total_atrasos[$grupo_id] = 0;
@@ -124,6 +130,9 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
                             $dado =& $lista_atividade[$grupo_id]['scorm_'. $atividade->source_activity->id];
 
                         }  elseif (is_a($atividade, 'report_unasus_data_lti')) {
+                            $dado =& $lista_atividade[$grupo_id]['lti_'. $atividade->source_activity->id];
+
+                        }  elseif (is_a($atividade, 'report_unasus_data_lti_TCC')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
 
                         }
@@ -150,7 +159,6 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
             $data[] = new report_unasus_dado_media_render($somatorio_atrasos, $total_alunos[$grupo_id] * $total_atividades);
             $dados[] = $data;
         }
-
         return $dados;
     }
 

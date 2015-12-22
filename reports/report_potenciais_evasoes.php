@@ -71,9 +71,9 @@ class report_potenciais_evasoes extends report_unasus_factory {
 
         $modulos = $this->atividades_cursos;
         // Consulta
-        $query_atividades = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
+        $query_atividades = query_atividades_from_users();
+        $query_quiz = query_quiz_from_users();
+        $query_forum = query_postagens_forum_from_users();
 
 
         // Recupera dados auxiliares

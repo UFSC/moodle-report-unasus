@@ -329,14 +329,14 @@ class report_unasus_renderer extends plugin_renderer_base {
                         $cell = new html_table_cell($valor);
                         if (in_array($count, $ultima_atividade_modulo)) {
                             // Aplica a classe CSS para criar o contorno dos modulos na tabela
-                            $cell->attributes = array('class' => $valor->get_css_class() . " ultima_atividade relatorio-unasus ");
+                            $cell->attributes = array('class' => $valor->get_css_class() . " ultima_atividade relatorio-unasus c_body");
                         } else {
-                            $cell->attributes = array('class' => $valor->get_css_class() . "relatorio-unasus");
+                            $cell->attributes = array('class' => $valor->get_css_class() . "relatorio-unasus c_body");
                         }
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
-                        $cell->attributes = array('class' => 'relatorio-unasus estudante ultima_atividade');
+                        $cell->attributes = array('class' => 'relatorio-unasus estudante ultima_atividade c_body');
                     }
 
                     $row->cells[] = $cell;
@@ -379,14 +379,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         foreach ($dadostabela as $aluno) {
             $row = new html_table_row();
             foreach ($aluno as $valor) {
+                $cell = new html_table_cell($valor);
                 if (is_a($valor, 'report_unasus_data_render')) {
-                    $cell = new html_table_cell($valor);
                     $cell->attributes = array(
                         'class' => "relatorio-unasus " . $valor->get_css_class());
                 } else { // Aluno
-                    $cell = new html_table_cell($valor);
                     $cell->header = true;
-                    $cell->attributes = array('class' => 'relatorio-unasus estudante');
+                    $cell->attributes = array('class' => 'relatorio-unasus estudante c_body');
                 }
 
                 $row->cells[] = $cell;

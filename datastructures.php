@@ -89,7 +89,7 @@ abstract class report_unasus_data_render {
      * a um tipo de dado
      */
     public function get_css_class() {
-        return '';
+        return 'c_body';
     }
 //    public abstract function get_css_class();
 
@@ -680,9 +680,9 @@ class report_unasus_dado_atividades_alunos_render extends report_unasus_data_ren
         return "$porcentagem";
     }
 
-    public function get_css_class() {
-        return '';
-    }
+//    public function get_css_class() {
+//        return '';
+//    }
 
 }
 
@@ -822,9 +822,9 @@ class report_unasus_dado_media_render extends report_unasus_data_render {
     }
 
     /* Aguardar reestruturação do design dos relatórios para inserir já o novo css */
-    public function get_css_class() {
+//    public function get_css_class() {
 //        return 'media';
-    }
+//    }
 
 }
 
@@ -1073,7 +1073,7 @@ class report_unasus_dado_modulo_render extends report_unasus_data_render {
     }
 
     public function get_css_class() {
-        return 'bold';
+        return 'bold c_body';
     }
 
 }

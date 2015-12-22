@@ -78,7 +78,7 @@ class report_tcc_consolidado extends report_unasus_factory {
 
     public function get_dados() {
         /* Resultados */
-        $result_array = loop_atividades_e_foruns_sintese(null, null, null, null, true);
+        $result_array = loop_atividades_e_foruns_sintese(null, null, null, null, null, true);
 
         /* Retorno da função loop_atividades */
         $total_alunos = $result_array['total_alunos'];

@@ -39,9 +39,9 @@ class report_estudante_sem_atividade_postada extends report_unasus_factory {
             $listagem_forum->add($forum->course_id, $forum);
         }
 
-        $query_alunos_grupo_tutoria = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
+        $query_alunos_grupo_tutoria = query_atividades_from_users();
+        $query_quiz = query_quiz_from_users();
+        $query_forum = query_postagens_forum_from_users();
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
                 $query_alunos_grupo_tutoria, $query_forum, $query_quiz);

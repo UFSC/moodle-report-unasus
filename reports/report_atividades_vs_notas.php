@@ -92,9 +92,9 @@ class report_atividades_vs_notas extends report_unasus_factory {
         global $CFG;
 
         // Consultas
-        $query_atividades = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
+        $query_atividades = query_atividades_from_users();
+        $query_quiz = query_quiz_from_users();
+        $query_forum = query_postagens_forum_from_users();
 
 
         /*  associativo_atividades[modulo][id_aluno][atividade]

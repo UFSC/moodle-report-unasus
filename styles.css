@@ -213,6 +213,8 @@ legend {
 .relatorio-unasus th.estudante,
 .relatorio-unasus td.somatorio {
   padding-right: 1em;
+  padding-top: 8px;
+  padding-bottom: 20px;
   text-align: left;
   font-weight: normal;
   background: #FEF9EC;
@@ -407,13 +409,18 @@ legend {
   width: 40px !important;
   height: 50px !important;
   text-align: center !important;
-  padding: 2px !important;
-  padding-top: 10px;
+  padding-top: 2px;
+  padding-bottom: 2px;
   font-size: 12px !important;
   word-wrap: break-word !important;
 }
-.avaliacoes_em_atraso th.estudante {
+.avaliacoes_em_atraso th.estudante_header {
   width: 135px;
+  padding-bottom: 50px;
+}
+
+.avaliacoes_em_atraso th.estudante {
+  width: 200px;
 }
 
 .avaliacoes_em_atraso .r1:first-child {
@@ -440,14 +447,25 @@ legend {
 .tcc_concluido .c_body,
 .modulos_concluidos .c1,
 .modulos_concluidos .c_body {
-  max-width: 100px !important;
-  min-width: 100px !important;
+  width: 100px !important;
   height: 50px !important;
   text-align: center !important;
   padding: 2px !important;
-  padding-top: 10px;
+  /* padding-top: 10px;*/
   font-size: 12px !important;
   word-wrap: break-word !important;
+}
+.modulos_concluidos th.estudante_header {
+    width: 100px !important;
+    /*padding-bottom: 50px;*/
+}
+
+.modulos_concluidos th.estudante {
+    width: 100px !important;
+}
+
+.modulos_concluidos .r1:first-child {
+    height: 200px;
 }
 
 .acesso_tutor .rotate {
