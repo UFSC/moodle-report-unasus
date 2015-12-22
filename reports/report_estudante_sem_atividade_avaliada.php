@@ -47,6 +47,9 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
                 $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
 
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_cursos = report_unasus_get_atividades_cursos($modulos_ids, false, false, false, $this->get_categoria_turma_ufsc());
 
         $dados = array();
 
@@ -57,6 +60,15 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
                 $atividades_modulos = new report_unasus_GroupArray();
 
                 foreach ($aluno as $atividade) {
+
+                    foreach ($atividades_cursos as $act) {
+                        foreach ($act as $a) {
+                            if ($a->id == $atividade->source_activity->id){
+                                $atividade->source_activity->config = $a->config;
+                            }
+                        }
+                    }
+
                     /** @var report_unasus_data $atividade */
                     $tipo_avaliacao = 'atividade';
                     $nome_atividade = null;
