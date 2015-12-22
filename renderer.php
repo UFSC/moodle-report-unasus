@@ -361,7 +361,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function table_tutores($dadostabela, $header, $relatorio = '') {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable_without_stripes";
         $table->tablealign = 'center';
 
         $header_keys = array_keys($header);
@@ -411,7 +411,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function table_todo_list($dadostabela, $header_size) {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable_without_stripes";
         $table->tablealign = 'center';
 
         $table_title = get_string($this->report_name . "_table_header", 'report_unasus');
@@ -596,7 +596,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         /* Ajustes para o cabeçalho duplo de alguns relatórios */
 
-        $class = 'relatorio-unasus ' . $report->get_relatorio() . ' generaltable divisao-por-modulos fixed';
+        $class = 'relatorio-unasus ' . $report->get_relatorio() . ' generaltable_without_stripes divisao-por-modulos fixed';
 
         // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
         // que não existe no moodle API

@@ -1123,6 +1123,17 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             );
             $query = query_scorm_from_users();
             break;
+        case 'report_unasus_lti_activity':
+            $params = array(
+                'id_activity' => $atividade->id,
+                'courseid' => $courseid,
+                'enrol_courseid' => $courseid,
+                'relationship_id' => $relationship->id,
+                'cohort_relationship_id' => $cohort_estudantes->id,
+                'grupo' => $grupo->id,
+            );
+            $query = query_lti_from_users();
+            break;
         default:
             if ($is_boletim) { //Nota final para relatório boletim
                 $params = array(

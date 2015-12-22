@@ -133,7 +133,7 @@ class report_unasus_assign_activity extends report_unasus_activity {
     public function __toString() {
         if(array_search($this->id, $this->config)) {
 
-            $name = explode(' ', substr($this->name, 0, 14))[0];
+            $name = explode(' ', substr($this->name, 0, 6))[0];
 
             $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
             $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
@@ -169,7 +169,7 @@ class report_unasus_forum_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
-            $name = $this->name == 'Fórum de debates' ? 'Fórum' : explode(' ', substr($this->name, 0, 14))[0];;
+            $name = $this->name == 'Fórum de debates' ? 'Fórum' : explode(' ', substr($this->name, 0, 6))[0];;
             $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
             $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
             return html_writer::link($forum_url, $name, array('target' => '_blank'));
@@ -258,7 +258,7 @@ class report_unasus_db_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
-            $name = explode(' ', substr($this->name, 0, 14))[0];
+            $name = explode(' ', substr($this->name, 0, 6))[0];
             $cm = get_coursemodule_from_instance('data', $this->id, $this->course_id, null, IGNORE_MISSING);
             $db_url = new moodle_url('/mod/data/view.php', array('id' => $cm->id, 'target' => '_blank'));
             return html_writer::link($db_url, $name, array('target' => '_blank'));
@@ -294,7 +294,7 @@ class report_unasus_scorm_activity extends report_unasus_activity {
 
     public function __toString() {
         if(array_search($this->id, $this->config)) {
-            $name = explode(' ', substr($this->name, 0, 14))[0];
+            $name = explode(' ', substr($this->name, 0, 6))[0];
             $cm = get_coursemodule_from_instance('scorm', $this->id, $this->course_id, null, IGNORE_MISSING);
             $scorm_url = new moodle_url('/mod/scorm/view.php', array('id' => $cm->id, 'target' => '_blank'));
             return html_writer::link($scorm_url, $name, array('target' => '_blank'));
@@ -334,7 +334,7 @@ class report_unasus_lti_activity extends report_unasus_activity {
      * @todo verificar parametro 'lti', tá vindo vazio e dado erro na linha seguinte $cm->id
      */
     public function __toString() {
-        $name = explode(' ', substr($this->name, 0, 14))[0];
+        $name = explode(' ', substr($this->name, 0, 6))[0];
         $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->course_module_id, 'target' => '_blank'));
         return html_writer::link($lti_url, $name, array('target' => '_blank'));
     }
@@ -769,7 +769,7 @@ class report_unasus_data_lti extends report_unasus_data {
 
     public function has_submitted() {
 //        return parent::is_grade_needed();
-        return (!is_null($this->submission_date) && !is_null($this->grade_date));
+        return (!is_null($this->grade) or !is_null($this->submission_date));
 //
     }
 

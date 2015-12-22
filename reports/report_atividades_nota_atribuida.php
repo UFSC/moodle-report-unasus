@@ -129,6 +129,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                             $dado =& $lista_atividade[$grupo_id]['scorm_'. $atividade->source_activity->id];
 
                         } elseif (is_a($atividade, 'report_unasus_data_lti')) {
+                            $dado =& $lista_atividade[$grupo_id]['lti_'. $atividade->source_activity->id];
+
+                        } elseif (is_a($atividade, 'report_unasus_data_lti_TCC')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
                         }
                         $dado->incrementar();

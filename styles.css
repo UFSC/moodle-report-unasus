@@ -1,8 +1,7 @@
 @charset "UTF-8";
 /*/////////////////////////////////////// Minhas Variaveis Globais ////////////////////////////////////*/
 /*/////////////////////////////////////// Original ////////////////////////////////////*/
-
-table.flexible, .generaltable {
+table.flexible, .generaltable, .generaltable_without_stripes {
     width: 100% !important;
     margin-bottom: 0px !important;
 }
@@ -331,7 +330,8 @@ legend {
 }
 
 .relatorio-unasus .estudante {
-  max-width: 135px !important;
+  /*width: 135px !important;*/
+  max-width: 136px !important;
   min-width: 135px !important;
   white-space: normal !important;
   word-wrap: break-word !important;
@@ -478,7 +478,8 @@ legend {
 	margin-top: 0!important;
 } */
 table.flexible thead th .r1,
-.generaltable thead th .r1 {
+.generaltable thead th .r1,
+.generaltable_without_stripes thead th .r1{
   vertical-align: bottom !important;
   padding-top: 30px !important;
 }
@@ -498,8 +499,12 @@ tbody {
 /*//////////////////////////////////////////////////*/
 table.flexible th,
 .generaltable th,
+table.generaltable_without_stripes th,
 table.flexible td,
-.generaltable td {
+table.generaltable td,
+table.generaltable_without_stripes td,{
+  padding: 8px;
+  line-height: 20px;
   vertical-align: middle !important;
 }
 
