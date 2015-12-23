@@ -962,9 +962,10 @@ function report_unasus_get_time_interval($data_inicio, $data_fim, $tempo_pulo, $
  * @param string $date_format formato da data em DateTime()
  * @return array
  */
-function report_unasus_get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date_format) {
-    $data_inicio = date_create_from_format($date_format, $data_inicio);
-    $data_fim = date_create_from_format($date_format, $data_fim);
+function report_unasus_get_time_interval_com_meses($data_inicio, $data_fim, $tempo_pulo, $date_format_read, $date_format_display) {
+    $data_inicio = date_create_from_format($date_format_read, $data_inicio);
+    $data_fim    = date_create_from_format($date_format_read, $data_fim);
+
     $interval = $data_inicio->diff($data_fim);
 
     $begin = clone $data_fim;
@@ -979,9 +980,8 @@ function report_unasus_get_time_interval_com_meses($data_inicio, $data_fim, $tem
         if (!array_key_exists($mes, $meses)) {
             $meses[$mes] = null;
         }
-        $meses[$mes][] = $date->format($date_format);
+        $meses[$mes][] = $date->format($date_format_display);
     }
-
     return $meses;
 }
 

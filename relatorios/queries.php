@@ -200,7 +200,7 @@ function query_acesso_tutor() {
     return "SELECT year(from_unixtime(l.time)) as calendar_year,
                    month(from_unixtime(l.time)) as calendar_month,
                    day(from_unixtime(l.time)) as calendar_day,
-                   l.userid
+                   u.id AS userid
               FROM {user} u
               JOIN {relationship_members} rm
                 ON (rm.userid=u.id AND rm.relationshipcohortid=:relationship_cohort_id)

@@ -1,3 +1,7 @@
+/*.acesso_tutor*/
+
+/*.entrega_de_atividades*/
+
 @charset "UTF-8";
 /*/////////////////////////////////////// Minhas Variaveis Globais ////////////////////////////////////*/
 /*/////////////////////////////////////// Original ////////////////////////////////////*/
@@ -349,12 +353,13 @@ legend {
 .boletim .c_body,
 .atividades_vs_notas .c1,
 .atividades_vs_notas .c_body {
-  width: 43px !important;
+  max-width: 43px !important;
+  min-width: 43px !important;
+  /*width: 43px !important;*/
   padding: 8px !important;
   margin: 0 !important;
   font-size: 12px !important;
   text-align: center;
-  min-width: 43px;
 }
 
 .entrega_de_atividades thead th,
@@ -468,11 +473,31 @@ legend {
     height: 200px;
 }
 
-.acesso_tutor .rotate {
-    width: 43px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
-    font-size: 12px !important;
-    padding: 8px;
+.relatorio-unasus .uso_sistema_tutor .c_body,
+.relatorio-unasus .acesso_tutor .c_body {
+    max-width: 30px !important;
+    min-width: 30px !important;
+    /*width: 43px !important;*/
+    padding: 2px !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+    text-align: center;
 }
+
+.relatorio-unasus .uso_sistema_tutor thead th,
+.relatorio-unasus .acesso_tutor thead th {
+    height: 40px !important;
+    font-size: 14px !important;
+}
+
+.relatorio-unasus .uso_sistema_tutor .rotate,
+.relatorio-unasus .acesso_tutor .rotate {
+    width: 30px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
+    font-size: 12px !important;
+    padding: 0px;
+}
+
+
 
 /* .navbar .nav>li>a, .navbar .nav>li>a:hover, .usermenu .login, .usermenu .moodle-actionmenu .toggle-display .userbutton {
 	margin-top: 0!important;

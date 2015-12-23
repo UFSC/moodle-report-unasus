@@ -145,8 +145,8 @@ class report_uso_sistema_tutor extends report_unasus_factory {
                 }
             }
 
-            $result->add($id_user, format_float($total_tempo / $intervalo_tempo, 3, ''));
-            $result->add($id_user, $total_tempo);
+            $result->add($id_user, new report_unasus_dado_uso_sistema_tutor_render(format_float($total_tempo / $intervalo_tempo, 1, '')));
+            $result->add($id_user, new report_unasus_dado_uso_sistema_tutor_render($total_tempo));
         }
         $result = $result->get_assoc();
 
@@ -169,7 +169,7 @@ class report_uso_sistema_tutor extends report_unasus_factory {
     }
 
     function get_table_header() {
-        $double_header = report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
+        $double_header = report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y', 'd/m/y');
         $double_header[''] = array('Media');
         $double_header[' '] = array('Total');
         return $double_header;

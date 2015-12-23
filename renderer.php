@@ -596,7 +596,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         /* Ajustes para o cabeçalho duplo de alguns relatórios */
 
-        $class = 'relatorio-unasus ' . $report->get_relatorio() . ' generaltable_without_stripes divisao-por-modulos fixed';
+        $class = $report->get_relatorio() . ' generaltable_without_stripes divisao-por-modulos fixed';
 
         // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
         // que não existe no moodle API
@@ -609,7 +609,6 @@ class report_unasus_renderer extends plugin_renderer_base {
             $ultimo_alvo += count($activities);
             $ultima_atividade_modulo[] = $ultimo_alvo;
         }
-
         if (isset($header_keys[0]) && is_array($report->get_table_header()[$header_keys[0]])) {
 
             /* Dados do cabeçalho */
@@ -633,7 +632,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $count_ = 1;
                 foreach ($activities as $activity) {
                     if (! is_object($activity)){
-                        $class = is_numeric($activity[0]) ? '' : 'relatorio-unasus rotate cell c_body';//' . $count_;
+                        $class = (is_numeric($activity[0]) AND !is_string($activity)) ? '' : 'relatorio-unasus rotate cell c_body';//' . $count_;
                     } else {
                         $class = 'relatorio-unasus rotate cell c_body';// . $count_;
                     }
