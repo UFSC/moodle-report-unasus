@@ -892,7 +892,7 @@ class report_unasus_dado_uso_sistema_tutor_render extends report_unasus_data_ren
     }
 
     public function get_css_class() {
-        return ($this->acesso) ? 'acessou' : 'nao_acessou';
+        return ((double) $this->acesso > 0) ? 'acessou' : 'nao_acessou';
     }
 
     public static function get_legend() {
