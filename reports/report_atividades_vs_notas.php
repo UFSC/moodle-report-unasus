@@ -218,6 +218,9 @@ class report_atividades_vs_notas extends report_unasus_factory {
                             case 'scorm_activity':
                                 $data = new report_unasus_data_scorm($atividade, $r);
                                 break;
+                            case 'lti_activity':
+                                $data = new report_unasus_data_lti($atividade, $r);
+                                break;
                         }
 
                         if (!(isset($lista_atividades[$r->userid][0]))) {
