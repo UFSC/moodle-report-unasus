@@ -241,39 +241,62 @@ class report_atividades_vs_notas extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_atividades_vs_notas_render($tipo, 0, $nota);
 
                         } else if ( !($database_courses)) {
+                            if ($data->userid == 14012) {
+                                var_dump('aki1');
+                                var_dump($r->name_activity, $r);
+                                var_dump($data,
+                                    '$data->has_submitted() = ' . $data->has_submitted(),
+                                    '$data->has_grade() = ' . $data->has_grade(),
+                                    '$data->is_a_future_due() = ' . $data->is_a_future_due(),
+                                    '$data->is_submission_due() = ' . $data->is_submission_due(),
+                                    '$data->is_grade_needed() = ' . $data->is_grade_needed(),
+                                    'atraso -> $data->grade_due_days() = ' . $data->grade_due_days(),
+                                    '_____________________');
+                            }
+                            //Atividade tem nota
+                            if ($data->has_grade()) {
+                                $atraso = $data->grade_due_days();
 
-                            //Se atividade não tem data de entrega, não tem entrega e nem nota
-                            if (!$data->has_submitted() && !$data->has_grade()) {
-                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                            } else {
+                                //Verifica se a correcao foi dada com ou sem atraso
+                                if ($atraso > report_unasus_get_prazo_avaliacao()) {
+                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO;
+                                } else {
+                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO;
+                                }
 
-                                //Atividade pro futuro
-                                if ($data->is_a_future_due()) {
+                            //Atividade entregue e necessita de nota
+                            //Atividade não precisa de entrega e já venceu o prazo de avaliação
+                            } elseif ($data->is_grade_needed()) {
+                                $atraso = $data->grade_due_days();
+//                                var_dump('--atraso--', $atraso, report_unasus_get_prazo_avaliacao());
+                                // Se o ataso for menor que dois dias não é atraso, considera no prazo.
+                                if ($atraso > report_unasus_get_prazo_avaliacao()) {
+                                    $tipo = report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA;
+                                } else {
                                     $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
                                 }
 
-                                //Entrega atrasada
-                                if ($data->is_submission_due()) {
+                            //Entrega atrasada
+                            } elseif ($data->is_submission_due()) {
+                                $atraso = $data->grade_due_days();
+                                var_dump('>>atraso>>', $atraso, report_unasus_get_prazo_avaliacao());
+                                // Se o ataso for menor que dois dias não é atraso, considera no prazo.
+                                if ($atraso > report_unasus_get_prazo_avaliacao()) {
                                     $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_ENTREGUE;
+                                } else {
+                                    var_dump('XXatrasoXX', $atraso, report_unasus_get_prazo_avaliacao());
+                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
                                 }
+                            //Se atividade não tem data de entrega, não tem entrega e nem nota
+                            } elseif (!$data->deadline_date()) {
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
 
-                                //Atividade entregue e necessita de nota
-                                if ($data->is_grade_needed()) {
-                                    $atraso = $data->grade_due_days();
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA;
-                                }
-
-                                //Atividade tem nota
-                                if ($data->has_grade()) {
-                                    $atraso = $data->grade_due_days();
-
-                                    //Verifica se a correcao foi dada com ou sem atraso
-                                    if ($atraso > report_unasus_get_prazo_avaliacao()) {
-                                        $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO;
-                                    } else {
-                                        $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO;
-                                    }
-                                }
+                            //Atividade pro futuro
+                            } elseif ($data->is_a_future_due()) {
+                                var_dump('--futuro--', $data->is_a_future_due());
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
+                            } else {
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             }
 
                             if(isset($atividade->id)){

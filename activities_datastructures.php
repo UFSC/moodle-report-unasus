@@ -339,6 +339,10 @@ class report_unasus_lti_activity extends report_unasus_activity {
         return html_writer::link($lti_url, $name, array('target' => '_blank'));
     }
 
+    public function has_submission() {
+        return (!empty($this->has_submission));
+    }
+
 }
 
 /**
@@ -382,6 +386,19 @@ abstract class report_unasus_data {
     }
 
     /**
+     * Data final de entrega da atividade
+     *
+     * @return bool true se tiver ou false se não
+     */
+    public function deadline_date() {
+        $deadline_date = false;
+        if ($this->source_activity->deadline > 0) {
+            $deadline_date = report_unasus_get_datetime_from_unixtime($this->source_activity->deadline);
+        }
+        return $deadline_date;
+    }
+
+    /**
      * Retorna os dias de atraso em relação a entrega de atividades
      *
      * @return bool
@@ -419,31 +436,42 @@ abstract class report_unasus_data {
      * @return bool|int false se não estiver em atraso ou o número de dias em atraso
      */
     public function grade_due_days() {
-        if (!$this->is_grade_needed()) {
-            return false;
-        }
+        var_dump(1111);
+//        if (!$this->is_grade_needed()) {
+//            var_dump('CCCAtraseCCC');
+//            return false;
+//        }
 
+        var_dump(2222);
         if ($this->source_activity->has_submission) {
+            var_dump('333.333', $this->source_activity->has_submission, $this->submission_date);
             // se a atividade possui entrega ativada
             // o prazo é contato a partir da data de envio
             $deadline = report_unasus_get_datetime_from_unixtime($this->submission_date);
         } else {
+            var_dump(4444);
             // se a atividade não possui entrega ativada
             // o prazo é contato a partir da data esperada de entrega
             $deadline = report_unasus_get_datetime_from_unixtime($this->source_activity->deadline);
         }
 
+
+        var_dump("5555 deadline =", $deadline);
         if ($this->has_grade()) {
+            var_dump(6666);
             // se possui nota, o atraso é relacionado a um dado histórico
             // usaremos a diferença do deadline com a data de envio da nota
 
             $grade_datetime = report_unasus_get_datetime_from_unixtime($this->grade_date);
             $duediff = $deadline->diff($grade_datetime);
+            var_dump("6666-1", $grade_datetime, $deadline, $duediff, (int) $duediff->format("%a"));
         } else {
+            var_dump(7777);
             // se não possui nota, o atraso é relacionado a um dado atual
             // usaremos a diferença do deadline com a data atual
             $duediff = $deadline->diff(date_create());
         }
+        var_dump(8888);
         return (int) $duediff->format("%a");
     }
 
@@ -462,27 +490,36 @@ abstract class report_unasus_data {
 
         $now = time();
         $result = true;
-//        var_dump('2222222 is_grade_needed',$this, $this->source_activity,
-//            $this->source_activity->has_grade, $this->has_submitted(),
-//            $this->source_activity->deadline, date('d/m/Y', $this->source_activity->deadline));
+        var_dump('2222222 is_grade_needed',$this, $this->source_activity,
+            $this->source_activity->has_grade, $this->has_submitted(),
+            $this->source_activity->has_submission,
+            $this->has_grade(),
+            $this->source_activity->deadline, date('d/m/Y', $this->source_activity->deadline),
+            (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline == 0) );
         if (!$this->source_activity->has_grade) {
-//            var_dump('2222222 is_grade_needed => 1');
+            var_dump('2222222 is_grade_needed => 1');
             // se a atividade não possui nota habilitado
             // não é necessário enviar a nota
             $result = false;
-        } else if ($this->source_activity->has_submission && !$this->has_submitted()) {
-//            var_dump('2222222 is_grade_needed => 2');
+        } elseif ($this->source_activity->has_submission && !$this->has_submitted()) {
+            var_dump('2222222 is_grade_needed => 2');
             // se a atividade precisa que seja enviado e não foi feito um envio
             // não é necessário enviar uma nota
             $result = false;
-        } else if (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline > $now) {
-//            var_dump('2222222 is_grade_needed => 3');
+        } elseif (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline > $now) {
+            var_dump('2222222 is_grade_needed => 3');
             // se a atividade não possui envio, não possui nota enviada
             // e ainda não chegou a data esperada de entrega,
             // não é necessário enviar uma nota
             $result = false;
+        } elseif (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline == 0) {
+            var_dump('2222222 is_grade_needed => 4');
+            // se a atividade não possui envio, não possui nota enviada
+            // e não tem tem prazo de entrega,
+            // não é necessário enviar uma nota
+            $result = false;
         }
-//        var_dump('2222222 is_grade_needed => Result',$result);
+        var_dump('2222222 is_grade_needed => Result',$result);
 
         return $result;
     }
@@ -555,6 +592,15 @@ abstract class report_unasus_data {
      * @return bool false se não houver prazo ou se não extiver em atraso e true se estiver em atraso
      */
     public function is_submission_due() {
+
+        if ($this->userid == 14012) {
+            var_dump('AAKKII',
+                $this->source_activity->has_deadline(),
+                $this->source_activity->has_submission,
+                $this->has_submitted(),
+                report_unasus_get_datetime_from_unixtime($this->source_activity->deadline),
+                !empty($this->source_activity->deadline));
+        }
         // Se não existe um prazo ou se o envio não está habilitado, não está em atraso
         if (!$this->source_activity->has_deadline() || !$this->source_activity->has_submission) {
             return false;
@@ -567,7 +613,8 @@ abstract class report_unasus_data {
         } else {
             // Se não foi enviada, o atraso será relacionado a um dado atual
             // Usaremos a diferença entre a atual e a data esperada
-            return $this->source_activity->deadline < time();
+            return ( ($this->source_activity->deadline > 0) &&
+                     ($this->source_activity->deadline < time()) );
         }
     }
 
@@ -757,6 +804,7 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->grademax = $db_model->grademax;
         $this->itemname = $db_model->itemname;
         $this->submission_date = $db_model->submission_date;
+        $this->grade_date = $db_model->submission_date;
     }
 
     public function has_grade() {
@@ -772,6 +820,7 @@ class report_unasus_data_lti extends report_unasus_data {
         return (!is_null($this->grade) or !is_null($this->submission_date));
 //
     }
+
 
 }
 
