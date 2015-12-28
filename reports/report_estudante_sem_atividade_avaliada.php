@@ -41,11 +41,13 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
         }
 
         $query_alunos_grupo_tutoria = query_atividades_from_users();
-        $query_quiz = query_quiz_from_users();
+        $query_quiz  = query_quiz_from_users();
         $query_forum = query_postagens_forum_from_users();
+        $query_lti   = query_lti_from_users();
+
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-                $query_alunos_grupo_tutoria, $query_forum, $query_quiz);
+                $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_lti);
 
         $modulos_ids = $this->get_modulos_ids();
 
@@ -64,7 +66,10 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
                     foreach ($atividades_cursos as $act) {
                         foreach ($act as $a) {
                             if ($a->id == $atividade->source_activity->id){
-                                $atividade->source_activity->config = $a->config;
+                                $atividade->source_activity->config = NULL;
+                                if (!empty($a->config)) {
+                                    $atividade->source_activity->config = $a->config;
+                                };
                             }
                         }
                     }

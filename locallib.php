@@ -333,9 +333,6 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
             $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
         }
     }
-
-//    $ltis       = report_unasus_query_lti_courses_moodle($courses);
-
     foreach ($ltis as $lti) {
         if (!empty($atividades_config_curso)){
             if(array_search($lti->lti_id, $atividades_config_curso)){
