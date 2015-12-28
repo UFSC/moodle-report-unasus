@@ -77,12 +77,12 @@ class report_unasus_renderer extends plugin_renderer_base {
             return null;
         }
         $output = html_writer::start_tag('fieldset', array('class' => "generalbox fieldset relatorio-unasus {$this->report_name}"));
-        $output .= html_writer::tag('legend', 'Legenda', array('class' => 'legend'));
+        $output .= html_writer::tag('legend', 'Legenda', array('class' => 'relatorio-unasus legend'));
         $output .= html_writer::start_tag('dl');
 
         foreach ($legend as $class => $description) {
             //$class é a mesma classe definida no styles.css
-            $output .= html_writer::tag('dt', '', array('class' => "{$class}"));
+            $output .= html_writer::tag('dt', '', array('class' => "relatorio-unasus {$class}"));
             $output .= html_writer::tag('dd', "{$description}");
         }
         $output .= html_writer::end_tag('dl');
@@ -164,7 +164,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post, '', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
             $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
             $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
-            $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'multiple_list'));
+            $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'relatorio-unasus multiple_list'));
         }
 
         if (has_capability('report/unasus:view_all', $report->get_context())) {
@@ -176,10 +176,10 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $filter_polos .= html_writer::select(report_unasus_get_polos($report->get_categoria_turma_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
                 $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
                 $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'multiple_list'));
+                $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'relatorio-unasus multiple_list'));
             }
 
-            $output .= html_writer::tag('div', '', array('class' => 'clear'));
+            $output .= html_writer::tag('div', '', array('class' => 'relatorio-unasus clear'));
 
             if ($report->mostrar_filtro_cohorts) {
                 // Filtro de Cohorts
@@ -188,7 +188,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $filter_cohorts .= html_writer::select(report_unasus_get_nomes_cohorts($report->get_categoria_curso_ufsc()), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
                 $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
                 $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'multiple_list'));
+                $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'relatorio-unasus multiple_list'));
             }
 
             if ($report->mostrar_filtro_tutores) {
@@ -198,7 +198,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $filter_tutores .= html_writer::select(local_tutores_grupos_tutoria::get_tutores($report->get_categoria_turma_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
                 $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
                 $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'multiple_list'));
+                $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'relatorio-unasus multiple_list'));
             }
 
             if ($report->mostrar_filtro_orientadores) {
@@ -208,7 +208,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $filter_orientadores .= html_writer::select(local_tutores_grupo_orientacao::get_orientadores($report->get_categoria_turma_ufsc()), 'orientadores[]', $selecao_orientadores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
                 $orientadores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
                 $orientadores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_orientadores . $orientadores_all . ' / ' . $orientadores_none, array('class' => 'multiple_list'));
+                $output .= html_writer::tag('div', $filter_orientadores . $orientadores_all . ' / ' . $orientadores_none, array('class' => 'relatorio-unasus multiple_list'));
             }
         }
 
@@ -226,7 +226,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             if (!is_null($data_fim_param))
                 $data_fim = $data_fim_param;
 
-            $output .= html_writer::start_tag('div', array('class' => 'time_filter'));
+            $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus time_filter'));
             $output .= html_writer::tag('h3', 'Data Inicio:');
             $output .= html_writer::tag('input', null, array('type' => 'text', 'name' => 'data_inicio', 'value' => $data_inicio));
             $output .= html_writer::tag('h3', 'Data Fim:');
@@ -238,24 +238,24 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Radio para selecao do modo de busca, tabela e/ou gráficos
         $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'tabela', 'id' => 'radio_tabela', 'checked' => true));
-        $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela', true, array('class' => 'radio'));
+        $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela', true, array('class' => 'relatorio-unasus radio'));
 
         if ($report->mostrar_botoes_grafico) {
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_valores', 'id' => 'radio_valores'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores', true, array('class' => 'radio'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores', true, array('class' => 'relatorio-unasus radio'));
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_porcentagens', 'id' => 'radio_porcentagem'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'radio'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'relatorio-unasus radio'));
         }
 
         if ($report->mostrar_botoes_dot_chart) {
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_pontos', 'id' => 'radio_dot'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'radio'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'relatorio-unasus radio'));
         }
 
         if($report->mostrar_botao_exportar_csv){
             // Exportar para CSV
             $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'export_csv', 'id' => 'radio_csv'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/csv_icon.png\">Exportar para CSV", 'radio_csv', true, array('class' => 'radio'));
+            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/csv_icon.png\">Exportar para CSV", 'radio_csv', true, array('class' => 'relatorio-unasus radio'));
         }
 
         $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
@@ -311,11 +311,11 @@ class report_unasus_renderer extends plugin_renderer_base {
             //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
             //alunos vao sendo populado na tabela
             $cel_tutor = new html_table_cell($tutor);
-            $cel_tutor->attributes = array('class' => 'tutor');
+            $cel_tutor->attributes = array('class' => 'relatorio-unasus tutor');
             $cel_tutor->colspan = $ultimo_alvo + 1; // expande a célula com nome dos tutores
 
             $row_tutor = new html_table_row();
-            $row_tutor->attributes = array('class' => 'r1');
+            $row_tutor->attributes = array('class' => 'relatorio-unasus r1');
             $row_tutor->cells[] = $cel_tutor;
             $table->data[] = $row_tutor;
 
@@ -323,20 +323,20 @@ class report_unasus_renderer extends plugin_renderer_base {
             $count = 0;
             foreach ($alunos as $aluno) {
                 $row = new html_table_row();
-                $row_tutor->attributes = array('class' => 'r0');
+                $row_tutor->attributes = array('class' => 'relatorio-unasus r0');
                 foreach ($aluno as $valor) {
                     if (is_a($valor, 'report_unasus_data_render')) {
                         $cell = new html_table_cell($valor);
                         if (in_array($count, $ultima_atividade_modulo)) {
                             // Aplica a classe CSS para criar o contorno dos modulos na tabela
-                            $cell->attributes = array('class' => $valor->get_css_class() . " ultima_atividade");
+                            $cell->attributes = array('class' => $valor->get_css_class() . " ultima_atividade relatorio-unasus c_body");
                         } else {
-                            $cell->attributes = array('class' => $valor->get_css_class());
+                            $cell->attributes = array('class' => $valor->get_css_class() . "relatorio-unasus c_body");
                         }
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
-                        $cell->attributes = array('class' => 'estudante ultima_atividade');
+                        $cell->attributes = array('class' => 'relatorio-unasus estudante ultima_atividade c_body');
                     }
 
                     $row->cells[] = $cell;
@@ -361,7 +361,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function table_tutores($dadostabela, $header, $relatorio = '') {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable_without_stripes";
         $table->tablealign = 'center';
 
         $header_keys = array_keys($header);
@@ -379,14 +379,13 @@ class report_unasus_renderer extends plugin_renderer_base {
         foreach ($dadostabela as $aluno) {
             $row = new html_table_row();
             foreach ($aluno as $valor) {
+                $cell = new html_table_cell($valor);
                 if (is_a($valor, 'report_unasus_data_render')) {
-                    $cell = new html_table_cell($valor);
                     $cell->attributes = array(
-                        'class' => $valor->get_css_class());
+                        'class' => "relatorio-unasus " . $valor->get_css_class());
                 } else { // Aluno
-                    $cell = new html_table_cell($valor);
                     $cell->header = true;
-                    $cell->attributes = array('class' => 'estudante');
+                    $cell->attributes = array('class' => 'relatorio-unasus estudante c_body');
                 }
 
                 $row->cells[] = $cell;
@@ -412,7 +411,7 @@ class report_unasus_renderer extends plugin_renderer_base {
     public function table_todo_list($dadostabela, $header_size) {
         //criacao da tabela
         $table = new report_unasus_table();
-        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable";
+        $table->attributes['class'] = "relatorio-unasus $this->report_name generaltable_without_stripes";
         $table->tablealign = 'center';
 
         $table_title = get_string($this->report_name . "_table_header", 'report_unasus');
@@ -420,25 +419,24 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $student = new html_table_cell('Estudantes');
         $student->header = true;
-        $student->attributes = array('class' => 'title estudante');
+        $student->attributes = array('class' => 'relatorio-unasus title estudante');
 
         $heading1 = array();
         $heading1[] = $student;
         $heading1[] = $table_title;
 
         $table->head = $heading1;
-
+       // passa por todos os tutores
         foreach ($dadostabela as $tutor => $alunos) {
 
             //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
             //alunos vao sendo populado na tabela
             $cel_tutor = new html_table_cell($tutor);
-            $cel_tutor->attributes = array('class' => 'tutor');
+            $cel_tutor->attributes = array('class' => 'relatorio-unasus tutor');
             $cel_tutor->colspan = $header_size + 1; // expande a célula com nome dos tutores
             $row_tutor = new html_table_row();
             $row_tutor->cells[] = $cel_tutor;
             $table->data[] = $row_tutor;
-
             //atividades de cada aluno daquele dado tutor
             foreach ($alunos as $aluno) {
                 $row = new html_table_row();
@@ -446,14 +444,18 @@ class report_unasus_renderer extends plugin_renderer_base {
                     if (is_a($valor, 'report_unasus_data_render')) {
                         $cell = new html_table_cell($valor);
                         $cell->attributes = array(
-                            'class' => $valor->get_css_class());
+                            'class' => "relatorio-unasus " . $valor->get_css_class());
+
                     } else { // Aluno
+                        // Se for um estudante
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
-                        $cell->attributes = array('class' => 'estudante');
+                        $cell->attributes = array('class' => 'relatorio-unasus estudante');
                     }
 
-                    $row->cells[] = $cell;
+                    if (!empty($cell)) {
+                        $row->cells[] = $cell;
+                    };
                 }
                 $table->data[] = $row;
             }
@@ -494,7 +496,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $header_method = $report->get_table_header();
 
         $table = $this->table_tutores($dados_method, $header_method, get_class($report));
-        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
+        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-unasus relatorio-wrapper'));
 
         $output .= $this->default_footer();
         return $output;
@@ -542,7 +544,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         }
 
         $table = $this->table_todo_list($dados_atividades, $max_size);
-        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
+        $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-unasus relatorio-wrapper'));
 
         $output .= $this->default_footer();
         return $output;
@@ -594,7 +596,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         /* Ajustes para o cabeçalho duplo de alguns relatórios */
 
-        $class = 'relatorio-unasus ' . $report->get_relatorio() . ' generaltable divisao-por-modulos fixed';
+        $class = $report->get_relatorio() . ' generaltable_without_stripes divisao-por-modulos fixed';
 
         // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
         // que não existe no moodle API
@@ -607,37 +609,36 @@ class report_unasus_renderer extends plugin_renderer_base {
             $ultimo_alvo += count($activities);
             $ultima_atividade_modulo[] = $ultimo_alvo;
         }
-
         if (isset($header_keys[0]) && is_array($report->get_table_header()[$header_keys[0]])) {
 
             /* Dados do cabeçalho */
 
-            $output .= html_writer::start_tag('div', array('class' => 'relatorio-wrapper'));
-            $output .= html_writer::start_tag('table', array('class' => $class));
+            $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus relatorio-wrapper'));
+            $output .= html_writer::start_tag('table', array('class' => "relatorio-unasus ".$class));
             $output .= html_writer::start_tag('thead');
-            $output .= html_writer::start_tag('tr', array('class' => 'r0'));
-            $output .= html_writer::tag('td', '', array('class' => 'blank'));
+            $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r0'));
+            $output .= html_writer::tag('td', '', array('class' => 'relatorio-unasus blank'));
 
             foreach ($report->get_table_header() as $module_name => $activities) {
-                $output .= html_writer::tag('th', $module_name, array('class' => 'modulo_header cell c1', 'colspan' => count($activities)));
+                $output .= html_writer::tag('th', $module_name, array('class' => 'relatorio-unasus modulo_header cell c1', 'colspan' => count($activities)));
             }
 
             $output .= html_writer::end_tag('tr');
-            $output .= html_writer::start_tag('tr', array('class' => 'r1'));
+            $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r1'));
 
-            $output .= html_writer::tag('th', 'Estudante', array('class' => 'ultima_atividade title estudante'));
+            $output .= html_writer::tag('th', 'Estudante', array('class' => 'relatorio-unasus ultima_atividade title estudante'));
 
             foreach ($report->get_table_header() as $module_name => $activities) {
                 $count_ = 1;
                 foreach ($activities as $activity) {
                     if (! is_object($activity)){
-                        $class = is_numeric($activity[0]) ? '' : 'rotate cell c' . $count_;
+                        $class = (is_numeric($activity[0]) AND !is_string($activity)) ? '' : 'relatorio-unasus rotate cell c_body';//' . $count_;
                     } else {
-                        $class = 'rotate cell c' . $count_;
+                        $class = 'relatorio-unasus rotate cell c_body';// . $count_;
                     }
 
                     $count_++;
-                    $output .= html_writer::tag('th', $activity, array('class' => $class));
+                    $output .= html_writer::tag('th', $activity, array('class' => "relatorio-unasus ".$class));
                 }
             }
 
@@ -651,25 +652,25 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             foreach ($report->get_dados() as $tutor => $alunos) {
 
-                $output .= html_writer::start_tag('tr', array('class' => 'r0'));
-                $output .= html_writer::tag('td', $tutor, array('class' => 'tutor', 'colspan' => $ultimo_alvo + 1));
+                $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r0'));
+                $output .= html_writer::tag('td', $tutor, array('class' => 'relatorio-unasus tutor', 'colspan' => $ultimo_alvo + 1));
                 $output .= html_writer::end_tag('tr');
 
                 $count = 0;
                 $count_cell = 1;
                 foreach ($alunos as $aluno) {
-                    $output .= html_writer::start_tag('tr', array('class' => 'r1'));
+                    $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r1'));
 
                     foreach ($aluno as $valor) {
                         if (is_a($valor, 'report_unasus_data_render')) {
                             if (in_array($count, $ultima_atividade_modulo)) {
                                 // Aplica a classe CSS para criar o contorno dos modulos na tabela
-                                $output .= html_writer::tag('td', $valor, array('class' => $valor->get_css_class() . " ultima_atividade cell c" . $count_cell));
+                                $output .= html_writer::tag('td', $valor, array('class' => "relatorio-unasus ".$valor->get_css_class() . " ultima_atividade cell c_body"));//" . $count_cell));
                             } else {
-                                $output .= html_writer::tag('td', $valor, array('class' => $valor->get_css_class() . ' cell c' . $count_cell));
+                                $output .= html_writer::tag('td', $valor, array('class' => "relatorio-unasus ".$valor->get_css_class() . ' cell c_body'));//' . $count_cell));
                             }
                         } else { // Aluno
-                            $output .= html_writer::tag('th', $valor, array('class' => 'estudante position', 'scope' => 'row'));
+                            $output .= html_writer::tag('th', $valor, array('class' => 'relatorio-unasus estudante position', 'scope' => 'row'));
                         }
                         $count++;
                         $count_cell++;
@@ -689,8 +690,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $table->attributes['class'] = $class;
 
             $table = $this->default_table($report->get_dados(), $report->get_table_header(), $table, $class);
-
-            $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-wrapper'));
+            $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-unasus relatorio-wrapper'));
         }
 
         $module = array(
@@ -763,7 +763,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             array_values($legend),
             get_string($this->report_name, 'report_unasus'), $porcentagem));
 
-        $output .= '<div id="container" class="container relatorio-wrapper"></div>';
+        $output .= '<div id="container" class="relatorio-unasus container relatorio-wrapper"></div>';
         $output .= $this->default_footer();
 
         return $output;
@@ -801,7 +801,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Se algum tutor logou ele gera o gráfico
         if (report_unasus_dot_chart_com_tutores_com_acesso($dados_method)) {
             $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method));
-            $output .= '<div id="container" class="container relatorio-wrapper"></div>';
+            $output .= '<div id="container" class="relatorio-unasus container relatorio-wrapper"></div>';
         } else {
             // Se nenhum tutor logou ele informa um erro em vez de gerar um gráfico vazio
             $output .= $this->build_warning('Nenhum tutor logou no moodle no intervalo de tempo selecionado');
@@ -820,7 +820,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      */
     public function build_warning($msg) {
         $output = html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset warning'));
-        $output .= html_writer::tag('legend', 'Erro', array('class' => 'legend'));
+        $output .= html_writer::tag('legend', 'Erro', array('class' => 'relatorio-unasus legend'));
         $output .= $msg;
         $output .= html_writer::end_tag('fieldset');
         return $output;

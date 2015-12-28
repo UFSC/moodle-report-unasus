@@ -32,7 +32,6 @@ class report_modulos_concluidos extends report_unasus_factory {
     }
 
     public function get_dados(){
-
         $modulos = $this->modulos_selecionados;
 
         // Recupera dados auxiliares
@@ -83,6 +82,7 @@ class report_modulos_concluidos extends report_unasus_factory {
                             }
                             if (!array_key_exists($atividade->course_id, $lista_atividades)) {
                                 $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $atividade);
+
                             }
                         }
                     }

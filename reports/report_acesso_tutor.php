@@ -143,12 +143,11 @@ class report_acesso_tutor extends report_unasus_factory {
             }
             $retorno[] = $dados;
         }
-
         return array('Tutores' => $retorno);
     }
 
     public function get_table_header() {
-        return report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y');
+        return report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y', 'd/m/y');
     }
 
 }

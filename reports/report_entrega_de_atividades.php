@@ -34,9 +34,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
         global $CFG;
 
         // Consultas
-        $query_atividades = query_atividades();
-        $query_quiz = query_quiz();
-        $query_forum = query_postagens_forum();
+        $query_atividades = query_atividades_from_users();
+        $query_quiz = query_quiz_from_users();
+        $query_forum = query_postagens_forum_from_users();
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
@@ -131,9 +131,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
                 foreach ($atividades as $atividade) {
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
-                    foreach ($result as $r){
+                    foreach ($result as $r) {
 
-                        switch ($r->name_activity){
+                        switch ($r->name_activity) {
                             case 'assign_activity':
                                 $data = new report_unasus_data_activity($atividade, $r);
                                 break;
@@ -149,6 +149,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             case 'scorm_activity':
                                 $data = new report_unasus_data_scorm($atividade, $r);
                                 break;
+                            case 'lti_activity':
+                                $data = new report_unasus_data_lti($atividade, $r);
+                                break;
                         }
 
                         $atraso = null;
@@ -157,7 +160,6 @@ class report_entrega_de_atividades extends report_unasus_factory {
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
-
                         // Se a atividade não foi entregue
                         if (!$data->has_submitted()) {
 

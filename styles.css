@@ -1,8 +1,11 @@
+/*.acesso_tutor*/
+
+/*.entrega_de_atividades*/
+
 @charset "UTF-8";
 /*/////////////////////////////////////// Minhas Variaveis Globais ////////////////////////////////////*/
 /*/////////////////////////////////////// Original ////////////////////////////////////*/
-
-table.flexible, .generaltable {
+table.flexible, .generaltable, .generaltable_without_stripes {
     width: 100% !important;
     margin-bottom: 0px !important;
 }
@@ -213,6 +216,8 @@ legend {
 .relatorio-unasus th.estudante,
 .relatorio-unasus td.somatorio {
   padding-right: 1em;
+  padding-top: 8px;
+  padding-bottom: 20px;
   text-align: left;
   font-weight: normal;
   background: #FEF9EC;
@@ -260,58 +265,60 @@ table.relatorio-unasus.estudante_sem_atividade_avaliada {
 }
 
 /*////////////////////////////////////// Meus Ajustes ////////////////////////*/
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
+/*
+.relatorio-unasus h1,
+.relatorio-unasus h2,
+.relatorio-unasus h3,
+.relatorio-unasus h4,
+.relatorio-unasus h5,
+.relatorio-unasus h6,
 legend {
   font-family: "Dosis" !important;
 }
 
-h1 {
+.relatorio-unasus h1 {
   font-size: 26px !important;
 }
 
-h2 {
+.relatorio-unasus h2 {
   font-size: 24px;
 }
 
-h3 {
+.relatorio-unasus h3 {
   font-size: 22px !important;
 }
 
-h4 {
+.relatorio-unasus h4 {
   font-size: 20px !important;
 }
 
-h5 {
+.relatorio-unasus h5 {
   font-size: 18px !important;
 }
 
-h6 {
+.relatorio-unasus h6 {
   font-size: 16px !important;
 }
 
-h2 {
+.relatorio-unasus h2 {
   margin-left: 15px;
 }
 
-#instance-4-header {
+.relatorio-unasus #instance-4-header {
   margin-left: 0 !important;
 }
+*/
 
-a {
+.relatorio-unasus a {
   color: #004E95 !important;
 }
 
-body {
+.relatorio-unasus body {
   font-family: "helvetica" !important;
   font-size: 12px !important;
 }
 
-.rotate {
+.relatorio-unasus .rotate {
   -webkit-transform: rotate(-90deg) !important;
   -moz-transform: rotate(-90deg) !important;
   -ms-transform: rotate(-90deg) !important;
@@ -321,13 +328,14 @@ body {
   font-size: 12px !important;
     padding: 8px;
 }
-.rotate a {
+.relatorio-unasus .rotate a {
   margin: 0 !important;
   padding: 0 !important;
 }
 
-.estudante {
-  max-width: 135px !important;
+.relatorio-unasus .estudante {
+  /*width: 135px !important;*/
+  max-width: 136px !important;
   min-width: 135px !important;
   white-space: normal !important;
   word-wrap: break-word !important;
@@ -335,117 +343,23 @@ body {
   text-align: left;
 }
 
-.atividades_vs_notas thead th {
+.relatorio-unasus .atividades_vs_notas thead th {
   height: 50px !important;
 }
 
 .entrega_de_atividades .c1,
-.entrega_de_atividades .c2,
-.entrega_de_atividades .c3,
-.entrega_de_atividades .c4,
-.entrega_de_atividades .c5,
-.entrega_de_atividades .c6,
-.entrega_de_atividades .c7,
-.entrega_de_atividades .c8,
-.entrega_de_atividades .c9,
-.entrega_de_atividades .c10,
-.entrega_de_atividades .c11,
-.entrega_de_atividades .c12,
-.entrega_de_atividades .c13,
-.entrega_de_atividades .c14,
-.entrega_de_atividades .c15,
-.entrega_de_atividades .c16,
-.entrega_de_atividades .c17,
-.entrega_de_atividades .c18,
-.entrega_de_atividades .c19,
-.entrega_de_atividades .c20,
-.entrega_de_atividades .c21,
-.entrega_de_atividades .c22,
-.entrega_de_atividades .c23,
-.entrega_de_atividades .c24,
-.entrega_de_atividades .c25,
-.entrega_de_atividades .c25,
-.entrega_de_atividades .c26,
-.entrega_de_atividades .c27,
-.entrega_de_atividades .c28,
-.entrega_de_atividades .c29,
-.entrega_de_atividades .c30,
+.entrega_de_atividades .c_body,
 .boletim .c1,
-.boletim .c2,
-.boletim .c3,
-.boletim .c4,
-.boletim .c5,
-.boletim .c6,
-.boletim .c7,
-.boletim .c8,
-.boletim .c9,
-.boletim .c10,
-.boletim .c11,
-.boletim .c12,
-.boletim .c13,
-.boletim .c14,
-.boletim .c15,
-.boletim .c16,
-.boletim .c17,
-.boletim .c18,
-.boletim .c19,
-.boletim .c20,
-.boletim .c21,
-.boletim .c22,
-.boletim .c23,
-.boletim .c24,
-.boletim .c25,
-.boletim .c26,
-.boletim .c27,
-.boletim .c28,
-.boletim .c29,
-.boletim .c30,
-.boletim .c31,
-.boletim .c32,
-.boletim .c33,
-.boletim .c34,
-.boletim .c35,
+.boletim .c_body,
 .atividades_vs_notas .c1,
-.atividades_vs_notas .c2,
-.atividades_vs_notas .c3,
-.atividades_vs_notas .c4,
-.atividades_vs_notas .c5,
-.atividades_vs_notas .c6,
-.atividades_vs_notas .c7,
-.atividades_vs_notas .c8,
-.atividades_vs_notas .c9,
-.atividades_vs_notas .c10,
-.atividades_vs_notas .c11,
-.atividades_vs_notas .c12,
-.atividades_vs_notas .c13,
-.atividades_vs_notas .c14,
-.atividades_vs_notas .c15,
-.atividades_vs_notas .c16,
-.atividades_vs_notas .c17,
-.atividades_vs_notas .c18,
-.atividades_vs_notas .c19,
-.atividades_vs_notas .c20,
-.atividades_vs_notas .c21,
-.atividades_vs_notas .c22,
-.atividades_vs_notas .c23,
-.atividades_vs_notas .c24,
-.atividades_vs_notas .c25,
-.atividades_vs_notas .c26,
-.atividades_vs_notas .c27,
-.atividades_vs_notas .c28,
-.atividades_vs_notas .c29,
-.atividades_vs_notas .c30,
-.atividades_vs_notas .c31,
-.atividades_vs_notas .c32,
-.atividades_vs_notas .c33,
-.atividades_vs_notas .c34,
-.atividades_vs_notas .c35 {
-  width: 43px !important;
+.atividades_vs_notas .c_body {
+  max-width: 43px !important;
+  min-width: 43px !important;
+  /*width: 43px !important;*/
   padding: 8px !important;
   margin: 0 !important;
   font-size: 12px !important;
   text-align: center;
-  min-width: 43px;
 }
 
 .entrega_de_atividades thead th,
@@ -460,35 +374,7 @@ body {
 }
 
 .atividades_nota_atribuida .c1,
-.atividades_nota_atribuida .c2,
-.atividades_nota_atribuida .c3,
-.atividades_nota_atribuida .c4,
-.atividades_nota_atribuida .c5,
-.atividades_nota_atribuida .c6,
-.atividades_nota_atribuida .c7,
-.atividades_nota_atribuida .c8,
-.atividades_nota_atribuida .c9,
-.atividades_nota_atribuida .c10,
-.atividades_nota_atribuida .c11,
-.atividades_nota_atribuida .c12,
-.atividades_nota_atribuida .c13,
-.atividades_nota_atribuida .c14,
-.atividades_nota_atribuida .c15,
-.atividades_nota_atribuida .c16,
-.atividades_nota_atribuida .c17,
-.atividades_nota_atribuida .c18,
-.atividades_nota_atribuida .c19,
-.atividades_nota_atribuida .c20,
-.atividades_nota_atribuida .c21,
-.atividades_nota_atribuida .c22,
-.atividades_nota_atribuida .c23,
-.atividades_nota_atribuida .c24,
-.atividades_nota_atribuida .c25,
-.atividades_nota_atribuida .c26,
-.atividades_nota_atribuida .c27,
-.atividades_nota_atribuida .c28,
-.atividades_nota_atribuida .c29,
-.atividades_nota_atribuida .c30,
+.atividades_nota_atribuida .c_body
 .atividades_nota_atribuida .ultima_atividade {
   width: 35px !important;
   height: 50px !important;
@@ -500,45 +386,9 @@ body {
 }
 
 .estudante_sem_atividade_avaliada .c1,
-.estudante_sem_atividade_avaliada .c2,
-.estudante_sem_atividade_avaliada .c3,
-.estudante_sem_atividade_avaliada .c4,
-.estudante_sem_atividade_avaliada .c5,
-.estudante_sem_atividade_avaliada .c6,
-.estudante_sem_atividade_avaliada .c7,
-.estudante_sem_atividade_avaliada .c8,
-.estudante_sem_atividade_avaliada .c9,
-.estudante_sem_atividade_avaliada .c10,
-.estudante_sem_atividade_avaliada .c11,
-.estudante_sem_atividade_avaliada .c12,
-.estudante_sem_atividade_avaliada .c13,
-.estudante_sem_atividade_avaliada .c14,
-.estudante_sem_atividade_avaliada .c15,
-.estudante_sem_atividade_avaliada .c16,
-.estudante_sem_atividade_avaliada .c17,
-.estudante_sem_atividade_avaliada .c18,
-.estudante_sem_atividade_avaliada .c19,
-.estudante_sem_atividade_avaliada .c20,
+.estudante_sem_atividade_avaliada .c_body,
 .estudante_sem_atividade_postada .c1,
-.estudante_sem_atividade_postada .c2,
-.estudante_sem_atividade_postada .c3,
-.estudante_sem_atividade_postada .c4,
-.estudante_sem_atividade_postada .c5,
-.estudante_sem_atividade_postada .c6,
-.estudante_sem_atividade_postada .c7,
-.estudante_sem_atividade_postada .c8,
-.estudante_sem_atividade_postada .c9,
-.estudante_sem_atividade_postada .c10,
-.estudante_sem_atividade_postada .c11,
-.estudante_sem_atividade_postada .c12,
-.estudante_sem_atividade_postada .c13,
-.estudante_sem_atividade_postada .c14,
-.estudante_sem_atividade_postada .c15,
-.estudante_sem_atividade_postada .c16,
-.estudante_sem_atividade_postada .c17,
-.estudante_sem_atividade_postada .c18,
-.estudante_sem_atividade_postada .c19,
-.estudante_sem_atividade_postada .c20 {
+.estudante_sem_atividade_postada .c_body {
   width: 120px !important;
   height: 50px !important;
   text-align: center !important;
@@ -549,25 +399,7 @@ body {
 }
 
 .atividades_concluidas_agrupadas .c1,
-.atividades_concluidas_agrupadas .c2,
-.atividades_concluidas_agrupadas .c3,
-.atividades_concluidas_agrupadas .c4,
-.atividades_concluidas_agrupadas .c5,
-.atividades_concluidas_agrupadas .c6,
-.atividades_concluidas_agrupadas .c7,
-.atividades_concluidas_agrupadas .c8,
-.atividades_concluidas_agrupadas .c9,
-.atividades_concluidas_agrupadas .c10,
-.atividades_concluidas_agrupadas .c11,
-.atividades_concluidas_agrupadas .c12,
-.atividades_concluidas_agrupadas .c13,
-.atividades_concluidas_agrupadas .c14,
-.atividades_concluidas_agrupadas .c15,
-.atividades_concluidas_agrupadas .c16,
-.atividades_concluidas_agrupadas .c17,
-.atividades_concluidas_agrupadas .c18,
-.atividades_concluidas_agrupadas .c19,
-.atividades_concluidas_agrupadas .c20 {
+.atividades_concluidas_agrupadas .c_body {
   width: 90px !important;
   height: 50px !important;
   text-align: center !important;
@@ -578,35 +410,22 @@ body {
 }
 
 .avaliacoes_em_atraso .c1,
-.avaliacoes_em_atraso .c2,
-.avaliacoes_em_atraso .c3,
-.avaliacoes_em_atraso .c4,
-.avaliacoes_em_atraso .c5,
-.avaliacoes_em_atraso .c6,
-.avaliacoes_em_atraso .c7,
-.avaliacoes_em_atraso .c8,
-.avaliacoes_em_atraso .c9,
-.avaliacoes_em_atraso .c10,
-.avaliacoes_em_atraso .c11,
-.avaliacoes_em_atraso .c12,
-.avaliacoes_em_atraso .c13,
-.avaliacoes_em_atraso .c14,
-.avaliacoes_em_atraso .c15,
-.avaliacoes_em_atraso .c16,
-.avaliacoes_em_atraso .c17,
-.avaliacoes_em_atraso .c18,
-.avaliacoes_em_atraso .c19,
-.avaliacoes_em_atraso .c20 {
+.avaliacoes_em_atraso .c_body {
   width: 40px !important;
   height: 50px !important;
   text-align: center !important;
-  padding: 2px !important;
-  padding-top: 10px;
+  padding-top: 2px;
+  padding-bottom: 2px;
   font-size: 12px !important;
   word-wrap: break-word !important;
 }
-.avaliacoes_em_atraso th.estudante {
+.avaliacoes_em_atraso th.estudante_header {
   width: 135px;
+  padding-bottom: 50px;
+}
+
+.avaliacoes_em_atraso th.estudante {
+  width: 200px;
 }
 
 .avaliacoes_em_atraso .r1:first-child {
@@ -619,25 +438,7 @@ body {
 }
 
 .potenciais_evasoes .c1,
-.potenciais_evasoes .c2,
-.potenciais_evasoes .c3,
-.potenciais_evasoes .c4,
-.potenciais_evasoes .c5,
-.potenciais_evasoes .c6,
-.potenciais_evasoes .c7,
-.potenciais_evasoes .c8,
-.potenciais_evasoes .c9,
-.potenciais_evasoes .c10,
-.potenciais_evasoes .c11,
-.potenciais_evasoes .c12,
-.potenciais_evasoes .c13,
-.potenciais_evasoes .c14,
-.potenciais_evasoes .c15,
-.potenciais_evasoes .c16,
-.potenciais_evasoes .c17,
-.potenciais_evasoes .c18,
-.potenciais_evasoes .c19,
-.potenciais_evasoes .c20 {
+.potenciais_evasoes .c_body {
   width: 120px !important;
   height: 50px !important;
   text-align: center !important;
@@ -648,66 +449,62 @@ body {
 }
 
 .tcc_concluido .c1,
-.tcc_concluido .c2,
-.tcc_concluido .c3,
-.tcc_concluido .c4,
-.tcc_concluido .c5,
-.tcc_concluido .c6,
-.tcc_concluido .c7,
-.tcc_concluido .c8,
-.tcc_concluido .c9,
-.tcc_concluido .c10,
-.tcc_concluido .c11,
-.tcc_concluido .c12,
-.tcc_concluido .c13,
-.tcc_concluido .c14,
-.tcc_concluido .c15,
-.tcc_concluido .c16,
-.tcc_concluido .c17,
-.tcc_concluido .c18,
-.tcc_concluido .c19,
-.tcc_concluido .c20,
+.tcc_concluido .c_body,
 .modulos_concluidos .c1,
-.modulos_concluidos .c2,
-.modulos_concluidos .c3,
-.modulos_concluidos .c4,
-.modulos_concluidos .c5,
-.modulos_concluidos .c6,
-.modulos_concluidos .c7,
-.modulos_concluidos .c8,
-.modulos_concluidos .c9,
-.modulos_concluidos .c10,
-.modulos_concluidos .c11,
-.modulos_concluidos .c12,
-.modulos_concluidos .c13,
-.modulos_concluidos .c14,
-.modulos_concluidos .c15,
-.modulos_concluidos .c16,
-.modulos_concluidos .c17,
-.modulos_concluidos .c18,
-.modulos_concluidos .c19,
-.modulos_concluidos .c20 {
-  max-width: 100px !important;
-  min-width: 100px !important;
+.modulos_concluidos .c_body {
+  width: 100px !important;
   height: 50px !important;
   text-align: center !important;
   padding: 2px !important;
-  padding-top: 10px;
+  /* padding-top: 10px;*/
   font-size: 12px !important;
   word-wrap: break-word !important;
 }
-
-.acesso_tutor .rotate {
-    width: 43px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
-    font-size: 12px !important;
-    padding: 8px;
+.modulos_concluidos th.estudante_header {
+    width: 100px !important;
+    /*padding-bottom: 50px;*/
 }
+
+.modulos_concluidos th.estudante {
+    width: 100px !important;
+}
+
+.modulos_concluidos .r1:first-child {
+    height: 200px;
+}
+
+.relatorio-unasus .uso_sistema_tutor .c_body,
+.relatorio-unasus .acesso_tutor .c_body {
+    max-width: 30px !important;
+    min-width: 30px !important;
+    /*width: 43px !important;*/
+    padding: 2px !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+    text-align: center;
+}
+
+.relatorio-unasus .uso_sistema_tutor thead th,
+.relatorio-unasus .acesso_tutor thead th {
+    height: 40px !important;
+    font-size: 14px !important;
+}
+
+.relatorio-unasus .uso_sistema_tutor .rotate,
+.relatorio-unasus .acesso_tutor .rotate {
+    width: 30px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
+    font-size: 12px !important;
+    padding: 0px;
+}
+
+
 
 /* .navbar .nav>li>a, .navbar .nav>li>a:hover, .usermenu .login, .usermenu .moodle-actionmenu .toggle-display .userbutton {
 	margin-top: 0!important;
 } */
 table.flexible thead th .r1,
-.generaltable thead th .r1 {
+.generaltable thead th .r1,
+.generaltable_without_stripes thead th .r1{
   vertical-align: bottom !important;
   padding-top: 30px !important;
 }
@@ -727,8 +524,12 @@ tbody {
 /*//////////////////////////////////////////////////*/
 table.flexible th,
 .generaltable th,
+table.generaltable_without_stripes th,
 table.flexible td,
-.generaltable td {
+table.generaltable td,
+table.generaltable_without_stripes td,{
+  padding: 8px;
+  line-height: 20px;
   vertical-align: middle !important;
 }
 
@@ -750,7 +551,7 @@ border: none;
   background-color: #f5f5f5 !important;
 }
 
-legend {
+.relatorio-unasus legend {
   margin-bottom: 0 !important;
 }
 
@@ -758,17 +559,17 @@ legend {
   background-color: #FFFFFF !important;
 }
 
-table {
+.relatorio-unasus table {
   border: none !important;
 }
 
-tr,
-th,
-td {
+.relatorio-unasus tr,
+.relatorio-unasus th,
+.relatorio-unasus td {
   border: 1px solid #004E95 !important;
 }
 
-td {
+.relatorio-unasus td {
   text-align: center;
 }
 
@@ -826,19 +627,19 @@ td {
   color: #FFFFFF;
 }
 
-.r0 {
+.relatorio-unasus .r0 {
   border-top: 1px solid blue !important;
 }
 
-.r0 {
+.relatorio-unasus .r0 {
   border-bottom: 1px solid blue !important;
 }
 
-.r1 {
+.relatorio-unasus .r1 {
   border-top: 1px solid #FF886E !important;
 }
 
-.r1 {
+.relatorio-unasus .r1 {
   border-bottom: 1px solid #FF886E !important;
 }
 
@@ -847,7 +648,7 @@ thead {
   font-size: 12px !important;
 }
 
-.estudante .cell {
+.relatorio-unasus .estudante .cell {
   font-size: 12px;
 }
 

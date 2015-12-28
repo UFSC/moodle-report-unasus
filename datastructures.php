@@ -89,7 +89,7 @@ abstract class report_unasus_data_render {
      * a um tipo de dado
      */
     public function get_css_class() {
-        return '';
+        return 'c_body';
     }
 //    public abstract function get_css_class();
 
@@ -171,7 +171,7 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
             case report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA:
-                return ($this->atraso >= report_unasus_get_prazo_avaliacao()) ? 'muito_atraso' : 'pouco_atraso';
+                return ($this->atraso > report_unasus_get_prazo_maximo_avaliacao()) ? 'muito_atraso' : 'pouco_atraso';
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO:
                 return 'nota_atribuida';
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO:
@@ -190,10 +190,10 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
         $legend = array();
         $legend['nota_atribuida'] = 'Nota atribuída no prazo (até '.report_unasus_get_prazo_avaliacao() * 24 .'hs)';
         $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de '.report_unasus_get_prazo_avaliacao() * 24 .'hs)';
-        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (até ".report_unasus_get_prazo_avaliacao()." dias após data de entrega)";
+        $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (de ".report_unasus_get_prazo_avaliacao()." até ".report_unasus_get_prazo_maximo_avaliacao()." dias após data de entrega)";
         $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após ".report_unasus_get_prazo_maximo_avaliacao()." dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
-        $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperado';
+        $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
 
         return $legend;
@@ -680,9 +680,9 @@ class report_unasus_dado_atividades_alunos_render extends report_unasus_data_ren
         return "$porcentagem";
     }
 
-    public function get_css_class() {
-        return '';
-    }
+//    public function get_css_class() {
+//        return '';
+//    }
 
 }
 
@@ -822,9 +822,9 @@ class report_unasus_dado_media_render extends report_unasus_data_render {
     }
 
     /* Aguardar reestruturação do design dos relatórios para inserir já o novo css */
-    public function get_css_class() {
+//    public function get_css_class() {
 //        return 'media';
-    }
+//    }
 
 }
 
@@ -892,7 +892,7 @@ class report_unasus_dado_uso_sistema_tutor_render extends report_unasus_data_ren
     }
 
     public function get_css_class() {
-        return ($this->acesso) ? 'acessou' : 'nao_acessou';
+        return ((double) $this->acesso > 0) ? 'acessou' : 'nao_acessou';
     }
 
     public static function get_legend() {
@@ -1073,7 +1073,7 @@ class report_unasus_dado_modulo_render extends report_unasus_data_render {
     }
 
     public function get_css_class() {
-        return 'bold';
+        return 'bold c_body';
     }
 
 }
