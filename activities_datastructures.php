@@ -345,6 +345,13 @@ class report_unasus_lti_activity extends report_unasus_activity {
 
 }
 
+class report_unasus_lti_tcc {
+
+    public function __construct() {
+    }
+
+}
+
 /**
  * Representa dados de usuário a respeito de alguma atividade
  *
@@ -482,36 +489,25 @@ abstract class report_unasus_data {
 
         $now = time();
         $result = true;
-//        var_dump('2222222 is_grade_needed',$this, $this->source_activity,
-//            $this->source_activity->has_grade, $this->has_submitted(),
-//            $this->source_activity->has_submission,
-//            $this->has_grade(),
-//            $this->source_activity->deadline, date('d/m/Y', $this->source_activity->deadline),
-//            (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline == 0) );
         if (!$this->source_activity->has_grade) {
-//            var_dump('2222222 is_grade_needed => 1');
             // se a atividade não possui nota habilitado
             // não é necessário enviar a nota
             $result = false;
         } elseif ($this->source_activity->has_submission && !$this->has_submitted()) {
-//            var_dump('2222222 is_grade_needed => 2');
             // se a atividade precisa que seja enviado e não foi feito um envio
             // não é necessário enviar uma nota
             $result = false;
         } elseif (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline > $now) {
-//            var_dump('2222222 is_grade_needed => 3');
             // se a atividade não possui envio, não possui nota enviada
             // e ainda não chegou a data esperada de entrega,
             // não é necessário enviar uma nota
             $result = false;
         } elseif (!$this->source_activity->has_submission && !$this->has_grade() && $this->source_activity->deadline == 0) {
-//            var_dump('2222222 is_grade_needed => 4');
             // se a atividade não possui envio, não possui nota enviada
             // e não tem tem prazo de entrega,
             // não é necessário enviar uma nota
             $result = false;
         }
-//        var_dump('2222222 is_grade_needed => Result',$result);
 
         return $result;
     }
@@ -692,7 +688,7 @@ class report_unasus_data_forum extends report_unasus_data {
             $this->grade = (float) $db_model->grade;
         }
         $this->submission_date = $db_model->submission_date;
-        $this->grade_date = $db_model->timemodified;
+        $this->grade_date = (empty($db_model->timemodified)) ? 0 : $db_model->timemodified;
         $this->grademax = $db_model->grademax;
     }
 

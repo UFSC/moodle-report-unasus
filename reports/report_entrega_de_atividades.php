@@ -35,15 +35,16 @@ class report_entrega_de_atividades extends report_unasus_factory {
 
         // Consultas
         $query_atividades = query_atividades_from_users();
-        $query_quiz = query_quiz_from_users();
+        $query_quiz  = query_quiz_from_users();
         $query_forum = query_postagens_forum_from_users();
+        $query_lti   = query_lti_from_users();
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-                $query_atividades, $query_forum, $query_quiz);
+                $query_atividades, $query_forum, $query_quiz, $query_lti);
 
 
         $dados = array();
@@ -121,12 +122,15 @@ class report_entrega_de_atividades extends report_unasus_factory {
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
+        $atividade_tcc = new report_unasus_lti_tcc();
+
         $dados = array();
 
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             $estudantes = array();
             foreach ($this->atividades_cursos as $courseid => $atividades) {
+                array_push($atividades, $atividade_tcc);
 
                 foreach ($atividades as $atividade) {
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
@@ -184,10 +188,17 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             $atraso = $data->submission_due_days();
                         }
 
-                        if (array_search($atividade->id, $atividades_config_curso)){
+                        if ($r->name_activity == 'nota_final_tcc' && array_search(1, $atividades_config_curso)) {
+                            if (!isset($r->grade)) {
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                            } else {
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_NO_PRAZO;
+                            }
+                            $lista_atividades[$r->userid][] = new report_unasus_dado_entrega_de_atividades_render($tipo, 0);
+
+                        } else if (isset($atividade->id) && array_search($atividade->id, $atividades_config_curso)){
                             $lista_atividades[$r->userid][$atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
                         }
-
                     }
 
                     // Auxiliar para agrupar tutores corretamente
@@ -222,16 +233,21 @@ class report_entrega_de_atividades extends report_unasus_factory {
             }
         }
 
-        foreach ($header as $key => $modulo) {
-            if (!isset($modulo[0]->course_id)){
-                break;
-            }
+        $modulos_ids = $this->get_modulos_ids();
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
-            $course_id = $modulo[0]->course_id;
+        if (array_search(1, $atividades_config_curso)) {
+            foreach ($header as $key => $modulo) {
+                if (!isset($modulo[0]->course_id)){
+                    break;
+                }
 
-            if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
-                array_push($modulo, 'TCC');
-                $header[$key] = $modulo;
+                $course_id = $modulo[0]->course_id;
+
+                if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
+                    array_push($modulo, 'TCC');
+                    $header[$key] = $modulo;
+                }
             }
         }
 
