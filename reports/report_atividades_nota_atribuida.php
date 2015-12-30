@@ -134,7 +134,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                         } elseif (is_a($atividade, 'report_unasus_data_lti_TCC')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
                         }
-                        $dado->incrementar();
+                        if (!empty($dado)) {
+                            $dado->incrementar();
+                        };
                         $somatorio_total_atrasos[$grupo_id]++;
                     }
 
@@ -167,7 +169,7 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
             $data_sliced = array_slice($data, 1);
 
             foreach ($data_sliced as $activity) {
-                $somatorio_total_alunos_atividades_concluidas_modulo[$grupo_id][] = $activity->get_count();
+                $somatorio_total_alunos_atividades_concluidas_modulo[$grupo_id][] = empty($activity) ? 0 : $activity->get_count();
             }
 
             /* Coluna  N° Alunos com atividades concluídas */
