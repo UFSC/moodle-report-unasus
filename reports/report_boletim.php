@@ -96,7 +96,7 @@ class report_boletim extends report_unasus_factory {
 
         $atividade_nota_final = new \StdClass();
 
-        $atividade_tcc = new report_unasus_lti_tcc();
+//        $atividade_tcc = new report_unasus_lti_tcc();
 
         $dados = array();
 
@@ -106,7 +106,7 @@ class report_boletim extends report_unasus_factory {
 
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
-                array_push($atividades, $atividade_tcc);
+//                array_push($atividades, $atividade_tcc);
 
                 foreach ($atividades as $atividade) {
 
@@ -133,7 +133,8 @@ class report_boletim extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
                         } else if ($r->name_activity == 'nota_final_tcc' && array_search(1, $atividades_config_curso)){
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
-                        } else if (isset($atividade->course_id) && !($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
+//                        } else if (isset($atividade->course_id) && !($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
+                        } else if (isset($atividade->course_id)) {
                             if (array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);
                             }
@@ -166,26 +167,7 @@ class report_boletim extends report_unasus_factory {
             if(isset($atividades[0]->course_name)){
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
-                // Módulo de 'Controle Acadêmico', 'Ambiente de Tutoria' e 'Apresentação do Curso' só apresentam média final pois não possuem atividades com nota
-                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130 || $course_id == 108) {
-                    $header[$course_link][0] = end($atividades);
-                } else {
-                    $header[$course_link] = $atividades;
-                }
-            }
-        }
-
-        $modulos_ids = $this->get_modulos_ids();
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
-
-        if (array_search(1, $atividades_config_curso)) {
-            foreach ($header as $key => $modulo) {
-                $course_id = $modulo[0]->course_id;
-
-                if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
-                    array_push($modulo, 'TCC');
-                    $header[$key] = $modulo;
-                }
+                $header[$course_link] = $atividades;
             }
         }
 

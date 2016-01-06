@@ -1187,6 +1187,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             break;
     }
 
+
     return $DB->get_records_sql($query, $params);
 }
 

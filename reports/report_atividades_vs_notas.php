@@ -189,21 +189,13 @@ class report_atividades_vs_notas extends report_unasus_factory {
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
-        $atividade_tcc = new report_unasus_lti_tcc();
-
         $dados = array();
         $atraso = 0;
-
-        $atividade_nota_final = new \StdClass();
 
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             $estudantes = array();
             foreach ($this->atividades_cursos as $courseid => $atividades) {
-                array_push($atividades, $atividade_nota_final);
-                array_push($atividades, $atividade_tcc);
-
-                $database_courses = ($courseid == 129 || $courseid == 130 || $courseid == 131);
 
                 foreach ($atividades as $atividade) {
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
@@ -232,73 +224,51 @@ class report_atividades_vs_notas extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id) && ($database_courses)){
+                        //Atividade tem nota
+                        if ($data->has_grade()) {
+                            $atraso = $data->grade_due_days();
 
-                            $nota = null;
-
-                            if (isset($r->grade)) {
-                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO;
-                                $nota = $r->grade;
+                            //Verifica se a correcao foi dada com ou sem atraso
+                            if ($atraso > report_unasus_get_prazo_avaliacao()) {
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO;
                             } else {
-                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO;
                             }
 
-                            $lista_atividades[$r->userid][] = new report_unasus_dado_atividades_vs_notas_render($tipo, 0, $nota);
-
-                        } else if ( !($database_courses)) {
-                            //Atividade tem nota
-                            if ($data->has_grade()) {
-                                $atraso = $data->grade_due_days();
-
-                                //Verifica se a correcao foi dada com ou sem atraso
-                                if ($atraso > report_unasus_get_prazo_avaliacao()) {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO;
-                                } else {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO;
-                                }
-
-                            //Atividade entregue e necessita de nota
-                            //Atividade não precisa de entrega e já venceu o prazo de avaliação
-                            } elseif ($data->is_grade_needed()) {
-                                $atraso = $data->grade_due_days();
-                                // Se o ataso for menor que dois dias não é atraso, considera no prazo.
-                                if ($atraso > report_unasus_get_prazo_avaliacao()) {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA;
-                                } else {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
-                                }
+                        //Atividade entregue e necessita de nota
+                        //Atividade não precisa de entrega e já venceu o prazo de avaliação
+                        } elseif ($data->is_grade_needed()) {
+                            $atraso = $data->grade_due_days();
+                            // Se o ataso for menor que dois dias não é atraso, considera no prazo.
+                            if ($atraso > report_unasus_get_prazo_avaliacao()) {
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA;
+                            } else {
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
+                            }
 
                             //Entrega atrasada
-                            } elseif ($data->is_submission_due()) {
-                                $atraso = $data->grade_due_days();
-                                // Se o ataso for menor que dois dias não é atraso, considera no prazo.
-                                if ($atraso > report_unasus_get_prazo_avaliacao()) {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_ENTREGUE;
-                                } else {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
-                                }
+                        } elseif ($data->is_submission_due()) {
+                            $atraso = $data->grade_due_days();
+                            // Se o ataso for menor que dois dias não é atraso, considera no prazo.
+                            if ($atraso > report_unasus_get_prazo_avaliacao()) {
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_ENTREGUE;
+                            } else {
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
+                            }
                             //Se atividade não tem data de entrega, não tem entrega e nem nota
-                            } elseif (!$data->deadline_date()) {
-                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                        } elseif (!$data->deadline_date()) {
+                            $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
 
                             //Atividade pro futuro
-                            } elseif ($data->is_a_future_due()) {
-                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
-                            } else {
-                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                            }
+                        } elseif ($data->is_a_future_due()) {
+                            $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
+                        } else {
+                            $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
+                        }
 
-                            if ($r->name_activity == 'nota_final_tcc' && array_search(1, $atividades_config_curso)) {
-                                if (!isset($r->grade)) {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
-                                } else {
-                                    $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO;
-                                }
-                                $lista_atividades[$r->userid][] = new report_unasus_dado_atividades_vs_notas_render($tipo, 0, $r->grade);
-                            } else if(isset($atividade->id)){
-                                if (array_search($atividade->id, $atividades_config_curso)){
-                                    $lista_atividades[$r->userid][$atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
-                                }
+                        if(isset($atividade->id)){
+                            if (array_search($atividade->id, $atividades_config_curso)){
+                                $lista_atividades[$r->userid][$atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
                             }
                         }
                     }
@@ -332,6 +302,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
 
         $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
+
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
@@ -339,29 +310,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
             if(isset($atividades[0]->course_name)){
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
-                // Módulo de 'Controle Acadêmico', 'Ambiente de Tutoria' e 'Apresentação do Curso' só apresentam média final pois não possuem atividades com nota
-                if($course_id ==  131 || $course_id ==  129 || $course_id ==  130) {
-                    $header[$course_link][] = 'Média Final';
-                } else {
-                    $header[$course_link] = $atividades;
-                }
-            }
-        }
-
-        $modulos_ids = $this->get_modulos_ids();
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
-
-        if (array_search(1, $atividades_config_curso)) {
-            foreach ($header as $key => $modulo) {
-                if (!isset($modulo[0]->course_id)){
-                    break;
-                }
-                $course_id = $modulo[0]->course_id;
-
-                if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
-                    array_push($modulo, 'TCC');
-                    $header[$key] = $modulo;
-                }
+                $header[$course_link] = $atividades;
             }
         }
 
