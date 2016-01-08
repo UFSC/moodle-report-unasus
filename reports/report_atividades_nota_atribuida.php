@@ -75,7 +75,6 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
     }
 
     public function get_dados() {
-
         $modulos_ids = $this->get_modulos_ids();
 
         $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
@@ -93,24 +92,29 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
         $lista_atividade = $result_array['lista_atividade'];
+
         $associativo_atividade = $result_array['associativo_atividade'];
 
-        $somatorio_total_atrasos = array();
-        $atividades_alunos_grupos = $this->get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
+        $atividades_alunos = $this->get_dados_alunos_atividades_concluidas($associativo_atividade);
 
+        // Total do modulo
+        $atividades_alunos_modulos = $atividades_alunos->somatorio_modulos;
+
+        // Total do grupo (tutor ou polo)
+        $atividades_alunos_grupos = $atividades_alunos->somatorio_grupos;
+
+        // passa pelos dados de cada atividade, de cada aluno e agrupado (polo ou tutor)
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
-            foreach ($array_dados as $aluno) {
 
+            // passa pelos alunos do grupo
+            foreach ($array_dados as $aluno_id => $aluno) {
+                // passa por todas as atividades de cada aluno
                 foreach ($aluno as $atividade) {
 
-                    /** @var report_unasus_data $atividade */
-                    if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
-                        $somatorio_total_atrasos[$grupo_id] = 0;
-                    }
 
                     if ($atividade->has_grade() && $atividade->is_grade_needed()) {
 
-                        /** @var report_unasus_dado_atividades_alunos_render $dado **/
+                        /** @var report_unasus_dado_atividades_alunos_render $dado * */
                         unset($dado); // estamos trabalhando com ponteiro, não podemos atribuir null ou alteramos o array.
 
                         if (is_a($atividade, 'report_unasus_data_activity')) {
@@ -123,13 +127,13 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                             $dado =& $lista_atividade[$grupo_id]['quiz_' . $atividade->source_activity->id];
 
                         } elseif (is_a($atividade, 'report_unasus_data_db')) {
-                            $dado =& $lista_atividade[$grupo_id]['database_'.$atividade->source_activity->id];
+                            $dado =& $lista_atividade[$grupo_id]['database_' . $atividade->source_activity->id];
 
                         } elseif (is_a($atividade, 'report_unasus_data_scorm')) {
-                            $dado =& $lista_atividade[$grupo_id]['scorm_'. $atividade->source_activity->id];
+                            $dado =& $lista_atividade[$grupo_id]['scorm_' . $atividade->source_activity->id];
 
                         } elseif (is_a($atividade, 'report_unasus_data_lti')) {
-                            $dado =& $lista_atividade[$grupo_id]['lti_'. $atividade->source_activity->id];
+                            $dado =& $lista_atividade[$grupo_id]['lti_' . $atividade->source_activity->id];
 
                         } elseif (is_a($atividade, 'report_unasus_data_lti_TCC')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
@@ -137,7 +141,6 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                         if (!empty($dado)) {
                             $dado->incrementar();
                         };
-                        $somatorio_total_atrasos[$grupo_id]++;
                     }
 
                     $total_atividades++;
@@ -154,13 +157,20 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
             $data = array();
             $data[] = local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
-            foreach ($grupo as $atividades) {
+            foreach ($grupo as $key => $atividades) {
+                $initial_key = substr($key, 0, 6);
 
                 // Array contêm os capítulos do TCC
                 if (is_array($atividades)) {
                     $data[] = $atividade;
                     break;
                 } else {
+                    // se for uma coluna de totalização do módulo,
+                        // então pega os dados da totalização
+                    if($initial_key == 'modulo') {
+                        $key_value = substr($key, 7);
+                        $atividades->set_count($atividades_alunos_modulos[$grupo_id][$key_value]);
+                    }
                     $atividade = $atividades;
                     $data[] = $atividades;
                 }
@@ -172,7 +182,7 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                 $somatorio_total_alunos_atividades_concluidas_modulo[$grupo_id][] = empty($activity) ? 0 : $activity->get_count();
             }
 
-            /* Coluna  N° Alunos com atividades concluídas */
+            /* Coluna  total de Alunos com atividades concluídas */
             $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
             $data[] = new report_unasus_dado_media_render($somatorioalunosgrupos, $total_alunos[$grupo_id]);
 
@@ -181,11 +191,13 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
             $somatorio_total_alunos += $total_alunos[$grupo_id];
         }
 
+        //////////////////////////////
+
         /* Linha total alunos com atividades concluidas  */
         $data_total = array(html_writer::tag('strong', 'Total alunos com atividade concluida / Total alunos'));
 
+        // soma o total de alunos com atividades concluídas por atividade
         $total_activities_modulo[] = 0;
-
         foreach ($somatorio_total_alunos_atividades_concluidas_modulo as $modulos) {
             $count = sizeof($modulos);
             for($i = 0; $i < $count; $i++){
@@ -199,11 +211,13 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
 
         $num_columns = sizeof($total_activities_modulo);
 
+        /* Linha de totalização das atividades */
         /* Colunas de somatório das atividades dos módulos */
         for($i = 0; $i < $num_columns; $i++){
             $data_total[] = new report_unasus_dado_media_render($total_activities_modulo[$i], $somatorio_total_alunos);
         }
 
+        // adiciona o total geral de alunos com atividades concluídas
         $data_total[] = new report_unasus_dado_media_render($somatorio_total_alunos_atividades_concluidas, $somatorio_total_alunos);
 
         $dados[] = $data_total;
@@ -215,7 +229,6 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $header = $this->get_table_header_modulos_atividades(false, true);
         $htitle = get_string('column_aluno_atividade_concluida', 'report_unasus');
         $header[$htitle] = array('Total');
-        var_dump($header);
         return $header;
     }
 
@@ -251,6 +264,8 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                         $somatorio_total_modulo[$grupo_id][$course_id] = 0;
                     }
 
+                    // Se todas as atividades do aluno estão completas, no módulo atual,
+                    //   então incrementa total do módulo (curso)
                     if ($dados_aluno->is_complete_activities($course_id)) {
                         $somatorio_total_modulo[$grupo_id][$course_id]++;
                     }
@@ -258,6 +273,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                 if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
                     $somatorio_total_grupo[$grupo_id] = 0;
                 }
+
+                // Se todas as atividades do aluno estão completas, em todos os módulos,
+                //   então incrementa total do grupo (tutor ou polo)
                 if ($dados_aluno->is_complete_all_activities()) {
                     $somatorio_total_grupo[$grupo_id]++;
                 }

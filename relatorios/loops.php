@@ -404,7 +404,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     }
                 } elseif (is_a($atividade, 'report_unasus_scorm_activity') && !empty($query_scorm) && array_search($atividade->id, $config)) {
 
-                    $array_das_atividades['database_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
+                    $array_das_atividades['scorm_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'id_activity' => $atividade->id,

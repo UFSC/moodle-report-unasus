@@ -75,6 +75,10 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
     }
 
     public function get_dados() {
+        $modulos_ids = $this->get_modulos_ids();
+
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+
         // Consulta
         $query_atividades   = query_atividades_from_users();
         $query_quiz         = query_quiz_from_users();
@@ -84,25 +88,26 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
         $query_lti          = query_lti_from_users();
 
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, null, false, $query_database, $query_scorm);
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, null, false, $query_database, $query_scorm, $atividades_config_curso);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
         $lista_atividade = $result_array['lista_atividade'];
         $associativo_atividade = $result_array['associativo_atividade'];
 
-        $somatorio_total_atrasos = array();
-        $atividades_alunos_grupos = $this->get_dados_alunos_atividades_concluidas($associativo_atividade)->somatorio_grupos;
+        $atividades_alunos = $this->get_dados_alunos_atividades_concluidas($associativo_atividade);
+
+        // Total do modulo
+        $atividades_alunos_modulos = $atividades_alunos->somatorio_modulos;
+
+        // Total do grupo (tutor ou polo)
+        $atividades_alunos_grupos = $atividades_alunos->somatorio_grupos;
 
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
-            foreach ($array_dados as $aluno) {
+
+            foreach ($array_dados as $aluno_id => $aluno) {
 
                 foreach ($aluno as $atividade) {
-
-                    /** @var report_unasus_data $atividade */
-                    if (!array_key_exists($grupo_id, $somatorio_total_atrasos)) {
-                        $somatorio_total_atrasos[$grupo_id] = 0;
-                    }
 
                     if ($atividade->has_grade() && $atividade->is_grade_needed()) {
 
@@ -130,8 +135,9 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
                         } elseif (is_a($atividade, 'report_unasus_data_lti_TCC')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
                         }
-                        $dado->incrementar();
-                        $somatorio_total_atrasos[$grupo_id]++;
+                        if (!empty($dado)) {
+                            $dado->incrementar();
+                        }
                     }
 
                     $total_atividades++;
@@ -149,15 +155,17 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
             $data[] = local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
             foreach ($grupo as $key => $atividades) {
-                $key = substr($key, 0, 6);
+                $initial_key = substr($key, 0, 6);
 
                 // Array contêm os capítulos do TCC
                 if (is_array($atividades)) {
                     $data[] = $atividade;
                     break;
                 } else {
-                    if($key == 'modulo'){
+                    if($initial_key == 'modulo'){
+                        $key_value = substr($key, 7);
                         $atividade = $atividades;
+                        $atividades->set_count($atividades_alunos_modulos[$grupo_id][$key_value]);
                         $data[] = $atividades;
                     }
                 }
@@ -256,6 +264,8 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
                         $somatorio_total_modulo[$grupo_id][$course_id] = 0;
                     }
 
+                    // Se todas as atividades do aluno estão completas, no módulo atual,
+                    //   então incrementa total do módulo (curso)
                     if ($dados_aluno->is_complete_activities($course_id)) {
                         $somatorio_total_modulo[$grupo_id][$course_id]++;
                     }
@@ -263,6 +273,9 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
                 if (!array_key_exists($grupo_id, $somatorio_total_grupo)) {
                     $somatorio_total_grupo[$grupo_id] = 0;
                 }
+
+                // Se todas as atividades do aluno estão completas, em todos os módulos,
+                //   então incrementa total do grupo (tutor ou polo)
                 if ($dados_aluno->is_complete_all_activities()) {
                     $somatorio_total_grupo[$grupo_id]++;
                 }
