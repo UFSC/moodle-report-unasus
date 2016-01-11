@@ -46,6 +46,7 @@ class report_modulos_concluidos extends report_unasus_factory {
         foreach ($grupos as $grupo) {
             $estudantes = array();
 
+            // para cada atividade de um curso/modulo
             foreach ($this->atividades_cursos as $courseid => $atividades) {
 
                 array_push($atividades, $atividade_nota_final);
