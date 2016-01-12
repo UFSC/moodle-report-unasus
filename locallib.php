@@ -430,7 +430,8 @@ function report_unasus_query_assign_courses($courses) {
                      a.grade,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                     cm.groupingid AS grouping_id
+                     cm.groupingid AS grouping_id,
+                     cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {assign} AS a
                   ON (c.id = a.course AND c.id != :siteid)
@@ -464,7 +465,8 @@ function report_unasus_query_quiz_courses($courses) {
                      q.grade,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                     cm.groupingid as grouping_id
+                     cm.groupingid as grouping_id,
+                     cm.id AS coursemoduleid
                 FROM {course} AS c
                 JOIN {quiz} AS q
                   ON (c.id = q.course AND c.id != :siteid)
@@ -489,7 +491,7 @@ function report_unasus_query_database_courses($courses) {
 	                 c.id AS course_id,
 	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
 	                 cm.groupingid AS grouping_id,
-	                 cm.id AS cm_id
+                     cm.id AS coursemoduleid
                 FROM course AS c
            LEFT JOIN data AS d
                   ON (c.id = d.course AND c.id != :siteid)
@@ -515,7 +517,7 @@ function report_unasus_query_scorm_courses($courses) {
 	                 c.id AS course_id,
 	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
 	                 cm.groupingid AS grouping_id,
-	                 cm.id AS cm_id
+                     cm.id AS coursemoduleid
                 FROM course AS c
            LEFT JOIN scorm AS s
                   ON (c.id = s.course AND c.id != :siteid)
@@ -663,10 +665,10 @@ function report_unasus_query_lti_courses_moodle($courses) {
     $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT l.id AS lti_id,
-		              l.name AS name,
-		              c.id AS course_id,
-		              REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                      cm.id AS course_module_id,
+		             l.name AS name,
+		             c.id AS course_id,
+		             REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
+                     cm.id AS coursemoduleid,
 	                 cm.groupingid AS grouping_id,
 	                 cm.completionexpected
                 FROM course AS c
