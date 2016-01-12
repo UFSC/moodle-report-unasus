@@ -713,7 +713,8 @@ function report_unasus_query_forum_courses($courses) {
                      cm.completionexpected,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                     cm.groupingid as grouping_id
+                     cm.groupingid as grouping_id,
+                     cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {forum} AS f
                   ON (c.id = f.course AND c.id != :siteid)
