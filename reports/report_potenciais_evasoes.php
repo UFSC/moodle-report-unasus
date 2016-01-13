@@ -71,10 +71,12 @@ class report_potenciais_evasoes extends report_unasus_factory {
 
         $modulos = $this->atividades_cursos;
         // Consulta
-        $query_atividades = query_atividades_from_users();
-        $query_quiz  = query_quiz_from_users();
-        $query_forum = query_postagens_forum_from_users();
-        $query_lti   = query_lti_from_users();
+        $query_atividades   = query_atividades_from_users();
+        $query_quiz         = query_quiz_from_users();
+        $query_forum        = query_postagens_forum_from_users();
+        $query_lti          = query_lti_from_users();
+        $query_db           = query_database_from_users();
+        $query_scorm        = query_scorm_from_users();
 
 
         // Recupera dados auxiliares
@@ -83,7 +85,7 @@ class report_potenciais_evasoes extends report_unasus_factory {
         $nomes_polos = report_unasus_get_polos($this->get_categoria_turma_ufsc());
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz,
-            $query_lti);
+            $query_lti, $query_db);
 
         //pega a hora atual para comparar se uma atividade esta atrasada ou nao
         $timenow = time();

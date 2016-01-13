@@ -1140,7 +1140,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
-                'coursemoduleid' => $atividade->cm_id
+                'coursemoduleid' => $atividade->coursemoduleid
             );
             $query = query_database_adjusted_from_users();
             break;
