@@ -50,15 +50,15 @@ $string['boletim_help'] = 'Notas das atividades realizadas pelo aluno';
 $string['boletim_table_header'] = 'Boletim';
 
 $string['avaliacoes_em_atraso'] = 'Síntese: avaliações em atraso';
-$string['avaliacoes_em_atraso_help'] = 'OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor';
+$string['avaliacoes_em_atraso_help'] = 'OBJETIVO: Acompanhar o estado das atividades que foram enviadas pelos estudantes, mas ainda não avaliadas pelo tutor';
 
 $string['atividades_nota_atribuida'] = 'Síntese: atividades concluídas';
-$string['atividades_nota_atribuida_help'] = "OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor dentro do prazo estabelecido para a atividade. \n\n".
+$string['atividades_nota_atribuida_help'] = "OBJETIVO: Acompanhar o estado das atividades, conforme os critŕios de completude de cada atividade. \n\n".
         "Os critérios para a verificação do atraso são: a atividade precisar de nota, o estudante ter enviado a atividade (caso o envio seja necessário), e o estudante não ter recebido a nota dentro do prazo de encerramento da atividade. \n\n".
         "Caso a atividade necessite de envio e o estudante ainda não tenha enviado a atividade, o tutor não apresentará essa atividade como atraso, pois está pendente o envio do estudante.";
 
 $string['atividades_concluidas_agrupadas'] = 'Sintese: atividades concluidas agrupadas';
-$string['atividades_concluidas_agrupadas_help'] = "OBJETIVO: Acompanhar o estado das avaliações que foram ou não corrigidas por um tutor dentro do prazo estabelecido para a atividade, agrupado por módulo. \n\n".
+$string['atividades_concluidas_agrupadas_help'] = "OBJETIVO: Acompanhar o estado das atividades, conforme os critŕios de completude de cada atividade, agrupado por módulo. \n\n".
         "Os critérios para a verificação do atraso são: a atividade precisar de nota, o estudante ter enviado a atividade (caso o envio seja necessário), e o estudante não ter recebido a nota dentro do prazo de encerramento da atividade. \n\n ".
         "Caso a atividade necessite de envio e o estudante ainda não tenha enviado a atividade, o tutor não apresentará essa atividade como atraso, pois está pendente o envio do estudante.";
 

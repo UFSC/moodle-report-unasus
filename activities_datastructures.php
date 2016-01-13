@@ -680,6 +680,26 @@ class report_unasus_data_forum extends report_unasus_data {
         $this->grademax = $db_model->grademax;
     }
 
+    /**
+     * Houve um envio de atividade?
+     *
+     * @return bool true se existe um envio ou false caso contrário
+     */
+    public function has_submitted() {
+
+        // Houve entrega
+        if (!empty($this->submission_date)) {
+            return true;
+        } else {
+            // Se for uma atividade offline, vamos considerar a data de avaliação como entrega
+            if (!$this->source_activity->has_submission()) {
+                return $this->has_grade();
+            }
+        }
+
+        return false;
+    }
+
 }
 
 class report_unasus_data_quiz extends report_unasus_data {
