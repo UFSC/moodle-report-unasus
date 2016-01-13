@@ -646,8 +646,10 @@ class report_unasus_data_activity extends report_unasus_data {
 
         // Houve entrega
         if (!empty($this->submission_date)) {
-            if ($this->status != 'draft') {
+            // se não for novo ou rascunho, antão enviou
+            if ( !in_array($this->status, array("new", "draft")) ) {
                 return true;
+            // mesmo em rascunho, se tiver nota, considera como submetido
             } elseif ($this->has_grade()) {
                 return true;
             }

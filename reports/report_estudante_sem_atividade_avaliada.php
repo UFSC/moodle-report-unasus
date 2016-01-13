@@ -68,7 +68,7 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
 
                 $atividades_modulos = new report_unasus_GroupArray();
 
-                // paga cada atividade com os da dos do estudante
+                // paga cada atividade com os dados do estudante
                 foreach ($aluno as $atividade) {
 
                     foreach ($atividades_cursos as $act) {
