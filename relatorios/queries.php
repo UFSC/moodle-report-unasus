@@ -454,6 +454,7 @@ function query_scorm_from_users () {
                     gi.itemmodule = 'scorm'  AND gg.itemid = gi.id)
               JOIN {scorm} s
                 ON gi.iteminstance = s.id
+             WHERE s.id = :id_activity
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
@@ -486,6 +487,7 @@ function query_lti_from_users () {
                     gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
               JOIN {lti} l
                 ON gi.iteminstance = l.id
+             WHERE l.id = :id_activity
           GROUP BY userid
           ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";

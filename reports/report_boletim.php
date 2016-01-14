@@ -96,8 +96,6 @@ class report_boletim extends report_unasus_factory {
 
         $atividade_nota_final = new \StdClass();
 
-//        $atividade_tcc = new report_unasus_lti_tcc();
-
         $dados = array();
 
         // Para cada grupo de tutoria
@@ -106,7 +104,6 @@ class report_boletim extends report_unasus_factory {
 
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
-//                array_push($atividades, $atividade_tcc);
 
                 foreach ($atividades as $atividade) {
 
@@ -131,9 +128,6 @@ class report_boletim extends report_unasus_factory {
 
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
-                        } else if ($r->name_activity == 'nota_final_tcc' && array_search(1, $atividades_config_curso)){
-                            $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
-//                        } else if (isset($atividade->course_id) && !($atividade->course_id == 131 || $atividade->course_id == 129 || $atividade->course_id == 130 || $atividade->course_id == 108)) {
                         } else if (isset($atividade->course_id)) {
                             if (array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);

@@ -103,13 +103,45 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
         // Total do grupo (tutor ou polo)
         $atividades_alunos_grupos = $atividades_alunos->somatorio_grupos;
 
+        // passa pelos dados de cada atividade, de cada aluno e agrupado (polo ou tutor)
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
 
+            // passa pelos alunos do grupo
             foreach ($array_dados as $aluno_id => $aluno) {
+                $courseid = '';
+                $progress = null;
 
+                // passa por todas as atividades de cada aluno
                 foreach ($aluno as $atividade) {
 
-                    if ($atividade->has_grade() && $atividade->is_grade_needed()) {
+                    if (isset($aluno[0]) &&
+                        $courseid != $aluno[0]->source_activity->course_id) {
+
+                        $courseid = $aluno[0]->source_activity->course_id;
+
+                        $course_instance = get_course($courseid);
+                        $info = new completion_info($course_instance);
+                        $uid = 'u.id=' . $aluno_id;
+                        $progress = $info->get_progress_all($uid);
+
+                    }
+
+                    //Se não houver dados para o aluno, ele não faz aquele módulo
+                    if ( isset($progress) &&
+                        isset($progress[$aluno_id]) ) {
+
+                        // passa por todas as atividades configuradas daquele módulo
+                        $pendente = true;
+                        $has_progress = isset($progress[$aluno_id]->progress[$atividade->source_activity->coursemoduleid]);
+                        if ( $has_progress ) {
+                            $pendente = $progress[$aluno_id]->progress[$atividade->source_activity->coursemoduleid]->completionstate == COMPLETION_INCOMPLETE;
+                        }
+                    } else {
+                        // se não achou a completude, então pega a regra geral, se a nota foi dada quando precisar de nota
+                        $pendente = ($atividade->has_grade() && $atividade->is_grade_needed());
+                    }
+
+                    if (!$pendente) {
 
                         /** @var report_unasus_dado_atividades_alunos_render $dado **/
                         unset($dado); // estamos trabalhando com ponteiro, não podemos atribuir null ou alteramos o array.
