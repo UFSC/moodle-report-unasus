@@ -9,6 +9,7 @@ defined('MOODLE_INTERNAL') || die;
  * @param $query_forum
  * @param $query_quiz
  * @param $query_db
+ * @param $query_scorm
  * @param null $query_nota_final
  * @param bool $is_activity
  * @param bool $is_orientacao
@@ -16,7 +17,8 @@ defined('MOODLE_INTERNAL') || die;
  * @throws dml_read_exception
  * @return array 'associativo_atividade' => array( 'modulo' => array( 'id_aluno' => array( 'report_unasus_data', 'report_unasus_data' ...)))
  */
-function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_lti, $query_db, $query_nota_final = null, $is_activity = false, $is_orientacao = false) {
+function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz, $query_lti,
+                                               $query_db, $query_scorm, $query_nota_final = null, $is_activity = false, $is_orientacao = false) {
 
     global $DB;
 
@@ -159,17 +161,18 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         $group_array_do_grupo->add($q->userid, $data);
                     }
                 // atividade de database
-/*                } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_db)) {
+                } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_db)) {
 
                     $params = array(
                         'courseid' => $courseid,
-                        'enrol_courseid' => $courseid,
+                        'id_activity' => $atividade->id,
+                        //'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo' => $grupo->id,
-                        'dbid' => $atividade->id);
+                        'grupo' => $grupo->id
+                    );
 
-                    $result = $DB->get_records_sql($query_quiz, $params);
+                    $result = $DB->get_records_sql($query_db, $params);
 
                     // para cada aluno adiciona a listagem de atividades
                     foreach ($result as $q) {
@@ -179,29 +182,28 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                                     !$report->is_member_of($atividade->grouping, $courseid, $q->userid))) {
                                 $data = new report_unasus_data_empty($atividade, $q);
                             } else {
-                                $data = new report_unasus_data_quiz($atividade, $q);
+                                $data = new report_unasus_data_db($atividade, $q);
                             }
                         } else {
                             if (!empty($atividade->grouping) &&
                                 !$report->is_member_of($atividade->grouping, $courseid, $q->userid)) {
                                 $data = new report_unasus_data_empty($atividade, $q);
                             } else {
-                                $data = new report_unasus_data_quiz($atividade, $q);
+                                $data = new report_unasus_data_db($atividade, $q);
                             }
                         }
 
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($q->userid, $data);
                     }
-*/
                 } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti)) {
                     $params = array(
                         'courseid' => $courseid,
-                        'enrol_courseid' => $courseid,
+                    //    'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
-                        'grupo' => $grupo->id,
-                        'forumid' => $atividade->id);
+                        'grupo' => $grupo->id
+                    );
 
                     $result = $DB->get_records_sql($query_lti, $params);
 
@@ -220,7 +222,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                                 !$report->is_member_of($atividade->grouping, $courseid, $f->userid)) {
                                 $data = new report_unasus_data_empty($atividade, $f);
                             } else {
-                                $data = new report_unasus_data_forum($atividade, $f);
+                                $data = new report_unasus_data_lti($atividade, $f);
                             }
                         }
                         // Agrupa os dados por usuário

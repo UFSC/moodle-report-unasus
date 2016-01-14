@@ -39,7 +39,7 @@ class report_tcc_concluido extends report_unasus_factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
 
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, false, true);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, false, true);
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {

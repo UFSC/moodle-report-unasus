@@ -37,7 +37,7 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, false, true);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, false, true);
 
         $atraso = 0;
         $datetime = new DateTime(date('Y-m-d'));
