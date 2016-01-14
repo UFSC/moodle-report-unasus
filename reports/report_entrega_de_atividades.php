@@ -164,8 +164,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
-                        // Se a atividade não foi entregue
-                        if (!$data->has_submitted()) {
+
+                        // Se a atividade não foi entregue e ainda não recebeu nota
+                        if (!$data->has_submitted() && !$data->has_grade()) {
 
                             if (!$data->source_activity->has_deadline()) {
                                 // E não tem entrega prazo

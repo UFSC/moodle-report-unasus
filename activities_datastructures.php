@@ -270,7 +270,7 @@ class report_unasus_scorm_activity extends report_unasus_activity {
 
     public function __construct($db_model, $config) {
 
-        parent::__construct(true, true);
+        parent::__construct(false, true);
         $this->id = $db_model->scorm_id;
         $this->name = $db_model->scorm_name;
         $this->deadline = $db_model->completionexpected;
@@ -768,9 +768,9 @@ class report_unasus_data_scorm extends report_unasus_data {
         return !is_null($this->grade);
     }
 
-    public function is_grade_needed() {
-        return $this->source_activity->has_grade;
-    }
+//    public function is_grade_needed() {
+//        return parent::is_grade_needed();
+//    }
 
     public function has_submitted() {
         return $this->submission_date && $this->has_grade() && $this->grade == $this->grademax;
@@ -799,9 +799,9 @@ class report_unasus_data_lti extends report_unasus_data {
         return !is_null($this->grade);
     }
 
-    public function is_grade_needed() {
-        return parent::is_grade_needed();
-    }
+//    public function is_grade_needed() {
+//        return parent::is_grade_needed();
+//    }
 
     public function has_submitted() {
 //        return parent::is_grade_needed();
