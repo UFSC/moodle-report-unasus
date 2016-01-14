@@ -404,7 +404,8 @@ function query_database_adjusted_from_users() {
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
-                   gg.timemodified AS submission_date,
+                   dr.timemodified AS submission_date,
+                   gg.timemodified AS grade_date,
                    'db_activity' as name_activity
               FROM (
 
@@ -418,6 +419,8 @@ function query_database_adjusted_from_users() {
                     gi.itemmodule = 'data'  AND gg.itemid = gi.id)
               JOIN {data} d
                 ON gi.iteminstance = d.id
+         LEFT JOIN {data_records} dr
+                ON (d.id = dr.dataid AND u.id = dr.userid)
              WHERE d.id = :id_activity
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname

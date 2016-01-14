@@ -732,19 +732,8 @@ class report_unasus_data_db extends report_unasus_data {
         $this->grademax = $db_model->grademax;
         $this->itemname = $db_model->itemname;
         $this->submission_date = $db_model->submission_date;
+        $this->grade_date = $db_model->grade_date;
 
-    }
-
-   public function has_grade() {
-        return !is_null($this->grade);
-    }
-
-    public function is_grade_needed() {
-        return $this->source_activity->has_grade;
-    }
-
-    public function has_submitted() {
-        return $this->submission_date && $this->has_grade() && $this->grade == $this->grademax;
     }
 
 }
