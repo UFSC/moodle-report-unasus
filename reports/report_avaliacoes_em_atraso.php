@@ -136,8 +136,9 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
 
                         }
-
-                        $dado->incrementar();
+                        if (!empty($dado)) {
+                            $dado->incrementar();
+                        };
                         $somatorio_total_atrasos[$grupo_id]++;
                     }
                 }

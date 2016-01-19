@@ -4,7 +4,8 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
-
+require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->libdir . '/datalib.php');
 
 class report_modulos_concluidos extends report_unasus_factory {
 
@@ -31,8 +32,10 @@ class report_modulos_concluidos extends report_unasus_factory {
         echo $renderer->build_report($this);
     }
 
-    public function get_dados(){
-        $modulos = $this->modulos_selecionados;
+    public function get_dados() {
+        $modulos = $this->get_modulos_ids();
+
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos);
 
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
@@ -40,39 +43,24 @@ class report_modulos_concluidos extends report_unasus_factory {
 
         $dados = array();
 
-        $atividade_nota_final = new \StdClass();
-
         // Para cada grupo de tutoria
         foreach ($grupos as $grupo) {
             $estudantes = array();
 
+            // para curso/modulo pega a lista de atividades
             foreach ($this->atividades_cursos as $courseid => $atividades) {
 
-                array_push($atividades, $atividade_nota_final);
-
-                $database_courses = ($courseid == 129 || $courseid == 130 || $courseid == 131);
-
+                // para a lista de atividades pega cada atividade
                 foreach ($atividades as $atividade) {
-
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
+                    // para alista de atividadeas dos alunos pega cada atividade (do aluno)
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
-
-                        if ($r->name_activity == 'nota_final_activity' && !isset($atividade->id) && ($database_courses)){
-                            $grade = null;
-
-                            if (isset($r->grade)) {
-                                $nota = $r->grade;
-                                $grade = substr($nota, 0, strpos($nota, '.') + 3);
-                            }
-
-                            $lista_atividades[$r->userid][] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $grade, $atividade);
-
-                        } else if ( !($database_courses) && isset($atividade->course_id)) {
+                        if ( isset($atividade->course_id)) {
                             $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
 
                             if(isset($full_grade[$r->userid])){
@@ -80,13 +68,17 @@ class report_modulos_concluidos extends report_unasus_factory {
                             } else if(empty($final_grade)){
                                 $final_grade = 'Não há atividades avaliativas para o módulo';
                             }
-                            if (!array_key_exists($atividade->course_id, $lista_atividades)) {
-                                $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $atividade);
 
+                            // se a atividade for setada para ser apresentada,
+                                // então continua com as outras checagens
+                            if ( array_search($atividade->id, $atividades_config_curso) ) {
+                                if (!isset($lista_atividades[$r->userid][$atividade->course_id])) {
+                                    $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade);
+                                }
+                                $lista_atividades[$r->userid][$atividade->course_id]->add_atividade($atividade);
                             }
                         }
                     }
-
                     // Auxiliar para agrupar tutores corretamente
                     if(!empty($lista_atividades)){
                         $estudantes = $lista_atividades;
@@ -95,6 +87,39 @@ class report_modulos_concluidos extends report_unasus_factory {
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
+                // processa estudantes de um grupo
+                foreach ($lista_atividades as $userid => $courses) {
+                    $userid;
+
+                    // pessa pelos cursos de um estudante
+                    foreach ($courses as $courseid => $course) {
+                        if ($courseid > 0) {
+                            $course_instance = get_course($courseid);
+                            $info = new completion_info($course_instance);
+                            $uid = 'u.id=' . $userid;
+                            $progress = $info->get_progress_all($uid);
+
+                            //Se não houver dados para o aluno, ele não faz aquele módulo
+                            if(isset($progress[$userid])) {
+
+                                // passa por todas as atividades configuradas daquele módulo
+                                foreach ($course->get_atividades() as $atividade_modulo_aluno) {
+                                    $pendente = true;
+                                    $has_progress = isset($progress[$userid]->progress[$atividade_modulo_aluno->coursemoduleid]);
+                                    if ( $has_progress ) {
+                                        $pendente = $progress[$userid]->progress[$atividade_modulo_aluno->coursemoduleid]->completionstate == COMPLETION_INCOMPLETE;
+                                    }
+                                    if ($pendente) {
+                                        $course->add_atividade_pendente($atividade_modulo_aluno);
+                                    }
+                                }
+                            } else {
+                                // $estado = dado_modulos_concluidos::ATIVIDADE_NAO_APLICADO;
+                            }
+                        }
+                    }
+                }
+
                 $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
             }
 

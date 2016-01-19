@@ -35,16 +35,18 @@ class report_entrega_de_atividades extends report_unasus_factory {
 
         // Consultas
         $query_atividades = query_atividades_from_users();
-        $query_quiz  = query_quiz_from_users();
-        $query_forum = query_postagens_forum_from_users();
-        $query_lti   = query_lti_from_users();
+        $query_quiz       = query_quiz_from_users();
+        $query_forum      = query_postagens_forum_from_users();
+        $query_lti        = query_lti_from_users();
+        $query_database   = query_database_adjusted_from_users();
+        $query_scorm      = query_scorm_from_users();
 
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-                $query_atividades, $query_forum, $query_quiz, $query_lti);
+                $query_atividades, $query_forum, $query_quiz, $query_lti, $query_database, $query_scorm);
 
 
         $dados = array();
@@ -164,8 +166,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
-                        // Se a atividade não foi entregue
-                        if (!$data->has_submitted()) {
+
+                        // Se a atividade não foi entregue e ainda não recebeu nota
+                        if (!$data->has_submitted() && !$data->has_grade()) {
 
                             if (!$data->source_activity->has_deadline()) {
                                 // E não tem entrega prazo

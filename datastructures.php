@@ -734,12 +734,16 @@ class report_unasus_dado_somatorio_grupo_render extends report_unasus_data_rende
     }
 }
 
-class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_unasus_data_render {
+class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_unasus_data_render
+{
 
     private $atividades_concluidas = array();
     private $total_atividades = array();
+    public $user_id;
 
-    function __construct($dados_aluno) {
+    function __construct($dados_aluno)
+    {
+
 
         foreach ($dados_aluno as $dado_atividade) {
             /** @var report_unasus_data_render $dado_atividade */
@@ -749,19 +753,71 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
                 continue;
             }
 
-            $course_id = $dado_atividade->source_activity->course_id;
+            $activity_id = $dado_atividade->source_activity->id;
+            $course_id   = $dado_atividade->source_activity->course_id;
+            $user_id     = $dado_atividade->userid;
+            $this->user_id = $user_id;
 
             if (!array_key_exists($course_id, $this->atividades_concluidas)) {
                 $this->atividades_concluidas[$course_id] = 0;
                 $this->total_atividades[$course_id] = 0;
             }
 
-            if ($dado_atividade->has_submitted()) {
+            // verifica se a atividade foi concluída
+            // antigo:
+            // if ($dado_atividade->has_submitted()) {
+            // atual:
+//            if ($dado_atividade->has_grade() && $dado_atividade->is_grade_needed()) {
+            // novo
+            if ($this->user_activity_completion($activity_id, $course_id, $user_id)) {
+
                 $this->atividades_concluidas[$course_id]++;
             }
 
             $this->total_atividades[$course_id]++;
         }
+    }
+
+
+    /**
+     * Retorna as atividades de um usuário e os seus estados de completude
+     *
+     * @param $activity_id, $course_id, $user_id
+     * @return boolean
+     */
+    private function user_activity_completion($activity_id, $course_id, $user_id)
+    {
+        global $DB;
+
+        $completion = false;
+//        $user_completions = $DB->get_records('course_modules_completion', array('userid' => $user_id), '', 'coursemoduleid, completionstate, timemodified');
+
+        $query = "select
+	cm.instance AS activityid,
+	coursemoduleid,
+	completionstate,
+	timemodified
+  from {course_modules_completion} cmc
+	inner join {course_modules} cm
+		on (cmc.coursemoduleid = cm.id)
+where
+	cmc.userid = :user_id
+	and cm.course = :course_id";
+        $params = array(
+            'user_id' => $user_id,
+            'course_id' => $course_id,
+        );
+        $user_completions = $DB->get_records_sql($query, $params);
+
+        $state = isset($user_completions[$activity_id]) ? $user_completions[$activity_id]->completionstate : COMPLETION_INCOMPLETE;
+        switch($state) {
+            case COMPLETION_INCOMPLETE    : $completion = false; break;
+            case COMPLETION_COMPLETE      : $completion = true;  break;
+            case COMPLETION_COMPLETE_PASS : $completion = true;  break;
+            case COMPLETION_COMPLETE_FAIL : $completion = true;  break;
+        }
+
+        return $completion;
     }
 
     /**
@@ -770,7 +826,8 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
      * @param $course_id
      * @return boolean
      */
-    public function is_complete_activities($course_id) {
+    public function is_complete_activities($course_id)
+    {
         if (array_key_exists($course_id, $this->atividades_concluidas)) {
             return $this->atividades_concluidas[$course_id] == $this->total_atividades[$course_id];
         }
@@ -778,7 +835,8 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
         return false;
     }
 
-    public function is_complete_all_activities() {
+    public function is_complete_all_activities()
+    {
         foreach ($this->atividades_concluidas as $course_id => $atividade) {
             if (!$this->is_complete_activities($course_id)) {
                 return false;
@@ -788,10 +846,10 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
         return true;
     }
 
-    public function get_css_class() {
+    public function get_css_class()
+    {
         return '';
     }
-
 }
 
 /**
@@ -910,34 +968,30 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
     const MODULO_NAO_CONCLUIDO = 0;
     const MODULO_CONCLUIDO = 1;
 
-    private $estado;
     private $final_grade; //nota em letra
     private $numero_atividades_modulo;
     private $atividades_nao_realizadas;
-    private $atividade;
+    private $atividades;
     private $atividades_pendentes = array();
 
 
-    function __construct($numero_atividades_modulo, $final_grade, $atividade, $estado = null) {
+    function __construct($numero_atividades_modulo, $final_grade) {
         $this->numero_atividades_modulo = $numero_atividades_modulo;
         $this->atividades_nao_realizadas = 0;
-        $this->estado = report_unasus_dado_modulos_concluidos_render::MODULO_CONCLUIDO;
+        //$this->estado = $estado;
         $this->final_grade = $final_grade;
-        $this->atividade = $atividade;
+        //$this->atividade = $atividade;
     }
 
     public function __toString() {
         $pendentes = '';
 
-        switch ($this->estado) {
-            case 0: //Há atividades pendentes
-                $n_pendentes = count($this->atividades_pendentes);
-                for ($i = 0; $i < $n_pendentes; $i++) {
-                    $pendentes .= ($i < ($n_pendentes - 1)) ? $this->atividades_pendentes[$i]->__toString().' - '
-                            : $this->atividades_pendentes[$i]->__toString();
-                }
-
-                return '<b>'.$pendentes.'</b>';
+        switch ($this->get_state()) {
+            case 0:  //Há atividades pendentes
+                foreach($this->atividades_pendentes as $pendente){
+                    $pendentes .= ' - ' . $pendente . ' <br> ';
+                 }
+                return $pendentes;
             case 1:
                 return ($this->final_grade == '-') ? '<b>'. 'Sem Nota'.'</b>' : (String) '<b>'.$this->final_grade.'</b>';
             default:
@@ -947,30 +1001,29 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
     }
 
     public function get_css_class() {
-        switch ($this->estado) {
+        switch ($this->get_state()) {
             case 0:
                 return "nao_concluido";
+                break;
             case 1:
                 return "concluido";
+                break;
             default:
                 return false;
                 break;
         }
     }
 
-    public function add_atividade_nao_realizada() {
-        $this->atividades_nao_realizadas++;
-        if ($this->atividades_nao_realizadas == 1) {
-            $this->estado = report_unasus_dado_modulos_concluidos_render::MODULO_NAO_CONCLUIDO;
-        }
+    public function add_atividade_pendente($atividade) {
+        $this->atividades_pendentes[] = $atividade;
     }
 
-    public function add_atividades_pendentes($nome_atividade) {
-        $this->atividades_pendentes[] = $nome_atividade;
+    public function add_atividade($atividade) {
+        $this->atividades[] = $atividade;
     }
 
-    public function get_total_atividades_nao_realizadas() {
-        return $this->atividades_nao_realizadas;
+    public function get_atividades() {
+        return $this->atividades;
     }
 
     public static function get_legend() {
@@ -979,6 +1032,10 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
         $legend['nao_concluido'] = 'Módulo pendente';
 
         return $legend;
+    }
+
+    public function get_state() {
+        return count($this->atividades_pendentes) == 0 ? 1 : 0;
     }
 
 }

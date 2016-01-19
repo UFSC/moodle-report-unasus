@@ -430,7 +430,8 @@ function report_unasus_query_assign_courses($courses) {
                      a.grade,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                     cm.groupingid AS grouping_id
+                     cm.groupingid AS grouping_id,
+                     cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {assign} AS a
                   ON (c.id = a.course AND c.id != :siteid)
@@ -464,12 +465,13 @@ function report_unasus_query_quiz_courses($courses) {
                      q.grade,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                     cm.groupingid as grouping_id
+                     cm.groupingid as grouping_id,
+                     cm.id AS coursemoduleid
                 FROM {course} AS c
                 JOIN {quiz} AS q
                   ON (c.id = q.course AND c.id != :siteid)
                 JOIN {course_modules} cm
-                  ON (cm.course = c.id AND cm.instance=q.id)
+                  ON (cm.course = c.id AND cm.instance = q.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'quiz')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
@@ -489,16 +491,15 @@ function report_unasus_query_database_courses($courses) {
 	                 c.id AS course_id,
 	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
 	                 cm.groupingid AS grouping_id,
-	                 cm.id AS cm_id
-                FROM course AS c
-           LEFT JOIN data AS d
+                     cm.id AS coursemoduleid
+                FROM {course} AS c
+           LEFT JOIN {data} AS d
                   ON (c.id = d.course AND c.id != :siteid)
-                JOIN course_modules cm
-                  ON (cm.course = c.id)
-                JOIN modules m
+                JOIN {course_modules} cm
+                  ON (cm.course = c.id AND cm.instance = d.id)
+                JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'data')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
-            GROUP BY database_id
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -515,16 +516,15 @@ function report_unasus_query_scorm_courses($courses) {
 	                 c.id AS course_id,
 	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
 	                 cm.groupingid AS grouping_id,
-	                 cm.id AS cm_id
-                FROM course AS c
-           LEFT JOIN scorm AS s
+                     cm.id AS coursemoduleid
+                FROM {course} AS c
+           LEFT JOIN {scorm} AS s
                   ON (c.id = s.course AND c.id != :siteid)
-                JOIN course_modules cm
-                  ON (cm.course = c.id)
-                JOIN modules m
+                JOIN {course_modules} cm
+                  ON (cm.course = c.id AND cm.instance = s.id)
+                JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'scorm')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
-            GROUP BY scorm_id
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -663,21 +663,20 @@ function report_unasus_query_lti_courses_moodle($courses) {
     $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT l.id AS lti_id,
-		              l.name AS name,
-		              c.id AS course_id,
-		              REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                      cm.id AS course_module_id,
+		             l.name AS name,
+		             c.id AS course_id,
+		             REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
+                     cm.id AS coursemoduleid,
 	                 cm.groupingid AS grouping_id,
 	                 cm.completionexpected
-                FROM course AS c
-           LEFT JOIN lti AS l
+                FROM {course} AS c
+           LEFT JOIN {lti} AS l
                   ON (c.id = l.course AND c.id != :siteid)
-                JOIN course_modules cm
-                  ON (cm.course = c.id)
-                JOIN modules m
+                JOIN {course_modules} cm
+                  ON (cm.course = c.id AND cm.instance=l.id)
+                JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'lti')
                WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
-            GROUP BY lti_id
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -711,7 +710,8 @@ function report_unasus_query_forum_courses($courses) {
                      cm.completionexpected,
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
-                     cm.groupingid as grouping_id
+                     cm.groupingid as grouping_id,
+                     cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {forum} AS f
                   ON (c.id = f.course AND c.id != :siteid)
@@ -1137,7 +1137,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
-                'coursemoduleid' => $atividade->cm_id
+                'coursemoduleid' => $atividade->coursemoduleid
             );
             $query = query_database_adjusted_from_users();
             break;
@@ -1186,6 +1186,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             }
             break;
     }
+
 
     return $DB->get_records_sql($query, $params);
 }

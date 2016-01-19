@@ -31,12 +31,12 @@ function query_alunos_relationship() {
 
     if (!is_null($cohorts)) {
         $query_cohort = " JOIN {cohort_members} cm
-                            ON (cm.userid=u.id)
+                            ON (cm.userid=u1.id)
                           JOIN {cohort} co
                             ON (cm.cohortid=co.id AND co.id IN ({$cohorts})) ";
     } else {
         $query_cohort = " LEFT JOIN {cohort_members} cm
-                            ON (u.id = cm.userid)
+                            ON (u1.id = cm.userid)
                           LEFT JOIN {cohort} co
                             ON (cm.cohortid=co.id)";
     }
@@ -46,39 +46,39 @@ function query_alunos_relationship() {
     }
 
     $query_relationship = "
-         SELECT u.id,
-                u.firstname,
-                u.lastname,
+         SELECT u1.id,
+                u1.firstname,
+                u1.lastname,
                 rg.id AS grupo_id,
                 uid.data AS polo,
                 co.id AS cohort
-           FROM {user} u
+           FROM {user} u1
            JOIN {relationship_members} rm
-             ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_relationship_id)
+             ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
       LEFT JOIN {user_info_data} uid
-             ON (u.id = uid.userid AND uid.fieldid=(
+             ON (u1.id = uid.userid AND uid.fieldid=(
                     SELECT id
                     FROM {user_info_field}
                     WHERE shortname = 'polo')
                 )
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}
-          GROUP BY u.id";
+          GROUP BY u1.id";
 
-    return "SELECT DISTINCT u.id,
-                   u.firstname,
-                   u.lastname,
-                   u.cohort,
-                   u.polo,
-                   u.grupo_id AS grupo_id,
+    return "SELECT DISTINCT u2.id,
+                   u2.firstname,
+                   u2.lastname,
+                   u2.cohort,
+                   u2.polo,
+                   u2.grupo_id AS grupo_id,
                    (e.id = ue.enrolid IS NOT NULL) AS enrol
               FROM (
                       {$query_relationship}
-                   ) u
+                   ) u2
               JOIN {user_enrolments} ue
-                ON (ue.userid = u.id)
+                ON (ue.userid = u2.id)
         INNER JOIN {enrol} e
                 ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
 }
@@ -404,7 +404,8 @@ function query_database_adjusted_from_users() {
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
-                   gg.timemodified AS submission_date,
+                   dr.timemodified AS submission_date,
+                   gg.timemodified AS grade_date,
                    'db_activity' as name_activity
               FROM (
 
@@ -418,6 +419,8 @@ function query_database_adjusted_from_users() {
                     gi.itemmodule = 'data'  AND gg.itemid = gi.id)
               JOIN {data} d
                 ON gi.iteminstance = d.id
+         LEFT JOIN {data_records} dr
+                ON (d.id = dr.dataid AND u.id = dr.userid)
              WHERE d.id = :id_activity
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
@@ -447,10 +450,11 @@ function query_scorm_from_users () {
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u.id
               JOIN {grade_items} gi
-                ON (gi.itemtype = 'mod' AND
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
                     gi.itemmodule = 'scorm'  AND gg.itemid = gi.id)
               JOIN {scorm} s
                 ON gi.iteminstance = s.id
+             WHERE s.id = :id_activity
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
@@ -461,11 +465,11 @@ function query_lti_from_users () {
 
     $alunos_grupo_tutoria = query_alunos_relationship();
 
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   u.cohort,
+    return "SELECT u3.id AS userid,
+                   u3.polo,
+                   u3.cohort,
                    gg.itemid,
-                   s.id AS lti_id,
+                   l.id AS lti_id,
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
@@ -475,17 +479,18 @@ function query_lti_from_users () {
 
                     {$alunos_grupo_tutoria}
 
-                   ) u
+                   ) u3
          LEFT JOIN {grade_grades} gg
-                ON gg.userid = u.id
+                ON gg.userid = u3.id
               JOIN {grade_items} gi
                 ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
                     gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
-              JOIN {scorm} s
-                ON gi.iteminstance = s.id
+              JOIN {lti} l
+                ON gi.iteminstance = l.id
+             WHERE l.id = :id_activity
           GROUP BY userid
+          ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";
-//          ORDER BY grupo_id, u.firstname, u.lastname
 
 }
 

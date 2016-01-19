@@ -127,18 +127,14 @@ class report_unasus_assign_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
     }
 
     public function __toString() {
-        if(array_search($this->id, $this->config)) {
-
-            $name = explode(' ', substr($this->name, 0, 6))[0];
-
-            $cm = get_coursemodule_from_instance('assign', $this->id, $this->course_id, null, MUST_EXIST);
-            $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($atividade_url, $name, array('target' => '_blank'));
-        }
+        $name = explode(' ', substr($this->name, 0, 6))[0];
+        $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
+        return html_writer::link($atividade_url, $name, array('target' => '_blank'));
     }
 }
 
@@ -164,16 +160,14 @@ class report_unasus_forum_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
     }
 
     public function __toString() {
-        if(array_search($this->id, $this->config)) {
-            $name = $this->name == 'Fórum de debates' ? 'Fórum' : explode(' ', substr($this->name, 0, 6))[0];;
-            $cm = get_coursemodule_from_instance('forum', $this->id, $this->course_id, null, MUST_EXIST);
-            $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($forum_url, $name, array('target' => '_blank'));
-        }
+        $name = $this->name == 'Fórum de debates' ? 'Fórum' : explode(' ', substr($this->name, 0, 6))[0];;
+        $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
+        return html_writer::link($forum_url, $name, array('target' => '_blank'));
     }
 
 }
@@ -202,30 +196,27 @@ class report_unasus_quiz_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
     }
 
     public function __toString() {
-        if(array_search($this->id, $this->config)) {
-
-            switch (strtolower($this->name)) {
-                case 'questões avaliativas - enfermeiros':
-                    $name = 'Q.Enf.';
-                    break;
-                case 'questões avaliativas - médicos':
-                    $name = 'Q.Méd.';
-                    break;
-                case 'questões avaliativas - dentistas':
-                    $name = 'Q.Dent.';
-                    break;
-                default:
-                    $name = 'Quest.';
-            }
-
-            $cm = get_coursemodule_from_instance('quiz', $this->id, $this->course_id, null, IGNORE_MISSING);
-            $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($quiz_url, $name, array('target' => '_blank'));
+        switch (strtolower($this->name)) {
+            case 'questões avaliativas - enfermeiros':
+                $name = 'Q.Enf.';
+                break;
+            case 'questões avaliativas - médicos':
+                $name = 'Q.Méd.';
+                break;
+            case 'questões avaliativas - dentistas':
+                $name = 'Q.Dent.';
+                break;
+            default:
+                $name = 'Quest.';
         }
+
+        $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
+        return html_writer::link($quiz_url, $name, array('target' => '_blank'));
     }
 
 }
@@ -252,17 +243,14 @@ class report_unasus_db_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
-        $this->cm_id = $db_model->cm_id;
+        $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
     }
 
     public function __toString() {
-        if(array_search($this->id, $this->config)) {
-            $name = explode(' ', substr($this->name, 0, 6))[0];
-            $cm = get_coursemodule_from_instance('data', $this->id, $this->course_id, null, IGNORE_MISSING);
-            $db_url = new moodle_url('/mod/data/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($db_url, $name, array('target' => '_blank'));
-        }
+        $name = explode(' ', substr($this->name, 0, 6))[0];
+        $db_url = new moodle_url('/mod/data/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
+        return html_writer::link($db_url, $name, array('target' => '_blank'));
     }
 
 }
@@ -282,23 +270,21 @@ class report_unasus_scorm_activity extends report_unasus_activity {
 
     public function __construct($db_model, $config) {
 
-        parent::__construct(true, true);
+        parent::__construct(false, true);
         $this->id = $db_model->scorm_id;
         $this->name = $db_model->scorm_name;
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->grouping = $db_model->grouping_id;
+        $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
     }
 
     public function __toString() {
-        if(array_search($this->id, $this->config)) {
-            $name = explode(' ', substr($this->name, 0, 6))[0];
-            $cm = get_coursemodule_from_instance('scorm', $this->id, $this->course_id, null, IGNORE_MISSING);
-            $scorm_url = new moodle_url('/mod/scorm/view.php', array('id' => $cm->id, 'target' => '_blank'));
-            return html_writer::link($scorm_url, $name, array('target' => '_blank'));
-        }
+        $name = explode(' ', substr($this->name, 0, 6))[0];
+        $scorm_url = new moodle_url('/mod/scorm/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
+        return html_writer::link($scorm_url, $name, array('target' => '_blank'));
     }
 
 }
@@ -324,7 +310,7 @@ class report_unasus_lti_activity extends report_unasus_activity {
         # $this->position = $db_model->position;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
-        $this->course_module_id = $db_model->course_module_id;
+        $this->coursemoduleid = $db_model->coursemoduleid;
         # $this->baseurl = $db_model->baseurl;
         # $this->consumer_key = $db_model->consumer_key;
         $this->grouping = $db_model->grouping_id;
@@ -335,7 +321,7 @@ class report_unasus_lti_activity extends report_unasus_activity {
      */
     public function __toString() {
         $name = explode(' ', substr($this->name, 0, 6))[0];
-        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->course_module_id, 'target' => '_blank'));
+        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
         return html_writer::link($lti_url, $name, array('target' => '_blank'));
     }
 
@@ -660,8 +646,10 @@ class report_unasus_data_activity extends report_unasus_data {
 
         // Houve entrega
         if (!empty($this->submission_date)) {
-            if ($this->status != 'draft') {
+            // se não for novo ou rascunho, antão enviou
+            if ( !in_array($this->status, array("new", "draft")) ) {
                 return true;
+            // mesmo em rascunho, se tiver nota, considera como submetido
             } elseif ($this->has_grade()) {
                 return true;
             }
@@ -690,6 +678,26 @@ class report_unasus_data_forum extends report_unasus_data {
         $this->submission_date = $db_model->submission_date;
         $this->grade_date = (empty($db_model->timemodified)) ? 0 : $db_model->timemodified;
         $this->grademax = $db_model->grademax;
+    }
+
+    /**
+     * Houve um envio de atividade?
+     *
+     * @return bool true se existe um envio ou false caso contrário
+     */
+    public function has_submitted() {
+
+        // Houve entrega
+        if (!empty($this->submission_date)) {
+            return true;
+        } else {
+            // Se for uma atividade offline, vamos considerar a data de avaliação como entrega
+            if (!$this->source_activity->has_submission()) {
+                return $this->has_grade();
+            }
+        }
+
+        return false;
     }
 
 }
@@ -724,19 +732,8 @@ class report_unasus_data_db extends report_unasus_data {
         $this->grademax = $db_model->grademax;
         $this->itemname = $db_model->itemname;
         $this->submission_date = $db_model->submission_date;
+        $this->grade_date = $db_model->grade_date;
 
-    }
-
-   public function has_grade() {
-        return !is_null($this->grade);
-    }
-
-    public function is_grade_needed() {
-        return $this->source_activity->has_grade;
-    }
-
-    public function has_submitted() {
-        return $this->submission_date && $this->has_grade() && $this->grade == $this->grademax;
     }
 
 }
@@ -760,9 +757,9 @@ class report_unasus_data_scorm extends report_unasus_data {
         return !is_null($this->grade);
     }
 
-    public function is_grade_needed() {
-        return $this->source_activity->has_grade;
-    }
+//    public function is_grade_needed() {
+//        return parent::is_grade_needed();
+//    }
 
     public function has_submitted() {
         return $this->submission_date && $this->has_grade() && $this->grade == $this->grademax;
@@ -791,9 +788,9 @@ class report_unasus_data_lti extends report_unasus_data {
         return !is_null($this->grade);
     }
 
-    public function is_grade_needed() {
-        return parent::is_grade_needed();
-    }
+//    public function is_grade_needed() {
+//        return parent::is_grade_needed();
+//    }
 
     public function has_submitted() {
 //        return parent::is_grade_needed();

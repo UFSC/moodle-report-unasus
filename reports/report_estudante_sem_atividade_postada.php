@@ -43,24 +43,33 @@ class report_estudante_sem_atividade_postada extends report_unasus_factory {
         $query_quiz                 = query_quiz_from_users();
         $query_forum                = query_postagens_forum_from_users();
         $query_lti                  = query_lti_from_users();
+//        $query_db                   = query_database_from_users();
+        $query_database             = query_database_adjusted_from_users();
+        $query_scorm                = query_scorm_from_users();
 
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
-                $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_lti);
+                $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_lti, $query_database, $query_scorm);
 
         $modulos_ids = $this->get_modulos_ids();
 
         // $atividades_cursos = report_unasus_get_atividades_cursos($modulos_ids, false, false, false, $this->get_categoria_turma_ufsc());
         $atividades_cursos = report_unasus_get_atividades_cursos($modulos_ids, false, false, false, $this->get_categoria_turma_ufsc());
+        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
         $dados = array();
 
+        // para todas os grupos ($grupo_id), pega os dados (user_id => atividades)
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
             $estudantes = array();
+
+            // para todas os estudantes ($id_aluno), pega os dados (report_activities),
+                // as atividades do estudante com os dados dele
             foreach ($array_dados as $id_aluno => $aluno) {
 
                 $atividades_modulos = new report_unasus_GroupArray();
 
+                // paga cada atividade com os dados do estudante
                 foreach ($aluno as $atividade) {
 
                     foreach ($atividades_cursos as $act) {
@@ -74,31 +83,25 @@ class report_estudante_sem_atividade_postada extends report_unasus_factory {
                         }
                     }
 
-                    /** @var report_unasus_data $atividade */
-                    $tipo_avaliacao = 'atividade';
-                    $nome_atividade = null;
-                    $atividade_sera_listada = false;
+                    // se a atividade for setada para ser apresentada,
+                    // então continua com as outras checagens
+                    if ( array_search($atividade->source_activity->id, $atividades_config_curso) ) {
 
-                    // Não se aplica para este estudante
-                    if (is_a($atividade, 'report_unasus_data_empty')) {
-                        continue;
-                    }
+                        $nome_atividade = null;
+                        $atividade_sera_listada = false;
 
-                    if ($this->get_relatorio() == 'estudante_sem_atividade_postada' && !$atividade->has_submitted() && $atividade->source_activity->has_submission()) {
-                        $atividade_sera_listada = true;
-                    }
+                        // Não se aplica para este estudante
+                        if (is_a($atividade, 'report_unasus_data_empty')) {
+                            continue;
+                        }
 
-                    if ($this->get_relatorio() == 'estudante_sem_atividade_avaliada' && !$atividade->has_grade() && $atividade->is_grade_needed()) {
-                        $atividade_sera_listada = true;
-                    }
+                        if (!$atividade->has_submitted() && $atividade->source_activity->has_submission()) {
+                            $atividade_sera_listada = true;
+                        }
 
-                    if (is_a($atividade, 'report_unasus_data_forum')) {
-                        $tipo_avaliacao = 'forum';
-                    }
-
-
-                    if ($atividade_sera_listada) {
-                        $atividades_modulos->add($atividade->source_activity->course_id, array('atividade' => $atividade, 'tipo' => $tipo_avaliacao));
+                        if ($atividade_sera_listada) {
+                            $atividades_modulos->add($atividade->source_activity->course_id, array('atividade' => $atividade));
+                        }
                     }
                 }
 
