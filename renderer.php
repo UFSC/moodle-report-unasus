@@ -648,7 +648,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             /* Dados da tabela */
 
-            $output .= html_writer::start_tag('tbody');
+            $output .= html_writer::start_tag('tbody', array('class' => "relatorio-unasus"));
 
             foreach ($report->get_dados() as $tutor => $alunos) {
 

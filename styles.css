@@ -509,12 +509,12 @@ table.flexible thead th .r1,
 }
 
 /*//////////////// Trava da tabela ////////////////*/
-thead,
-tbody {
+.relatorio-unasus thead,
+.relatorio-unasus tbody {
   display: block !important;
 }
 
-tbody {
+.relatorio-unasus tbody {
   height: 500px;
   overflow: auto;
   margin-right: -15px;
