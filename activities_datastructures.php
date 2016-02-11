@@ -307,12 +307,12 @@ class report_unasus_lti_activity extends report_unasus_activity {
         $this->id = $db_model->lti_id;
         $this->name = $db_model->name;
         $this->deadline = $db_model->completionexpected;
-        # $this->position = $db_model->position;
+        $this->position = $db_model->position;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        # $this->baseurl = $db_model->baseurl;
-        # $this->consumer_key = $db_model->consumer_key;
+        $this->baseurl = $db_model->baseurl;
+        $this->consumer_key = $db_model->consumer_key;
         $this->grouping = $db_model->grouping_id;
     }
 
@@ -331,10 +331,7 @@ class report_unasus_lti_activity extends report_unasus_activity {
 
 }
 
-class report_unasus_lti_tcc {
-
-    public function __construct() {
-    }
+class report_unasus_lti_activity_tcc extends report_unasus_lti_activity{
 
 }
 

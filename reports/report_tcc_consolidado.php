@@ -223,7 +223,7 @@ class report_tcc_consolidado extends report_unasus_factory {
     }
 
     public function get_table_header() {
-        $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
+        $header = $this->get_table_header_tcc_atividades(true);
 
         foreach ($header as $key => $modulo) {
             array_unshift($modulo, 'Resumo');

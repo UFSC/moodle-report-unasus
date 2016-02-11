@@ -278,6 +278,12 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
     $scorms     = report_unasus_query_scorm_courses($courses);
     $ltis       = report_unasus_query_lti_courses_moodle($courses);
 
+    // aki 2
+    // todo: incluir atividade de tcc
+//    if($buscar_lti) {
+//        $ltis_tcc = report_unasus_query_lti_courses($courses);
+//    }
+
     $group_array = new report_unasus_GroupArray();
 
     foreach ($assigns as $atividade) {
@@ -345,9 +351,9 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
 
 //    // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
 //    // Nos relatórios de atividades o TCC é tratado apenas como uma atividade.
-//    if($buscar_lti) {
-//        report_unasus_process_header_atividades_lti($courses, $group_array);
-//    }
+    if($buscar_lti) {
+        report_unasus_process_header_tcc_atividades($courses, $group_array);
+    }
 
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = report_unasus_query_courses_com_nota_final($courses);
@@ -373,15 +379,17 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
 }
 
 /**
- * Atividades LTI
+ * Nome dos capítulos do TCC para serem usadas no cabeçalho
  *
  * @param $courses
  * @param report_unasus_GroupArray $group_array
  * @param bool $is_tcc
  * @return array
  */
-function report_unasus_process_header_atividades_lti($courses, report_unasus_GroupArray &$group_array) {
-    $ltis = report_unasus_query_lti_courses_moodle($courses);
+function report_unasus_process_header_tcc_atividades($courses, report_unasus_GroupArray &$group_array) {
+    // $ltis = report_unasus_query_lti_courses_moodle($courses);
+    // aki 3
+    $ltis = report_unasus_query_lti_courses($courses);
 
     // Nenhuma atividade lti encontrada,
     // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
@@ -392,20 +400,31 @@ function report_unasus_process_header_atividades_lti($courses, report_unasus_Gro
     /* A atividade de LTI é composta (vai gerar sub-atividades para cada eixo */
     foreach ($ltis as $lti) {
 
-//        foreach ($lti->tcc_definition->chapter_definitions as $chapter_definition) {
+        foreach ($lti->tcc_definition->chapter_definitions as $chapter_definition) {
 
             // sub-atividade simulada
             $db_model = new stdClass();
 
-//            $chapter_definition = $chapter_definition->chapter_definition;
+            $chapter_definition = $chapter_definition->chapter_definition;
 
             $db_model->course_id = $lti->course_id;
             $db_model->course_name = $lti->course_name;
 
             $db_model->lti_id = $lti->id;
             $db_model->course_module_id = $lti->course_module_id;
-            $db_model->name = $lti->name;
-        //}
+            // $db_model->name = $lti->name;
+
+            // AKI
+            $db_model->name = $chapter_definition->title;
+            $db_model->completionexpected = $lti->completionexpected;
+            $db_model->position = $chapter_definition->position;
+
+            $db_model->baseurl = $lti->baseurl;
+            $db_model->grouping_id = $lti->grouping_id;
+            $db_model->consumer_key = $lti->config['resourcekey'];
+
+            $group_array->add($db_model->course_id, new report_unasus_lti_activity_tcc($db_model));
+        }
     }
 }
 
@@ -623,6 +642,7 @@ function report_unasus_query_lti_courses($courses) {
                 $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
                 $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
                 $consumer_key = $config['resourcekey'];
+                // aki 5
 
                 // WS Client
                 $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
@@ -1087,6 +1107,15 @@ function report_unasus_dot_chart_com_tutores_com_acesso($dados) {
     return false;
 }
 
+/**
+ * @param $nome_atividade
+ * @param $atividade
+ * @param $courseid
+ * @param $grupo
+ * @param $report
+ * @param bool $is_boletim
+ * @return array
+ */
 function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $grupo, $report, $is_boletim = false)
 {
 
@@ -1163,7 +1192,8 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             );
             $query = query_lti_from_users();
             break;
-        case 'report_unasus_lti_tcc':
+        case 'report_unasus_lti_activity_TCC':
+        // case 'report_unasus_lti_tcc':
             $params = array(
                 'courseid' => $courseid,
                 'enrol_courseid' => $courseid,

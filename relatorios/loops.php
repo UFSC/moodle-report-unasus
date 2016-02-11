@@ -196,6 +196,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($q->userid, $data);
                     }
+                  // todo: colocar de volta as linhas abaixo após testes do TCC
                 } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti)) {
                     $params = array(
                         'courseid' => $courseid,
@@ -230,18 +231,20 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         $group_array_do_grupo->add($f->userid, $data);
                     }
 
-                } elseif (is_a($atividade, 'report_unasus_lti_activity_TCC')) {
+                } elseif (is_a($atividade, 'report_unasus_lti_activity_tcc')) {
+                    // AKI 1
+                    // todo: pegar atividade correta para testes
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
                     foreach ($result as $l) {
-                        $data = new report_unasus_data_lti($l);
+                        $data = new report_unasus_data_lti_TCC($l);
                         $group_array_do_grupo->add_exclusive($l->userid, $data);
                     }
                 }
             }
 
             // Query de notas finais, somente para o relatório Boletim
-            if (!is_null($query_nota_final)) {
+            if (!empty($query_nota_final)) {
                 $params = array(
                     'courseid' => $courseid,
                     'enrol_courseid' => $courseid,

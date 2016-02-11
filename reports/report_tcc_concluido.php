@@ -39,7 +39,7 @@ class report_tcc_concluido extends report_unasus_factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
 
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, false, true);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, null, false, true);
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -77,7 +77,7 @@ class report_tcc_concluido extends report_unasus_factory {
     }
 
     public function get_table_header() {
-        $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
+        $header = $this->get_table_header_tcc_atividades(true);
 
         foreach ($header as $key => $modulo) {
             array_unshift($modulo, 'Resumo');

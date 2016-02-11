@@ -32,12 +32,12 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
     public function get_dados() {
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
-
+        $this->atividades_cursos = report_unasus_get_atividades_cursos($this->modulos_selecionados, false, false, true);
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, false, true);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, null, false, true);
 
         $atraso = 0;
         $datetime = new DateTime(date('Y-m-d'));
@@ -99,7 +99,7 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
     }
 
     public function get_table_header() {
-        $header = $this->get_table_header_tcc_portfolio_entrega_atividades(true);
+        $header = $this->get_table_header_tcc_atividades(true);
 
         foreach ($header as $key => $modulo) {
             array_unshift($modulo, 'Resumo');
