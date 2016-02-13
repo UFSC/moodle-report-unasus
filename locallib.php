@@ -278,22 +278,12 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
     $scorms     = report_unasus_query_scorm_courses($courses);
     $ltis       = report_unasus_query_lti_courses_moodle($courses);
 
-    // aki 2
-    // todo: incluir atividade de tcc
-//    if($buscar_lti) {
-//        $ltis_tcc = report_unasus_query_lti_courses($courses);
-//    }
-
     $group_array = new report_unasus_GroupArray();
 
+    // cria as atividades
     foreach ($assigns as $atividade) {
 
-        if (!empty($atividades_config_curso)){
-            if(array_search($atividade->assign_id, $atividades_config_curso)){
-                $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
-                $group_array->add($atividade->course_id, $assign_object);
-            }
-        } else {
+        if(array_search($atividade->assign_id, $atividades_config_curso) || empty($atividades_config_curso)){
             $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
             $group_array->add($atividade->course_id, $assign_object);
         }
@@ -301,59 +291,66 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
 
     foreach ($foruns as $forum) {
 
-        if (!empty($atividades_config_curso)){
-            if(array_search($forum->forum_id, $atividades_config_curso)) {
-                $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
-            }
-        } else {
+        if(array_search($forum->forum_id, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
         }
     }
 
     foreach ($quizes as $quiz) {
-        if (!empty($atividades_config_curso)){
-            if(array_search($quiz->quiz_id, $atividades_config_curso)){
-                $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
-            }
-        } else {
+        if(array_search($quiz->quiz_id, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
         }
     }
 
     foreach ($databases as $database) {
-        if (!empty($atividades_config_curso)){
-            if(array_search($database->database_id, $atividades_config_curso)){
-                $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
-            }
-        } else {
+        if(array_search($database->database_id, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
         }
     }
 
     foreach ($scorms as $scorm) {
-        if (!empty($atividades_config_curso)){
-            if(array_search($scorm->scorm_id, $atividades_config_curso)){
-                $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
-            }
-        } else {
+        if (array_search($scorm->scorm_id, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
         }
     }
-    foreach ($ltis as $lti) {
-        if (!empty($atividades_config_curso)){
-            if(array_search($lti->lti_id, $atividades_config_curso)){
-                $group_array->add($lti->course_id, new report_unasus_lti_activity($lti, $atividades_config_curso));
+
+    foreach ($ltis as $db_lti) {
+
+        // verifica se está habilitado no config report
+        if(array_search($db_lti->lti_id, $atividades_config_curso)  || empty($atividades_config_curso)){
+
+            // se não for para buscar lti ou não for lti de tcc não processa os capítulos
+            $tcc_lti_array = null;
+
+            if ($buscar_lti) {
+                //verificar se é lit de TCC, retornando um array com os capítulos do tcc
+                $tcc_lti_array = report_unasus_process_header_tcc($db_lti->lti_id, $db_lti->course_id);
+            };
+
+            if (is_array($tcc_lti_array)) {
+
+                // Se for então adiciona a atividade no header como lti_tcc, anexando o array dos capítulos
+
+                $db_lti->baseurl                = $tcc_lti_array['lti']->baseurl;
+                $db_lti->consumer_key           = $tcc_lti_array['lti_config']['resourcekey'];
+                $db_lti->custom_parameters      = $tcc_lti_array['lti_config']['customparameters'];
+
+                $group_array->add($db_lti->course_id,
+                    new report_unasus_lti_activity_tcc($db_lti,
+                        $tcc_lti_array['lti_config'],
+                        $tcc_lti_array['tcc_definition']));
+            } else {
+                // se não for então adiciona atividade lti normal no header
+                $group_array->add($db_lti->course_id, new report_unasus_lti_activity($db_lti, $atividades_config_curso));
             }
-        } else {
-            $group_array->add($lti->course_id, new report_unasus_lti_activity($lti, $atividades_config_curso));
         }
     }
 
 //    // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
 //    // Nos relatórios de atividades o TCC é tratado apenas como uma atividade.
-    if($buscar_lti) {
-        report_unasus_process_header_tcc_atividades($courses, $group_array);
-    }
+//    if($buscar_lti) {
+//        report_unasus_process_header_tcc_atividades($courses, $group_array);
+//    }
 
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = report_unasus_query_courses_com_nota_final($courses);
@@ -379,6 +376,29 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
 }
 
 /**
+ * Processa os cabeçalhos do TCC, seus capítulos
+ *
+ * @param int $lti_id
+ * @param int $course_id
+ * @return array Com os headers dos capítulos de um TCC específico
+ * @return boolean false Se não for um LTI de TCC
+ */
+function report_unasus_process_header_tcc($lti_id, $course_id) {
+
+    // retorna o false se não for TCC
+    $tcc_lti_result = report_unasus_lti_tcc_definition($lti_id, $course_id);
+
+    if (!$tcc_lti_result) {
+        return false;
+    } else {
+        $tcc_definition = $tcc_lti_result['tcc_definition'];
+        $lti_config = $tcc_lti_result['lti_config'];
+    }
+
+    return $tcc_lti_result;
+}
+
+/**
  * Nome dos capítulos do TCC para serem usadas no cabeçalho
  *
  * @param $courses
@@ -387,25 +407,32 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
  * @return array
  */
 function report_unasus_process_header_tcc_atividades($courses, report_unasus_GroupArray &$group_array) {
-    // $ltis = report_unasus_query_lti_courses_moodle($courses);
-    // aki 3
+
+    // $ltis = retorna os capítulos dos tccs
     $ltis = report_unasus_query_lti_courses($courses);
 
     // Nenhuma atividade lti encontrada,
     // Retornar pois webservice retorna msg de erro e nao deve ser interado no foreach
+
     if (empty($ltis)) {
         return;
     }
 
-    /* A atividade de LTI é composta (vai gerar sub-atividades para cada eixo */
+    // passa por todos os os TCCs
     foreach ($ltis as $lti) {
 
-        foreach ($lti->tcc_definition->chapter_definitions as $chapter_definition) {
+        // $lti tem os dados de um tcc, e de seus capítulos
 
-            // sub-atividade simulada
+        // passa por todos os capítulos >> $lti->tcc_definition->chapter_definitions
+
+        foreach ($lti->tcc_definition->chapter_definitions as $chapter) {
+
+            // $chapter contém o chapter_definition do capítulo
+
             $db_model = new stdClass();
 
-            $chapter_definition = $chapter_definition->chapter_definition;
+            // $chapter_definition contém os dados do capítulo (Título, Posição)
+            $chapter_definition = $chapter->chapter_definition;
 
             $db_model->course_id = $lti->course_id;
             $db_model->course_name = $lti->course_name;
@@ -414,7 +441,6 @@ function report_unasus_process_header_tcc_atividades($courses, report_unasus_Gro
             $db_model->course_module_id = $lti->course_module_id;
             // $db_model->name = $lti->name;
 
-            // AKI
             $db_model->name = $chapter_definition->title;
             $db_model->completionexpected = $lti->completionexpected;
             $db_model->position = $chapter_definition->position;
@@ -423,7 +449,8 @@ function report_unasus_process_header_tcc_atividades($courses, report_unasus_Gro
             $db_model->grouping_id = $lti->grouping_id;
             $db_model->consumer_key = $lti->config['resourcekey'];
 
-            $group_array->add($db_model->course_id, new report_unasus_lti_activity_tcc($db_model));
+            // $group_array->add($db_model->course_id, new report_unasus_lti_activity_tcc($db_model));
+
         }
     }
 }
@@ -458,7 +485,8 @@ function report_unasus_query_assign_courses($courses) {
                   ON (cm.course = c.id AND cm.instance=a.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'assign')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+               WHERE c.id IN ({$string_courses})
+                 -- AND cm.visible=TRUE
            ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
@@ -493,7 +521,8 @@ function report_unasus_query_quiz_courses($courses) {
                   ON (cm.course = c.id AND cm.instance = q.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'quiz')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+               WHERE c.id IN ({$string_courses})
+                  -- AND cm.visible=TRUE
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -518,7 +547,8 @@ function report_unasus_query_database_courses($courses) {
                   ON (cm.course = c.id AND cm.instance = d.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'data')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+               WHERE c.id IN ({$string_courses})
+                  -- AND cm.visible=TRUE
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -543,7 +573,8 @@ function report_unasus_query_scorm_courses($courses) {
                   ON (cm.course = c.id AND cm.instance = s.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'scorm')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+               WHERE c.id IN ({$string_courses})
+                  -- AND cm.visible=TRUE
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -579,6 +610,39 @@ function report_unasus_query_grades_lti() {
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 
+}
+
+/**
+ * Função para buscar o tcc_definition e os capítulos de uma atividade de lti de TCC
+ *
+ * @param int $lti_id
+ * @param int $course_id
+ * @return array FIRST: stdClass tcc_definition para LTI de TCC SECOND: config dos dados do LTI
+ * @return boolean false Para LTI que é de TCC
+ * @throws dml_missing_record_exception
+ * @throws dml_multiple_records_exception
+ */
+function report_unasus_lti_tcc_definition($lti_id, $course_id) {
+    global $DB;
+
+    // pega os dados da atividade LIT do TCC
+    $lti = $DB->get_record_sql(query_lti_activity(), array('course' => $course_id, 'lti_id' => $lti_id));
+
+
+    $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
+    $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
+    $consumer_key = $config['resourcekey'];
+
+    // WS Client
+    $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
+    $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+
+    if (!$object) {
+        // Ocorreu alguma falha
+        return false;
+    }
+
+    return array('lti' => $lti, 'tcc_definition' => $object->tcc_definition, 'lti_config' => $config);
 }
 
 /**
@@ -642,7 +706,6 @@ function report_unasus_query_lti_courses($courses) {
                 $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
                 $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
                 $consumer_key = $config['resourcekey'];
-                // aki 5
 
                 // WS Client
                 $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
@@ -696,7 +759,7 @@ function report_unasus_query_lti_courses_moodle($courses) {
                   ON (cm.course = c.id AND cm.instance=l.id)
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'lti')
-               WHERE c.id IN ({$string_courses}) AND cm.visible=TRUE
+               WHERE c.id IN ({$string_courses}) -- AND cm.visible=TRUE
             ORDER BY c.sortorder";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
@@ -743,7 +806,7 @@ function report_unasus_query_forum_courses($courses) {
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'forum')
                WHERE c.id IN ({$string_courses})
-                 AND cm.visible=TRUE
+                 -- AND cm.visible=TRUE
                  AND (gi.id=TRUE OR cm.completion != 0)
             ORDER BY c.sortorder";
 
@@ -807,7 +870,7 @@ class report_unasus_table extends html_table {
         $new_coluns = [];
         $student = new html_table_cell('Estudantes');
         $student->header = true;
-        $student->attributes = array('class' => 'title estudante c_body');
+        $student->attributes = array('class' => 'title estudante_header');
 
         array_shift($coluns);
         foreach ($coluns as $colum) {
@@ -834,7 +897,7 @@ class report_unasus_table extends html_table {
 
         $student = new html_table_cell($person_name);
         $student->header = true;
-        $student->attributes = array('class' => 'ultima_atividade title estudante_header c_body');
+        $student->attributes = array('class' => 'ultima_atividade title estudante_header');
 
         $heading1 = array(); // Primeira linha
         $heading1[] = $blank; // Acrescenta uma célula em branco na primeira linha
@@ -1192,7 +1255,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             );
             $query = query_lti_from_users();
             break;
-        case 'report_unasus_lti_activity_TCC':
+        case 'report_unasus_lti_activity_tcc':
         // case 'report_unasus_lti_tcc':
             $params = array(
                 'courseid' => $courseid,

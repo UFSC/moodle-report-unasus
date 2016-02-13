@@ -333,7 +333,8 @@ class report_unasus_factory {
     function get_table_header_tcc_atividades($is_tcc = false) {
 
         $group_array = new report_unasus_GroupArray();
-        // aki 4
+
+        // Busca os dados dos capítulos dos TCCs e coloca em $group_array
         report_unasus_process_header_tcc_atividades($this->get_modulos_ids(), $group_array, $is_tcc);
 
         $atividades_cursos = $group_array->get_assoc();

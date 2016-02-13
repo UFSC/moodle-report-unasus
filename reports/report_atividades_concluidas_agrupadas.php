@@ -164,7 +164,7 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
                         } elseif (is_a($atividade, 'report_unasus_data_lti')) {
                             $dado =& $lista_atividade[$grupo_id]['lti_'. $atividade->source_activity->id];
 
-                        } elseif (is_a($atividade, 'report_unasus_data_lti_TCC')) {
+                        } elseif (is_a($atividade, 'report_unasus_data_lti_tcc')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
                         }
                         if (!empty($dado)) {

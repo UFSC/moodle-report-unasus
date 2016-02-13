@@ -232,14 +232,16 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                     }
 
                 } elseif (is_a($atividade, 'report_unasus_lti_activity_tcc')) {
-                    // AKI 1
                     // todo: pegar atividade correta para testes
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
                     foreach ($result as $l) {
-                        $data = new report_unasus_data_lti_TCC($l);
-                        $group_array_do_grupo->add_exclusive($l->userid, $data);
+                        $data = new report_unasus_data_lti_tcc($atividade, $l);
+                        // $group_array_do_grupo->add_exclusive($l->userid, $data);
+                        $group_array_do_grupo->add($l->userid, $data);
                     }
+                } elseif (is_a($atividade, 'report_unasus_chapter_tcc_activity')) {
+
                 }
             }
 
@@ -505,15 +507,15 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($s->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_lti_activity_TCC')) {
+                } elseif (is_a($atividade, 'report_unasus_lti_activity_tcc')) {
 
                     // Criar o array caso ainda não tenha sido definido.
-                    if (!isset($array_das_atividades[$atividade->id][$atividade->position])) {
-                        $array_das_atividades[$atividade->id][$atividade->position] = array();
+                    if (!isset($array_das_atividades[$atividade->id])) {
+                        $array_das_atividades[$atividade->id] = array();
                     }
 
                     if(isset($total_alunos[$grupo->id])){
-                        $array_das_atividades[$atividade->id][$atividade->position] = new report_unasus_dado_atividades_alunos_render(0);
+                        $array_das_atividades[$atividade->id][0] = new report_unasus_dado_atividades_alunos_render($total_alunos[$grupo->id]);
                     }
 
                     $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
@@ -525,10 +527,11 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     foreach ($result as $l) {
 
                         if (!isset($l->not_found)) {
-                            $data = new report_unasus_data_lti_TCC($l);
+                            $data = new report_unasus_data_lti_tcc($atividade, $l);
 
                             // Agrupa os dados por usuário
-                            $group_array_do_grupo->add_exclusive($l->userid, $data);
+                            //$group_array_do_grupo->add_exclusive($l->userid, $data);
+                            $group_array_do_grupo->add($l->userid, $data);
                         }
                     }
                 }

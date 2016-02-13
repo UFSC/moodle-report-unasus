@@ -1,13 +1,13 @@
-/*.acesso_tutor*/
-
-/*.entrega_de_atividades*/
-
 @charset "UTF-8";
 /*/////////////////////////////////////// Minhas Variaveis Globais ////////////////////////////////////*/
 /*/////////////////////////////////////// Original ////////////////////////////////////*/
-table.flexible, .generaltable, .generaltable_without_stripes {
-    width: 100% !important;
-    margin-bottom: 0px !important;
+/*.relatorio-unasus, table.flexible, .generaltable, .generaltable_without_stripes {*/
+  /*padding: 13px;*/
+/*}*/
+
+.relatorio-unasus .generaltable_without_stripes {
+    width: 98% !important;
+    margin-bottom: 5px !important;
 }
 
 .relatorio-unasus.fieldset
@@ -213,11 +213,11 @@ legend {
   padding-left: 3em;
 }
 
-.relatorio-unasus th.estudante,
+/*.relatorio-unasus th.estudante,*/
 .relatorio-unasus td.somatorio {
   padding-right: 1em;
   padding-top: 8px;
-  padding-bottom: 20px;
+  padding-bottom: 10px;
   text-align: left;
   font-weight: normal;
   background: #FEF9EC;
@@ -309,11 +309,11 @@ legend {
 }
 */
 
-.relatorio-unasus a {
+.relatorio-unasus a, label {
   color: #004E95 !important;
 }
 
-.relatorio-unasus body {
+.relatorio-unasus tbody {
   font-family: "helvetica" !important;
   font-size: 12px !important;
 }
@@ -326,27 +326,70 @@ legend {
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3) !important;
   width: 43px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
   font-size: 12px !important;
-    padding: 8px;
+  padding: 0px;
+  line-height: 15px !important;
 }
-.relatorio-unasus .rotate a {
-  margin: 0 !important;
+
+.relatorio-unasus .rotate label{
+  margin: -17px !important;
   padding: 0 !important;
+  line-height: 15px !important;
+  font-size: 12px !important;
+}
+
+.relatorio-unasus .rotate a
+{
+  margin: -17px !important;
+  padding: 0 !important;
+  word-wrap: break-word !important;
+  text-align: start;
+}
+
+/*.relatorio-unasus th.rotate label,*/
+.relatorio-unasus th.rotate a {
+  font-weight: normal;
 }
 
 .relatorio-unasus .estudante {
-  /*width: 135px !important;*/
-  max-width: 136px !important;
-  min-width: 135px !important;
+  /*max-width: 250px !important;*/
+  /*min-width: 135px !important;*/
+  width: 250px !important;
   white-space: normal !important;
   word-wrap: break-word !important;
-  padding-bottom: 20px;
+  padding-bottom: 5px;
   text-align: left;
+}
+
+.relatorio-unasus th.estudante_header
+{
+  width: 249px !important;
+  height: 50px !important;
+  padding-bottom: 20px;
+  padding-top: 20px;
+  padding-left: 13px;
+}
+
+.relatorio-unasus th.estudante
+{
+  background-color: #FFFFFF !important;
+  padding-left: 12px;
+  width: 200px;
+  text-align: left;
+  font-weight: normal;
+  background: #FEF9EC;
+  white-space: nowrap;
 }
 
 .relatorio-unasus .atividades_vs_notas thead th {
   height: 50px !important;
 }
 
+.tcc_entrega_atividades .c1,
+.tcc_entrega_atividades .c_body,
+.tcc_concluido .c1,
+.tcc_concluido .c_body,
+/*.tcc_consolidado .c1,*/
+/*.tcc_consolidado .c_body,*/
 .entrega_de_atividades .c1,
 .entrega_de_atividades .c_body,
 .boletim .c1,
@@ -355,35 +398,55 @@ legend {
 .atividades_vs_notas .c_body {
   max-width: 43px !important;
   min-width: 43px !important;
-  /*width: 43px !important;*/
   padding: 8px !important;
   margin: 0 !important;
   font-size: 12px !important;
-  text-align: center;
+  text-align: center !important;
+  text-indent: 0 !important;
 }
 
+/*.modulos_concluidos th.estudante_header {*/
+  /*width: 100px !important;*/
+/*}*/
+
+/*.modulos_concluidos th.estudante {*/
+  /*width: 100px !important;*/
+/*}*/
+
+.tcc_entrega_atividades thead th,
+.tcc_concluido thead th,
 .entrega_de_atividades thead th,
 .atividades_vs_notas thead th,
 .boletim thead th {
   height: 50px !important;
 }
+
+.tcc_entrega_atividades .estudante,
+.tcc_concluido .estudante,
 .entrega_de_atividades .estudante,
 .atividades_vs_notas .estudante,
 .boletim .estudante {
   font-size: 12px !important;
 }
 
-.atividades_nota_atribuida .c_body
+
+/*.tcc_consolidado .c1,*/
+/*.tcc_consolidado .c_body,*/
+/*.tcc_consolidado .ultima_atividade,*/
+.atividades_nota_atribuida .c1,
+.atividades_nota_atribuida .c_body,
 .atividades_nota_atribuida .ultima_atividade {
-  width: 35px !important;
-  height: 50px !important;
+  width: 43px !important;
+  height: 30px !important;
   text-align: center !important;
-  padding: 1px !important;
-  padding-top: 10px;
   font-size: 12px !important;
-  /* opacity: 0.5; */
+  word-wrap: break-word !important;
 }
 
+.atividades_concluidas_agrupadas .c1,
+.atividades_concluidas_agrupadas .c_body,
+.modulos_concluidos .c1,
+.modulos_concluidos .c_body,
 .estudante_sem_atividade_avaliada .c1,
 .estudante_sem_atividade_avaliada .c_body,
 .estudante_sem_atividade_postada .c1,
@@ -400,38 +463,35 @@ legend {
 .atividades_concluidas_agrupadas .c1,
 .atividades_concluidas_agrupadas .c_body {
   width: 90px !important;
-  height: 50px !important;
-  text-align: center !important;
-  padding: 2px !important;
-  padding-top: 10px;
-  font-size: 12px !important;
-  word-wrap: break-word !important;
+  /*height: 50px !important;*/
+  /*text-align: center !important;*/
+  /*padding: 2px !important;*/
+  /*padding-top: 10px;*/
+  /*font-size: 12px !important;*/
+  /*word-wrap: break-word !important;*/
 }
 
+/*.atividades_nota_atribuida .c1,*/
+/*.atividades_nota_atribuida .c_body,*/
+.tcc_consolidado .c1,
+.tcc_consolidado .c_body,
 .avaliacoes_em_atraso .c1,
 .avaliacoes_em_atraso .c_body {
-  width: 40px !important;
-  height: 50px !important;
   text-align: center !important;
-  padding-top: 2px;
-  padding-bottom: 2px;
+  padding: 4px;
   font-size: 12px !important;
   word-wrap: break-word !important;
 }
-.avaliacoes_em_atraso th.estudante_header {
-  width: 135px;
-  padding-bottom: 50px;
-}
 
-.avaliacoes_em_atraso th.estudante {
-  width: 200px;
-}
-
+.tcc_consolidado .r1:first-child,
 .avaliacoes_em_atraso .r1:first-child {
   height: 200px;
 }
 
 .atividades_vs_notas th td,
+.tcc_entrega_atividades th td,
+.tcc_concluido th td,
+/*.tcc_consolidado th td,*/
 .entrega_de_atividades th td {
   height: 200px;
 }
@@ -447,36 +507,24 @@ legend {
   word-wrap: break-word !important;
 }
 
-.tcc_concluido .c1,
-.tcc_concluido .c_body,
-.modulos_concluidos .c1,
-.modulos_concluidos .c_body {
-  width: 100px !important;
-  height: 50px !important;
-  text-align: center !important;
-  padding: 2px !important;
-  /* padding-top: 10px;*/
-  font-size: 12px !important;
-  word-wrap: break-word !important;
-}
-.modulos_concluidos th.estudante_header {
-    width: 100px !important;
-    /*padding-bottom: 50px;*/
-}
+/*.modulos_concluidos .c1,*/
+/*.modulos_concluidos .c_body {*/
+  /*width: 100px !important;*/
+  /*height: 50px !important;*/
+  /*text-align: center !important;*/
+  /*padding: 2px !important;*/
+  /*font-size: 12px !important;*/
+  /*word-wrap: break-word !important;*/
+/*}*/
 
-.modulos_concluidos th.estudante {
-    width: 100px !important;
-}
-
-.modulos_concluidos .r1:first-child {
-    height: 200px;
-}
+/*.modulos_concluidos .r1:first-child {*/
+    /*height: 200px;*/
+/*}*/
 
 .relatorio-unasus .uso_sistema_tutor .c_body,
 .relatorio-unasus .acesso_tutor .c_body {
     max-width: 30px !important;
     min-width: 30px !important;
-    /*width: 43px !important;*/
     padding: 2px !important;
     margin: 0 !important;
     font-size: 16px !important;
@@ -496,18 +544,6 @@ legend {
     padding: 0px;
 }
 
-
-
-/* .navbar .nav>li>a, .navbar .nav>li>a:hover, .usermenu .login, .usermenu .moodle-actionmenu .toggle-display .userbutton {
-	margin-top: 0!important;
-} */
-table.flexible thead th .r1,
-.generaltable thead th .r1,
-.generaltable_without_stripes thead th .r1{
-  vertical-align: bottom !important;
-  padding-top: 30px !important;
-}
-
 /*//////////////// Trava da tabela ////////////////*/
 .relatorio-unasus thead,
 .relatorio-unasus tbody {
@@ -520,42 +556,12 @@ table.flexible thead th .r1,
   margin-right: -15px;
 }
 
-/*//////////////////////////////////////////////////*/
-table.flexible th,
-.generaltable th,
-table.generaltable_without_stripes th,
-table.flexible td,
-table.generaltable td,
-table.generaltable_without_stripes td,{
-  padding: 8px;
-  line-height: 20px;
-  vertical-align: middle !important;
-}
-
-/* .r1 .th {
-width: 75px !important;
-height: 80px !important;
-} */
-/* th .cell {
-width: 78px !important;
-height: 80px !important;
-padding: 0 !important;
-overflow: hidden;
-} */
-/* .r1 .fixed td {
-width: 50px;
-border: none;
-} */
 .relatorio-unasus.fieldset {
   background-color: #f5f5f5 !important;
 }
 
 .relatorio-unasus legend {
   margin-bottom: 0 !important;
-}
-
-.relatorio-unasus th.estudante {
-  background-color: #FFFFFF !important;
 }
 
 .relatorio-unasus table {
@@ -572,6 +578,7 @@ border: none;
   text-align: center;
 }
 
+.relatorio-unasus.tcc_entrega_atividades .avaliado,
 .relatorio-unasus .avaliado,
 .relatorio-unasus.atividades_vs_notas .nota_atribuida,
 .relatorio-unasus.historico_atribuicao_notas .nao_entregue {
@@ -579,6 +586,8 @@ border: none;
   color: #FFFFFF !important;
 }
 
+.relatorio-unasus.tcc_entrega_atividades .rascunho,
+.relatorio-unasus.tcc_concluido .concluido,
 .relatorio-unasus.atividades_vs_notas .nota_atribuida_atraso,
 .relatorio-unasus .concluido,
 .relatorio-unasus.boletim .na_media,
@@ -591,12 +600,14 @@ border: none;
 }
 
 .relatorio-unasus .media,
-.relatorio-unasus.potenciais_evasoes .parcial {
+.relatorio-unasus.potenciais_evasoes .parcial,
+.relatorio-unasus.tcc_entrega_atividades .revisao {
   background-color: #FCFF76 !important;
   color: #000000 !important;
 }
 
-.relatorio-unasus.acesso_tutor .nao_acessou {
+.relatorio-unasus.acesso_tutor .nao_acessou,
+.relatorio-unasus.tcc_entrega_atividades .nao_aplicado {
   background-color: #FF886E !important;
   color: #000000 !important;
 }
@@ -681,7 +692,7 @@ thead {
   color: #000000;
 }
 
-/* 
+/*
 $preto: #000000;
 $branco: #FFFFFF;
 $cinzaclaro: #f5f5f5;
@@ -693,6 +704,6 @@ $vermelho: #FF886E;
 $rosa: #DB8AFF;
 $lilas: #CC01FF;
 $azul: blue;
-$azulescuro: #004E95; 
+$azulescuro: #004E95;
 */
 
