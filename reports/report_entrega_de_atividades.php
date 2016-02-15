@@ -118,24 +118,36 @@ class report_entrega_de_atividades extends report_unasus_factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+        $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
+        $atividades_config_curso = report_unasus_get_activities_config_report($categoria_turma_ufsc, $modulos_ids);
 
         // Recupera dados auxiliares
-        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
-
-        $atividade_tcc = new report_unasus_lti_tcc();
+        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($categoria_turma_ufsc);
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($categoria_turma_ufsc, $this->tutores_selecionados);
 
         $dados = array();
 
         // Para cada grupo de tutoria
-        foreach ($grupos as $grupo) {
+        foreach ($grupos as $group_id => $grupo) {
             $estudantes = array();
+            $lista_atividades = array();
+
+            $estudantes_grupo = local_tutores_grupos_tutoria::get_estudantes_grupo_tutoria($categoria_turma_ufsc,
+                $group_id);
+
             foreach ($this->atividades_cursos as $courseid => $atividades) {
-                array_push($atividades, $atividade_tcc);
 
                 foreach ($atividades as $atividade) {
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
+
+                    // verifica se está faltando algun estudante nos resultados
+                    $estudantes_adicionar = array_diff_key($estudantes_grupo, $result);
+
+                    // Se estiver adiciona
+                    foreach ($estudantes_adicionar as $estudante) {
+                        $estudante->userid = $estudante->id;
+                        $result[$estudante->id] = $estudante;
+                    }
 
                     foreach ($result as $r) {
 
@@ -212,18 +224,19 @@ class report_entrega_de_atividades extends report_unasus_factory {
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
+                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($categoria_turma_ufsc, $grupo->id)] = $estudantes;
             }
 
-            $lista_atividades = null;
+            //$lista_atividades = null;
         }
 
         return $dados;
     }
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
+        $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
+        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
 
-        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
@@ -236,23 +249,23 @@ class report_entrega_de_atividades extends report_unasus_factory {
             }
         }
 
-        $modulos_ids = $this->get_modulos_ids();
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
-
-        if (array_search(1, $atividades_config_curso)) {
-            foreach ($header as $key => $modulo) {
-                if (!isset($modulo[0]->course_id)){
-                    break;
-                }
-
-                $course_id = $modulo[0]->course_id;
-
-                if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
-                    array_push($modulo, 'TCC');
-                    $header[$key] = $modulo;
-                }
-            }
-        }
+//        $modulos_ids = $this->get_modulos_ids();
+//        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+//
+//        if (array_search(1, $atividades_config_curso)) {
+//            foreach ($header as $key => $modulo) {
+//                if (!isset($modulo[0]->course_id)){
+//                    break;
+//                }
+//
+//                $course_id = $modulo[0]->course_id;
+//
+//                if($course_id == constant('TCC-Turma-B') || $course_id == constant('TCC-Turma-A')){
+//                    array_push($modulo, 'TCC');
+//                    $header[$key] = $modulo;
+//                }
+//            }
+//        }
 
         return $header;
     }

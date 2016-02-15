@@ -336,7 +336,8 @@ class report_unasus_renderer extends plugin_renderer_base {
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
                         $cell->header = true;
-                        $cell->attributes = array('class' => 'relatorio-unasus estudante ultima_atividade c_body');
+                        // $cell->attributes = array('class' => 'relatorio-unasus estudante ultima_atividade c_body');
+                        $cell->attributes = array('class' => 'relatorio-unasus estudante');
                     }
 
                     $row->cells[] = $cell;
@@ -385,7 +386,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                         'class' => "relatorio-unasus " . $valor->get_css_class());
                 } else { // Aluno
                     $cell->header = true;
-                    $cell->attributes = array('class' => 'relatorio-unasus estudante c_body');
+                    $cell->attributes = array('class' => 'relatorio-unasus estudante ');
                 }
 
                 $row->cells[] = $cell;
@@ -626,7 +627,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::end_tag('tr');
             $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r1'));
 
-            $output .= html_writer::tag('th', 'Estudante', array('class' => 'relatorio-unasus ultima_atividade title estudante'));
+            $output .= html_writer::tag('th', 'Estudante', array('class' => 'relatorio-unasus ultima_atividade title estudante_header'));
 
             foreach ($report->get_table_header() as $module_name => $activities) {
                 $count_ = 1;

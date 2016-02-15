@@ -330,10 +330,12 @@ class report_unasus_factory {
         return $header;
     }
 
-    function get_table_header_tcc_portfolio_entrega_atividades($is_tcc = false) {
+    function get_table_header_tcc_atividades($is_tcc = false) {
 
         $group_array = new report_unasus_GroupArray();
-        report_unasus_process_header_atividades_lti($this->get_modulos_ids(), $group_array, $is_tcc);
+
+        // Busca os dados dos capítulos dos TCCs e coloca em $group_array
+        report_unasus_process_header_tcc_atividades($this->get_modulos_ids(), $group_array, $is_tcc);
 
         $atividades_cursos = $group_array->get_assoc();
         $header = array();

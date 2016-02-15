@@ -88,19 +88,22 @@ class report_boletim extends report_unasus_factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
+        $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
+        $atividades_config_curso = report_unasus_get_activities_config_report($categoria_turma_ufsc, $modulos_ids);
 
         // Recupera dados auxiliares
-        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
+        $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($categoria_turma_ufsc);
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($categoria_turma_ufsc, $this->tutores_selecionados);
 
         $atividade_nota_final = new \StdClass();
 
         $dados = array();
 
         // Para cada grupo de tutoria
-        foreach ($grupos as $grupo) {
-            $estudantes = array();
+        foreach ($grupos as $group_id => $grupo) {
+            $lista_atividades = array();
+            $estudantes_grupo = local_tutores_grupos_tutoria::get_estudantes_grupo_tutoria($categoria_turma_ufsc,
+                $group_id);
 
             foreach ($this->atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
@@ -108,6 +111,15 @@ class report_boletim extends report_unasus_factory {
                 foreach ($atividades as $atividade) {
 
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+
+                    // verifica se está faltando algun estudante nos resultados
+                    $estudantes_adicionar = array_diff_key($estudantes_grupo, $result);
+
+                    // Se estiver adiciona
+                    foreach ($estudantes_adicionar as $estudante) {
+                        $estudante->userid = $estudante->id;
+                        $result[$estudante->id] = $estudante;
+                    }
 
                     foreach ($result as $r){
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
@@ -141,10 +153,10 @@ class report_boletim extends report_unasus_factory {
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
+                $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($categoria_turma_ufsc, $grupo->id)] = $estudantes;
             }
 
-            $lista_atividades = null;
+            //$lista_atividades = null;
         }
 
         return $dados;
@@ -154,7 +166,8 @@ class report_boletim extends report_unasus_factory {
 
         $modulos_ids = $this->get_modulos_ids();
 
-        $atividades_cursos = report_unasus_get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $this->get_categoria_turma_ufsc());
+        $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
+        $atividades_cursos = report_unasus_get_atividades_cursos($modulos_ids, $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {

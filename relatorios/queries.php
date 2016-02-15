@@ -213,6 +213,28 @@ function query_acesso_tutor() {
           ORDER BY calendar_year, calendar_month, calendar_day";
 }
 
+function query_lti_activity() {
+
+    return "SELECT l.id,l.course, l.name, l.timecreated,
+                   l.timemodified, l.grade, l.typeid,
+                   t.name AS typename, t.baseurl,
+                   cm.id as cmid, cm.completionexpected, cm.groupingid as grouping_id,
+                   co.fullname as coursename
+              FROM {lti} l
+              JOIN {lti_types} t
+                ON (l.typeid=t.id )
+              JOIN {course} co
+                ON (l.course=co.id)
+              JOIN {course_modules} cm
+                ON (l.course=cm.course AND cm.instance=l.id)
+              JOIN {modules} m
+                ON (m.id = cm.module AND m.name LIKE 'lti')
+             WHERE l.course = :course
+                -- AND cm.visible=TRUE
+               AND l.id = :lti_id
+                ";
+}
+
 function query_lti_activities() {
 
     return "SELECT l.id,l.course, l.name, l.timecreated,
@@ -229,7 +251,9 @@ function query_lti_activities() {
                 ON (l.course=cm.course AND cm.instance=l.id)
               JOIN {modules} m
                 ON (m.id = cm.module AND m.name LIKE 'lti')
-             WHERE l.course =:course AND cm.visible=TRUE";
+             WHERE l.course = :course
+                -- AND cm.visible=TRUE
+                ";
 }
 
 function query_lti_activities_config() {
@@ -865,6 +889,7 @@ class LtiPortfolioQuery {
 
             $model->cohort = $estudante->cohort;
             $model->polo = $estudante->polo;
+            $model->coursemoduleid = $atividade->coursemoduleid;
 
             $model->grade_tcc = $r->tcc->grade;
 

@@ -52,6 +52,25 @@ abstract class report_unasus_activity {
         return (!empty($this->grouping));
     }
 
+    /**
+     * Monta a forma de apresentação do nome da atividade padrão
+     *
+     * @return string Contendo o nome da atividade devidamente formatado
+     */
+    protected function formatted_name() {
+//        $initial_name = explode(' ', substr($this->name, 0, 8))[0];
+//
+//        $final_name = trim(substr(substr($this->name, 8),-7));
+//        $final_name = (strlen($final_name) == 0) ? '' : "<br>...$final_name";
+
+//        $initial_name = $this->name;
+        $initial_name = substr($this->name, 0, 30);
+        $final_name = '';
+
+
+        return $initial_name.$final_name;
+    }
+
     abstract function __toString();
 }
 
@@ -65,6 +84,7 @@ abstract class report_unasus_activity_config {
     public $course_id;
     public $course_name;
     public $grouping;
+    public $config;
 
     public function __construct($has_submission, $has_grade) {
         if (!is_bool($has_submission) || !is_bool($has_grade)) {
@@ -101,7 +121,7 @@ abstract class report_unasus_activity_config {
     }
 }
 
-class report_unasus_assign_activity_config {
+class report_unasus_assign_activity_report_config {
 
     public function __construct($db_model) {
 
@@ -132,13 +152,14 @@ class report_unasus_assign_activity extends report_unasus_activity {
     }
 
     public function __toString() {
-        $name = explode(' ', substr($this->name, 0, 6))[0];
+
+        $name = $this->formatted_name();
         $atividade_url = new moodle_url('/mod/assign/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
         return html_writer::link($atividade_url, $name, array('target' => '_blank'));
     }
 }
 
-class report_unasus_forum_activity_config {
+class report_unasus_forum_activity_report_config {
 
     public function __construct($db_model) {
 
@@ -165,14 +186,14 @@ class report_unasus_forum_activity extends report_unasus_activity {
     }
 
     public function __toString() {
-        $name = $this->name == 'Fórum de debates' ? 'Fórum' : explode(' ', substr($this->name, 0, 6))[0];;
+        $name = $this->formatted_name();
         $forum_url = new moodle_url('/mod/forum/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
         return html_writer::link($forum_url, $name, array('target' => '_blank'));
     }
 
 }
 
-class report_unasus_quiz_activity_config {
+class report_unasus_quiz_activity_report_config {
 
     public function __construct($db_model) {
 
@@ -212,7 +233,9 @@ class report_unasus_quiz_activity extends report_unasus_activity {
                 $name = 'Q.Dent.';
                 break;
             default:
-                $name = 'Quest.';
+                $name = $this->formatted_name();
+
+
         }
 
         $quiz_url = new moodle_url('/mod/quiz/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
@@ -221,7 +244,7 @@ class report_unasus_quiz_activity extends report_unasus_activity {
 
 }
 
-class report_unasus_db_activity_config {
+class report_unasus_db_activity_report_config {
 
     public function __construct($db_model) {
 
@@ -248,14 +271,14 @@ class report_unasus_db_activity extends report_unasus_activity {
     }
 
     public function __toString() {
-        $name = explode(' ', substr($this->name, 0, 6))[0];
+        $name = $this->formatted_name();
         $db_url = new moodle_url('/mod/data/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
         return html_writer::link($db_url, $name, array('target' => '_blank'));
     }
 
 }
 
-class report_unasus_scorm_activity_config {
+class report_unasus_scorm_activity_report_config {
 
     public function __construct($db_model) {
 
@@ -282,14 +305,14 @@ class report_unasus_scorm_activity extends report_unasus_activity {
     }
 
     public function __toString() {
-        $name = explode(' ', substr($this->name, 0, 6))[0];
+        $name = $this->formatted_name();
         $scorm_url = new moodle_url('/mod/scorm/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
         return html_writer::link($scorm_url, $name, array('target' => '_blank'));
     }
 
 }
 
-class report_unasus_lti_activity_config {
+class report_unasus_lti_activity_report_config {
 
     public function __construct($db_model) {
 
@@ -302,25 +325,27 @@ class report_unasus_lti_activity_config {
 
 class report_unasus_lti_activity extends report_unasus_activity {
 
-    public function __construct($db_model) {
+    public function __construct($db_model, $config) {
         parent::__construct(false, true); //$has_submission, $has_grade
         $this->id = $db_model->lti_id;
         $this->name = $db_model->name;
         $this->deadline = $db_model->completionexpected;
-        # $this->position = $db_model->position;
+        $this->position = $db_model->position;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        # $this->baseurl = $db_model->baseurl;
-        # $this->consumer_key = $db_model->consumer_key;
+        $this->baseurl = $db_model->baseurl;
+        $this->consumer_key = $db_model->consumer_key;
         $this->grouping = $db_model->grouping_id;
+        $this->custom_parameters = $db_model->custom_parameters;
+        $this->config = $config;
     }
 
     /**
      * @todo verificar parametro 'lti', tá vindo vazio e dado erro na linha seguinte $cm->id
      */
     public function __toString() {
-        $name = explode(' ', substr($this->name, 0, 6))[0];
+        $name = $this->formatted_name();
         $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
         return html_writer::link($lti_url, $name, array('target' => '_blank'));
     }
@@ -331,9 +356,31 @@ class report_unasus_lti_activity extends report_unasus_activity {
 
 }
 
-class report_unasus_lti_tcc {
+class report_unasus_lti_activity_tcc extends report_unasus_lti_activity{
 
-    public function __construct() {
+    public $tcc_definition;
+
+    public function __construct($db_model, $config, $tcc_definition) {
+        parent::__construct($db_model, $config);
+        $this->tcc_definition = $tcc_definition;
+    }
+}
+
+class report_unasus_chapter_tcc_activity extends report_unasus_activity {
+
+    public function __construct($db_model, $source_activity) {
+        parent::__construct(false, false); //$has_submission, $has_grade
+        $this->id = $db_model->id;
+        $this->name = $db_model->title;
+        $this->position = $db_model->position;
+        $this->created_at = $db_model->created_at;
+        $this->updated_at = $db_model->updated_at;
+        $this->source_activity = $source_activity;
+    }
+
+    public function __toString() {
+        $name = $this->formatted_name();
+        return html_writer::label(substr($this->source_activity->name.' - '.$name, 0, 30), null, false, array('class' => 'c_body'));
     }
 
 }
@@ -801,7 +848,7 @@ class report_unasus_data_lti extends report_unasus_data {
 
 }
 
-class report_unasus_data_lti_TCC extends report_unasus_data_lti {
+class report_unasus_data_lti_tcc extends report_unasus_data_lti {
 
     public $status;
     public $state_date;
@@ -810,9 +857,10 @@ class report_unasus_data_lti_TCC extends report_unasus_data_lti {
     private static $submitted_status = array('review', 'draft'); // Revisão e Rascunho
     private static $evaluated_status = array('done'); // Avaliado
 
-    public function __construct($db_model) {
-
+    public function __construct(report_unasus_activity &$source_activity, $db_model) {
+        parent::__construct($source_activity, $db_model);
         $this->userid = $db_model->userid;
+        $this->coursemoduleid = $db_model->coursemoduleid;
         $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
         $this->polo = $db_model->polo;
         $this->status = $db_model->status;

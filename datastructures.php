@@ -658,6 +658,10 @@ class report_unasus_dado_atividades_alunos_render extends report_unasus_data_ren
         $this->count++;
     }
 
+    public function decrementar() {
+        $this->count--;
+    }
+
     public function get_total() {
         return $this->total;
     }
@@ -690,6 +694,59 @@ class report_unasus_dado_atividades_alunos_render extends report_unasus_data_ren
  * Class dado_somatorio_grupo
  * Relatorio TCC consolidados
  */
+class report_unasus_dado_somatorio_grupo_lti_render extends report_unasus_data_render {
+
+    private $soma = array();
+
+    private function init($grupo, $lti, $id) {
+        if (!array_key_exists($grupo, $this->soma)) {
+            $this->soma[$grupo] = array();
+        }
+        if (!array_key_exists($lti, $this->soma[$grupo])) {
+            $this->soma[$grupo][$lti] = array();
+        }
+        if (!array_key_exists($id, $this->soma[$grupo][$lti])) {
+            $this->soma[$grupo][$lti][$id] = 0;
+        }
+    }
+
+    public function  inc($grupo, $lti, $id, $bool = true) {
+        $this->init($grupo, $lti, $id);
+        if ($bool) {
+            $this->soma[$grupo][$lti][$id]++;
+        }
+    }
+
+    public function add($grupo, $lti, $id, $value) {
+        $this->init($grupo, $lti, $id);
+        $this->soma[$grupo][$lti][$id] += $value;
+    }
+
+    public function get($grupo = null, $lti = null, $id = null) {
+        if (!is_null($grupo) && !is_null($lti) && !is_null($id)) {
+            return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo][$lti][$id] : 0;
+        } elseif (!is_null($grupo) && !is_null($lti)) {
+            return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo][$id] : 0;
+        } elseif (!is_null($grupo)) {
+            return array_key_exists($grupo, $this->soma) ? $this->soma[$grupo] : 0;
+        }
+
+        return $this->soma;
+    }
+
+    public function get_css_class() {
+        return '';
+    }
+
+    public function toString() {
+        return '';
+    }
+}
+
+/**
+ * Class dado_somatorio_grupo
+ * Relatorio TCC consolidados
+ */
 class report_unasus_dado_somatorio_grupo_render extends report_unasus_data_render {
 
     private $soma = array();
@@ -703,7 +760,7 @@ class report_unasus_dado_somatorio_grupo_render extends report_unasus_data_rende
         }
     }
 
-    public function inc($grupo, $id, $bool = true) {
+    public function  inc($grupo, $id, $bool = true) {
         $this->init($grupo, $id);
         if ($bool) {
             $this->soma[$grupo][$id]++;
