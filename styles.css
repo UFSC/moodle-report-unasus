@@ -380,10 +380,6 @@ legend {
   white-space: nowrap;
 }
 
-.relatorio-unasus .atividades_vs_notas thead th {
-  height: 50px !important;
-}
-
 .tcc_entrega_atividades .c1,
 .tcc_entrega_atividades .c_body,
 .tcc_concluido .c1,
@@ -415,6 +411,7 @@ legend {
 
 .tcc_entrega_atividades thead th,
 .tcc_concluido thead th,
+.atividades_vs_notas thead th,
 .entrega_de_atividades thead th,
 .atividades_vs_notas thead th,
 .boletim thead th {
