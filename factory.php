@@ -55,7 +55,9 @@ class report_unasus_factory {
     public $mostrar_botoes_dot_chart;
     public $mostrar_filtro_polos;
     public $mostrar_filtro_modulos;
+    public $mostrar_filtro_grupo_tutoria;
     public $mostrar_filtro_tutores;
+    public $mostrar_filtro_grupos_orientacao;
     public $mostrar_filtro_orientadores;
     public $mostrar_filtro_intervalo_tempo;
     public $mostrar_aviso_intervalo_tempo;
@@ -313,7 +315,6 @@ class report_unasus_factory {
     }
 
     function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
-        /** @var $factory report_unasus_factory */
         $factory = report_unasus_factory::singleton();
 
         $atividades_cursos = report_unasus_get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $factory->get_categoria_turma_ufsc());

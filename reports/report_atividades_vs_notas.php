@@ -5,7 +5,8 @@ defined('MOODLE_INTERNAL') || die;
 class report_atividades_vs_notas extends report_unasus_factory {
 
     protected function initialize() {
-        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_filtro_grupo_tutoria = true;
+        $this->mostrar_filtro_tutores = false;
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = true;
         $this->mostrar_botoes_dot_chart = false;
@@ -190,7 +191,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
 
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($categoria_turma_ufsc);
-        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($categoria_turma_ufsc, $this->tutores_selecionados);
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria_new($categoria_turma_ufsc, $this->tutores_selecionados);
 
         $dados = array();
         $atraso = 0;
@@ -214,6 +215,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
                     foreach ($estudantes_adicionar as $estudante) {
                         $estudante->userid = $estudante->id;
                         $result[$estudante->id] = $estudante;
+                        $result[$estudante->id]->name_activity = substr(get_class($atividade), 14);
                     }
 
                     foreach ($result as $r) {
@@ -287,7 +289,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
 
                         if(isset($atividade->id)){
                             if (array_search($atividade->id, $atividades_config_curso)){
-                                $lista_atividades[$r->userid][$atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
+                                $lista_atividades[$r->userid][$atividade->course_id.'|'.$atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
                             }
                         }
                     }
@@ -302,8 +304,6 @@ class report_atividades_vs_notas extends report_unasus_factory {
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
                 $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($categoria_turma_ufsc, $grupo->id)] = $estudantes;
             }
-
-            //$lista_atividades = null;
         }
 
         return $dados;
@@ -321,7 +321,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
 
         $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
-        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
+        $atividades_cursos = report_unasus_get_atividades_cursos($this->modulos_selecionados, $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
 
         $header = array();
 

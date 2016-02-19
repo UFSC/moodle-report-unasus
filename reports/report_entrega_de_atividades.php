@@ -5,7 +5,8 @@ defined('MOODLE_INTERNAL') || die;
 class report_entrega_de_atividades extends report_unasus_factory {
 
     protected function initialize() {
-        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_filtro_grupo_tutoria = true;
+        $this->mostrar_filtro_tutores = false;
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = true;
         $this->mostrar_botoes_dot_chart = false;
@@ -123,7 +124,8 @@ class report_entrega_de_atividades extends report_unasus_factory {
 
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($categoria_turma_ufsc);
-        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($categoria_turma_ufsc, $this->tutores_selecionados);
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria_new($categoria_turma_ufsc, $this->tutores_selecionados);
+
 
         $dados = array();
 
@@ -138,6 +140,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
             foreach ($this->atividades_cursos as $courseid => $atividades) {
 
                 foreach ($atividades as $atividade) {
+                    // $result contém a lista dos estudantes com os dados da atividade
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
                     // verifica se está faltando algun estudante nos resultados
@@ -147,6 +150,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                     foreach ($estudantes_adicionar as $estudante) {
                         $estudante->userid = $estudante->id;
                         $result[$estudante->id] = $estudante;
+                        $result[$estudante->id]->name_activity = substr(get_class($atividade), 14);
                     }
 
                     foreach ($result as $r) {
@@ -212,7 +216,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_entrega_de_atividades_render($tipo, 0);
 
                         } else if (isset($atividade->id) && array_search($atividade->id, $atividades_config_curso)){
-                            $lista_atividades[$r->userid][$atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
+                            $lista_atividades[$r->userid][$atividade->course_id.'|'.$atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
                         }
                     }
 
@@ -220,7 +224,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                     if(!empty($lista_atividades)){
                         $estudantes = $lista_atividades;
                     }
-                }
+                } // para cada atividade
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
@@ -235,18 +239,14 @@ class report_entrega_de_atividades extends report_unasus_factory {
 
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
         $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
-        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
 
+        $this->atividades_cursos = report_unasus_get_atividades_cursos($this->modulos_selecionados, $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
         $header = array();
 
-        foreach ($atividades_cursos as $course_id => $atividades) {
+        foreach ($this->atividades_cursos as $course_id => $atividades) {
             $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
             $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
-            if($course_id == 130) {
-                return $header;
-            } else {
-                $header[$course_link] = $atividades;
-            }
+            $header[$course_link] = $atividades;
         }
 
 //        $modulos_ids = $this->get_modulos_ids();

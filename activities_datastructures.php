@@ -9,6 +9,8 @@ defined('MOODLE_INTERNAL') || die;
  */
 abstract class report_unasus_activity {
 
+    const MAX_NAME_LENGTH = 22;
+
     public $id;
     public $name;
     public $deadline;
@@ -64,7 +66,7 @@ abstract class report_unasus_activity {
 //        $final_name = (strlen($final_name) == 0) ? '' : "<br>...$final_name";
 
 //        $initial_name = $this->name;
-        $initial_name = substr($this->name, 0, 30);
+        $initial_name = substr($this->name, 0, self::MAX_NAME_LENGTH);
         $final_name = '';
 
 
@@ -325,19 +327,26 @@ class report_unasus_lti_activity_report_config {
 
 class report_unasus_lti_activity extends report_unasus_activity {
 
+    public $position;
+    public $coursemoduleid;
+    public $baseurl;
+    public $consumer_key;
+    public $custom_parameters;
+    public $config;
+
     public function __construct($db_model, $config) {
         parent::__construct(false, true); //$has_submission, $has_grade
         $this->id = $db_model->lti_id;
         $this->name = $db_model->name;
         $this->deadline = $db_model->completionexpected;
-        $this->position = $db_model->position;
+        $this->position = isset($db_model->position) ? $db_model->position : null;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        $this->baseurl = $db_model->baseurl;
-        $this->consumer_key = $db_model->consumer_key;
+        $this->baseurl = isset($db_model->baseurl) ? $db_model->baseurl : null;
+        $this->consumer_key = isset($db_model->consumer_key) ? $db_model->consumer_key : null;
         $this->grouping = $db_model->grouping_id;
-        $this->custom_parameters = $db_model->custom_parameters;
+        $this->custom_parameters = isset($db_model->custom_parameters) ? $db_model->custom_parameters : null;
         $this->config = $config;
     }
 
@@ -368,6 +377,11 @@ class report_unasus_lti_activity_tcc extends report_unasus_lti_activity{
 
 class report_unasus_chapter_tcc_activity extends report_unasus_activity {
 
+    public $position;
+    public $created_at;
+    public $updated_at;
+    public $source_activity;
+
     public function __construct($db_model, $source_activity) {
         parent::__construct(false, false); //$has_submission, $has_grade
         $this->id = $db_model->id;
@@ -380,7 +394,8 @@ class report_unasus_chapter_tcc_activity extends report_unasus_activity {
 
     public function __toString() {
         $name = $this->formatted_name();
-        return html_writer::label(substr($this->source_activity->name.' - '.$name, 0, 30), null, false, array('class' => 'c_body'));
+        return html_writer::label(substr($this->source_activity->name.' - '.$name, 0, self::MAX_NAME_LENGTH),
+            null, false, array('class' => 'c_body'));
     }
 
 }
@@ -768,6 +783,10 @@ class report_unasus_data_quiz extends report_unasus_data {
 
 class report_unasus_data_db extends report_unasus_data {
 
+    public $databaseid;
+    public $grademax;
+    public $itemname;
+
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
 
@@ -787,6 +806,9 @@ class report_unasus_data_db extends report_unasus_data {
 
 class report_unasus_data_scorm extends report_unasus_data {
 
+    public $scormid;
+    public $grademax;
+    public $itemname;
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
 
@@ -817,18 +839,23 @@ class report_unasus_data_scorm extends report_unasus_data {
 
 class report_unasus_data_lti extends report_unasus_data {
 
+    public $lti_id;
+    public $grademax;
+    public $itemname;
+
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
-        $this->lti_id = $db_model->lti_id;
-        if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float) $db_model->grade;
+        $this->lti_id = isset($db_model->lti_id) ? $db_model->lti_id : null;
+        $grade = isset($db_model->grade) ? $db_model->grade : null;
+        if (!is_null($grade) && $grade != -1) {
+            $this->grade = (float) $grade;
         }
-        $this->grademax = $db_model->grademax;
-        $this->itemname = $db_model->itemname;
-        $this->submission_date = $db_model->submission_date;
-        $this->grade_date = $db_model->submission_date;
+        $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
+        $this->itemname = isset($db_model->itemname) ? $db_model->itemname : null;
+        $this->submission_date = isset($db_model->submission_date) ? $db_model->submission_date : null;
+        $this->grade_date = isset($db_model->submission_date) ? $db_model->submission_date : null;
     }
 
     public function has_grade() {
@@ -853,6 +880,8 @@ class report_unasus_data_lti_tcc extends report_unasus_data_lti {
     public $status;
     public $state_date;
     public $grade_tcc;
+    public $coursemoduleid;
+    public $grademax;
 
     private static $submitted_status = array('review', 'draft'); // Revisão e Rascunho
     private static $evaluated_status = array('done'); // Avaliado
@@ -866,7 +895,7 @@ class report_unasus_data_lti_tcc extends report_unasus_data_lti {
         $this->status = $db_model->status;
         $this->state_date = $db_model->state_date;
         $this->grade_tcc = $db_model->grade_tcc;
-        $this->grademax = $db_model->grademax;
+        $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
     }
 
     public function has_submitted() {

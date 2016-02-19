@@ -8,7 +8,8 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
         $this->mostrar_filtro_tutores = false;
 
         // Filtro orientadores
-        $this->mostrar_filtro_orientadores = true;
+        $this->mostrar_filtro_grupos_orientacao = true;
+        $this->mostrar_filtro_orientadores = false;
 
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
@@ -114,7 +115,7 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
 
         foreach ($atividades_cursos as $course_module_id => $atividades) {
             if (!empty($atividades)) {
-                $course_url = new moodle_url('/mod/lti/view.php', array('id' => $atividades[0]->course_module_id, 'target' => '_blank'));
+                $course_url = new moodle_url('/course/view.php', array('id' => $atividades[0]->course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
                 $atividades_curso_array = array();
 

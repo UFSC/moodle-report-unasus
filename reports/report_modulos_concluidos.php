@@ -10,7 +10,8 @@ require_once($CFG->libdir . '/datalib.php');
 class report_modulos_concluidos extends report_unasus_factory {
 
     protected function initialize() {
-        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_filtro_grupo_tutoria = true;
+        $this->mostrar_filtro_tutores = false;
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
@@ -39,7 +40,7 @@ class report_modulos_concluidos extends report_unasus_factory {
 
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
-        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria_new($this->get_categoria_turma_ufsc(), $this->tutores_selecionados);
 
         $dados = array();
 

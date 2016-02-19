@@ -5,7 +5,8 @@ defined('MOODLE_INTERNAL') || die;
 class report_atividades_nota_atribuida extends report_unasus_factory {
 
     protected function initialize() {
-        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_filtro_grupo_tutoria = true;
+        $this->mostrar_filtro_tutores = false;
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
@@ -87,7 +88,8 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $query_scorm        = query_scorm_from_users();
         $query_lti          = query_lti_from_users();
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, null, false, $query_database, $query_scorm, $atividades_config_curso);
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti,
+            null, false, $query_database, $query_scorm, $atividades_config_curso);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
@@ -107,17 +109,17 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
 
             // passa pelos alunos do grupo
-            foreach ($array_dados as $aluno_id => $aluno) {
+            foreach ($array_dados as $aluno_id => $aluno_activities) {
                 $courseid = '';
                 $progress = null;
 
                 // passa por todas as atividades de cada aluno
-                foreach ($aluno as $atividade) {
+                foreach ($aluno_activities as $atividade) {
 
-                    if (isset($aluno[0]) &&
-                        $courseid != $aluno[0]->source_activity->course_id) {
+                    if (isset($atividade) &&
+                        $courseid != $atividade->source_activity->course_id) {
 
-                        $courseid = $aluno[0]->source_activity->course_id;
+                        $courseid = $atividade->source_activity->course_id;
 
                         $course_instance = get_course($courseid);
                         $info = new completion_info($course_instance);
@@ -173,9 +175,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                     }
 
                     $total_atividades++;
-                }
-            }
-        }
+                } // para cada atividade do estudante
+            } // para cada estudante
+        } // para cada grupo de tutoria
 
         //soma atividades concluidas
         $dados = array();
@@ -218,7 +220,7 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
             $dados[] = $data;
             $somatorio_total_alunos_atividades_concluidas += $somatorioalunosgrupos;
             $somatorio_total_alunos += $total_alunos[$grupo_id];
-        }
+        } // para cada grupo de tutoria
 
         //////////////////////////////
 

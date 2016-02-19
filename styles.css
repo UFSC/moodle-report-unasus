@@ -351,9 +351,9 @@ legend {
 }
 
 .relatorio-unasus .estudante {
-  /*max-width: 250px !important;*/
-  /*min-width: 135px !important;*/
-  width: 250px !important;
+  max-width: 250px !important;
+  min-width: 250px !important;
+  /*width: 250px !important;*/
   white-space: normal !important;
   word-wrap: break-word !important;
   padding-bottom: 5px;
@@ -362,7 +362,9 @@ legend {
 
 .relatorio-unasus th.estudante_header
 {
-  width: 249px !important;
+  max-width: 249px !important;
+  min-width: 249px !important;
+  /*width: 249px !important;*/
   height: 50px !important;
   padding-bottom: 20px;
   padding-top: 20px;
@@ -457,19 +459,19 @@ legend {
   word-wrap: break-word !important;
 }
 
-.atividades_concluidas_agrupadas .c1,
-.atividades_concluidas_agrupadas .c_body {
-  width: 90px !important;
-  /*height: 50px !important;*/
-  /*text-align: center !important;*/
-  /*padding: 2px !important;*/
-  /*padding-top: 10px;*/
-  /*font-size: 12px !important;*/
-  /*word-wrap: break-word !important;*/
+.modulos_concluidos .c1,
+.modulos_concluidos .c_body
+{
+  max-width: 90px !important;
+  min-width: 90px !important;
 }
 
-/*.atividades_nota_atribuida .c1,*/
-/*.atividades_nota_atribuida .c_body,*/
+.atividades_concluidas_agrupadas .c1,
+.atividades_concluidas_agrupadas .c_body {
+  max-width: 70px !important;
+  min-width: 70px !important;
+}
+
 .tcc_consolidado .c1,
 .tcc_consolidado .c_body,
 .avaliacoes_em_atraso .c1,

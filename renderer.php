@@ -138,20 +138,23 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'id' => 'report_hidden', 'value' => $report->get_relatorio()));
 
-        if ($report->mostrar_filtro_polos) {
-            // Dropdown list
-            $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
-
-            if($report->mostrar_filtro_tutores){
-                $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
-                $output .= html_writer::select(array('Tutores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
-            }
-
-            if($report->mostrar_filtro_orientadores){
-                $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
-                $output .= html_writer::select(array('Orientadores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
-            }
-        }
+//        Comentado, pois não está sendo usado! Deixar estas linhas para, se necessário no futuro, repor a
+//          funcionalidade
+//
+//        if ($report->mostrar_filtro_polos) {
+//            // Dropdown list
+//            $output .= html_writer::label('Agrupar relatório por: ', 'select_estado');
+//
+//            if($report->mostrar_filtro_tutores){
+//                $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
+//                $output .= html_writer::select(array('Tutores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+//            }
+//
+//            if($report->mostrar_filtro_orientadores){
+//                $selecao_agrupar_post = array_key_exists('agrupar_tutor_polo_select', $_POST) ? $_POST['agrupar_tutor_polo_select'] : '';
+//                $output .= html_writer::select(array('Orientadores', 'Polos', 'Cohorts'), 'agrupar_tutor_polo_select', $selecao_agrupar_post, false, array('id' => 'select_estado'));
+//            }
+//        }
 
         // Div para os 3 filtros
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
@@ -191,7 +194,15 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'relatorio-unasus multiple_list'));
             }
 
-            if ($report->mostrar_filtro_tutores) {
+            if ($report->mostrar_filtro_grupo_tutoria) {
+                // Filtro de Tutores
+                $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
+                $filter_tutores = html_writer::label('Filtrar Grupos de Tutoria:', 'multiple_tutor');
+                $filter_tutores .= html_writer::select(local_tutores_grupos_tutoria::get_grupos_tutoria_menu($report->get_categoria_turma_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+                $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
+                $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
+                $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'relatorio-unasus multiple_list'));
+            } elseif ($report->mostrar_filtro_tutores) {
                 // Filtro de Tutores
                 $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
                 $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
@@ -201,7 +212,16 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'relatorio-unasus multiple_list'));
             }
 
-            if ($report->mostrar_filtro_orientadores) {
+            if ($report->mostrar_filtro_grupos_orientacao) {
+                // Filtro de Grupos de Orientação
+                $selecao_orientadores_post = array_key_exists('orientadores', $_POST) ? $_POST['orientadores'] : '';
+                $filter_orientadores = html_writer::label('Filtrar Grupos de Orientação:', 'multiple_tutor');
+                $filter_orientadores .= html_writer::select(local_tutores_grupo_orientacao::get_orientadores_grupos($report->get_categoria_turma_ufsc()), 'orientadores[]', $selecao_orientadores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
+                $orientadores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
+                $orientadores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
+                $output .= html_writer::tag('div', $filter_orientadores . $orientadores_all . ' / ' . $orientadores_none, array('class' => 'relatorio-unasus multiple_list'));
+
+            } elseif ($report->mostrar_filtro_orientadores) {
                 // Filtro de Orientadores
                 $selecao_orientadores_post = array_key_exists('orientadores', $_POST) ? $_POST['orientadores'] : '';
                 $filter_orientadores = html_writer::label('Filtrar Orientadores:', 'multiple_tutor');
