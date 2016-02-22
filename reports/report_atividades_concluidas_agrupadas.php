@@ -5,7 +5,8 @@ defined('MOODLE_INTERNAL') || die;
 class report_atividades_concluidas_agrupadas extends report_unasus_factory {
 
     protected function initialize() {
-        $this->mostrar_filtro_tutores = true;
+        $this->mostrar_filtro_grupo_tutoria = true;
+        $this->mostrar_filtro_tutores = false;
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
@@ -88,7 +89,8 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
         $query_lti          = query_lti_from_users();
 
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, null, false, $query_database, $query_scorm, $atividades_config_curso);
+        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti,
+            null, false, $query_database, $query_scorm, $atividades_config_curso);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];

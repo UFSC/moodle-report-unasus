@@ -366,13 +366,31 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
         }
     }
 
-    $atividades = $group_array->get_assoc();
+    $atividades_all = $group_array->get_assoc();
 
-    if (empty($atividades)) {
+    if (empty($atividades_all)) {
         print_error('no_valid_activity_found_error', 'report_unasus');
     }
 
-    return $atividades;
+    $atividades_ret = array();
+
+    if ($buscar_lti) {
+        // (false) {
+        // passa por todas os módulos e todas as suas atividades e incui os módulos que tem LTI de tcc
+        foreach ($atividades_all as $course_id => $atividades) {
+            foreach ($atividades as $atividade) {
+                // Sé conterá atividades de TCC se conseguir conectar com o Webservice do sistema de TCC
+                if (is_a($atividade, 'report_unasus_lti_activity_tcc')) {
+                    $atividades_ret[$course_id] = $atividades;
+                    break;
+                }
+            }
+        }
+    } else {
+        $atividades_ret = $atividades_all;
+    }
+
+    return $atividades_ret;
 }
 
 /**
@@ -487,7 +505,7 @@ function report_unasus_query_assign_courses($courses) {
                   ON (m.id = cm.module AND m.name LIKE 'assign')
                WHERE c.id IN ({$string_courses})
                  -- AND cm.visible=TRUE
-           ORDER BY c.sortorder";
+            ORDER BY c.sortorder, assign_id";
 
     return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
 }
@@ -523,7 +541,7 @@ function report_unasus_query_quiz_courses($courses) {
                   ON (m.id = cm.module AND m.name LIKE 'quiz')
                WHERE c.id IN ({$string_courses})
                   -- AND cm.visible=TRUE
-            ORDER BY c.sortorder";
+             ORDER BY c.sortorder, quiz_id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -549,7 +567,7 @@ function report_unasus_query_database_courses($courses) {
                   ON (m.id = cm.module AND m.name LIKE 'data')
                WHERE c.id IN ({$string_courses})
                   -- AND cm.visible=TRUE
-            ORDER BY c.sortorder";
+            ORDER BY c.sortorder, database_id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -575,7 +593,7 @@ function report_unasus_query_scorm_courses($courses) {
                   ON (m.id = cm.module AND m.name LIKE 'scorm')
                WHERE c.id IN ({$string_courses})
                   -- AND cm.visible=TRUE
-            ORDER BY c.sortorder";
+            ORDER BY c.sortorder, scorm_id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -760,7 +778,7 @@ function report_unasus_query_lti_courses_moodle($courses) {
                 JOIN {modules} m
                   ON (m.id = cm.module AND m.name LIKE 'lti')
                WHERE c.id IN ({$string_courses}) -- AND cm.visible=TRUE
-            ORDER BY c.sortorder";
+            ORDER BY c.sortorder, lti_id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -808,7 +826,7 @@ function report_unasus_query_forum_courses($courses) {
                WHERE c.id IN ({$string_courses})
                  -- AND cm.visible=TRUE
                  AND (gi.id=TRUE OR cm.completion != 0)
-            ORDER BY c.sortorder";
+            ORDER BY c.sortorder, forum_id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
@@ -1006,6 +1024,37 @@ function report_unasus_int_array_to_sql($array) {
         return $array;
     }
     return implode(',', $array);
+}
+
+/**
+ * Transforma um array de inteiros numa string unica
+ * EX: array(32,33,45)  para  "IN (32,33,45)"
+ * EX: array(32)  para  "= 32"
+ *
+ * @param array $array
+ * @return String
+ */
+
+// TODO: Trocar esta função por get_in_or_equal() em lib/dml/moodle_database.php
+function report_unasus_int_array_to_IN_OR_EQUAL($array) {
+    if (!is_array($array)) {
+        if (is_integer($array)) {
+            return "= $array";
+        } else {
+            return $array;
+        }
+
+    }
+
+    $return_array = implode(',', $array);
+
+    if (strpos($return_array, ',') === FALSE) {
+        $return_array = "= {$return_array}";
+    } else {
+        $return_array = "IN ({$return_array})";
+    }
+
+    return $return_array;
 }
 
 /**

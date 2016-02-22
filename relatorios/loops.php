@@ -24,12 +24,15 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
 
     /** @var $report report_unasus_factory */
     $report = report_unasus_factory::singleton();
+    $categoria_turma_ufsc = $report->get_categoria_turma_ufsc();
 
     $grupos = ($is_orientacao)
-              ?  local_tutores_grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
-              :  local_tutores_grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
+              ? local_tutores_grupo_orientacao::get_grupos_orientacao_new($categoria_turma_ufsc, $report->orientadores_selecionados)
+//              ? local_tutores_grupo_orientacao::get_grupos_orientacao($categoria_turma_ufsc, $report->orientadores_selecionados)
+//              : local_tutores_grupos_tutoria::get_grupos_tutoria($categoria_turma_ufsc, $report->tutores_selecionados);
+              : local_tutores_grupos_tutoria::get_grupos_tutoria_new($categoria_turma_ufsc, $report->tutores_selecionados);
 
-    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
+    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma_ufsc);
     $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
@@ -289,20 +292,26 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
  *
  * )
  */
-function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, $loop = null, $is_orientacao = false, $query_database = null, $query_scorm = null, $config = array()) {
+function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, $loop = null,
+                                          $is_orientacao = false, $query_database = null, $query_scorm = null,
+                                          $config = array()) {
 
     global $DB;
 
     /** @var $report report_unasus_factory */
     $report = report_unasus_factory::singleton();
 
-    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
+    $categoria_turma_ufsc = $report->get_categoria_turma_ufsc();
+
+    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma_ufsc);
     $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
     // Recupera dados auxiliares
     $grupos = ($is_orientacao)
-            ?  local_tutores_grupo_orientacao::get_grupos_orientacao($report->get_categoria_turma_ufsc(), $report->orientadores_selecionados)
-            :  local_tutores_grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
+            ? local_tutores_grupo_orientacao::get_grupos_orientacao_new($categoria_turma_ufsc, $report->orientadores_selecionados)
+//            ?  local_tutores_grupo_orientacao::get_grupos_orientacao($categoria_turma_ufsc, $report->orientadores_selecionados)
+//            : local_tutores_grupos_tutoria::get_grupos_tutoria($report->get_categoria_turma_ufsc(), $report->tutores_selecionados);
+            : local_tutores_grupos_tutoria::get_grupos_tutoria_new($categoria_turma_ufsc, $report->tutores_selecionados);
 
     // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -318,9 +327,9 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
     $lista_atividade = array();
 
     if($is_orientacao){
-        $total_alunos = report_unasus_get_count_estudantes_orientacao($report->get_categoria_turma_ufsc());
+        $total_alunos = report_unasus_get_count_estudantes_orientacao($categoria_turma_ufsc);
     } else {
-        $total_alunos = report_unasus_get_count_estudantes($report->get_categoria_turma_ufsc());
+        $total_alunos = report_unasus_get_count_estudantes($categoria_turma_ufsc);
     }
 
     $total_atividades = 0;

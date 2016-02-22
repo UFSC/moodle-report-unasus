@@ -5,6 +5,7 @@ defined('MOODLE_INTERNAL') || die;
 class report_uso_sistema_tutor extends report_unasus_factory {
 
     protected function initialize() {
+        $this->mostrar_filtro_grupo_tutoria = false;
         $this->mostrar_filtro_tutores = true;
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
