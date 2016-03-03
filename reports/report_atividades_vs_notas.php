@@ -264,7 +264,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
                             if ($atraso > report_unasus_get_prazo_avaliacao()) {
                                 $tipo = report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA;
                             } else {
-                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NO_PRAZO_ENTREGA;
+                                $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_ENTEGUE_NAO_AVALIADA;
                             }
 
                             //Entrega atrasada
