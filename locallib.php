@@ -1240,7 +1240,8 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
         case 'report_unasus_assign_activity':
             $params = array(
                 'courseid' => $courseid,
-                'enrol_courseid' => $courseid,
+                'courseid2' => $courseid,
+                //'enrol_courseid' => $courseid,
                 'assignmentid' => $atividade->id,
                 'assignmentid2' => $atividade->id,
                 'relationship_id' => $relationship->id,
@@ -1251,7 +1252,8 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
         case 'report_unasus_forum_activity':
             $params = array(
                 'courseid' => $courseid,
-                'enrol_courseid' => $courseid,
+                'courseid2' => $courseid,
+                //'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
@@ -1260,10 +1262,11 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             break;
         case 'report_unasus_quiz_activity':
             $params = array(
+                'courseid' => $courseid,
+                'courseid2' => $courseid,
+                //'enrol_courseid' => $courseid,
                 'assignmentid' => $atividade->id,
                 'assignmentid2' => $atividade->id,
-                'courseid' => $courseid,
-                'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,

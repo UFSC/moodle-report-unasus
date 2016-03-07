@@ -241,13 +241,18 @@ class report_atividades_vs_notas extends report_unasus_factory {
                                 break;
                         }
 
+                        // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        //Atividade tem nota
-                        if ($data->has_grade()) {
+                        if($r->is_student == 0){
+                            // Se não for estudante do curso
+                            $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO;
+                        }
 
+                        //Atividade tem nota
+                        else if ($data->has_grade()) {
                             // dias de atraso em relação a submissão
                             $atraso = $data->grade_due_days();
                             //Verifica se a correcao foi dada com ou sem atraso

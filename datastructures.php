@@ -130,6 +130,7 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
     const ATIVIDADE_SEM_PRAZO_ENTREGA = 4;
     const ATIVIDADE_AVALIADA_COM_ATRASO = 5;
     const ATIVIDADE_ENTEGUE_NAO_AVALIADA = 6;
+    const ATIVIDADE_NAO_APLICADO = 7;
 
     private $tipo;
     private $nota;
@@ -166,6 +167,9 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
                 break;
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_ENTEGUE_NAO_AVALIADA:
                 return ($this->atraso) > 0 ? $this->dia_toString($this->atraso) : 'sem nota';
+
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO:
+                return '';
                 break;
         }
     }
@@ -186,6 +190,8 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
                 return 'sem_prazo';
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_ENTEGUE_NAO_AVALIADA:
                 return 'avaliado_sem_nota';
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
             default:
                 return '';
         }
@@ -202,6 +208,7 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
         $legend['nao_realizada'] = 'Atividade não realizada, mas dentro da data esperada';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
+        $legend['nao_aplicado'] = "Atividade não aplicada";
 
         return $legend;
     }
@@ -408,6 +415,7 @@ class report_unasus_dado_entrega_de_atividades_render extends report_unasus_data
     const ATIVIDADE_ENTREGUE_FORA_DO_PRAZO = 2;
     const ATIVIDADE_SEM_PRAZO_ENTREGA = 3;
     const ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO = 4;
+    const ATIVIDADE_NAO_APLICADO = 5;
 
     private $tipo;
     private $atraso;
@@ -436,6 +444,9 @@ class report_unasus_dado_entrega_de_atividades_render extends report_unasus_data
             case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
                 return '';
                 break;
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_APLICADO:
+                return '';
+                break;
         }
     }
 
@@ -457,6 +468,9 @@ class report_unasus_dado_entrega_de_atividades_render extends report_unasus_data
             case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO:
                 return 'nao_entregue_mas_no_prazo';
                 break;
+            case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+                break;
         }
     }
 
@@ -470,6 +484,7 @@ class report_unasus_dado_entrega_de_atividades_render extends report_unasus_data
         $legend['no_prazo'] = 'Atividade entregue em dia';
         $legend['pouco_atraso'] = "Atividade entregue, com atraso de até {$CFG->report_unasus_prazo_maximo_entrega} dias";
         $legend['muito_atraso'] = "Atividade entregue, com atraso de mais de {$CFG->report_unasus_prazo_maximo_entrega} dias";
+        $legend['nao_aplicado'] = "Atividade não aplicada";
 
         return $legend;
     }
@@ -1031,6 +1046,7 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
 
     const MODULO_NAO_CONCLUIDO = 0;
     const MODULO_CONCLUIDO = 1;
+    const ATIVIDADE_NAO_APLICADO = 2;
 
     private $final_grade; //nota em letra
     private $numero_atividades_modulo;
@@ -1058,6 +1074,8 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
                 return $pendentes;
             case 1:
                 return ($this->final_grade == '-') ? '<b>'. 'Sem Nota'.'</b>' : (String) '<b>'.$this->final_grade.'</b>';
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO:
+                return '';
             default:
                 return false;
                 break;
@@ -1072,6 +1090,8 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
             case 1:
                 return "concluido";
                 break;
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
             default:
                 return false;
                 break;
@@ -1094,6 +1114,7 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
         $legend = array();
         $legend['concluido'] = 'Módulo concluído';
         $legend['nao_concluido'] = 'Módulo pendente';
+        $legend['nao_aplicado'] = "Atividade não aplicada";
 
         return $legend;
     }

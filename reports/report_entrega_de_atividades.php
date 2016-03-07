@@ -143,7 +143,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                     // $result contém a lista dos estudantes com os dados da atividade
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
-                    // verifica se está faltando algun estudante nos resultados
+                    // verifica se está faltando algum estudante nos resultados
                     $estudantes_adicionar = array_diff_key($estudantes_grupo, $result);
 
                     // Se estiver adiciona
@@ -183,16 +183,22 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
+                        if($r->is_student == 0){
+                            // Se não for estudante do curso
+                            $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_APLICADO;
+                        }
+
                         // Se a atividade não foi entregue e ainda não recebeu nota
-                        if (!$data->has_submitted() && !$data->has_grade()) {
+                        else if (!$data->has_submitted() && !$data->has_grade()) {
 
                             if (!$data->source_activity->has_deadline()) {
                                 // E não tem entrega prazo
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             } elseif ($data->is_a_future_due()) {
-                                //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                                // Atividade com data de entrega no futuro, nao entregue mas dentro do prazo
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
-                            } else {
+                            }
+                            else {
                                 // Atividade nao entregue e atrasada
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
                             }

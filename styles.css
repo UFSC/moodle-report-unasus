@@ -122,13 +122,8 @@ legend {
   background: #ddd;
 }
 
-.relatorio-unasus .avaliado_sem_nota
-{
-  background-color: rgb(255, 252, 200) !important;
-  color: #585858 !important;
-}
 
-.relatorio-unasus .nao_aplicado,
+/*.relatorio-unasus .nao_aplicado,*/
 .relatorio-unasus.atividades_vs_notas .nao_realizada,
 .relatorio-unasus.historico_atribuicao_notas .nao_avaliada
  {
@@ -400,8 +395,8 @@ legend {
 .boletim .c_body,
 .atividades_vs_notas .c1,
 .atividades_vs_notas .c_body {
-  max-width: 43px !important;
-  min-width: 43px !important;
+  max-width: 50px !important;
+  min-width: 50px !important;
   padding: 8px !important;
   margin: 0 !important;
   font-size: 12px !important;
@@ -617,7 +612,7 @@ legend {
   color: #000000 !important;
 }
 
-.relatorio-unasus .nao_aplicado,
+/*.relatorio-unasus .nao_aplicado,*/
 .relatorio-unasus .nao_acessado,
 .relatorio-unasus .nao_concluido,
 .relatorio-unasus.atividades_vs_notas .nao_entregue,
@@ -625,7 +620,12 @@ legend {
 .relatorio-unasus.uso_sistema_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes .nao_concluido,
 .relatorio-unasus.boletim .abaixo_media {
-  background-color: #FF886E !important;
+  background-color: #f77 !important;
+  color: #000000 !important;
+}
+
+.relatorio-unasus .nao_aplicado {
+  background-color: #777777 !important;
   color: #000000 !important;
 }
 
@@ -651,11 +651,7 @@ legend {
 }
 
 .relatorio-unasus .r1 {
-  border-top: 1px solid #FF886E !important;
-}
-
-.relatorio-unasus .r1 {
-  border-bottom: 1px solid #FF886E !important;
+  height: 50px;
 }
 
 thead {
