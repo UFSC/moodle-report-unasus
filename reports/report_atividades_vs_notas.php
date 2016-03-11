@@ -247,8 +247,9 @@ class report_atividades_vs_notas extends report_unasus_factory {
 
                         //Atividade tem nota
                         if ($data->has_grade()) {
-                            $atraso = $data->grade_due_days();
 
+                            // dias de atraso em relação a submissão
+                            $atraso = $data->grade_due_days();
                             //Verifica se a correcao foi dada com ou sem atraso
                             if ($atraso > report_unasus_get_prazo_avaliacao()) {
                                 $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO;
@@ -259,6 +260,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
                         //Atividade entregue e necessita de nota
                         //Atividade não precisa de entrega e já venceu o prazo de avaliação
                         } elseif ($data->is_grade_needed()) {
+                            // dias de atraso em relação a submissão
                             $atraso = $data->grade_due_days();
                             // Se o ataso for menor que dois dias não é atraso, considera no prazo.
                             if ($atraso > report_unasus_get_prazo_avaliacao()) {
@@ -267,8 +269,9 @@ class report_atividades_vs_notas extends report_unasus_factory {
                                 $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_ENTEGUE_NAO_AVALIADA;
                             }
 
-                            //Entrega atrasada
+                            // Se está em atraso ou se foi entregue em atraso (no caso de dados históricos)
                         } elseif ($data->is_submission_due()) {
+                            // dias de atraso em relação a submissão
                             $atraso = $data->grade_due_days();
                             // Se o ataso for menor que dois dias não é atraso, considera no prazo.
                             if ($atraso > report_unasus_get_prazo_avaliacao()) {
