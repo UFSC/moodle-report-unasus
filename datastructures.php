@@ -499,6 +499,7 @@ class report_unasus_dado_boletim_render extends report_unasus_data_render {
 
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
+    const ATIVIDADE_NAO_APLICADO = 2;
 
     private $tipo;
     private $atividade_id;
@@ -520,6 +521,9 @@ class report_unasus_dado_boletim_render extends report_unasus_data_render {
             case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return '';
                 break;
+            case report_unasus_dado_boletim_render::ATIVIDADE_NAO_APLICADO:
+                return '';
+                break;
         }
     }
 
@@ -531,6 +535,9 @@ class report_unasus_dado_boletim_render extends report_unasus_data_render {
             case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
                 break;
+            case report_unasus_dado_boletim_render::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
+                break;
         }
     }
 
@@ -540,6 +547,7 @@ class report_unasus_dado_boletim_render extends report_unasus_data_render {
         $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 70 %';
         $legend['abaixo_media'] = 'Média final abaixo de 70 %';
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
+        $legend['nao_aplicado'] = "Atividade não aplicada";
 
         return $legend;
     }
@@ -550,6 +558,7 @@ class report_unasus_dado_nota_final_render extends report_unasus_data_render {
 
     const ATIVIDADE_COM_NOTA = 0;
     const ATIVIDADE_SEM_NOTA = 1;
+    const ATIVIDADE_NAO_APLICADO = 2;
 
     private $tipo;
     private $nota;
@@ -568,6 +577,8 @@ class report_unasus_dado_nota_final_render extends report_unasus_data_render {
                 break;
             case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return '';
+            case report_unasus_dado_boletim_render::ATIVIDADE_NAO_APLICADO:
+                return '';
                 break;
         }
     }
@@ -580,6 +591,8 @@ class report_unasus_dado_nota_final_render extends report_unasus_data_render {
             case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
                 break;
+            case report_unasus_dado_boletim_render::ATIVIDADE_NAO_APLICADO:
+                return 'nao_aplicado';
         }
     }
 
@@ -587,6 +600,7 @@ class report_unasus_dado_nota_final_render extends report_unasus_data_render {
         $legend = array();
         $legend['com_nota'] = 'Atividade avaliada';
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
+        $legend['nao_aplicado'] = "Atividade não aplicada";
 
         return $legend;
     }
@@ -1053,14 +1067,16 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
     private $atividades_nao_realizadas;
     private $atividades;
     private $atividades_pendentes = array();
+    private $is_student;
 
 
-    function __construct($numero_atividades_modulo, $final_grade) {
+    function __construct($numero_atividades_modulo, $final_grade, $is_student) {
         $this->numero_atividades_modulo = $numero_atividades_modulo;
         $this->atividades_nao_realizadas = 0;
         //$this->estado = $estado;
         $this->final_grade = $final_grade;
         //$this->atividade = $atividade;
+        $this->is_student = $is_student;
     }
 
     public function __toString() {
@@ -1074,7 +1090,7 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
                 return $pendentes;
             case 1:
                 return ($this->final_grade == '-') ? '<b>'. 'Sem Nota'.'</b>' : (String) '<b>'.$this->final_grade.'</b>';
-            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO:
+            case 2:
                 return '';
             default:
                 return false;
@@ -1090,7 +1106,7 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
             case 1:
                 return "concluido";
                 break;
-            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO:
+            case 2:
                 return 'nao_aplicado';
             default:
                 return false;
@@ -1120,7 +1136,16 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
     }
 
     public function get_state() {
-        return count($this->atividades_pendentes) == 0 ? 1 : 0;
+        if($this->is_student == 0){
+            return 2;
+        }
+        else if (count($this->atividades_pendentes) == 0){
+            return 1;
+        }
+        else{
+            return 0;
+        }
+        //return count($this->atividades_pendentes) == 0 ? 1 : 0;
     }
 
 }
