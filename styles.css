@@ -122,6 +122,12 @@ legend {
   background: #ddd;
 }
 
+.relatorio-unasus .avaliado_sem_nota
+{
+  background-color: rgb(255, 252, 200) !important;
+  color: #585858 !important;
+}
+
 .relatorio-unasus .nao_aplicado,
 .relatorio-unasus.atividades_vs_notas .nao_realizada,
 .relatorio-unasus.historico_atribuicao_notas .nao_avaliada

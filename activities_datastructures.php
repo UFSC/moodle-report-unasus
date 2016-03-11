@@ -695,7 +695,8 @@ class report_unasus_data_activity extends report_unasus_data {
         }
         $this->grademax = $db_model->grademax;
         $this->status = $db_model->status;
-        $this->submission_date = (!is_null($db_model->submission_date)) ? $db_model->submission_date : $db_model->submission_modified;
+//        $this->submission_date = (!is_null($db_model->submission_date)) ? $db_model->submission_date : $db_model->submission_modified;
+        $this->submission_date = ($this->status == 'submitted') ? $db_model->submission_modified : null;
         $this->grade_date = (!is_null($db_model->grade_created)) ? $db_model->grade_created : $db_model->grade_modified;
     }
 

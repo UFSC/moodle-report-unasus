@@ -129,6 +129,7 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
     const ATIVIDADE_NO_PRAZO_ENTREGA = 3;
     const ATIVIDADE_SEM_PRAZO_ENTREGA = 4;
     const ATIVIDADE_AVALIADA_COM_ATRASO = 5;
+    const ATIVIDADE_ENTEGUE_NAO_AVALIADA = 6;
 
     private $tipo;
     private $nota;
@@ -163,6 +164,9 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem prazo';
                 break;
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_ENTEGUE_NAO_AVALIADA:
+                return ($this->atraso) > 0 ? $this->dia_toString($this->atraso) : 'sem nota';
+                break;
         }
     }
 
@@ -180,6 +184,8 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
                 return 'nao_realizada';
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem_prazo';
+            case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_ENTEGUE_NAO_AVALIADA:
+                return 'avaliado_sem_nota';
             default:
                 return '';
         }
@@ -190,6 +196,7 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
         $legend = array();
         $legend['nota_atribuida'] = 'Nota atribuída no prazo (até '.report_unasus_get_prazo_avaliacao() * 24 .'hs)';
         $legend['nota_atribuida_atraso'] = 'Nota atribuída fora do prazo (mais de '.report_unasus_get_prazo_avaliacao() * 24 .'hs)';
+        $legend['avaliado_sem_nota'] = 'Sem nota atribuída, recém entregue (até '.report_unasus_get_prazo_avaliacao() * 24 .'hs)';
         $legend['pouco_atraso'] = "Sem nota atribuída, dentro do prazo (de ".report_unasus_get_prazo_avaliacao()." até ".report_unasus_get_prazo_maximo_avaliacao()." dias após data de entrega)";
         $legend['muito_atraso'] = "Sem nota atribuída, fora do prazo (após ".report_unasus_get_prazo_maximo_avaliacao()." dias da data de entrega)";
         $legend['nao_entregue'] = 'Atividade não realizada, após data esperada';
