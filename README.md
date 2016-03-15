@@ -19,7 +19,7 @@ Estes relatórios somente monitoram as seguintes atividades:
 
 Público alvo
 ------------
-Os relatórios são divididos para os seguintes público alvo:
+Os relatórios são divididos para o seguinte público alvo:
 
 * **Orientadores**: Para acompanhar o andamento de seus estudantes; 
 * **Tutores**: Para acompanhar o andamento de seus estudantes; 
