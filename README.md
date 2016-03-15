@@ -21,7 +21,7 @@ Público alvo
 ------------
 Os relatórios são divididos para dois tipos de público alvo:
 
-* **Orientadore**: Para acompanhar o andamento de seus estudantes; 
+* **Orientadores**: Para acompanhar o andamento de seus estudantes; 
 * **Tutores**: Para acompanhar o andamento de seus estudantes; 
 * **Coordenadores**: Para acompanhar os tutores e seus estudantes.
 
