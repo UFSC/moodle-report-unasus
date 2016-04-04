@@ -548,7 +548,9 @@ function query_database_from_users() {
 
 function query_database_adjusted_from_users() {
 
+    //$alunos_grupo_tutoria = query_alunos_relationship_student();
     $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -562,10 +564,18 @@ function query_database_adjusted_from_users() {
                    gg.timemodified AS grade_date,
                    'db_activity' as name_activity
               FROM (
-
                     {$alunos_grupo_tutoria}
-
-                   ) u
+                        JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
+                     ) u
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u.id
               JOIN {grade_items} gi

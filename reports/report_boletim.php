@@ -132,7 +132,7 @@ class report_boletim extends report_unasus_factory {
                         $nota = null;
                         $grademax = (isset($r->grademax)) ? $r->grademax : 100;
 
-                        if ($r->is_student == 0) {
+                        if (isset($r->is_student) && ($r->is_student === "0")) {
                             // Se não for estudante do curso
                             $tipo = report_unasus_dado_boletim_render::ATIVIDADE_NAO_APLICADO;
                         }

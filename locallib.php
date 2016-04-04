@@ -1277,6 +1277,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             $params = array(
                 'id_activity' => $atividade->id,
                 'courseid' => $courseid,
+                'courseid2' => $courseid,
                 'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,

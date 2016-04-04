@@ -246,7 +246,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                        if($r->is_student == 0){
+                        if(isset($r->is_student) && ($r->is_student === "0")){
                             // Se não for estudante do curso
                             $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_APLICADO;
                         }
