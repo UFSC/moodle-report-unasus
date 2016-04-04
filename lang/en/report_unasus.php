@@ -13,9 +13,9 @@ $string['atividades_vs_notas_help'] = 'OBJETIVO: Acompanhar a situação atual d
 $string['entrega_de_atividades'] = 'Acompanhamento: entrega de atividades';
 $string['entrega_de_atividades_help'] = 'OBJETIVO: Acompanhar realização das atividades dos estudantes e instrumentar os tutores com uma visão sobre a situação das atividades (com histórico), de todos os estudantes sob sua responsabilidade.';
 
-$string['estudante_sem_atividade_postada'] = 'Lista: atividades não postadas';
-$string['estudante_sem_atividade_postada_help'] = 'Listagem de estudantes que não entregaram uma certa atividade';
-$string['estudante_sem_atividade_postada_table_header'] = 'Atividades não Postadas';
+$string['estudante_sem_atividade_postada'] = 'Lista: atividades não postadas e sem nota';
+$string['estudante_sem_atividade_postada_help'] = 'Listagem de estudantes que não entregaram uma certa atividade e ainda não receberam nota';
+$string['estudante_sem_atividade_postada_table_header'] = 'Atividades não Postadas e sem nota';
 
 $string['estudante_sem_atividade_avaliada'] = 'Lista: atividades não avaliadas';
 $string['estudante_sem_atividade_avaliada_help'] = 'Listagem de estudantes que entregaram suas atividades mas ainda não foram corrigidas';

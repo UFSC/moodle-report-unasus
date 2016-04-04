@@ -96,7 +96,10 @@ class report_estudante_sem_atividade_postada extends report_unasus_factory {
                             continue;
                         }
 
-                        if (!$atividade->has_submitted() && $atividade->source_activity->has_submission()) {
+                        // Se não foi enviado e deve enviar e nao tem nota
+                        if (!$atividade->has_submitted() &&
+                            $atividade->source_activity->has_submission() &&
+                            !$atividade->has_grade() ) {
                             $atividade_sera_listada = true;
                         }
 
