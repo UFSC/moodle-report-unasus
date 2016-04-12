@@ -562,7 +562,8 @@ function query_database_adjusted_from_users() {
                    gi.itemname,
                    dr.timemodified AS submission_date,
                    gg.timemodified AS grade_date,
-                   'db_activity' as name_activity
+                   'db_activity' as name_activity,
+                   u.is_student
               FROM (
                     {$alunos_grupo_tutoria}
                         JOIN (
@@ -594,7 +595,9 @@ function query_database_adjusted_from_users() {
 
 function query_scorm_from_users () {
 
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    //$alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -605,11 +608,21 @@ function query_scorm_from_users () {
                    gi.grademax,
                    gi.itemname,
                    gg.timemodified AS submission_date,
-                   'scorm_activity' as name_activity
+                   'scorm_activity' as name_activity,
+                   u.is_student
               FROM (
 
                     {$alunos_grupo_tutoria}
-
+                    JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
                    ) u
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u.id
@@ -627,7 +640,9 @@ function query_scorm_from_users () {
 
 function query_lti_from_users () {
 
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    //$alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u3.id AS userid,
                    u3.polo,
@@ -638,11 +653,21 @@ function query_lti_from_users () {
                    gi.grademax,
                    gi.itemname,
                    gg.timemodified AS submission_date,
-                   'lti_activity' as name_activity
+                   'lti_activity' as name_activity,
+                   u3.is_student
               FROM (
 
                     {$alunos_grupo_tutoria}
-
+                      JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
                    ) u3
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u3.id

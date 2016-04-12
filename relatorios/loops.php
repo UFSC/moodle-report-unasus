@@ -179,6 +179,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
 
                     $params = array(
                         'courseid' => $courseid,
+                        'courseid2' => $courseid,
                         'id_activity' => $atividade->id,
                         //'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
@@ -214,6 +215,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                 } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti)) {
                     $params = array(
                         'courseid' => $courseid,
+                        'courseid2' => $courseid,
                         'id_activity' => $atividade->id,
                     //    'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
@@ -263,6 +265,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
             if (!empty($query_nota_final)) {
                 $params = array(
                     'courseid' => $courseid,
+                    'courseid2' => $courseid,
                     'enrol_courseid' => $courseid,
                     'relationship_id' => $relationship->id,
                     'cohort_relationship_id' => $cohort_estudantes->id,
@@ -451,6 +454,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     $params = array(
                         'id_activity' => $atividade->id,
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
@@ -481,6 +485,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     $params = array(
                         'id_activity' => $atividade->id,
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
@@ -509,6 +514,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                     $params = array(
                         'id_activity' => $atividade->id,
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,

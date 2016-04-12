@@ -63,9 +63,11 @@ class report_modulos_concluidos extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
-                            //Variável usada para armazenar o valor retornado da consulta utilizada para verificar se é estudante ou não.
-                            //Usada posteiormente na criação do obejto de renderizção dos elementos da tabela (report_unasus_dado_modulos_concluidos_render)
+                        //Variável usada para armazenar o valor retornado da consulta utilizada para verificar se é estudante ou não.
+                        //Usada posteiormente na criação do obejto de renderizção dos elementos da tabela (report_unasus_dado_modulos_concluidos_render)
+                        if(isset($r->is_student)){
                             $is_studant = $r->is_student;
+                        }
 
                         if ( isset($atividade->course_id)) {
                             $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
