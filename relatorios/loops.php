@@ -359,7 +359,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
         foreach ($report->atividades_cursos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
-                if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades) && array_search($atividade->id, $config)) {
+                if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades) && !array_search($atividade->id, $config)) {
 
                     // para cada assign um novo dado de avaliacao em atraso
                     $array_das_atividades['atividade_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
@@ -389,7 +389,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($data->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_forum_activity') && !empty($query_forum) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_forum_activity') && !empty($query_forum) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['forum_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
@@ -417,7 +417,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($f->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_quiz_activity') && !empty($query_quiz) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_quiz_activity') && !empty($query_quiz) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['quiz_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
@@ -447,7 +447,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($q->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_database) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_database) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['database_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
@@ -478,7 +478,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($d->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_scorm_activity') && !empty($query_scorm) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_scorm_activity') && !empty($query_scorm) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['scorm_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
@@ -508,7 +508,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($s->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti) && !array_search($atividade->id, $config)) {
                     $array_das_atividades['lti_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(

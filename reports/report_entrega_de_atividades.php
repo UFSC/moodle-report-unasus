@@ -120,6 +120,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
         $modulos_ids = $this->get_modulos_ids();
 
         $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
+
         $atividades_config_curso = report_unasus_get_activities_config_report($categoria_turma_ufsc, $modulos_ids);
 
         // Recupera dados auxiliares
@@ -213,7 +214,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             $atraso = $data->submission_due_days();
                         }
 
-                        if ($r->name_activity == 'nota_final_tcc' && array_search(1, $atividades_config_curso)) {
+                        if ($r->name_activity == 'nota_final_tcc' && !array_search(1, $atividades_config_curso)) {
                             if (!isset($r->grade)) {
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             } else {
@@ -221,9 +222,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             }
                             $lista_atividades[$r->userid][] = new report_unasus_dado_entrega_de_atividades_render($tipo, 0);
 
-                        } else if (isset($atividade->id) && array_search($atividade->id, $atividades_config_curso)){
-                            $lista_atividades[$r->userid][$atividade->course_id.'|'.$atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
-                        }
+                        } else if (isset($atividade->id) && !array_search($atividade->id, $atividades_config_curso)) {
+                                $lista_atividades[$r->userid][$atividade->course_id . '|' . $atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
+                            }
                     }
 
                     // Auxiliar para agrupar tutores corretamente

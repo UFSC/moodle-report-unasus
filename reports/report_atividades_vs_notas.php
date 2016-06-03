@@ -295,8 +295,9 @@ class report_atividades_vs_notas extends report_unasus_factory {
                             $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                         }
 
+                        $result = !array_search($atividade->id, $atividades_config_curso);
                         if(isset($atividade->id)){
-                            if (array_search($atividade->id, $atividades_config_curso)){
+                            if (!array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][$atividade->course_id.'|'.$atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
                             }
                         }
