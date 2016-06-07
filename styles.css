@@ -607,7 +607,7 @@ legend {
 }
 
 .relatorio-unasus.acesso_tutor .nao_acessou,
-.relatorio-unasus.tcc_entrega_atividades .nao_aplicado {
+.relatorio-unasus.tcc_entrega_atividades {
   background-color: #FF886E !important;
   color: #000000 !important;
 }

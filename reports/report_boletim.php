@@ -148,7 +148,7 @@ class report_boletim extends report_unasus_factory {
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
                         } else if (isset($atividade->course_id)) {
-                            if (array_search($atividade->id, $atividades_config_curso)){
+                            if (!array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);
                             }
                         }

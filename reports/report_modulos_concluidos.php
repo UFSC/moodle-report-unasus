@@ -80,7 +80,7 @@ class report_modulos_concluidos extends report_unasus_factory {
 
                             // se a atividade for setada para ser apresentada,
                                 // então continua com as outras checagens
-                            if ( array_search($atividade->id, $atividades_config_curso) ) {
+                            if ( !array_search($atividade->id, $atividades_config_curso) ) {
                                 if (!isset($lista_atividades[$r->userid][$atividade->course_id])) {
                                     $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $is_studant);
                                 }
