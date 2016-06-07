@@ -87,8 +87,8 @@ class report_unasus_factory {
         // Atributos globais
         $this->curso_moodle = report_unasus_get_course_id();
 
-        $this->categoria_curso_ufsc = ufsc::get_categoria_curso_ufsc($this->curso_moodle);
-        $this->categoria_turma_ufsc = ufsc::get_categoria_turma_ufsc($this->curso_moodle);
+        $this->categoria_curso_ufsc = \local_tutores\categoria::curso_ufsc($this->curso_moodle);
+        $this->categoria_turma_ufsc = \local_tutores\categoria::turma_ufsc($this->curso_moodle);
 
         // Atributos para os gráficos
         // Por default os módulos selecionados são os módulos que o curso escolhido possui
