@@ -803,6 +803,49 @@ function query_quiz_from_users() {
      ";
 }
 
+function query_grades_lti() {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+    $is_student = query_is_student();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   l.id AS databaseid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gi.timecreated AS submission_date,
+                   'nota_final_tcc' as name_activity,
+                   u.is_student
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+                      JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
+                   ) u
+         LEFT JOIN {grade_grades} gg
+                ON gg.userid = u.id
+              JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
+              JOIN {lti} l
+                ON gi.iteminstance = l.id
+          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
+}
+
 function query_alunos_modulos() {
     $alunos_grupo_tutoria = query_alunos_relationship();
 

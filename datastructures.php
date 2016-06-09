@@ -254,51 +254,6 @@ class report_unasus_dado_tcc_concluido_render extends report_unasus_data_render 
 
 }
 
-class report_unasus_dado_tcc_portfolio_concluido_render extends report_unasus_data_render {
-
-    const ATIVIDADE_NAO_CONCLUIDA = 0;
-    const ATIVIDADE_CONCLUIDA = 1;
-    const ATIVIDADE_NAO_APLICADO = 2;
-
-    function __construct($tipo, $atividade_id, $atraso = 0) {
-        $this->tipo = $tipo;
-        $this->atraso = $atraso;
-        $this->atividade_id = $atividade_id;
-    }
-
-    public function __toString() {
-        return '';
-    }
-
-    public function get_css_class() {
-        switch ($this->tipo) {
-            case report_unasus_dado_tcc_portfolio_concluido_render::ATIVIDADE_NAO_CONCLUIDA:
-                return 'nao_concluido';
-                break;
-            case report_unasus_dado_tcc_portfolio_concluido_render::ATIVIDADE_CONCLUIDA:
-                return 'concluido';
-                break;
-            case report_unasus_dado_tcc_portfolio_concluido_render::ATIVIDADE_NAO_APLICADO:
-                return 'nao_aplicado';
-                break;
-        }
-    }
-
-    public static function get_legend() {
-        $legend = array();
-        $legend['nao_concluido'] = 'Atividade não concluída';
-        $legend['concluido'] = 'Atividade concluída';
-        $legend['nao_aplicado'] = 'Não aplicado';
-
-        return $legend;
-    }
-
-    public function get_atividade_id() {
-        return $this->atividade_id;
-    }
-
-}
-
 class report_unasus_dado_tcc_entrega_atividades_render extends report_unasus_data_render {
 
     const ATIVIDADE_RASCUNHO = 1;
@@ -349,61 +304,6 @@ class report_unasus_dado_tcc_entrega_atividades_render extends report_unasus_dat
         $legend['nao_aplicado'] = 'Não editado';
 
         return $legend;
-    }
-
-}
-
-class report_unasus_dado_tcc_portfolio_entrega_atividades_render extends report_unasus_data_render {
-
-    const ATIVIDADE_NAO_ACESSADO = 0;
-    const ATIVIDADE_RASCUNHO = 1;
-    const ATIVIDADE_REVISAO = 2;
-    const ATIVIDADE_AVALIACAO = 3;
-    const ATIVIDADE_AVALIADO = 4;
-    const ATIVIDADE_NAO_APLICADO = 5;
-
-    function __construct($tipo, $atividade_id, $atraso = 0) {
-        $this->tipo = $tipo;
-        $this->atraso = $atraso;
-        $this->atividade_id = $atividade_id;
-    }
-
-    public function __toString() {
-        return '';
-    }
-
-    public function get_css_class() {
-        switch ($this->tipo) {
-            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_NAO_ACESSADO:
-                return 'nao_acessado';
-            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_RASCUNHO:
-                return 'rascunho';
-            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_REVISAO:
-                return 'revisao';
-            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_AVALIACAO:
-                return 'avaliacao';
-            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_AVALIADO:
-                return 'avaliado';
-            case report_unasus_dado_tcc_portfolio_entrega_atividades_render::ATIVIDADE_NAO_APLICADO:
-                return 'nao_aplicado';
-        }
-    }
-
-    public static function get_legend() {
-
-        $legend = array();
-        $legend['nao_acessado'] = 'Não acessado';
-        $legend['rascunho'] = 'Rascunho';
-        $legend['revisao'] = 'Revisão';
-        $legend['avaliacao'] = 'Avaliação';
-        $legend['avaliado'] = 'Avaliado';
-        $legend['nao_aplicado'] = 'Não aplicado';
-
-        return $legend;
-    }
-
-    public function get_atividade_id() {
-        return $this->atividade_id;
     }
 
 }

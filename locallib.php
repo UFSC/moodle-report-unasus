@@ -598,38 +598,6 @@ function report_unasus_query_scorm_courses($courses) {
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
 }
 
-function report_unasus_query_grades_lti() {
-
-    $alunos_grupo_tutoria = query_alunos_relationship();
-
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   u.cohort,
-                   gg.itemid,
-                   l.id AS databaseid,
-                   gg.finalgrade AS grade,
-                   gi.grademax,
-                   gi.itemname,
-                   gi.timecreated AS submission_date,
-                   'nota_final_tcc' as name_activity
-              FROM (
-
-                    {$alunos_grupo_tutoria}
-
-                   ) u
-         LEFT JOIN {grade_grades} gg
-                ON gg.userid = u.id
-              JOIN {grade_items} gi
-                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
-                    gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
-              JOIN {lti} l
-                ON gi.iteminstance = l.id
-          GROUP BY userid
-          ORDER BY grupo_id, u.firstname, u.lastname
-    ";
-
-}
-
 /**
  * Função para buscar o tcc_definition e os capítulos de uma atividade de lti de TCC
  *
@@ -1314,12 +1282,13 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
         // case 'report_unasus_lti_tcc':
             $params = array(
                 'courseid' => $courseid,
+                'courseid2' => $courseid,
                 'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
             );
-            $query = report_unasus_query_grades_lti();
+            $query = query_grades_lti();
             break;
         default:
             if ($is_boletim) { //Nota final para relatório boletim

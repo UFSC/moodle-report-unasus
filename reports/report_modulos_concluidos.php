@@ -66,7 +66,7 @@ class report_modulos_concluidos extends report_unasus_factory {
                         //Variável usada para armazenar o valor retornado da consulta utilizada para verificar se é estudante ou não.
                         //Usada posteiormente na criação do obejto de renderizção dos elementos da tabela (report_unasus_dado_modulos_concluidos_render)
                         if(isset($r->is_student)){
-                            $is_studant = $r->is_student;
+                            $is_student = $r->is_student;
                         }
 
                         if ( isset($atividade->course_id)) {
@@ -82,7 +82,7 @@ class report_modulos_concluidos extends report_unasus_factory {
                                 // então continua com as outras checagens
                             if ( !array_search($atividade->id, $atividades_config_curso) ) {
                                 if (!isset($lista_atividades[$r->userid][$atividade->course_id])) {
-                                    $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $is_studant);
+                                    $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $is_student);
                                 }
                                 $lista_atividades[$r->userid][$atividade->course_id]->add_atividade($atividade);
                             }
