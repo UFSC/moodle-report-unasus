@@ -55,12 +55,20 @@ class report_modulos_concluidos extends report_unasus_factory {
                 foreach ($atividades as $atividade) {
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
-                    // para alista de atividadeas dos alunos pega cada atividade (do aluno)
+                    // para a lista de atividadeas dos alunos pega cada atividade (do aluno)
                     foreach ($result as $r){
+
                         // Evita que o objeto do estudante seja criado em toda iteração do loop
                         if (!(isset($lista_atividades[$r->userid][0]))) {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
+
+                        //Variável usada para armazenar o valor retornado da consulta utilizada para verificar se é estudante ou não.
+                        //Usada posteiormente na criação do obejto de renderizção dos elementos da tabela (report_unasus_dado_modulos_concluidos_render)
+                        if(isset($r->is_student)){
+                            $is_student = $r->is_student;
+                        }
+
                         if ( isset($atividade->course_id)) {
                             $full_grade[$r->userid] = grade_get_course_grade($r->userid, $atividade->course_id);
 
@@ -72,9 +80,9 @@ class report_modulos_concluidos extends report_unasus_factory {
 
                             // se a atividade for setada para ser apresentada,
                                 // então continua com as outras checagens
-                            if ( array_search($atividade->id, $atividades_config_curso) ) {
+                            if ( !array_search($atividade->id, $atividades_config_curso) ) {
                                 if (!isset($lista_atividades[$r->userid][$atividade->course_id])) {
-                                    $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade);
+                                    $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $is_student);
                                 }
                                 $lista_atividades[$r->userid][$atividade->course_id]->add_atividade($atividade);
                             }
@@ -92,7 +100,7 @@ class report_modulos_concluidos extends report_unasus_factory {
                 foreach ($lista_atividades as $userid => $courses) {
                     $userid;
 
-                    // pessa pelos cursos de um estudante
+                    // passa pelos cursos de um estudante
                     foreach ($courses as $courseid => $course) {
                         if ($courseid > 0) {
                             $course_instance = get_course($courseid);
@@ -114,8 +122,6 @@ class report_modulos_concluidos extends report_unasus_factory {
                                         $course->add_atividade_pendente($atividade_modulo_aluno);
                                     }
                                 }
-                            } else {
-                                // $estado = dado_modulos_concluidos::ATIVIDADE_NAO_APLICADO;
                             }
                         }
                     }

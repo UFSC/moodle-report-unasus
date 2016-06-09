@@ -132,8 +132,13 @@ class report_boletim extends report_unasus_factory {
                         $nota = null;
                         $grademax = (isset($r->grademax)) ? $r->grademax : 100;
 
+                        if (isset($r->is_student) && ($r->is_student === "0")) {
+                            // Se não for estudante do curso
+                            $tipo = report_unasus_dado_boletim_render::ATIVIDADE_NAO_APLICADO;
+                        }
+
                         //Atividade tem nota
-                        if ( !isset($r->grade) || $r->grade == -1) {
+                        else if ( !isset($r->grade) || $r->grade == -1) {
                             $tipo = report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA;
                         } else {
                             $tipo = report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA;
@@ -143,7 +148,7 @@ class report_boletim extends report_unasus_factory {
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
                         } else if (isset($atividade->course_id)) {
-                            if (array_search($atividade->id, $atividades_config_curso)){
+                            if (!array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);
                             }
                         }

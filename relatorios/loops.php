@@ -3,7 +3,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 /**
- * Loop para a criação do array associativo com as atividades e foruns de um dado aluno fazendo as queries SQLs
+ * Loop para a criação do array associativo com as atividades e forums de um dado aluno fazendo as queries SQLs
  *
  * @param $query_atividades
  * @param $query_forum
@@ -60,7 +60,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                 if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades)) {
                     $params = array(
                         'courseid' => $courseid,
-                        'enrol_courseid' => $courseid,
+                        'courseid2' => $courseid,
+                        //'enrol_courseid' => $courseid,
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'relationship_id' => $relationship->id,
@@ -88,16 +89,19 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                             }
                         }
 
-
-                        // Agrupa os dados por usuário
-                        $group_array_do_grupo->add($r->userid, $data);
+                        //adiona ao grupo somente se for estudante
+                        if($r->is_student == "1") {
+                            // Agrupa os dados por usuário
+                            $group_array_do_grupo->add($r->userid, $data);
+                        }
                     }
                 // atividade de forum
                 } elseif (is_a($atividade, 'report_unasus_forum_activity') && !empty($query_forum)) {
 
                     $params = array(
                         'courseid' => $courseid,
-                        'enrol_courseid' => $courseid,
+                        'courseid2' => $courseid,
+                        //'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id,
@@ -123,8 +127,12 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                                 $data = new report_unasus_data_forum($atividade, $f);
                             }
                         }
-                        // Agrupa os dados por usuário
-                        $group_array_do_grupo->add($f->userid, $data);
+
+                        //adiona ao grupo somente se for estudante
+                        if($f->is_student == 1) {
+                            // Agrupa os dados por usuário
+                            $group_array_do_grupo->add($f->userid, $data);
+                        }
                     }
                 // atividade de quiz
                 } elseif (is_a($atividade, 'report_unasus_quiz_activity') && !empty($query_quiz)) {
@@ -133,7 +141,8 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $courseid,
-                        'enrol_courseid' => $courseid,
+                        'courseid2' => $courseid,
+                        //'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id,
@@ -160,14 +169,17 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                             }
                         }
 
-                        // Agrupa os dados por usuário
-                        $group_array_do_grupo->add($q->userid, $data);
+                        if($q->is_student == 1) {
+                            // Agrupa os dados por usuário
+                            $group_array_do_grupo->add($q->userid, $data);
+                        }
                     }
                 // atividade de database
                 } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_db)) {
 
                     $params = array(
                         'courseid' => $courseid,
+                        'courseid2' => $courseid,
                         'id_activity' => $atividade->id,
                         //'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
@@ -203,6 +215,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
                 } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti)) {
                     $params = array(
                         'courseid' => $courseid,
+                        'courseid2' => $courseid,
                         'id_activity' => $atividade->id,
                     //    'enrol_courseid' => $courseid,
                         'relationship_id' => $relationship->id,
@@ -252,6 +265,7 @@ function loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, 
             if (!empty($query_nota_final)) {
                 $params = array(
                     'courseid' => $courseid,
+                    'courseid2' => $courseid,
                     'enrol_courseid' => $courseid,
                     'relationship_id' => $relationship->id,
                     'cohort_relationship_id' => $cohort_estudantes->id,
@@ -345,12 +359,14 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
 
         foreach ($report->atividades_cursos as $modulo => $atividades) {
             foreach ($atividades as $atividade) {
-                if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades) && array_search($atividade->id, $config)) {
+                if (is_a($atividade, 'report_unasus_assign_activity') && !empty($query_atividades) && !array_search($atividade->id, $config)) {
 
                     // para cada assign um novo dado de avaliacao em atraso
                     $array_das_atividades['atividade_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
-                    $params = array('courseid' => $modulo,
+                    $params = array(
+                        'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
@@ -373,12 +389,13 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($data->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_forum_activity') && !empty($query_forum) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_forum_activity') && !empty($query_forum) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['forum_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
@@ -400,7 +417,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($f->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_quiz_activity') && !empty($query_quiz) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_quiz_activity') && !empty($query_quiz) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['quiz_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
@@ -408,6 +425,7 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid'=> $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
@@ -429,13 +447,14 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($q->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_database) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_db_activity') && !empty($query_database) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['database_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'id_activity' => $atividade->id,
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
@@ -459,13 +478,14 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($d->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_scorm_activity') && !empty($query_scorm) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_scorm_activity') && !empty($query_scorm) && !array_search($atividade->id, $config)) {
 
                     $array_das_atividades['scorm_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'id_activity' => $atividade->id,
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,
@@ -488,12 +508,13 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                         // Agrupa os dados por usuário
                         $group_array_do_grupo->add($s->userid, $data);
                     }
-                } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti) && array_search($atividade->id, $config)) {
+                } elseif (is_a($atividade, 'report_unasus_lti_activity') && !empty($query_lti) && !array_search($atividade->id, $config)) {
                     $array_das_atividades['lti_'.$atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos[$grupo->id]);
 
                     $params = array(
                         'id_activity' => $atividade->id,
                         'courseid' => $modulo,
+                        'courseid2' => $modulo,
                         'enrol_courseid' => $modulo,
                         'relationship_id' => $relationship->id,
                         'cohort_relationship_id' => $cohort_estudantes->id,

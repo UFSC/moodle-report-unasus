@@ -28,7 +28,7 @@ function report_unasus_get_count_estudantes($categoria_turma) {
                  AND rm.relationshipcohortid=:cohort_id)
           INNER JOIN {user} u
                   ON (u.id=rm.userid)
-            GROUP BY rg.name
+            GROUP BY rg.id
             ORDER BY rg.id";
     $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
 
@@ -55,7 +55,7 @@ function report_unasus_get_count_estudantes_orientacao($categoria_turma) {
                  AND rm.relationshipcohortid=:cohort_id)
           INNER JOIN {user} u
                   ON (u.id=rm.userid)
-            GROUP BY rg.name
+            GROUP BY rg.id
             ORDER BY rg.id";
     $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
 
@@ -283,7 +283,7 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
     // cria as atividades
     foreach ($assigns as $atividade) {
 
-        if(array_search($atividade->assign_id, $atividades_config_curso) || empty($atividades_config_curso)){
+        if(!array_search($atividade->assign_id, $atividades_config_curso) || empty($atividades_config_curso)){
             $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
             $group_array->add($atividade->course_id, $assign_object);
         }
@@ -291,25 +291,25 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
 
     foreach ($foruns as $forum) {
 
-        if(array_search($forum->forum_id, $atividades_config_curso) || empty($atividades_config_curso)) {
+        if(!array_search($forum->forum_id, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
         }
     }
 
     foreach ($quizes as $quiz) {
-        if(array_search($quiz->quiz_id, $atividades_config_curso) || empty($atividades_config_curso)){
+        if(!array_search($quiz->quiz_id, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
         }
     }
 
     foreach ($databases as $database) {
-        if(array_search($database->database_id, $atividades_config_curso) || empty($atividades_config_curso)){
+        if(!array_search($database->database_id, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
         }
     }
 
     foreach ($scorms as $scorm) {
-        if (array_search($scorm->scorm_id, $atividades_config_curso) || empty($atividades_config_curso)) {
+        if (!array_search($scorm->scorm_id, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
         }
     }
@@ -317,7 +317,7 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
     foreach ($ltis as $db_lti) {
 
         // verifica se está habilitado no config report
-        if(array_search($db_lti->lti_id, $atividades_config_curso)  || empty($atividades_config_curso)){
+        if(!array_search($db_lti->lti_id, $atividades_config_curso)  || empty($atividades_config_curso)){
 
             // se não for para buscar lti ou não for lti de tcc não processa os capítulos
             $tcc_lti_array = null;
@@ -596,38 +596,6 @@ function report_unasus_query_scorm_courses($courses) {
             ORDER BY c.sortorder, scorm_id";
 
     return $DB->get_recordset_sql($query, array('siteid' => SITEID));
-}
-
-function report_unasus_query_grades_lti() {
-
-    $alunos_grupo_tutoria = query_alunos_relationship();
-
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   u.cohort,
-                   gg.itemid,
-                   l.id AS databaseid,
-                   gg.finalgrade AS grade,
-                   gi.grademax,
-                   gi.itemname,
-                   gi.timecreated AS submission_date,
-                   'nota_final_tcc' as name_activity
-              FROM (
-
-                    {$alunos_grupo_tutoria}
-
-                   ) u
-         LEFT JOIN {grade_grades} gg
-                ON gg.userid = u.id
-              JOIN {grade_items} gi
-                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
-                    gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
-              JOIN {lti} l
-                ON gi.iteminstance = l.id
-          GROUP BY userid
-          ORDER BY grupo_id, u.firstname, u.lastname
-    ";
-
 }
 
 /**
@@ -1240,7 +1208,8 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
         case 'report_unasus_assign_activity':
             $params = array(
                 'courseid' => $courseid,
-                'enrol_courseid' => $courseid,
+                'courseid2' => $courseid,
+                //'enrol_courseid' => $courseid,
                 'assignmentid' => $atividade->id,
                 'assignmentid2' => $atividade->id,
                 'relationship_id' => $relationship->id,
@@ -1251,7 +1220,8 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
         case 'report_unasus_forum_activity':
             $params = array(
                 'courseid' => $courseid,
-                'enrol_courseid' => $courseid,
+                'courseid2' => $courseid,
+                //'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
@@ -1260,10 +1230,11 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             break;
         case 'report_unasus_quiz_activity':
             $params = array(
+                'courseid' => $courseid,
+                'courseid2' => $courseid,
+                //'enrol_courseid' => $courseid,
                 'assignmentid' => $atividade->id,
                 'assignmentid2' => $atividade->id,
-                'courseid' => $courseid,
-                'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
@@ -1274,6 +1245,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             $params = array(
                 'id_activity' => $atividade->id,
                 'courseid' => $courseid,
+                'courseid2' => $courseid,
                 'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
@@ -1286,6 +1258,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             $params = array(
                 'id_activity' => $atividade->id,
                 'courseid' => $courseid,
+                'courseid2' => $courseid,
                 'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
@@ -1297,6 +1270,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
             $params = array(
                 'id_activity' => $atividade->id,
                 'courseid' => $courseid,
+                'courseid2' => $courseid,
                 'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
@@ -1308,18 +1282,20 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
         // case 'report_unasus_lti_tcc':
             $params = array(
                 'courseid' => $courseid,
+                'courseid2' => $courseid,
                 'enrol_courseid' => $courseid,
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
             );
-            $query = report_unasus_query_grades_lti();
+            $query = query_grades_lti();
             break;
         default:
             if ($is_boletim) { //Nota final para relatório boletim
                 $params = array(
                     'courseid' => $courseid,
-                    'enrol_courseid' => $courseid,
+                    'courseid2' => $courseid,
+                    //'enrol_courseid' => $courseid,
                     'relationship_id' => $relationship->id,
                     'cohort_relationship_id' => $cohort_estudantes->id,
                     'grupo' => $grupo->id);

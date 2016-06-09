@@ -85,7 +85,7 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
 
                     // se a atividade for setada para ser apresentada,
                         // então continua com as outras checagens
-                    if ( array_search($atividade->source_activity->id, $atividades_config_curso) ) {
+                    if ( !array_search($atividade->source_activity->id, $atividades_config_curso) ) {
 
                         $nome_atividade = null;
                         $atividade_sera_listada = false;

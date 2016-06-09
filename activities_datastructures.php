@@ -690,14 +690,15 @@ class report_unasus_data_activity extends report_unasus_data {
         $this->userid = $db_model->userid;
         $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
         $this->polo = $db_model->polo;
-        if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float) $db_model->grade;
+        $grade = isset($db_model->grade) ? $db_model->grade : null;
+        if (!is_null($grade) && $grade != -1) {
+            $this->grade = (float) $grade;
         }
-        $this->grademax = $db_model->grademax;
+        $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
         $this->status = $db_model->status;
 //        $this->submission_date = (!is_null($db_model->submission_date)) ? $db_model->submission_date : $db_model->submission_modified;
         $this->submission_date = ($this->status == 'submitted') ? $db_model->submission_modified : null;
-        $this->grade_date = (!is_null($db_model->grade_created)) ? $db_model->grade_created : $db_model->grade_modified;
+        $this->grade_date = isset($db_model->grade_created) ? $db_model->grade_created : $db_model->grade_modified;
     }
 
     /**
@@ -735,12 +736,13 @@ class report_unasus_data_forum extends report_unasus_data {
 
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
-        if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float) $db_model->grade;
+        $grade = isset($db_model->grade) ? $db_model->grade : null;
+        if (!is_null($grade) && $grade != -1) {
+            $this->grade = (float) $grade;
         }
-        $this->submission_date = $db_model->submission_date;
-        $this->grade_date = (empty($db_model->timemodified)) ? 0 : $db_model->timemodified;
-        $this->grademax = $db_model->grademax;
+        $this->submission_date = isset($db_model->submission_date) ? $db_model->submission_date : null;
+        $this->grade_date = isset($db_model->timemodified) ? $db_model->timemodified : 0 ;
+        $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
     }
 
     /**
@@ -772,12 +774,14 @@ class report_unasus_data_quiz extends report_unasus_data {
 
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
-        if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float) $db_model->grade;
+        $grade = isset($db_model->grade) ? $db_model->grade : null;
+        if (!is_null($grade) && $grade != -1) {
+            $this->grade = (float) $grade;
         }
-        $this->grademax = $db_model->grademax;
-        $this->submission_date = $db_model->submission_date;
-        $this->grade_date = $db_model->grade_date;
+        $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
+        $this->submission_date = isset($db_model->submission_date) ? $db_model->submission_date : null;
+        $this->grade_date = isset($db_model->grade_date) ? $db_model->grade_date : null;
+
     }
 
 }
@@ -792,14 +796,15 @@ class report_unasus_data_db extends report_unasus_data {
         parent::__construct($source_activity);
 
         $this->userid = $db_model->userid;
-        $this->databaseid = $db_model->databaseid;
-        if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float) $db_model->grade;
+        $this->databaseid = isset($db_model->databaseid) ? $db_model->databaseid : null;
+        $grade = isset($db_model->grade) ? $db_model->grade : null;
+        if (!is_null($grade) && $grade != -1) {
+            $this->grade = (float) $grade;
         }
-        $this->grademax = $db_model->grademax;
-        $this->itemname = $db_model->itemname;
-        $this->submission_date = $db_model->submission_date;
-        $this->grade_date = $db_model->grade_date;
+        $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
+        $this->itemname = isset($db_model->itemname) ? $db_model->itemname : null;
+        $this->submission_date = isset($db_model->submission_date) ? $db_model->submission_date : null;
+        $this->grade_date = isset($db_model->grade_date) ? $db_model->grade_date : null;
 
     }
 
@@ -815,12 +820,13 @@ class report_unasus_data_scorm extends report_unasus_data {
 
         $this->userid = $db_model->userid;
         $this->scormid = $db_model->scormid;
-        if (!is_null($db_model->grade) && $db_model->grade != -1) {
-            $this->grade = (float) $db_model->grade;
+        $grade = isset($db_model->grade) ? $db_model->grade : null;
+        if (!is_null($grade) && $grade != -1) {
+            $this->grade = (float) $grade;
         }
-        $this->grademax = $db_model->grademax;
-        $this->itemname = $db_model->itemname;
-        $this->submission_date = $db_model->submission_date;
+        $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
+        $this->itemname = isset($db_model->itemname) ? $db_model->itemname : null;
+        $this->submission_date = isset($db_model->submission_date) ? $db_model->submission_date : null;
     }
 
     public function has_grade() {

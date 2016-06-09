@@ -120,6 +120,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
         $modulos_ids = $this->get_modulos_ids();
 
         $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
+
         $atividades_config_curso = report_unasus_get_activities_config_report($categoria_turma_ufsc, $modulos_ids);
 
         // Recupera dados auxiliares
@@ -143,7 +144,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                     // $result contém a lista dos estudantes com os dados da atividade
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
-                    // verifica se está faltando algun estudante nos resultados
+                    // verifica se está faltando algum estudante nos resultados
                     $estudantes_adicionar = array_diff_key($estudantes_grupo, $result);
 
                     // Se estiver adiciona
@@ -183,16 +184,22 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_student($nomes_estudantes[$r->userid], $r->userid, $this->get_curso_moodle(), $r->polo, $r->cohort);
                         }
 
+                        if (isset($r->is_student) && ($r->is_student === "0")) {
+                                // Se não for estudante do curso
+                                $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_APLICADO;
+                        }
+
                         // Se a atividade não foi entregue e ainda não recebeu nota
-                        if (!$data->has_submitted() && !$data->has_grade()) {
+                        else if (!$data->has_submitted() && !$data->has_grade()) {
 
                             if (!$data->source_activity->has_deadline()) {
                                 // E não tem entrega prazo
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             } elseif ($data->is_a_future_due()) {
-                                //atividade com data de entrega no futuro, nao entregue mas dentro do prazo
+                                // Atividade com data de entrega no futuro, nao entregue mas dentro do prazo
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_MAS_NO_PRAZO;
-                            } else {
+                            }
+                            else {
                                 // Atividade nao entregue e atrasada
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_NAO_ENTREGUE_FORA_DO_PRAZO;
                             }
@@ -207,7 +214,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             $atraso = $data->submission_due_days();
                         }
 
-                        if ($r->name_activity == 'nota_final_tcc' && array_search(1, $atividades_config_curso)) {
+                        if ($r->name_activity == 'nota_final_tcc' && !array_search(1, $atividades_config_curso)) {
                             if (!isset($r->grade)) {
                                 $tipo = report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                             } else {
@@ -215,9 +222,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             }
                             $lista_atividades[$r->userid][] = new report_unasus_dado_entrega_de_atividades_render($tipo, 0);
 
-                        } else if (isset($atividade->id) && array_search($atividade->id, $atividades_config_curso)){
-                            $lista_atividades[$r->userid][$atividade->course_id.'|'.$atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
-                        }
+                        } else if (isset($atividade->id) && !array_search($atividade->id, $atividades_config_curso)) {
+                                $lista_atividades[$r->userid][$atividade->course_id . '|' . $atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
+                            }
                     }
 
                     // Auxiliar para agrupar tutores corretamente

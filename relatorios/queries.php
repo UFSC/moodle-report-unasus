@@ -29,16 +29,10 @@ function query_alunos_relationship() {
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
+    $query_cohort = " JOIN relationship_cohorts rlc
+                       ON (rlc.id = rm.relationshipcohortid) ";
     if (!is_null($cohorts)) {
-        $query_cohort = " JOIN {cohort_members} cm
-                            ON (cm.userid=u1.id)
-                          JOIN {cohort} co
-                            ON (cm.cohortid=co.id AND co.id IN ({$cohorts})) ";
-    } else {
-        $query_cohort = " LEFT JOIN {cohort_members} cm
-                            ON (u1.id = cm.userid)
-                          LEFT JOIN {cohort} co
-                            ON (cm.cohortid=co.id)";
+        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
     }
 
     if (!is_null($polos)) {
@@ -51,7 +45,7 @@ function query_alunos_relationship() {
                 u1.lastname,
                 rg.id AS grupo_id,
                 uid.data AS polo,
-                co.id AS cohort
+                rlc.cohortid AS cohort
            FROM {user} u1
            JOIN {relationship_members} rm
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
@@ -65,7 +59,7 @@ function query_alunos_relationship() {
                 )
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}
-          GROUP BY u1.id";
+          -- GROUP BY u1.id";
 
     return "SELECT DISTINCT u2.id,
                    u2.firstname,
@@ -81,6 +75,106 @@ function query_alunos_relationship() {
                 ON (ue.userid = u2.id)
         INNER JOIN {enrol} e
                 ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
+}
+
+/**
+ * Query para retornar os alunos pertencentes a um grupo de tutoria
+ * Utilizada em diversos relatórios, necessita do relationship para rodar.
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - firstname
+ * - lastname
+ * - grupo_id
+ *
+ * @throws Exception
+ * @return string
+ */
+function query_alunos_relationship_student() {
+
+    /** @var $report report_unasus_factory */
+    $report = report_unasus_factory::singleton();
+    $query_polo = ' ';
+
+    $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
+    $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
+
+    $query_cohort = " JOIN relationship_cohorts rlc
+                       ON (rlc.id = rm.relationshipcohortid) ";
+    if (!is_null($cohorts)) {
+        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
+    }
+
+    if (!is_null($polos)) {
+        $query_polo = "  AND uid.data IN ({$polos}) ";
+    }
+
+    $query_relationship = "
+         SELECT u1.id,
+                u1.firstname,
+                u1.lastname,
+                rg.id AS grupo_id,
+                uid.data AS polo,
+                rlc.cohortid AS cohort
+           FROM {user} u1
+           JOIN {relationship_members} rm
+             ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
+           JOIN {relationship_groups} rg
+             ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
+      LEFT JOIN {user_info_data} uid
+             ON (u1.id = uid.userid AND uid.fieldid=(
+                    SELECT id
+                    FROM {user_info_field}
+                    WHERE shortname = 'polo')
+                )
+                {$query_cohort}
+          WHERE rg.id=:grupo {$query_polo}";
+
+    return "SELECT DISTINCT u2.id,
+                   u2.firstname,
+                   u2.lastname,
+                   u2.cohort,
+                   u2.polo,
+                   u2.grupo_id AS grupo_id,
+                   (e.id = ue.enrolid IS NOT NULL) AS enrol,
+                   std.is_student
+              FROM (
+                      {$query_relationship}
+                   ) u2
+              JOIN {user_enrolments} ue
+                ON (ue.userid = u2.id)
+        INNER JOIN {enrol} e
+                ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
+}
+
+/**
+ * Query para retornar a relação dos alunos com seus respectivos papéis dentro de um curso
+ * Utilizada nas queries de atividades onde determinará se um aluno é estudante ou não do curso.
+ *
+ * Colunas:
+ *
+ * - user_id
+ * - id
+ * - name
+ *
+ * @throws Exception
+ * @return string
+ */
+function query_is_student() {
+    return "SELECT DISTINCT ue.userid, r.id, r.name
+                      FROM {user_enrolments} ue
+                INNER JOIN {enrol} e
+                        ON (e.id = ue.enrolid)
+                      JOIN {role_assignments} ra
+                        ON (ue.userid = ra.userid)
+                      JOIN {context} ct
+                        ON (ra.contextid = ct.id) AND (ct.instanceid = e.courseid)
+                      JOIN {role} r
+                        ON (ra.roleid = r.id)
+                     WHERE e.courseid = :courseid2
+                  ORDER BY ue.userid, r.name
+                  ";
 }
 
 function query_alunos_grupo_orientacao() {
@@ -126,7 +220,8 @@ function query_alunos_grupo_orientacao() {
  * @return string
  */
 function query_postagens_forum_from_users() {
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -138,11 +233,21 @@ function query_postagens_forum_from_users() {
                    fp.itemid,
                    userid_posts IS NOT NULL AS has_post,
                    gg.grademax,
-                   'forum_activity' as name_activity
+                   'forum_activity' as name_activity,
+                   u.is_student
               FROM (
 
                     {$alunos_grupo_tutoria}
-
+                    JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
                    ) u
          LEFT JOIN (
                         SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name, f.id as itemid
@@ -349,12 +454,14 @@ function query_potenciais_evasoes_from_users() {
  * - grade_modified -> unixtime da alteração da atividade, algumas atividades não possuem submission_date
  * - grade_created -> unixtime da data que a nota foi atribuuda
  * - status -> estado da avaliaçao
+ * - is_student -> 1 para estudantes, 0 para outros papéis
  *
  * @return string
  *
  */
 function query_atividades_from_users() {
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -366,11 +473,21 @@ function query_atividades_from_users() {
                    gr.timemodified AS grade_modified,
                    gr.timecreated AS grade_created,
                    sub.status,
-                   'assign_activity' as name_activity
+                   'assign_activity' as name_activity,
+                   u.is_student
               FROM (
 
                       {$alunos_grupo_tutoria}
-
+                      JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
                    ) u
          LEFT JOIN (
                     SELECT sub.*
@@ -418,7 +535,9 @@ function query_database_from_users() {
 
 function query_database_adjusted_from_users() {
 
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    //$alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -430,12 +549,21 @@ function query_database_adjusted_from_users() {
                    gi.itemname,
                    dr.timemodified AS submission_date,
                    gg.timemodified AS grade_date,
-                   'db_activity' as name_activity
+                   'db_activity' as name_activity,
+                   u.is_student
               FROM (
-
                     {$alunos_grupo_tutoria}
-
-                   ) u
+                        JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
+                     ) u
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u.id
               JOIN {grade_items} gi
@@ -454,7 +582,9 @@ function query_database_adjusted_from_users() {
 
 function query_scorm_from_users () {
 
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    //$alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -465,11 +595,21 @@ function query_scorm_from_users () {
                    gi.grademax,
                    gi.itemname,
                    gg.timemodified AS submission_date,
-                   'scorm_activity' as name_activity
+                   'scorm_activity' as name_activity,
+                   u.is_student
               FROM (
 
                     {$alunos_grupo_tutoria}
-
+                    JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
                    ) u
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u.id
@@ -487,7 +627,9 @@ function query_scorm_from_users () {
 
 function query_lti_from_users () {
 
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    //$alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u3.id AS userid,
                    u3.polo,
@@ -498,11 +640,21 @@ function query_lti_from_users () {
                    gi.grademax,
                    gi.itemname,
                    gg.timemodified AS submission_date,
-                   'lti_activity' as name_activity
+                   'lti_activity' as name_activity,
+                   u3.is_student
               FROM (
 
                     {$alunos_grupo_tutoria}
-
+                      JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
                    ) u3
          LEFT JOIN {grade_grades} gg
                 ON gg.userid = u3.id
@@ -527,11 +679,13 @@ function query_lti_from_users () {
  *
  * - user_id
  * - grade -> nota
+ * - is_student -> 1 para estudantes, 0 para outros papéis
  * @return string
  *
  */
 function query_nota_final() {
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -540,17 +694,24 @@ function query_nota_final() {
                    courseid,
                    finalgrade AS grade,
                    grademax,
-                   'nota_final_activity' as name_activity
+                   'nota_final_activity' as name_activity,
+                   u.is_student
               FROM (
 
                     {$alunos_grupo_tutoria}
-
+                    JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
                    ) u
-
          LEFT JOIN
-
                   (
-
                       SELECT gi.id AS gradeitemid,
                               gi.courseid,
                               gg.userid AS userid,
@@ -561,7 +722,6 @@ function query_nota_final() {
                         JOIN {grade_grades} gg
                           ON (gi.id = gg.itemid AND gi.itemtype LIKE 'course' AND itemmodule IS NULL)
                        WHERE (gi.courseid=:courseid)
-
                   ) grade
                 ON (grade.userid=u.id)
           ORDER BY grupo_id, u.firstname, u.lastname
@@ -583,7 +743,8 @@ function query_nota_final() {
  *
  */
 function query_quiz_from_users() {
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
                    u.polo,
@@ -592,11 +753,21 @@ function query_quiz_from_users() {
                    gi.grademax,
                    qg.timemodified AS grade_date,
                    qa.timefinish AS submission_date,
-                   'quiz_activity' as name_activity
+                   'quiz_activity' as name_activity,
+                   u.is_student
               FROM (
 
-                    {$alunos_grupo_tutoria}
-
+                      {$alunos_grupo_tutoria}
+                      JOIN (
+                          SELECT
+                                userid, SUM(id = 5) > 0 AS is_student
+                          FROM (
+                                  {$is_student}
+                                ) st
+                          GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
                    ) u
          LEFT JOIN (
                         SELECT qa.*
@@ -617,6 +788,49 @@ function query_quiz_from_users() {
                 ON (gi.courseid= q.course AND gi.iteminstance = qa.quiz)
           ORDER BY grupo_id, u.firstname, u.lastname
      ";
+}
+
+function query_grades_lti() {
+
+    $alunos_grupo_tutoria = query_alunos_relationship();
+    $is_student = query_is_student();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   l.id AS databaseid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gi.timecreated AS submission_date,
+                   'nota_final_tcc' as name_activity,
+                   u.is_student
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+                      JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                      ) std
+                      ON (std.userid = u2.id)
+                      ORDER BY firstname
+                   ) u
+         LEFT JOIN {grade_grades} gg
+                ON gg.userid = u.id
+              JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
+              JOIN {lti} l
+                ON gi.iteminstance = l.id
+          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+
 }
 
 function query_alunos_modulos() {
