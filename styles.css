@@ -606,13 +606,12 @@ legend {
   color: #000000 !important;
 }
 
-.relatorio-unasus.acesso_tutor .nao_acessou,
-.relatorio-unasus.tcc_entrega_atividades {
-  background-color: #FF886E !important;
-  color: #000000 !important;
+.relatorio-unasus.acesso_tutor .nao_acessou
+{
+  background-color: #FF886E;
+  color: #000000;
 }
 
-/*.relatorio-unasus .nao_aplicado,*/
 .relatorio-unasus .nao_acessado,
 .relatorio-unasus .nao_concluido,
 .relatorio-unasus.atividades_vs_notas .nao_entregue,
@@ -620,8 +619,8 @@ legend {
 .relatorio-unasus.uso_sistema_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes .nao_concluido,
 .relatorio-unasus.boletim .abaixo_media {
-  background-color: #f77 !important;
-  color: #000000 !important;
+  background-color: #f77;
+  color: #000000;
 }
 
 .relatorio-unasus .nao_aplicado {

@@ -141,8 +141,8 @@ function query_alunos_relationship_student() {
                     WHERE shortname = 'polo')
                 )
                 {$query_cohort}
-          WHERE rg.id=:grupo {$query_polo}
-          GROUP BY u1.id";
+          WHERE rg.id=:grupo {$query_polo}";
+#          GROUP BY u1.id";
 
     return "SELECT DISTINCT u2.id,
                    u2.firstname,

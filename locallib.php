@@ -28,7 +28,7 @@ function report_unasus_get_count_estudantes($categoria_turma) {
                  AND rm.relationshipcohortid=:cohort_id)
           INNER JOIN {user} u
                   ON (u.id=rm.userid)
-            GROUP BY rg.name
+            GROUP BY rg.id
             ORDER BY rg.id";
     $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
 
@@ -55,7 +55,7 @@ function report_unasus_get_count_estudantes_orientacao($categoria_turma) {
                  AND rm.relationshipcohortid=:cohort_id)
           INNER JOIN {user} u
                   ON (u.id=rm.userid)
-            GROUP BY rg.name
+            GROUP BY rg.id
             ORDER BY rg.id";
     $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
 
