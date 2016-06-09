@@ -29,16 +29,10 @@ function query_alunos_relationship() {
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
+    $query_cohort = " JOIN relationship_cohorts rlc
+                       ON (rlc.id = rm.relationshipcohortid) ";
     if (!is_null($cohorts)) {
-        $query_cohort = " JOIN {cohort_members} cm
-                            ON (cm.userid=u1.id)
-                          JOIN {cohort} co
-                            ON (cm.cohortid=co.id AND co.id IN ({$cohorts})) ";
-    } else {
-        $query_cohort = " LEFT JOIN {cohort_members} cm
-                            ON (u1.id = cm.userid)
-                          LEFT JOIN {cohort} co
-                            ON (cm.cohortid=co.id)";
+        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
     }
 
     if (!is_null($polos)) {
@@ -51,7 +45,7 @@ function query_alunos_relationship() {
                 u1.lastname,
                 rg.id AS grupo_id,
                 uid.data AS polo,
-                co.id AS cohort
+                rlc.cohortid AS cohort
            FROM {user} u1
            JOIN {relationship_members} rm
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
@@ -65,7 +59,7 @@ function query_alunos_relationship() {
                 )
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}
-          GROUP BY u1.id";
+          -- GROUP BY u1.id";
 
     return "SELECT DISTINCT u2.id,
                    u2.firstname,
@@ -106,16 +100,10 @@ function query_alunos_relationship_student() {
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
+    $query_cohort = " JOIN relationship_cohorts rlc
+                       ON (rlc.id = rm.relationshipcohortid) ";
     if (!is_null($cohorts)) {
-        $query_cohort = " JOIN {cohort_members} cm
-                            ON (cm.userid=u1.id)
-                          JOIN {cohort} co
-                            ON (cm.cohortid=co.id AND co.id IN ({$cohorts})) ";
-    } else {
-        $query_cohort = " LEFT JOIN {cohort_members} cm
-                            ON (u1.id = cm.userid)
-                          LEFT JOIN {cohort} co
-                            ON (cm.cohortid=co.id)";
+        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
     }
 
     if (!is_null($polos)) {
@@ -128,7 +116,7 @@ function query_alunos_relationship_student() {
                 u1.lastname,
                 rg.id AS grupo_id,
                 uid.data AS polo,
-                co.id AS cohort
+                rlc.cohortid AS cohort
            FROM {user} u1
            JOIN {relationship_members} rm
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
@@ -142,7 +130,6 @@ function query_alunos_relationship_student() {
                 )
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
-#          GROUP BY u1.id";
 
     return "SELECT DISTINCT u2.id,
                    u2.firstname,
