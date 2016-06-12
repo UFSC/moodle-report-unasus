@@ -50,9 +50,7 @@ Este plugin deve ser instalado em "report/unasus", juntamente com os
 plugins dependentes:
 
 * "local/relationship"
-* "local/report-config"
 * "local/tutores"
-* "local/ufsc"
 
 Permissões
 ----------
