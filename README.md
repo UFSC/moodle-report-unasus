@@ -49,8 +49,8 @@ Instalação
 Este plugin deve ser instalado em "report/unasus", juntamente com os
 plugins dependentes:
 
-* "local/relationship"
-* "local/tutores"
+* ["local/relationship"](https://github.com/UFSC/moodle-local-relationship)
+* ["local/tutores"](https://github.com/UFSC/moodle-local-tutores) 
 
 Permissões
 ----------
