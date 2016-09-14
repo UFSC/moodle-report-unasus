@@ -482,12 +482,16 @@ function report_unasus_process_header_tcc_atividades($courses, report_unasus_Gro
  * @global moodle_database $DB
  * @return moodle_recordset
  */
-function report_unasus_query_assign_courses($courses) {
+function report_unasus_query_assign_courses($courses)
+{
     global $DB, $SITE;
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT a.id AS assign_id,
+    if (empty($string_courses)) {
+        return [];
+    } else  {
+        $query = "SELECT a.id AS assign_id,
                      a.name AS assign_name,
                      cm.completionexpected,
                      a.nosubmissions,
@@ -507,7 +511,8 @@ function report_unasus_query_assign_courses($courses) {
                  -- AND cm.visible=TRUE
             ORDER BY c.sortorder, assign_id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
+        return $DB->get_recordset_sql($query, array('siteid' => $SITE->id));
+    }
 }
 
 /**
@@ -523,7 +528,10 @@ function report_unasus_query_quiz_courses($courses) {
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT q.id AS quiz_id,
+    if (empty($string_courses)) {
+        return [];
+    } else {
+        $query = "SELECT q.id AS quiz_id,
                      q.name AS quiz_name,
                      q.timeopen,
                      cm.completionexpected,
@@ -543,7 +551,8 @@ function report_unasus_query_quiz_courses($courses) {
                   -- AND cm.visible=TRUE
              ORDER BY c.sortorder, quiz_id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+        return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+    }
 }
 
 function report_unasus_query_database_courses($courses) {
@@ -551,7 +560,10 @@ function report_unasus_query_database_courses($courses) {
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT d.id AS database_id,
+    if (empty($string_courses)) {
+        return [];
+    } else {
+        $query = "SELECT d.id AS database_id,
                      d.name AS database_name,
 	                 cm.completionexpected,
 	                 c.id AS course_id,
@@ -569,7 +581,8 @@ function report_unasus_query_database_courses($courses) {
                   -- AND cm.visible=TRUE
             ORDER BY c.sortorder, database_id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+        return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+    }
 }
 
 function report_unasus_query_scorm_courses($courses) {
@@ -577,7 +590,10 @@ function report_unasus_query_scorm_courses($courses) {
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT s.id AS scorm_id,
+    if (empty($string_courses)) {
+        return [];
+    } else {
+        $query = "SELECT s.id AS scorm_id,
                      s.name AS scorm_name,
 	                 cm.completionexpected,
 	                 c.id AS course_id,
@@ -595,7 +611,8 @@ function report_unasus_query_scorm_courses($courses) {
                   -- AND cm.visible=TRUE
             ORDER BY c.sortorder, scorm_id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+        return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+    }
 }
 
 /**
@@ -731,7 +748,10 @@ function report_unasus_query_lti_courses_moodle($courses) {
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT l.id AS lti_id,
+    if (empty($string_courses)) {
+        return [];
+    } else {
+        $query = "SELECT l.id AS lti_id,
 		             l.name AS name,
 		             c.id AS course_id,
 		             REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
@@ -748,7 +768,8 @@ function report_unasus_query_lti_courses_moodle($courses) {
                WHERE c.id IN ({$string_courses}) -- AND cm.visible=TRUE
             ORDER BY c.sortorder, lti_id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+        return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+    }
 }
 
 /**
@@ -774,7 +795,10 @@ function report_unasus_query_forum_courses($courses) {
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT f.id AS forum_id,
+    if (empty($string_courses)) {
+        return [];
+    } else {
+        $query = "SELECT f.id AS forum_id,
                      f.name AS forum_name,
                      cm.completionexpected,
                      c.id AS course_id,
@@ -796,7 +820,8 @@ function report_unasus_query_forum_courses($courses) {
                  AND (gi.id=TRUE OR cm.completion != 0)
             ORDER BY c.sortorder, forum_id";
 
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+        return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+    }
 }
 
 function report_unasus_query_courses_com_nota_final($courses) {
@@ -804,7 +829,10 @@ function report_unasus_query_courses_com_nota_final($courses) {
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT gi.id,
+    if (empty($string_courses)) {
+        return [];
+    } else {
+        $query = "SELECT gi.id,
                      gi.courseid AS course_id,
                      gi.itemname
                 FROM {grade_items} gi
@@ -815,7 +843,8 @@ function report_unasus_query_courses_com_nota_final($courses) {
                  AND gi.courseid IN ({$string_courses}))
             ORDER BY c.sortorder";
 
-    return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+        return $DB->get_recordset_sql($query, array('siteid' => SITEID));
+    }
 }
 
 /**
