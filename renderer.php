@@ -172,7 +172,8 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         if (has_capability('report/unasus:view_all', $report->get_context())) {
 
-            if ($report->mostrar_filtro_polos) {
+            if ($report->mostrar_filtro_polos && false) {
+                /*TODO: Ticket: #11298 Desvincular dependências da UFSC dos relatórios UNASUS */
                 // Filtro de Polo
                 $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '';
                 $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
