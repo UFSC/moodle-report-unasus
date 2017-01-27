@@ -362,9 +362,11 @@ EOD;
 
     /**
      * Adds the user to the specified cohort. The user should be specified like "username".
+     * Obs: Ao adicionar o usuário ao grupo de cohort, automaticamente é adicionado o usuário
+     * aos respectivos grupos de tutoria.
      *
      * @Given /^I add the user "([^"]*)" with cohort "([^"]*)" to cohort members$/
-     * @param string $user
+     * @param string $user, $cohort
      */
     public function i_add_user_to_cohort_members($user, $cohort) {
         global $DB;
@@ -379,7 +381,7 @@ EOD;
                      FROM {cohort}
                      WHERE name = :cohort";
 
-        $cohortId = $DB->get_field_sql($sql_cohort, array('cohort' => $cohort));
+        $cohortId = $DB->get_field_sql($sql_cohort, array('cohort' => 'Cohort '.$cohort));
 
         $record = new stdClass();
         $record->cohortid = $cohortId;
@@ -387,6 +389,56 @@ EOD;
         $record->timeadded = time();
 
         $DB->insert_record('cohort_members', $record);
+
+        if($cohort == 'student'){
+            $record_student = new stdClass();
+            $record_student->name = 'local_tutores_student_roles';
+            $record_student->value = $cohort;
+
+            $DB->insert_record('config', $record_student);            
+
+            $record_student_log = new stdClass();
+            $record_student_log->userid = $userId;
+            $record_student_log->timemodified = time();
+            $record_student_log->plugin = null;
+            $record_student_log->name = 'local_tutores_student_roles';
+            $record_student_log->value = $cohort;
+
+            $DB->insert_record('config_log', $record_student_log);
+
+        }
+
+        if($cohort == 'teacher'){
+            $record_teacher = new stdClass();
+            $record_teacher->name = 'local_tutores_tutor_roles';
+            $record_teacher->value = 'editing'.$cohort;
+
+            $DB->insert_record('config', $record_teacher);
+
+            $record_teacher_log = new stdClass();
+            $record_teacher_log->userid = $userId;
+            $record_teacher_log->timemodified = time();
+            $record_teacher_log->plugin = null;
+            $record_teacher_log->name = 'local_tutores_tutor_roles';
+            $record_teacher_log->value = 'editing'.$cohort;
+
+            $DB->insert_record('config_log', $record_teacher_log);
+
+            $record_editingteacher = new stdClass();
+            $record_editingteacher->name = 'local_tutores_orientador_roles';
+            $record_editingteacher->value = 'editing'.$cohort;
+
+            $DB->insert_record('config', $record_editingteacher);
+
+            $record_editingteacher_log = new stdClass();
+            $record_editingteacher_log->userid = $userId;
+            $record_editingteacher_log->timemodified = time();
+            $record_editingteacher_log->plugin = null;
+            $record_editingteacher_log->name = 'local_tutores_orientador_roles';
+            $record_editingteacher_log->value = 'editing'.$cohort;
+
+            $DB->insert_record('config_log', $record_editingteacher_log);
+        }
     }
 
 //    protected function preprocess_relationship($data)
