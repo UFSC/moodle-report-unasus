@@ -15,32 +15,54 @@ Background:
     | Category 1 | 0        | CAT1     |
 
   And the following "courses" exist:
-    | fullname | shortname | id | category |
-    | Course1  | c1        | 1  | CAT1     |
+    | fullname | shortname | id | category | groupmode |
+    | Course1  | c1        | 1  | CAT1     | 1         |
+
+# -----------------------------QUIZ SETUP-----------------------------------------------
+  And the following "question categories" exist:
+    | contextlevel | reference | name           |
+    | Course       | C1        | Test questions |
+
+  And the following "activities" exist:
+    | activity   | name   | intro              | course | idnumber |
+    | quiz       | Quiz 1 | Quiz 1 description | C1     | quiz1    |
+
+  And the following "questions" exist:
+    | questioncategory | qtype       | name  | questiontext    |
+    | Test questions   | truefalse   | TF1   | First question  |
+    | Test questions   | truefalse   | TF2   | Second question |
+
+  And quiz "Quiz 1" contains the following questions:
+    | question | page | maxmark |
+    | TF1      | 1    |         |
+    | TF2      | 1    | 3.0     |
+# --------------------------------------------------------------------------------------
 
   And the following "course enrolments" exist:
     | user     | course | role    |
     | student1 | c1     | student |
     | teacher1 | c1     | teacher |
 
+  # Por causa da exigência do relatório, é necessário que o role seja editingteacher
   And the following "permission overrides" exist:
-    | capability                | permission | role    | contextlevel | reference |
-    | local/relationship:view   | Allow      | teacher | Category     | CAT1      |
-    | local/relationship:manage | Allow      | teacher | Category     | CAT1      |
-    | local/relationship:assign | Allow      | teacher | Category     | CAT1      |
-    | moodle/cohort:view        | Allow      | teacher | Category     | CAT1      |
+    | capability                | permission | role           | contextlevel | reference |
+    | local/relationship:view   | Allow      | editingteacher | Category     | CAT1      |
+    | local/relationship:manage | Allow      | editingteacher | Category     | CAT1      |
+    | local/relationship:assign | Allow      | editingteacher | Category     | CAT1      |
+    | moodle/cohort:view        | Allow      | editingteacher | Category     | CAT1      |
 
   And the following "role assigns" exist:
-    | user     | role    | contextlevel | reference |
-    | teacher1 | teacher | Category     | CAT1      |
+    | user     | role           | contextlevel | reference |
+    | teacher1 | editingteacher | Category     | CAT1      |
 
   And the following "cohorts" exist:
     | name             | idnumber | contextid |
-    | Cohort professor | 500      | 154002    |
-    | Cohort student   | 500      | 154002    |
+    | Cohort teacher   | 500      | 154002    |
+    | Cohort student   | 501      | 154002    |
 
-  And I add the user "teacher1" with cohort "Cohort professor" to cohort members
-  And I add the user "student1" with cohort "Cohort student" to cohort members
+  # O cohort precisa ser student ou teacher para que seja incluído nos grupos de tutoria
+  And I add the user "teacher1" with cohort "teacher" to cohort members
+  And I add the user "student1" with cohort "student" to cohort members
 
   And the following relationship "relationships" exist:
     | name          | contextid |
@@ -59,10 +81,10 @@ Scenario: Teachers can navigate relationship page
     And I follow "Courses"
     And I follow "Category 1"
     And I follow "Course1"
-    And I navigate to "Lista: atividades não avaliadas" node in "Reports > UNA-SUS"
-    And I pause
-    And I follow "Lista: atividades não avaliadas"
-    And I pause
+    And I navigate to "Síntese: avaliações em atraso" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then I should see "relationship_group1 - Teacher 1"
+
 
 
 
