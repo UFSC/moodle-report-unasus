@@ -98,10 +98,10 @@ class report_unasus_SistemaTccClient {
          * Solução  para enviar via post array do php
          * http://php.net/manual/pt_BR/function.http-build-query.php
          */
-        $param = preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($param));
+        $new_param = preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($param, null, '&'));
 
         $this->client->setUri("{$this->url}{$path}");
-        $this->client->setRawData($param);
+        $this->client->setRawData($new_param);
 
         try {
             $response = $this->client->request('POST');
