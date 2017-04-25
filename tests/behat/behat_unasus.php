@@ -13,6 +13,7 @@ class behat_unasus extends behat_base
     protected $datagenerator;
     protected $relationshipcount = 0;
     protected $relationship_groupscount = 0;
+    protected $relationship_memberscount = 0;
     public $loremipsum = <<<EOD
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nulla non arcu lacinia neque faucibus fringilla. Vivamus porttitor turpis ac leo. Integer in sapien. Nullam eget nisl. Aliquam erat volutpat. Cras elementum. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Integer malesuada. Nullam lectus justo, vulputate eget mollis sed, tempor sed magna. Mauris elementum mauris vitae tortor. Aliquam erat volutpat.
 Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Pellentesque ipsum. Cras pede libero, dapibus nec, pretium sit amet, tempor quis. Aliquam ante. Proin in tellus sit amet nibh dignissim sagittis. Vivamus porttitor turpis ac leo. Duis bibendum, lectus ut viverra rhoncus, dolor nunc faucibus libero, eget facilisis enim ipsum id lacus. In sem justo, commodo ut, suscipit at, pharetra vitae, orci. Aliquam erat volutpat. Nulla est.
@@ -38,6 +39,11 @@ EOD;
             'datagenerator' => 'relationship_groups',
             'required' => array('name')
         ),
+
+        'relationship_members'=> array(
+            'datagenerator' => 'relationship_members',
+            'required' => array('user', 'group')
+        )
         
     );
 
@@ -177,6 +183,73 @@ EOD;
     }
 
     /**
+     * Creates the specified element. More info about available elements in http://docs.moodle.org/dev/Acceptance_testing#Fixtures.
+     *
+     * @Given /^the following users belongs to the relationship group as "(?P<element_string>(?:[^"]|\\")*)":$/
+     *
+     * @throws Exception
+     * @throws PendingException
+     * @param string    $elementname The name of the entity to add
+     * @param TableNode $data
+     */
+    public function the_Following_Users_Belongs_Relationship_Members($elementname, TableNode $data)
+    {
+
+        $this->datagenerator = new behat_unasus;
+
+        $elementdatagenerator = self::$elements[$elementname]['datagenerator'];
+        $requiredfields = self::$elements[$elementname]['required'];
+        if (!empty(self::$elements[$elementname]['switchids'])) {
+            $switchids = self::$elements[$elementname]['switchids'];
+        }
+
+        foreach ($data->getHash() as $elementdata) {
+
+            // Check if all the required fields are there.
+            foreach ($requiredfields as $requiredfield) {
+                if (!isset($elementdata[$requiredfield])) {
+                    throw new Exception($elementname . ' requires the field ' . $requiredfield . ' to be specified');
+                }
+            }
+
+            // Switch from human-friendly references to ids.
+            if (isset($switchids)) {
+                foreach ($switchids as $element => $field) {
+                    $methodname = 'get_' . $element . '_id';
+
+                    // Not all the switch fields are required, default vars will be assigned by data generators.
+                    if (isset($elementdata[$element])) {
+                        // Temp $id var to avoid problems when $element == $field.
+                        $id = $this->{$methodname}($elementdata[$element]);
+                        unset($elementdata[$element]);
+                        $elementdata[$field] = $id;
+                    }
+                }
+            }
+
+            // Preprocess the entities that requires a special treatment.
+            if (method_exists($this, 'preprocess_' . $elementdatagenerator)) {
+                $elementdata = $this->{'preprocess_' . $elementdatagenerator}($elementdata);
+            }
+
+            // Creates element.
+            $methodname = 'create_' . $elementdatagenerator;
+            // if (method_exists($this->datagenerator, $methodname)) {
+            if(true){
+                // Using data generators directly.
+                $this->datagenerator->{$methodname}($elementdata);
+
+            } else if (method_exists($this, 'process_' . $elementdatagenerator)) {
+                // Using an alternative to the direct data generator call.
+                $this->{'process_' . $elementdatagenerator}($elementdata);
+            } else {
+                throw new PendingException($elementname . ' data generator is not implemented');
+            }
+        }
+
+    }
+
+    /**
      * Create a test relationship
      * @param array|stdClass $record
      * @param array $options with keys:
@@ -259,6 +332,60 @@ EOD;
     }
 
     /**
+     * Create a test relationship_members
+     * @param array|stdClass $record
+     * @param array $options with keys:
+     *      'createsections'=>bool precreate all sections
+     * @return stdClass relationship_groups record
+     */
+    public function create_relationship_members($record = null, array $options=null) {
+        global $DB, $CFG;
+        require_once("$CFG->dirroot/local/relationship/lib.php");
+
+        $this->relationship_memberscount++;
+        $i = $this->relationship_memberscount;
+
+        $record = (array)$record;
+
+        if (!isset($record['relationshipgroupid'])) {
+        $sql="SELECT rg.id
+                FROM {relationship_groups} rg
+                WHERE name = :name";
+
+        $relationshipgroupid = $DB->get_field_sql($sql, array('name' => $record['group']));
+        $record['relationshipgroupid'] = $relationshipgroupid;
+        }
+
+        if (!isset($record['relationshipcohortid'])) {
+            $sql="SELECT rc.id
+                    FROM {relationship_cohorts} rc			
+                    WHERE rc.cohortid = (SELECT cm.cohortid
+                    FROM {cohort_members} cm
+                    WHERE userid = (SELECT u.id
+                                        FROM {user} u
+                                        WHERE u.username = :username))";
+
+            $relationshipcohortid = $DB->get_field_sql($sql, array('username' => $record['user']));
+            $record['relationshipcohortid'] = $relationshipcohortid;
+        }
+
+        if (!isset($record['userid'])) {
+            $sql = "SELECT u.id
+                    FROM {user} u
+                    WHERE u.username = :username";
+            $user_id = $DB->get_field_sql($sql, array('username' => $record['user']));
+
+            $record['userid'] = $user_id;
+        }
+
+        $id = relationship_add_member($record['relationshipgroupid'],
+                                      $record['relationshipcohortid'],
+                                      $record['userid']);
+
+        return $DB->get_record('relationship_members', array('id' => $id), '*', MUST_EXIST);
+    }
+
+    /**
      *
      * Adiciona uma tag no relationship.
      *
@@ -318,7 +445,7 @@ EOD;
 
         $relationshipId = $DB->get_field_sql($sql_relationship, array('relationship' => $relationship));
 
-        $sql = "SELECT role_assignments.roleid, cohort.id, role_assignments.userid
+        $sql = "SELECT DISTINCT role_assignments.userid as id, role_assignments.roleid, cohort.id as cohortid 
                      FROM {cohort} cohort, {role_assignments} role_assignments
                      LEFT JOIN {cohort_members} cohort_members 
                      ON role_assignments.userid = cohort_members.userid
@@ -327,36 +454,45 @@ EOD;
         $sql_result = $DB->get_records_sql($sql);
 
         foreach ($sql_result as $id) {
-            $record = new stdClass();
-            $record->relationshipid = $relationshipId;
-            $record->roleid = $id->roleid;
-            $record->cohortid = $id->id;
-            $record->allowdupsingroups = 0;
-            $record->uniformdistribution = 0;
-            $record->timecreated = time();
-            $record->timemodified = time();
 
-            $DB->insert_record('relationship_cohorts', $record);
+            $sql_roleid = "SELECT COUNT(1)
+                           FROM {relationship_cohorts} rc
+                           WHERE rc.roleid = :roleid";
 
-            $sql_rc = "SELECT id
-                       FROM {relationship_cohorts}
-                       WHERE roleid = :roleid";
+            $roleid = $DB->get_field_sql($sql_roleid, array('roleid' => $id->roleid));
 
-            $relationshipCohortId = $DB->get_field_sql($sql_rc, array('roleid' => $id->roleid));
+            if($roleid == 0) {
+                $record = new stdClass();
+                $record->relationshipid = $relationshipId;
+                $record->roleid = $id->roleid;
+                $record->cohortid = $id->cohortid;
+                $record->allowdupsingroups = 0;
+                $record->uniformdistribution = 0;
+                $record->timecreated = time();
+                $record->timemodified = time();
 
-            $sql_rg = "SELECT id
-                    FROM {relationship_groups}
-                    WHERE name = :relationship_group";
+                $DB->insert_record('relationship_cohorts', $record);
+            }
 
-            $relationshipGroupId = $DB->get_field_sql($sql_rg, array('relationship_group' => $relationship_group));
-
-            $record = new stdClass();
-            $record->relationshipgroupid = $relationshipGroupId;
-            $record->relationshipcohortid = $relationshipCohortId;
-            $record->userid = $id->userid;
-            $record->timeadded = time();
-
-            $DB->insert_record('relationship_members', $record);
+//            $sql_rc = "SELECT id
+//                       FROM {relationship_cohorts}
+//                       WHERE roleid = :roleid";
+//
+//            $relationshipCohortId = $DB->get_fieldset_sql($sql_rc, array('roleid' => $id->roleid))[0];
+//
+//            $sql_rg = "SELECT id
+//                    FROM {relationship_groups}
+//                    WHERE name = :relationship_group";
+//
+//            $relationshipGroupId = $DB->get_field_sql($sql_rg, array('relationship_group' => $relationship_group));
+//
+//            $record = new stdClass();
+//            $record->relationshipgroupid = $relationshipGroupId;
+//            $record->relationshipcohortid = $relationshipCohortId;
+//            $record->userid = $id->id;
+//            $record->timeadded = time();
+//
+//            $DB->insert_record('relationship_members', $record);
         }
     }
 
@@ -370,6 +506,35 @@ EOD;
      */
     public function i_add_user_to_cohort_members($user, $cohort) {
         global $DB;
+
+        //Inclusão dos valores local_tutores_student_roles e local_tutores_tutor_roles
+
+        $sql_config = "SELECT COUNT(1)
+                       FROM {config} config
+                       WHERE config.name = 'local_tutores_student_roles'";
+
+        $config = $DB->get_field_sql($sql_config);
+
+        if($config == 0){
+            $record_config_student = new stdClass();
+            $record_config_student->name = 'local_tutores_student_roles';
+            $record_config_student->value = 'student';
+
+            $DB->insert_record('config', $record_config_student);
+
+            $record_config_teacher = new stdClass();
+            $record_config_teacher->name = 'local_tutores_tutor_roles';
+            $record_config_teacher->value = 'editingteacher';
+
+            $DB->insert_record('config', $record_config_teacher);
+
+            $record_config_editingteacher = new stdClass();
+            $record_config_editingteacher->name = 'local_tutores_orientador_roles';
+            $record_config_editingteacher->value = 'editingteacher';
+
+            $DB->insert_record('config', $record_config_editingteacher);
+
+        }
 
         $sql_user = "SELECT id
                      FROM {user}
@@ -391,12 +556,6 @@ EOD;
         $DB->insert_record('cohort_members', $record);
 
         if($cohort == 'student'){
-            $record_student = new stdClass();
-            $record_student->name = 'local_tutores_student_roles';
-            $record_student->value = $cohort;
-
-            $DB->insert_record('config', $record_student);            
-
             $record_student_log = new stdClass();
             $record_student_log->userid = $userId;
             $record_student_log->timemodified = time();
@@ -405,16 +564,9 @@ EOD;
             $record_student_log->value = $cohort;
 
             $DB->insert_record('config_log', $record_student_log);
-
         }
 
         if($cohort == 'teacher'){
-            $record_teacher = new stdClass();
-            $record_teacher->name = 'local_tutores_tutor_roles';
-            $record_teacher->value = 'editing'.$cohort;
-
-            $DB->insert_record('config', $record_teacher);
-
             $record_teacher_log = new stdClass();
             $record_teacher_log->userid = $userId;
             $record_teacher_log->timemodified = time();
@@ -423,12 +575,6 @@ EOD;
             $record_teacher_log->value = 'editing'.$cohort;
 
             $DB->insert_record('config_log', $record_teacher_log);
-
-            $record_editingteacher = new stdClass();
-            $record_editingteacher->name = 'local_tutores_orientador_roles';
-            $record_editingteacher->value = 'editing'.$cohort;
-
-            $DB->insert_record('config', $record_editingteacher);
 
             $record_editingteacher_log = new stdClass();
             $record_editingteacher_log->userid = $userId;
@@ -441,18 +587,14 @@ EOD;
         }
     }
 
-//    protected function preprocess_relationship($data)
-//    {
-//        if (isset($data['contextlevel'])) {
-//            if (!isset($data['reference'])) {
-//                throw new Exception('If field contextlevel is specified, field reference must also be present');
-//            }
-//            $context = $this->get_context($data['contextlevel'], $data['reference']);
-//            unset($data['contextlevel']);
-//            unset($data['reference']);
-//            $data['contextid'] = $context->id;
-//        }
-//        return $data;
-//    }
+    /**
+     * Create completeness set for an activity.
+     *
+     * @Given /^I set the following completion for the activity "([^"]*)" with$/
+     * @param string $activity, TableNode $data
+     */
+    public function i_set_following_completion_for_activity($activity, TableNode $data) {
 
+
+    }
 }
