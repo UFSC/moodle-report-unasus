@@ -113,13 +113,10 @@ class report_uso_sistema_tutor extends report_unasus_factory {
 
         //Query
         $dados = array();
+
         foreach ($lista_tutores as $id => $tutor) {
             if (is_null($this->tutores_selecionados) || in_array($id, $this->tutores_selecionados)) {
                 $result = $DB->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $data_inicio_unix, 'tempomaximo' => $data_fim_query));
-
-                if (mysqli_num_rows($result) == 0) {
-                    $dados[$id][''] = array();
-                }
                 foreach ($result as $r) {
                     $dados[$id][$r->dia] = $r;
                 }
@@ -138,7 +135,7 @@ class report_uso_sistema_tutor extends report_unasus_factory {
             $total_tempo = 0;
 
             foreach ($dias_meses as $dia) {
-                if (array_key_exists($dia, $dados[$id_user])) {
+                if ((array_key_exists($dia, $dados[$id_user]))) {
                     $horas = (float) $dados[$id_user][$dia]->horas;
                     $result->add($id_user, new report_unasus_dado_uso_sistema_tutor_render($horas));
                     $total_tempo += $horas;

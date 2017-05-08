@@ -445,8 +445,20 @@ function query_uso_sistema_tutor_old() {
  * @return string
  */
 function query_uso_sistema_tutor() {
+    /** @var $factory report_unasus_factory */
+    $factory = report_unasus_factory::singleton();
 
-    return "SELECT userid, dia , count(*) /2  AS horas
+    $filtro_tutor = '';
+    if (!is_null($factory->tutores_selecionados)) {
+        $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
+        $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
+    }
+
+    return "   SELECT u.id, rd.*
+                 FROM user u
+            LEFT JOIN (
+            
+            SELECT userid, dia , count(*) /2  AS horas
               FROM (
 
                     SELECT date_format( (FROM_UNIXTIME(timecreated))  , '%d/%m/%Y') AS dia,
@@ -461,7 +473,10 @@ function query_uso_sistema_tutor() {
                   GROUP BY dia, hora, min
 
                    ) AS report
-          GROUP BY report.dia";
+          GROUP BY report.dia
+          ) rd
+          on (u.id = rd.userid)
+          {$filtro_tutor}";
 }
 
 /**
