@@ -85,6 +85,7 @@ class report_acesso_tutor extends report_unasus_factory {
 
     public function get_dados() {
         global $DB;
+        $diff24Hours = new DateInterval('PT24H');
 
         $relationship_tutoria = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
         $cohort_tutores = local_tutores_grupos_tutoria::get_relationship_cohort_tutores($relationship_tutoria->id);
@@ -109,14 +110,15 @@ class report_acesso_tutor extends report_unasus_factory {
         }
         $dados = $group_array->get_assoc();
 
-
-        //Converte a string data pra um DateTime
         $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
+        $data_inicio->setTime(0,0,0);
+
         $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
+        $data_fim = $data_fim->add($diff24Hours);
+        $data_fim->setTime(0,0,0);
 
         // Intervalo de dias no formato d/m/Y
         $dias_meses = report_unasus_get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
-
 
         //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
         //date interval acima
@@ -148,7 +150,16 @@ class report_acesso_tutor extends report_unasus_factory {
     }
 
     public function get_table_header() {
-        return report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y', 'd/m/y');
+        $diff24Hours = new DateInterval('PT24H');
+
+        $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
+        $data_inicio_query = $data_inicio->format('d/m/Y');
+
+        $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
+        $data_fim = $data_fim->add($diff24Hours);
+        $data_fim_query = $data_fim->format('d/m/Y');
+
+        return report_unasus_get_time_interval_com_meses($data_inicio_query, $data_fim_query, 'P1D', 'd/m/Y', 'd/m/y');
     }
 
 }
