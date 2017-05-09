@@ -15,7 +15,7 @@ function report_unasus_get_datetime_from_unixtime($unixtime) {
 }
 
 function report_unasus_get_count_estudantes($categoria_turma) {
-    $middleware = Middleware::singleton();
+    global $DB;
 
     $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
     $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
@@ -23,16 +23,16 @@ function report_unasus_get_count_estudantes($categoria_turma) {
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
                 FROM {relationship_groups} rg
            LEFT JOIN {relationship_members} rm
-                  ON (rg.relationshipid = :relationship_id
-                 AND rg.id = rm.relationshipgroupid
-                 AND rm.relationshipcohortid = :cohort_id)
+                  ON (rg.relationshipid=:relationship_id
+                 AND rg.id=rm.relationshipgroupid
+                 AND rm.relationshipcohortid=:cohort_id)
           INNER JOIN {user} u
-                  ON (u.id = rm.userid)
+                  ON (u.id=rm.userid)
             GROUP BY rg.id
             ORDER BY rg.id";
     $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
 
-    $result = $middleware->get_records_sql_menu($query, $params);
+    $result = $DB->get_records_sql_menu($query, $params);
 
     foreach ($result as $key => $value) {
         $result[$key] = (int) $value;
@@ -42,7 +42,7 @@ function report_unasus_get_count_estudantes($categoria_turma) {
 }
 
 function report_unasus_get_count_estudantes_orientacao($categoria_turma) {
-    $middleware = Middleware::singleton();
+    global $DB;
 
     $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($categoria_turma);
     $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
@@ -59,7 +59,7 @@ function report_unasus_get_count_estudantes_orientacao($categoria_turma) {
             ORDER BY rg.id";
     $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
 
-    $result = $middleware->get_records_sql_menu($query, $params);
+    $result = $DB->get_records_sql_menu($query, $params);
 
     foreach ($result as $key => $value) {
         $result[$key] = (int) $value;
@@ -89,20 +89,33 @@ function report_unasus_get_nomes_cohorts($categoria_curso) {
 }
 
 /**
+ * Verifica se a base de dados do Middleware está instalada/configurada
+ *
+ * @return boolean
+ */
+function report_unasus_verifica_middleware() {
+    $midleware = Middleware::singleton();
+
+    $exist = $midleware->exist();
+    return $exist;
+}
+
+/**
  * Dado que alimenta a lista do filtro polos
  *s
  * @param $categoria_turma
  * @return array
  */
 function report_unasus_get_polos($categoria_turma) {
-    $academico = Middleware::singleton();
-//    global $DB;
+    $polos = null;
+    if (report_unasus_verifica_middleware()) {
+        $academico = Middleware::singleton();
 
-    #$relationship = grupos_tutoria::get_relationship_tutoria($curso_ufsc);
-    $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
-    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
-    $sql = "SELECT DISTINCT(ua.polo), ua.nomepolo
+        $sql = "
+          SELECT DISTINCT(ua.polo), ua.nomepolo
             FROM {View_Usuarios_Dados_Adicionais} ua
             JOIN {user} u
               ON (u.username=ua.username)
@@ -113,13 +126,10 @@ function report_unasus_get_polos($categoria_turma) {
            WHERE nomepolo != ''
         ORDER BY nomepolo";
 
-    $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
-
-//    $polos = $academico->get_records_sql_menu($sql, $params);
-//    $polos = $DB->get_record_sql($sql, $params);
-
-//    return $polos;
-    return array();
+        $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
+        $polos = $academico->get_records_sql_menu($sql, $params);
+    }
+    return $polos;
 }
 
 function report_unasus_get_final_grades($id_aluno, $course_id){

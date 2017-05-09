@@ -14,7 +14,7 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
         $this->mostrar_barra_filtragem = true;
         $this->mostrar_botoes_grafico = false;
         $this->mostrar_botoes_dot_chart = false;
-        $this->mostrar_filtro_polos = true;
+        $this->mostrar_filtro_polos = true && report_unasus_verifica_middleware();
         $this->mostrar_filtro_cohorts = true;
         $this->mostrar_filtro_modulos = true;
         $this->mostrar_filtro_intervalo_tempo = false;

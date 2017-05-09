@@ -172,19 +172,6 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         if (has_capability('report/unasus:view_all', $report->get_context())) {
 
-            if ($report->mostrar_filtro_polos && false) {
-                /*TODO: Ticket: #11298 Desvincular dependências da UFSC dos relatórios UNASUS */
-                // Filtro de Polo
-                $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '';
-                $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-                $filter_polos .= html_writer::select(report_unasus_get_polos($report->get_categoria_turma_ufsc()), 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
-                $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
-                $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'relatorio-unasus multiple_list'));
-            }
-
-            $output .= html_writer::tag('div', '', array('class' => 'relatorio-unasus clear'));
-
             if ($report->mostrar_filtro_cohorts) {
                 // Filtro de Cohorts
                 $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '';
@@ -194,6 +181,8 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'relatorio-unasus multiple_list'));
             }
+
+            $output .= html_writer::tag('div', '', array('class' => 'relatorio-unasus clear'));
 
             if ($report->mostrar_filtro_grupo_tutoria) {
                 // Filtro de Tutores
@@ -231,6 +220,20 @@ class report_unasus_renderer extends plugin_renderer_base {
                 $orientadores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
                 $output .= html_writer::tag('div', $filter_orientadores . $orientadores_all . ' / ' . $orientadores_none, array('class' => 'relatorio-unasus multiple_list'));
             }
+
+            if ($report->mostrar_filtro_polos) {
+                // Filtro de Polo
+                $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '';
+                $db_polos = report_unasus_get_polos($report->get_categoria_turma_ufsc());
+                if (!empty($db_polos)) {
+                    $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
+                    $filter_polos .= html_writer::select($db_polos, 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
+                    $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
+                    $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
+                    $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'relatorio-unasus multiple_list'));
+                }
+            }
+
         }
 
         if ($report->mostrar_filtro_intervalo_tempo) {

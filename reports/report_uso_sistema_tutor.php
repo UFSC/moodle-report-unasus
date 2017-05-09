@@ -94,9 +94,10 @@ class report_uso_sistema_tutor extends report_unasus_factory {
         fclose($fp);
     }
 
-    function get_dados() {
+    public function get_dados() {
+        global $DB;
+        $diff24Hours = new DateInterval('PT24H');
 
-        $middleware = Middleware::singleton();
         $lista_tutores = local_tutores_grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
 
         $query = query_uso_sistema_tutor();
@@ -104,25 +105,23 @@ class report_uso_sistema_tutor extends report_unasus_factory {
         //Converte a string data pra um DateTime e depois pra Unixtime
         $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
         $data_inicio_unix = strtotime($data_inicio->format('Y-m-d'));
+
         $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
-        $data_fim_query = $data_fim->format('Y-m-d h:i:s');
-        $data_fim_unix = strtotime($data_fim->format('Y-m-d'));
+        $data_fim = $data_fim->add($diff24Hours);
+        $data_fim->setTime(0,0,0);
+        $data_fim_query = $data_fim->format('Y-m-d 00:00:00');
 
         //Query
         $dados = array();
+
         foreach ($lista_tutores as $id => $tutor) {
             if (is_null($this->tutores_selecionados) || in_array($id, $this->tutores_selecionados)) {
-                $result = $middleware->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $data_inicio_unix, 'tempomaximo' => $data_fim_query));
-                /** @FIXME incluir na biblioteca do middleware a implementação da contagem de resultados, sem utilizar o ADORecordSet_myqsli */
-                if ($result->MaxRecordCount() == 0) {
-                    $dados[$id][''] = array();
-                }
+                $result = $DB->get_recordset_sql($query, array('userid' => $id, 'tempominimo' => $data_inicio_unix, 'tempomaximo' => $data_fim_query));
                 foreach ($result as $r) {
-                    $dados[$id][$r['dia']] = $r;
+                    $dados[$id][$r->dia] = $r;
                 }
             }
         }
-
 
         // Intervalo de dias no formato d/m
         $intervalo_tempo = $data_fim->diff($data_inicio)->days;
@@ -132,13 +131,12 @@ class report_uso_sistema_tutor extends report_unasus_factory {
         //date interval acima
         $result = new report_unasus_GroupArray();
         foreach ($dados as $id_user => $datas) {
-
             //quanto tempo ele ficou logado
             $total_tempo = 0;
 
             foreach ($dias_meses as $dia) {
-                if (array_key_exists($dia, $dados[$id_user])) {
-                    $horas = (float) $dados[$id_user][$dia]['horas'];
+                if ((array_key_exists($dia, $dados[$id_user]))) {
+                    $horas = (float) $dados[$id_user][$dia]->horas;
                     $result->add($id_user, new report_unasus_dado_uso_sistema_tutor_render($horas));
                     $total_tempo += $horas;
                 } else {
@@ -150,7 +148,6 @@ class report_uso_sistema_tutor extends report_unasus_factory {
             $result->add($id_user, new report_unasus_dado_uso_sistema_tutor_render($total_tempo));
         }
         $result = $result->get_assoc();
-
 
         $nomes_tutores = local_tutores_grupos_tutoria::get_tutores($this->get_categoria_turma_ufsc());
 
@@ -170,7 +167,16 @@ class report_uso_sistema_tutor extends report_unasus_factory {
     }
 
     function get_table_header() {
-        $double_header = report_unasus_get_time_interval_com_meses($this->data_inicio, $this->data_fim, 'P1D', 'd/m/Y', 'd/m/y');
+        $diff24Hours = new DateInterval('PT24H');
+
+        $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
+        $data_inicio_query = $data_inicio->format('d/m/Y');
+
+        $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
+        $data_fim = $data_fim->add($diff24Hours);
+        $data_fim_query = $data_fim->format('d/m/Y');
+
+        $double_header = report_unasus_get_time_interval_com_meses($data_inicio_query, $data_fim_query, 'P1D', 'd/m/Y', 'd/m/y');
         $double_header[''] = array('Media');
         $double_header[' '] = array('Total');
         return $double_header;
@@ -179,9 +185,14 @@ class report_uso_sistema_tutor extends report_unasus_factory {
     function get_dados_grafico() {
         $dados = $this->get_dados();
 
-        //Converte a string data pra um DateTime e depois pra Unixtime
+        $diff24Hours = new DateInterval('PT24H');
+
         $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
+        $data_inicio->setTime(0,0,0);
+
         $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
+        $data_fim = $data_fim->add($diff24Hours);
+        $data_fim->setTime(0,0,0);
 
         // Intervalo de dias no formato d/m
         $dias_meses = report_unasus_get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
@@ -196,7 +207,6 @@ class report_uso_sistema_tutor extends report_unasus_factory {
             }
             $dados_grafico[$tutor[0]->get_name()] = $dados_tutor;
         }
-
         return $dados_grafico;
     }
 

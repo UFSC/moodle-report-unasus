@@ -289,11 +289,11 @@ function query_postagens_forum_from_users() {
  */
 
 /**
- * Query para o relatorio de acesso tutor
+ * Query para o relatorio de acesso tutor para a estrutura antiga de log do Moodle
  *
  * @return string
  */
-function query_acesso_tutor() {
+function query_acesso_tutor_old() {
     /** @var $factory report_unasus_factory */
     $factory = report_unasus_factory::singleton();
 
@@ -317,6 +317,36 @@ function query_acesso_tutor() {
                    {$filtro_tutor}
           GROUP BY calendar_year, calendar_month, calendar_day, u.id
           ORDER BY calendar_year, calendar_month, calendar_day";
+}
+/**
+ * Query para o relatorio de acesso tutor para a estrutura nova de log
+ *
+ * @return string
+ */
+function query_acesso_tutor() {
+    /** @var $factory report_unasus_factory */
+    $factory = report_unasus_factory::singleton();
+
+    $filtro_tutor = '';
+    if (!is_null($factory->tutores_selecionados)) {
+        $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
+        $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
+    }
+
+    return "SELECT year(from_unixtime(l.timecreated)) as calendar_year,
+                   month(from_unixtime(l.timecreated)) as calendar_month,
+                   day(from_unixtime(l.timecreated)) as calendar_day,
+                   u.id AS userid
+              FROM {user} u
+              JOIN {relationship_members} rm
+                ON (rm.userid=u.id AND rm.relationshipcohortid=:relationship_cohort_id)
+              JOIN {relationship_groups} rg
+                ON (rg.id=rm.relationshipgroupid AND rg.relationshipid=:relationship_id)
+         LEFT JOIN {logstore_standard_log} l
+                ON (u.id=l.userid)
+                   {$filtro_tutor}
+          GROUP BY calendar_year, calendar_month, calendar_day, u.id
+          ORDER BY u.firstname, u.lastname, calendar_year, calendar_month, calendar_day";
 }
 
 function query_lti_activity() {
@@ -386,11 +416,11 @@ function query_group_members() {
 }
 
 /**
- * Query para o relatorio de uso do sistema horas
+ * Query para o relatorio de uso do sistema horas para a estrutura antiga de log do Moodle
  *
  * @return string
  */
-function query_uso_sistema_tutor() {
+function query_uso_sistema_tutor_old() {
 
     return "SELECT userid, dia , count(*) /2  AS horas
               FROM (
@@ -408,6 +438,46 @@ function query_uso_sistema_tutor() {
 
                    ) AS report
           GROUP BY report.dia";
+}
+
+/**
+ * Query para o relatorio de uso do sistema horas para a estrutura nova de log do Moodle
+ *
+ * @return string
+ */
+function query_uso_sistema_tutor() {
+    /** @var $factory report_unasus_factory */
+    $factory = report_unasus_factory::singleton();
+
+    $filtro_tutor = '';
+    if (!is_null($factory->tutores_selecionados)) {
+        $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
+        $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
+    }
+
+    return "   SELECT u.id, rd.*
+                 FROM user u
+            LEFT JOIN (
+            
+            SELECT userid, dia , count(*) /2  AS horas
+              FROM (
+
+                    SELECT date_format( (FROM_UNIXTIME(timecreated))  , '%d/%m/%Y') AS dia,
+                           date_format( (FROM_UNIXTIME(timecreated))  , '%H') AS hora,
+                           ROUND (date_format( (FROM_UNIXTIME(timecreated))  , '%i') / 30) *30 AS min,
+                           userid
+                      FROM {logstore_standard_log}
+
+                     WHERE timecreated > :tempominimo
+                           AND timecreated < UNIX_TIMESTAMP(DATE_SUB(date_format(:tempomaximo, '%Y-%m-%d 23:59:59'),INTERVAL 30 MINUTE)) AND userid=:userid
+                           AND action != 'login' AND action != 'logout'
+                  GROUP BY dia, hora, min
+
+                   ) AS report
+          GROUP BY report.dia
+          ) rd
+          on (u.id = rd.userid)
+          {$filtro_tutor}";
 }
 
 /**
