@@ -30,71 +30,89 @@ Background:
     | Cohort student   | CHs      | Category     | CAT1      |
 
 # -----------------------------ASSIGN SETUP-----------------------------------------------
+# Unix timestamp 946684800 = 1 jan 2000 at 00h00m00s
   And the following "activities" exist:
-    | activity | course | idnumber | name | intro | grade | assignsubmission_onlinetext_enabled |
-    | assign | C1 | a1 | Test assignment one | Submit something! | 300 | 1                      |
+    | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected | added        |
+    | assign   | C1     | a1       | Test assignment one   | Submit something! | 100   | 1                                   | 978307200          | 946684800    |
+    | assign   | C1     | a2       | Test assignment two   | Submit something! | 100   | 1                                   | 946684800          | 946684800    |
+    | assign   | C1     | a3       | Test assignment three | Submit something! | 100   | 1                                   | 0                  | 946684800    |
+    | assign   | C1     | a4       | Test assignment four  | Submit something! | 100   | 1                                   | 946684800          | 946684800    |
+    | assign   | C1     | a5       | Test assignment five  | Submit something! | 100   | 1                                   | 946684800          | 946684800    |
+    | assign   | C1     | a6       | Test assignment six   | Submit something! | 100   | 1                                   | 946684800          | 946684800    |
+    | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 946684800    |
+
+
+#  And the following activity "assigns" exist:
+#    | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected |
+#    | assign   | C1     | a1       | Test assignment one   | Submit something! | 100   | 1                                   | time() + 31557600  |
+#    | assign   | C1     | a2       | Test assignment two   | Submit something! | 100   | 1                                   | 1524585600         |
+#    | assign   | C1     | a3       | Test assignment three | Submit something! | 100   | 1                                   | 1524585600         |
+#    | assign   | C1     | a4       | Test assignment four  | Submit something! | 100   | 1                                   | 1524585600         |
+#    | assign   | C1     | a5       | Test assignment five  | Submit something! | 100   | 1                                   | 1524585600         |
+#    | assign   | C1     | a6       | Test assignment six   | Submit something! | 100   | 1                                   | 1524585600         |
+#    | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 1524585600         |
 
 # --------------------------------------------------------------------------------------
 # -----------------------------QUIZ SETUP-----------------------------------------------
-  And the following "question categories" exist:
-    | contextlevel | reference | name           |
-    | Course       | C1        | Test questions |
-
-  And the following "activities" exist:
-    | activity   | name   | intro              | course | idnumber |
-    | quiz       | Quiz 1 | Quiz 1 description | C1     | quiz1    |
-
-
-  And the following "questions" exist:
-    | questioncategory | qtype       | name  | questiontext    |
-    | Test questions   | truefalse   | TF1   | First question  |
-    | Test questions   | truefalse   | TF2   | Second question |
-
-  And quiz "Quiz 1" contains the following questions:
-    | question | page | maxmark |
-    | TF1      | 1    |         |
-    | TF2      | 1    | 3.0     |
+#  And the following "question categories" exist:
+#    | contextlevel | reference | name           |
+#    | Course       | C1        | Test questions |
+#
+#  And the following "activities" exist:
+#    | activity   | name   | intro              | course | idnumber |
+#    | quiz       | Quiz 1 | Quiz 1 description | C1     | quiz1    |
+#
+#
+#  And the following "questions" exist:
+#    | questioncategory | qtype       | name  | questiontext    |
+#    | Test questions   | truefalse   | TF1   | First question  |
+#    | Test questions   | truefalse   | TF2   | Second question |
+#
+#  And quiz "Quiz 1" contains the following questions:
+#    | question | page | maxmark |
+#    | TF1      | 1    |         |
+#    | TF2      | 1    | 3.0     |
 
 # --------------------------------------------------------------------------------------
 # -----------------------------FORUM SETUP-----------------------------------------------
-  And I log in as "admin"
-  And I follow "Courses"
-  And I follow "Category 1"
-  And I follow "Course1"
-  And I turn editing mode on
-  And I click on "Edit settings" "link" in the "Administration" "block"
-  And I set the following fields to these values:
-    | Enable completion tracking | Yes |
-  And I press "Save and display"
-
-#  And the following "activities" exist:
-#    | activity   | name                   | intro       | course | idnumber     | groupmode |
-#    | forum      | forum                  | Test forum  | C1     | forum        | 0         |
-
-  When I add a "forum" to section "1" and I fill the form with:
-    | Forum name  | Test forum name1       |
-    | Description | Test forum description |
-    | course      | C1                     |
-    | groupmode   | 0                      |
-    | Completion tracking | Show activity as complete when conditions are met |
-    | completionview      | 1                                                 |
-
-  When I add a "forum" to section "1" and I fill the form with:
-    | Forum name  | Test forum name2       |
-    | Description | Test forum description |
-    | course      | C1                     |
-    | groupmode   | 0                      |
-    | Completion tracking | Show activity as complete when conditions are met |
-    | completionview      | 1                                                 |
-
-  When I add a "forum" to section "1" and I fill the form with:
-    | Forum name  | Test forum name3       |
-    | Description | Test forum description |
-    | course      | C1                     |
-    | groupmode   | 0                      |
-    | Completion tracking | Show activity as complete when conditions are met |
-    | completionview      | 1                                                 |
-  And I log out
+#  And I log in as "admin"
+#  And I follow "Courses"
+#  And I follow "Category 1"
+#  And I follow "Course1"
+#  And I turn editing mode on
+#  And I click on "Edit settings" "link" in the "Administration" "block"
+#  And I set the following fields to these values:
+#    | Enable completion tracking | Yes |
+#  And I press "Save and display"
+#
+##  And the following "activities" exist:
+##    | activity   | name                   | intro       | course | idnumber     | groupmode |
+##    | forum      | forum                  | Test forum  | C1     | forum        | 0         |
+#
+#  When I add a "forum" to section "1" and I fill the form with:
+#    | Forum name  | Test forum name1       |
+#    | Description | Test forum description |
+#    | course      | C1                     |
+#    | groupmode   | 0                      |
+#    | Completion tracking | Show activity as complete when conditions are met |
+#    | completionview      | 1                                                 |
+#
+#  When I add a "forum" to section "1" and I fill the form with:
+#    | Forum name  | Test forum name2       |
+#    | Description | Test forum description |
+#    | course      | C1                     |
+#    | groupmode   | 0                      |
+#    | Completion tracking | Show activity as complete when conditions are met |
+#    | completionview      | 1                                                 |
+#
+#  When I add a "forum" to section "1" and I fill the form with:
+#    | Forum name  | Test forum name3       |
+#    | Description | Test forum description |
+#    | course      | C1                     |
+#    | groupmode   | 0                      |
+#    | Completion tracking | Show activity as complete when conditions are met |
+#    | completionview      | 1                                                 |
+#  And I log out
 
 # --------------------------------------------------------------------------------------
 
@@ -227,7 +245,7 @@ Background:
 #
 #  And I log in as "student2"
 #  And I follow "Course1"
-#  And I follow "Test assignment one"
+#  And I follow "Test assignment two"
 #  And I press "Add submission"
 #  And I set the following fields to these values:
 #    | Online text | I'm the student2 submission |
@@ -238,13 +256,61 @@ Background:
 #
 #  And I log in as "student3"
 #  And I follow "Course1"
-#  And I follow "Test assignment one"
+#  And I follow "Test assignment three"
 #  And I press "Add submission"
 #  And I set the following fields to these values:
 #    | Online text | I'm the student3 submission |
 #  And I press "Save changes"
 #  And I press "Submit assignment"
 #  And I press "Continue"
+#  And I log out
+
+#  And I log in as "student1"
+#  And I follow "Course1"
+#  And I follow "Test assignment four"
+#  And I press "Add submission"
+#  And I set the following fields to these values:
+#    | Online text | I'm the student1 submission |
+#  And I press "Save changes"
+#  And I press "Submit assignment"
+#  And I press "Continue"
+#  And I set the submission date of activity "a4" to "0" days after
+#  And I log out
+#
+#  And I log in as "student1"
+#  And I follow "Course1"
+#  And I follow "Test assignment five"
+#  And I press "Add submission"
+#  And I set the following fields to these values:
+#    | Online text | I'm the student3 submission |
+#  And I press "Save changes"
+#  And I press "Submit assignment"
+#  And I press "Continue"
+#  And I set the submission date of activity "a5" to "10" days after
+#  And I log out
+#
+#  And I log in as "student1"
+#  And I follow "Course1"
+#  And I follow "Test assignment six"
+#  And I press "Add submission"
+#  And I set the following fields to these values:
+#    | Online text | I'm the student3 submission |
+#  And I press "Save changes"
+#  And I press "Submit assignment"
+#  And I press "Continue"
+#  And I set the submission date of activity "a6" to "11" days after
+#  And I log out
+
+#  And I log in as "student1"
+#  And I follow "Course1"
+#  And I follow "Test assignment seven"
+#  And I press "Add submission"
+#  And I set the following fields to these values:
+#    | Online text | I'm the student3 submission |
+#  And I press "Save changes"
+#  And I press "Submit assignment"
+#  And I press "Continue"
+#  And I set the submission date of activity "a7" to "11" days after
 #  And I log out
 
   # Atribuição de nota em assignment (Avaliação da atividade por parte do professor)

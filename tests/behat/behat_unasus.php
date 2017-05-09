@@ -43,6 +43,10 @@ EOD;
         'relationship_members'=> array(
             'datagenerator' => 'relationship_members',
             'required' => array('user', 'group')
+        ),
+        'assigns'=> array(
+            'datagenerator' => 'assign',
+            'required' => array('course', 'idnumber', 'name')
         )
         
     );
@@ -248,6 +252,74 @@ EOD;
         }
 
     }
+
+    /**
+     * Creates the specified element. More info about available elements in http://docs.moodle.org/dev/Acceptance_testing#Fixtures.
+     *
+     * @Given /^the following activity "(?P<element_string>(?:[^"]|\\")*)" exist:$/
+     *
+     * @throws Exception
+     * @throws PendingException
+     * @param string $elementname The name of the entity to add
+     * @param TableNode $data
+     */
+    public function the_Following_Assign_Exist($elementname, TableNode $data)
+    {
+
+        $this->datagenerator = new behat_unasus;
+
+        $elementdatagenerator = self::$elements[$elementname]['datagenerator'];
+        $requiredfields = self::$elements[$elementname]['required'];
+        if (!empty(self::$elements[$elementname]['switchids'])) {
+            $switchids = self::$elements[$elementname]['switchids'];
+        }
+
+        foreach ($data->getHash() as $elementdata) {
+
+            // Check if all the required fields are there.
+            foreach ($requiredfields as $requiredfield) {
+                if (!isset($elementdata[$requiredfield])) {
+                    throw new Exception($elementname . ' requires the field ' . $requiredfield . ' to be specified');
+                }
+            }
+
+            // Switch from human-friendly references to ids.
+            if (isset($switchids)) {
+                foreach ($switchids as $element => $field) {
+                    $methodname = 'get_' . $element . '_id';
+
+                    // Not all the switch fields are required, default vars will be assigned by data generators.
+                    if (isset($elementdata[$element])) {
+                        // Temp $id var to avoid problems when $element == $field.
+                        $id = $this->{$methodname}($elementdata[$element]);
+                        unset($elementdata[$element]);
+                        $elementdata[$field] = $id;
+                    }
+                }
+            }
+
+            // Preprocess the entities that requires a special treatment.
+            if (method_exists($this, 'preprocess_' . $elementdatagenerator)) {
+                $elementdata = $this->{'preprocess_' . $elementdatagenerator}($elementdata);
+            }
+
+            // Creates element.
+            $methodname = 'create_' . $elementdatagenerator;
+            // if (method_exists($this->datagenerator, $methodname)) {
+            if(true){
+                // Using data generators directly.
+                $this->datagenerator->{$methodname}($elementdata);
+
+            } else if (method_exists($this, 'process_' . $elementdatagenerator)) {
+                // Using an alternative to the direct data generator call.
+                $this->{'process_' . $elementdatagenerator}($elementdata);
+            } else {
+                throw new PendingException($elementname . ' data generator is not implemented');
+            }
+        }
+    }
+
+
 
     /**
      * Create a test relationship
@@ -588,13 +660,29 @@ EOD;
     }
 
     /**
-     * Create completeness set for an activity.
+     * Change complete date of an activity.
      *
-     * @Given /^I set the following completion for the activity "([^"]*)" with$/
-     * @param string $activity, TableNode $data
+     * @Given /^I set the submission date of activity "([^"]*)" to "([^"]*)" days after$/
+     * @param string $idnumber, $days
      */
-    public function i_set_following_completion_for_activity($activity, TableNode $data) {
+    public function i_set_submission_date($idnumber, $days) {
+        global $DB;
 
+        $sql = "SELECT instance
+                FROM {course_modules}
+                WHERE idnumber = :idnumber";
 
+        $assign_assignid = $DB->get_field_sql($sql, array('idnumber' => $idnumber));
+
+        $sql_time = "SELECT completionexpected
+                     FROM bethat_course_modules
+                     WHERE instance = :instance";
+
+        $unix_timestamp = $DB->get_field_sql($sql_time, array('instance' => $assign_assignid));
+
+        //86400 = 1 dia
+        $new_unix_timestamp = $unix_timestamp + ($days * 86400);
+
+        $DB->set_field('assign_submission', 'timemodified', $new_unix_timestamp, array('assignment' => $assign_assignid));
     }
 }
