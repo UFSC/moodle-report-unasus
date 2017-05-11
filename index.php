@@ -41,8 +41,44 @@ $report = report_unasus_factory::singleton();
 // Usuário tem de estar logado no curso moodle
 require_login($report->get_curso_moodle());
 
-// Usuário tem de ter a permissão para ver o relatório?
-require_capability('report/unasus:view', $report->get_context());
+// Usuário tem de ter a permissão para ver os relatórios?
+// terá permissão de acessar os relatórios se tiver uma das permissões abaixo
+if (! (has_capability('report/unasus:view_all', $report->get_context(), null, true) ||
+       has_capability('report/unasus:view_tutoria', $report->get_context(), null, true) ||
+       has_capability('report/unasus:view_orientacao', $report->get_context(), null, true)
+      )
+   ) {
+    throw new required_capability_exception($report->get_context(),
+        'report/unasus:view_all',
+        'nopermissions',
+        '');
+}
+
+// Usuário tem permissão para ver os relatorios de orientação
+if (in_array($report->get_relatorio(), report_unasus_relatorios_validos_orientacao_list())) {
+    if (! (has_capability('report/unasus:view_all', $report->get_context(), null, true) ||
+        has_capability('report/unasus:view_orientacao', $report->get_context(), null, true)
+    )
+    ) {
+        throw new required_capability_exception($report->get_context(),
+            'report/unasus:view_orientacao',
+            'nopermissions',
+            '');
+    }
+}
+
+// Usuário tem permissão para ver os relatorios de tutoria
+if (in_array($report->get_relatorio(), report_unasus_relatorios_validos_tutoria_list())) {
+    if (! (has_capability('report/unasus:view_all', $report->get_context(), null, true) ||
+        has_capability('report/unasus:view_tutoria', $report->get_context(), null, true)
+    )
+    ) {
+        throw new required_capability_exception($report->get_context(),
+            'report/unasus:view_tutoria',
+            'nopermissions',
+            '');
+    }
+}
 
 // Usuário tem permissão para ver os relatorios restritos
 if (in_array($report->get_relatorio(), report_unasus_relatorios_restritos_list())) {
