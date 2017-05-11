@@ -59,10 +59,9 @@ Para que os relatórios possam ser visualizados corretamente as seguintes permis
 
 |   Capability              | Papel | Descrição |
 | --- | --- | --- |
-| **report/unasus:view** | Tutores, Orientadores e Coordenadores (tutoria, curso, avea) | Visualizar listagem de relatórios da UNA-SUS | 
-| **report/unasus:view_all** | Coordenadores (tutoria, curso, avea) | Visualizar relatórios de todos estudantes |
+| **report/unasus:view_all** | Coordenadores (tutoria, orientação, curso, avea) | Visualizar relatórios de todos estudantes |
 | **report/unasus:view_tutoria** | Tutores | Visualizar relatórios dos estudantes do seu grupo de tutoria |
-| **report/unasus:view_orientacao**| Orientadores | Visualizar relatórios dos estudantes do seu grupo de orientação |
+| **report/unasus:view_orientacao** | Orientadores | Visualizar relatórios dos estudantes do seu grupo de orientação |
 
 Configuração
 ------------
