@@ -29,7 +29,7 @@ function query_alunos_relationship() {
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
-    $query_cohort = " JOIN relationship_cohorts rlc
+    $query_cohort = " JOIN {relationship_cohorts} rlc
                        ON (rlc.id = rm.relationshipcohortid) ";
     if (!is_null($cohorts)) {
         $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
@@ -100,7 +100,7 @@ function query_alunos_relationship_student() {
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
-    $query_cohort = " JOIN relationship_cohorts rlc
+    $query_cohort = " JOIN {relationship_cohorts} rlc
                        ON (rlc.id = rm.relationshipcohortid) ";
     if (!is_null($cohorts)) {
         $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
@@ -455,7 +455,7 @@ function query_uso_sistema_tutor() {
     }
 
     return "   SELECT u.id, rd.*
-                 FROM user u
+                 FROM {user} u
             LEFT JOIN (
             
             SELECT userid, dia , count(*) /2  AS horas
