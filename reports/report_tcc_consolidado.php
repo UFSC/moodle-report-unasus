@@ -80,9 +80,14 @@ class report_tcc_consolidado extends report_unasus_factory {
     public function get_dados() {
         /* Resultados */
         $modulos_ids = $this->get_modulos_ids();
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
 
-        $this->atividades_cursos = report_unasus_get_atividades_cursos($this->modulos_selecionados, false, false, true);
+        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos(
+            $modulos_ids,
+            false,
+            false,
+            true
+        );
+
         $result_array = loop_atividades_e_foruns_sintese(null, null, null, null, null, true);
 
         /* Retorno da função loop_atividades */
@@ -109,7 +114,7 @@ class report_tcc_consolidado extends report_unasus_factory {
                 foreach ($aluno_ltis as $atividade) {
 
                     // se a atividade de LTI está configurada para ser apresentada então...
-                    if (array_search($atividade->source_activity->id, $atividades_config_curso) || empty($atividades_config_curso)) {
+//                    if (array_search($atividade->source_activity->id, $atividades_config_curso) || empty($atividades_config_curso)) {
 
                         if (is_a($atividade, 'report_unasus_data_empty')) {
                             $lista_atividades[] = new report_unasus_dado_nao_aplicado_render();
@@ -158,7 +163,7 @@ class report_tcc_consolidado extends report_unasus_factory {
                             }
                         }
 
-                    } // se é para apresentar a atividade
+//                    } // se é para apresentar a atividade
 
                 } // para cada atividade
 
@@ -207,7 +212,8 @@ class report_tcc_consolidado extends report_unasus_factory {
             $data[] = local_tutores_grupo_orientacao::grupo_orientacao_to_string($this->get_categoria_turma_ufsc(), $grupo_id);
 
             foreach ($grupo as $lti_id => $total_chapter) {
-                $bool_lti_print =  (array_search($lti_id, $atividades_config_curso) || empty($atividades_config_curso));
+//                $bool_lti_print =  (array_search($lti_id, $atividades_config_curso) || empty($atividades_config_curso));
+                $bool_lti_print = true;
                 $lti = array();
                 if (isset($total_alunos[$grupo_id]) && $bool_lti_print) {
 
@@ -241,7 +247,8 @@ class report_tcc_consolidado extends report_unasus_factory {
 
         foreach ($concluidos_lti as $grupo_id => $ltis) {
             foreach ($ltis as $lti_id => $total_chapter) {
-                $bool_lti_print =  (array_search($lti_id, $atividades_config_curso) || empty($atividades_config_curso));
+//                $bool_lti_print =  (array_search($lti_id, $atividades_config_curso) || empty($atividades_config_curso));
+                $bool_lti_print = true;
                 if ($bool_lti_print) {
                     foreach ($total_chapter as $chapter_id => $count) {
                         if(isset($data_total[$lti_id.'-'.$chapter_id])) {
@@ -277,11 +284,10 @@ class report_tcc_consolidado extends report_unasus_factory {
     }
 
     public function get_table_header() {
-        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), false, false, true, $this->get_categoria_turma_ufsc());
 
         $header = array();
 
-        foreach ($atividades_cursos as $course_module_id => $atividades) {
+        foreach ($this->visiveis_atividades_cursos as $course_module_id => $atividades) {
             if (!empty($atividades)) {
                 $course_url = new moodle_url('/course/view.php', array('id' => $atividades[0]->course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));

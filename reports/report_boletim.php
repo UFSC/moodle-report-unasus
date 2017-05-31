@@ -86,11 +86,7 @@ class report_boletim extends report_unasus_factory {
     }
 
     public function get_dados() {
-
-        $modulos_ids = $this->get_modulos_ids();
-
         $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
-        $atividades_config_curso = report_unasus_get_activities_config_report($categoria_turma_ufsc, $modulos_ids);
 
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($categoria_turma_ufsc);
@@ -106,7 +102,7 @@ class report_boletim extends report_unasus_factory {
             $estudantes_grupo = local_tutores_grupos_tutoria::get_estudantes_grupo_tutoria($categoria_turma_ufsc,
                 $group_id);
 
-            foreach ($this->atividades_cursos as $courseid => $atividades) {
+            foreach ($this->visiveis_atividades_cursos as $courseid => $atividades) {
                 array_push($atividades, $atividade_nota_final);
 
                 foreach ($atividades as $atividade) {
@@ -148,9 +144,7 @@ class report_boletim extends report_unasus_factory {
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
                         } else if (isset($atividade->course_id)) {
-                            if (!array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);
-                            }
                         }
                     }
 

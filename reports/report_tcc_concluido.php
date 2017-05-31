@@ -31,13 +31,8 @@ class report_tcc_concluido extends report_unasus_factory {
     }
 
     public function get_dados() {
-
         // Recupera dados auxiliares
-        $modulos_ids = $this->get_modulos_ids();
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
-
         $nomes_estudantes = local_tutores_grupo_orientacao::get_estudantes($this->get_categoria_turma_ufsc());
-        $this->atividades_cursos = report_unasus_get_atividades_cursos($this->modulos_selecionados, false, false, true);
         /*  associativo_atividades[modulo][id_aluno][atividade]
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
@@ -54,20 +49,17 @@ class report_tcc_concluido extends report_unasus_factory {
 
                 $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
                 foreach ($aluno as $atividade) {
-                    // se a atividade está configurada para ser apresentada então...
-                    if(array_search($atividade->source_activity->id, $atividades_config_curso) || empty($atividades_config_curso)){
-                        if (is_a($atividade, 'report_unasus_data_empty')) {
-                            $lista_atividades[] = new report_unasus_dado_nao_aplicado_render();
-                            continue;
-                        } else {
-                            $status = $atividade->status;
-                            foreach ($status as $chapter => $state) {
-                                if ($atividade->has_evaluated_chapters($chapter))
-                                    $tipo = report_unasus_dado_tcc_concluido_render::ATIVIDADE_CONCLUIDA;
-                                else
-                                    $tipo = report_unasus_dado_tcc_concluido_render::ATIVIDADE_NAO_CONCLUIDA;
-                                $lista_atividades[] = new report_unasus_dado_tcc_concluido_render($tipo, $chapter);
-                            }
+                    if (is_a($atividade, 'report_unasus_data_empty')) {
+                        $lista_atividades[] = new report_unasus_dado_nao_aplicado_render();
+                        continue;
+                    } else {
+                        $status = $atividade->status;
+                        foreach ($status as $chapter => $state) {
+                            if ($atividade->has_evaluated_chapters($chapter))
+                                $tipo = report_unasus_dado_tcc_concluido_render::ATIVIDADE_CONCLUIDA;
+                            else
+                                $tipo = report_unasus_dado_tcc_concluido_render::ATIVIDADE_NAO_CONCLUIDA;
+                            $lista_atividades[] = new report_unasus_dado_tcc_concluido_render($tipo, $chapter);
                         }
                     }
                 }
@@ -80,17 +72,18 @@ class report_tcc_concluido extends report_unasus_factory {
     }
 
     public function get_table_header() {
-//        $header = $this->get_table_header_tcc_atividades(true);
-//
-//        foreach ($header as $key => $modulo) {
-//            array_unshift($modulo, 'Resumo');
-//            $header[$key] = $modulo;
-//        }
-        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), false, false, true, $this->get_categoria_turma_ufsc());
+        $modulos_ids = $this->get_modulos_ids();
+
+        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos(
+            $modulos_ids,
+            false,
+            false,
+            true
+        );
 
         $header = array();
 
-        foreach ($atividades_cursos as $course_module_id => $atividades) {
+        foreach ($this->visiveis_atividades_cursos as $course_module_id => $atividades) {
             if (!empty($atividades)) {
                 $course_url = new moodle_url('/course/view.php', array('id' => $atividades[0]->course_id, 'target' => '_blank'));
                 $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
