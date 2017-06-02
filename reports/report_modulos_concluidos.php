@@ -33,10 +33,11 @@ class report_modulos_concluidos extends report_unasus_factory {
         echo $renderer->build_report($this);
     }
 
+    /**
+     *
+     */
     public function get_dados() {
         $modulos = $this->get_modulos_ids();
-
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos);
 
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
@@ -49,7 +50,7 @@ class report_modulos_concluidos extends report_unasus_factory {
             $estudantes = array();
 
             // para curso/modulo pega a lista de atividades
-            foreach ($this->atividades_cursos as $courseid => $atividades) {
+            foreach ($this->visiveis_atividades_cursos as $courseid => $atividades) {
 
                 // para a lista de atividades pega cada atividade
                 foreach ($atividades as $atividade) {
@@ -79,13 +80,12 @@ class report_modulos_concluidos extends report_unasus_factory {
                             }
 
                             // se a atividade for setada para ser apresentada,
-                                // então continua com as outras checagens
-                            if ( !array_search($atividade->id, $atividades_config_curso) ) {
-                                if (!isset($lista_atividades[$r->userid][$atividade->course_id])) {
-                                    $lista_atividades[$r->userid][$atividade->course_id] = new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $is_student);
-                                }
-                                $lista_atividades[$r->userid][$atividade->course_id]->add_atividade($atividade);
+                            // então continua com as outras checagens
+                            if (!isset($lista_atividades[$r->userid][$atividade->course_id])) {
+                                $lista_atividades[$r->userid][$atividade->course_id] =
+                                    new report_unasus_dado_modulos_concluidos_render(sizeof($modulos), $final_grade, $is_student);
                             }
+                            $lista_atividades[$r->userid][$atividade->course_id]->add_atividade($atividade);
                         }
                     }
                     // Auxiliar para agrupar tutores corretamente

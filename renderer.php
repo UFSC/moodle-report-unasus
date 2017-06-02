@@ -645,16 +645,18 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
         // que não existe no moodle API
-        $header_keys = array_keys($report->get_table_header());
+        $header_method = $report->get_table_header();
+        $header_keys = array_keys($header_method);
+        $dados_method = $report->get_dados();
 
         $ultima_atividade_modulo = array();
         $ultimo_alvo = 0;
         $ultima_atividade_modulo[] = $ultimo_alvo;
-        foreach ($report->get_table_header() as $module_name => $activities) {
+        foreach ($header_method as $module_name => $activities) {
             $ultimo_alvo += count($activities);
             $ultima_atividade_modulo[] = $ultimo_alvo;
         }
-        if (isset($header_keys[0]) && is_array($report->get_table_header()[$header_keys[0]])) {
+        if (isset($header_keys[0]) && is_array($header_method[$header_keys[0]])) {
 
             /* Dados do cabeçalho */
 
@@ -664,7 +666,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r0'));
             $output .= html_writer::tag('td', '', array('class' => 'relatorio-unasus blank'));
 
-            foreach ($report->get_table_header() as $module_name => $activities) {
+            foreach ($header_method as $module_name => $activities) {
                 $output .= html_writer::tag('th', $module_name, array('class' => 'relatorio-unasus modulo_header cell c1', 'colspan' => count($activities)));
             }
 
@@ -673,7 +675,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             $output .= html_writer::tag('th', 'Estudante', array('class' => 'relatorio-unasus ultima_atividade title estudante_header'));
 
-            foreach ($report->get_table_header() as $module_name => $activities) {
+            foreach ($header_method as $module_name => $activities) {
                 $count_ = 1;
                 foreach ($activities as $activity) {
                     if (! is_object($activity)){
@@ -695,7 +697,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             $output .= html_writer::start_tag('tbody', array('class' => "relatorio-unasus"));
 
-            foreach ($report->get_dados() as $tutor => $alunos) {
+            foreach ($dados_method as $tutor => $alunos) {
 
                 $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r0'));
                 $output .= html_writer::tag('td', $tutor, array('class' => 'relatorio-unasus tutor', 'colspan' => $ultimo_alvo + 1));
@@ -734,7 +736,9 @@ class report_unasus_renderer extends plugin_renderer_base {
             $table = new report_unasus_table();
             $table->attributes['class'] = $class;
 
-            $table = $this->default_table($report->get_dados(), $report->get_table_header(), $table, $class);
+            $header_method = $report->get_table_header();
+            $dados_method = $report->get_dados();
+            $table = $this->default_table($dados_method, $header_method, $table, $class);
             $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-unasus relatorio-wrapper'));
         }
 

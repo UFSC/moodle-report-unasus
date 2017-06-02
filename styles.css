@@ -430,9 +430,9 @@ legend {
 }
 
 
-/*.tcc_consolidado .c1,*/
-/*.tcc_consolidado .c_body,*/
-/*.tcc_consolidado .ultima_atividade,*/
+.avaliacoes_em_atraso .c1,
+.avaliacoes_em_atraso .c_body,
+.avaliacoes_em_atraso .ultima_atividade,
 .atividades_nota_atribuida .c1,
 .atividades_nota_atribuida .c_body,
 .atividades_nota_atribuida .ultima_atividade {
@@ -474,17 +474,14 @@ legend {
 }
 
 .tcc_consolidado .c1,
-.tcc_consolidado .c_body,
-.avaliacoes_em_atraso .c1,
-.avaliacoes_em_atraso .c_body {
+.tcc_consolidado .c_body {
   text-align: center !important;
   padding: 4px;
   font-size: 12px !important;
   word-wrap: break-word !important;
 }
 
-.tcc_consolidado .r1:first-child,
-.avaliacoes_em_atraso .r1:first-child {
+.tcc_consolidado .r1:first-child {
   height: 200px;
 }
 

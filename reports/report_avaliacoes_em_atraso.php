@@ -76,10 +76,6 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
 
     public function get_dados() {
 
-        $modulos_ids = $this->get_modulos_ids();
-
-        $atividades_config_curso = report_unasus_get_activities_config_report($this->get_categoria_turma_ufsc(), $modulos_ids);
-
         // Consulta
         $query_atividades   = query_atividades_from_users();
         $query_quiz         = query_quiz_from_users();
@@ -89,7 +85,15 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
         $query_lti          = query_lti_from_users();
 
 
-        $result_array = loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $query_quiz, $query_lti, null, false, $query_database, $query_scorm, $atividades_config_curso);
+        $result_array = loop_atividades_e_foruns_sintese(
+            $query_atividades,
+            $query_forum,
+            $query_quiz,
+            $query_lti,
+            null,
+            false,
+            $query_database,
+            $query_scorm);
 
         $total_alunos = $result_array['total_alunos'];
         $total_atividades = $result_array['total_atividades'];
@@ -164,8 +168,8 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
         return $dados;
     }
 
-    public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-        $header = $this->get_table_header_modulos_atividades($mostrar_nota_final, $mostrar_total);
+    public function get_table_header() {
+        $header = $this->get_table_header_modulos_atividades();
         $header[''] = array('Média');
         return $header;
     }

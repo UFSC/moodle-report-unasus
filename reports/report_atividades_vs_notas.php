@@ -183,11 +183,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
     }
 
     public function get_dados() {
-
-        $modulos_ids = $this->get_modulos_ids();
-
         $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
-        $atividades_config_curso = report_unasus_get_activities_config_report($categoria_turma_ufsc, $modulos_ids);
 
         // Recupera dados auxiliares
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($categoria_turma_ufsc);
@@ -203,7 +199,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
 
             $estudantes_grupo = local_tutores_grupos_tutoria::get_estudantes_grupo_tutoria($categoria_turma_ufsc,
                 $group_id);
-            foreach ($this->atividades_cursos as $courseid => $atividades) {
+            foreach ($this->visiveis_atividades_cursos as $courseid => $atividades) {
 
                 foreach ($atividades as $atividade) {
                     $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
@@ -295,11 +291,8 @@ class report_atividades_vs_notas extends report_unasus_factory {
                             $tipo = report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_SEM_PRAZO_ENTREGA;
                         }
 
-                        $result = !array_search($atividade->id, $atividades_config_curso);
                         if(isset($atividade->id)){
-                            if (!array_search($atividade->id, $atividades_config_curso)){
                                 $lista_atividades[$r->userid][$atividade->course_id.'|'.$atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
-                            }
                         }
                     }
 
@@ -328,13 +321,9 @@ class report_atividades_vs_notas extends report_unasus_factory {
      * @return array
      */
     public function get_table_header($mostrar_nota_final = false, $mostrar_total = false) {
-
-        $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
-        $atividades_cursos = report_unasus_get_atividades_cursos($this->modulos_selecionados, $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
-
         $header = array();
 
-        foreach ($atividades_cursos as $course_id => $atividades) {
+        foreach ($this->visiveis_atividades_cursos as $course_id => $atividades) {
 
             if(isset($atividades[0]->course_name)){
                 $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));

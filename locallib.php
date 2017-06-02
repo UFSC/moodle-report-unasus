@@ -271,7 +271,8 @@ function report_unasus_get_agrupamentos_membros($courses) {
  * @throws Exception
  * @return report_unasus_GroupArray array(course_id => (assign_id1,assign_name1),(assign_id2,assign_name2)...)
  */
-function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false, $buscar_lti = false, $categoryid = 0) {
+function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = false, $mostrar_total = false,
+                                             $buscar_lti = false, $categoryid = 0) {
 
     if (empty($courses)) {
         throw new Exception("Falha ao obter as atividades, curso não informado.");
@@ -295,34 +296,37 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
 
     // cria as atividades
     foreach ($assigns as $atividade) {
-
-        if(!array_search($atividade->assign_id, $atividades_config_curso) || empty($atividades_config_curso)){
+        $chave = $atividade->assign_id.'-'.$atividade->course_id;
+        if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
             $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
             $group_array->add($atividade->course_id, $assign_object);
         }
     }
 
     foreach ($foruns as $forum) {
-
-        if(!array_search($forum->forum_id, $atividades_config_curso) || empty($atividades_config_curso)) {
+        $chave = $forum->forum_id.'-'.$forum->course_id;
+        if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
         }
     }
 
     foreach ($quizes as $quiz) {
-        if(!array_search($quiz->quiz_id, $atividades_config_curso) || empty($atividades_config_curso)){
+        $chave = $quiz->quiz_id.'-'.$quiz->course_id;
+        if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
         }
     }
 
     foreach ($databases as $database) {
-        if(!array_search($database->database_id, $atividades_config_curso) || empty($atividades_config_curso)){
+        $chave = $database->database_id.'-'.$database->course_id;
+        if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
         }
     }
 
     foreach ($scorms as $scorm) {
-        if (!array_search($scorm->scorm_id, $atividades_config_curso) || empty($atividades_config_curso)) {
+        $chave = $scorm->scorm_id.'-'.$scorm->course_id;
+        if (!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
         }
     }
@@ -330,7 +334,8 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
     foreach ($ltis as $db_lti) {
 
         // verifica se está habilitado no config report
-        if(!array_search($db_lti->lti_id, $atividades_config_curso)  || empty($atividades_config_curso)){
+        $chave = $db_lti->lti_id.'-'.$db_lti->course_id;
+        if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso) ){
 
             // se não for para buscar lti ou não for lti de tcc não processa os capítulos
             $tcc_lti_array = null;
@@ -358,12 +363,6 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
             }
         }
     }
-
-//    // Apenas nos relatórios direcionados ao TCC é necessário a apresentação do nome dos capítulos.
-//    // Nos relatórios de atividades o TCC é tratado apenas como uma atividade.
-//    if($buscar_lti) {
-//        report_unasus_process_header_tcc_atividades($courses, $group_array);
-//    }
 
     if ($mostrar_nota_final) {
         $cursos_com_nota_final = report_unasus_query_courses_com_nota_final($courses);
@@ -652,7 +651,6 @@ function report_unasus_lti_tcc_definition($lti_id, $course_id) {
     // WS Client
     $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
     $object = $client->get_tcc_definition($customparameters['tcc_definition']);
-
     if (!$object) {
         // Ocorreu alguma falha
         return false;
@@ -1356,10 +1354,11 @@ function report_unasus_get_activities_config_report($categoryid, $courses) {
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
-    $query = "SELECT *
+    $query = "SELECT id,
+                      CONCAT(activityid,'-',courseid)
                 FROM {activities_course_config} AS config
-               WHERE config.courseid IN ({$string_courses}) AND config.categoryid = :categoryid
-           ";
-
+               WHERE config.courseid IN ({$string_courses}) 
+                 AND config.categoryid = :categoryid
+             ";
     return $DB->get_records_sql_menu($query, array('categoryid' => $categoryid));
 }

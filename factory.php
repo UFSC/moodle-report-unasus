@@ -28,7 +28,7 @@ define('AGRUPAR_ORIENTADORES', 'ORIENTADORES');
 define('TCC-Turma-A', 230);
 define('TCC-Turma-B', 258);
 
-use local_ufsc\ufsc;
+//use local_ufsc\ufsc;
 
 class report_unasus_factory {
 
@@ -48,6 +48,10 @@ class report_unasus_factory {
 
     /** @var  mixed $modo_exibicao valores possíveis: null, tabela, grafico_valores, grafico_porcentagens, grafico_pontos */
     protected $modo_exibicao;
+
+    /** @var  array $visiveis_atividades_cursos Apresenta uma lista com atividades/cursos da categoria do relatório que foram configuradas para serem apresentadas */
+    public $visiveis_atividades_cursos;
+
 
     // Atributos para construir tela de filtros
     public $mostrar_barra_filtragem; //mostrar ou esconder filtro
@@ -103,7 +107,17 @@ class report_unasus_factory {
         // Valores definidos nos filtros
         $this->cohorts_selecionados = optional_param_array('cohorts', null, PARAM_INT);
         $this->modulos_selecionados = $modulos;
-        $this->atividades_cursos = report_unasus_get_atividades_cursos($modulos);
+
+        // chama report_unasus_get_atividades_cursos para montar o conjunto de colunas visíveis do cabeçalho
+        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos(
+            $modulos,
+            false,
+            false,
+            false,
+            $this->categoria_turma_ufsc
+        );
+
+
         $this->polos_selecionados = optional_param_array('polos', null, PARAM_INT);
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
         $this->orientadores_selecionados = optional_param_array('orientadores', null, PARAM_INT);
@@ -315,12 +329,8 @@ class report_unasus_factory {
     }
 
     function get_table_header_modulos_atividades($mostrar_nota_final = false, $mostrar_total = false) {
-        $factory = report_unasus_factory::singleton();
-
-        $atividades_cursos = report_unasus_get_atividades_cursos($factory->get_modulos_ids(), $mostrar_nota_final, $mostrar_total, false, $factory->get_categoria_turma_ufsc());
         $header = array();
-
-        foreach ($atividades_cursos as $course_id => $atividades) {
+        foreach ($this->visiveis_atividades_cursos as $course_id => $atividades) {
           if(isset($atividades[0]->course_name)) {
               $course_url = new moodle_url('/course/view.php', array('id' => $course_id, 'target' => '_blank'));
               $course_link = html_writer::link($course_url, $atividades[0]->course_name, array('target' => '_blank'));
@@ -336,7 +346,10 @@ class report_unasus_factory {
         $group_array = new report_unasus_GroupArray();
 
         // Busca os dados dos capítulos dos TCCs e coloca em $group_array
-        report_unasus_process_header_tcc_atividades($this->get_modulos_ids(), $group_array, $is_tcc);
+        report_unasus_process_header_tcc_atividades(
+            $this->get_modulos_ids(),
+            $group_array,
+            $is_tcc);
 
         $atividades_cursos = $group_array->get_assoc();
         $header = array();
