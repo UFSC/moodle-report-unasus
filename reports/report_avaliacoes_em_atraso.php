@@ -75,14 +75,16 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
     }
 
     public function get_dados() {
+        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         // Consulta
-        $query_atividades   = query_atividades_from_users();
-        $query_quiz         = query_quiz_from_users();
-        $query_forum        = query_postagens_forum_from_users();
-        $query_database     = query_database_adjusted_from_users();
-        $query_scorm        = query_scorm_from_users();
-        $query_lti          = query_lti_from_users();
+        $query_atividades   = query_atividades_from_users($cohort_estudantes);
+        $query_quiz         = query_quiz_from_users($cohort_estudantes);
+        $query_forum        = query_postagens_forum_from_users($cohort_estudantes);
+        $query_database     = query_database_adjusted_from_users($cohort_estudantes);
+        $query_scorm        = query_scorm_from_users($cohort_estudantes);
+        $query_lti          = query_lti_from_users($cohort_estudantes);
 
 
         $result_array = loop_atividades_e_foruns_sintese(
@@ -162,7 +164,11 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
                 }
             }
             $somatorio_atrasos = isset($somatorio_total_atrasos[$grupo_id]) ? $somatorio_total_atrasos[$grupo_id] : 0;
-            $data[] = new report_unasus_dado_media_render($somatorio_atrasos, $total_alunos[$grupo_id] * $total_atividades);
+            if (isset($total_alunos[$grupo_id]))
+                $total = $total_alunos[$grupo_id] * $total_atividades;
+            else
+                $total = 0;
+            $data[] = new report_unasus_dado_media_render($somatorio_atrasos, $total);
             $dados[] = $data;
         }
         return $dados;

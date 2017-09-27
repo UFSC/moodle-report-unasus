@@ -20,20 +20,28 @@ defined('MOODLE_INTERNAL') || die;
  * @throws Exception
  * @return string
  */
-function query_alunos_relationship() {
+function query_alunos_relationship($cohort_estudantes) {
 
     /** @var $report report_unasus_factory */
     $report = report_unasus_factory::singleton();
     $query_polo = ' ';
 
+    $query_cohort_estudantes = " JOIN {relationship_cohorts} rlc
+                       ON (rlc.id = rm.relationshipcohortid) ";
+    if (!is_null($cohort_estudantes) && !is_null($cohort_estudantes->cohortid)) {
+        $query_cohort_estudantes = "{$query_cohort_estudantes} AND (rlc.cohortid = {$cohort_estudantes->cohortid}) ";
+    }
+
+
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
-    $query_cohort = " JOIN {relationship_cohorts} rlc
-                       ON (rlc.id = rm.relationshipcohortid) ";
+    $query_cohort = "";
     if (!is_null($cohorts)) {
-        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
+        $query_cohort = " JOIN {cohort_members} cm
+					ON (u1.id = cm.userid) AND (cm.cohortid IN ({$cohorts})) ";
     }
+
 
     if (!is_null($polos)) {
         $query_polo = "  AND uid.data IN ({$polos}) ";
@@ -57,9 +65,9 @@ function query_alunos_relationship() {
                     FROM {user_info_field}
                     WHERE shortname = 'polo')
                 )
+                {$query_cohort_estudantes}
                 {$query_cohort}
-          WHERE rg.id=:grupo {$query_polo}
-          -- GROUP BY u1.id";
+          WHERE rg.id=:grupo {$query_polo}";
 
     return "SELECT DISTINCT u2.id,
                    u2.firstname,
@@ -74,7 +82,7 @@ function query_alunos_relationship() {
               JOIN {user_enrolments} ue
                 ON (ue.userid = u2.id)
         INNER JOIN {enrol} e
-                ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
+                ON (e.id = ue.enrolid)";
 }
 
 /**
@@ -91,20 +99,28 @@ function query_alunos_relationship() {
  * @throws Exception
  * @return string
  */
-function query_alunos_relationship_student() {
+function query_alunos_relationship_student($cohort_estudantes) {
 
     /** @var $report report_unasus_factory */
     $report = report_unasus_factory::singleton();
     $query_polo = ' ';
 
+    $query_cohort_estudantes = " JOIN {relationship_cohorts} rlc
+                       ON (rlc.id = rm.relationshipcohortid) ";
+    if (!is_null($cohort_estudantes) && !is_null($cohort_estudantes->cohortid)) {
+        $query_cohort_estudantes = "{$query_cohort_estudantes} AND (rlc.cohortid = {$cohort_estudantes->cohortid}) ";
+    }
+
+
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
-    $query_cohort = " JOIN {relationship_cohorts} rlc
-                       ON (rlc.id = rm.relationshipcohortid) ";
+    $query_cohort = "";
     if (!is_null($cohorts)) {
-        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
+        $query_cohort = " JOIN {cohort_members} cm
+					ON (u1.id = cm.userid) AND (cm.cohortid IN ({$cohorts})) ";
     }
+
 
     if (!is_null($polos)) {
         $query_polo = "  AND uid.data IN ({$polos}) ";
@@ -128,6 +144,7 @@ function query_alunos_relationship_student() {
                     FROM {user_info_field}
                     WHERE shortname = 'polo')
                 )
+                {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
 
@@ -145,7 +162,7 @@ function query_alunos_relationship_student() {
               JOIN {user_enrolments} ue
                 ON (ue.userid = u2.id)
         INNER JOIN {enrol} e
-                ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
+                ON (e.id = ue.enrolid)";
 }
 
 /**
@@ -219,8 +236,8 @@ function query_alunos_grupo_orientacao() {
  *
  * @return string
  */
-function query_postagens_forum_from_users() {
-    $alunos_grupo_tutoria = query_alunos_relationship_student();
+function query_postagens_forum_from_users($cohort_estudantes) {
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -488,27 +505,27 @@ function query_uso_sistema_tutor() {
  */
 
 //TODO: REVER !
-function query_potenciais_evasoes_from_users() {
-    $alunos_grupo_tutoria = query_alunos_relationship();
-
-    return "SELECT u.id AS user_id,
-                   u.polo,
-                   u.cohort,
-                   sub.timecreated AS submission_date,
-                   gr.timemodified,
-                   gr.grade
-              FROM (
-
-                      {$alunos_grupo_tutoria}
-
-                   ) u
-         LEFT JOIN {assign_submission} sub
-                ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-         LEFT JOIN {assign_grades} gr
-                ON (gr.assignment=sub.assignment AND gr.userid=u.id)
-          ORDER BY u.firstname, u.lastname
-    ";
-}
+//function query_potenciais_evasoes_from_users() {
+//    $alunos_grupo_tutoria = query_alunos_relationship();
+//
+//    return "SELECT u.id AS user_id,
+//                   u.polo,
+//                   u.cohort,
+//                   sub.timecreated AS submission_date,
+//                   gr.timemodified,
+//                   gr.grade
+//              FROM (
+//
+//                      {$alunos_grupo_tutoria}
+//
+//                   ) u
+//         LEFT JOIN {assign_submission} sub
+//                ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+//         LEFT JOIN {assign_grades} gr
+//                ON (gr.assignment=sub.assignment AND gr.userid=u.id)
+//          ORDER BY u.firstname, u.lastname
+//    ";
+//}
 
 /**
  * Query para os relatórios
@@ -529,8 +546,9 @@ function query_potenciais_evasoes_from_users() {
  * @return string
  *
  */
-function query_atividades_from_users() {
-    $alunos_grupo_tutoria = query_alunos_relationship_student();
+function query_atividades_from_users($cohort_estudantes) {
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -546,7 +564,6 @@ function query_atividades_from_users() {
                    'assign_activity' as name_activity,
                    u.is_student
               FROM (
-
                       {$alunos_grupo_tutoria}
                       JOIN (
                               SELECT
@@ -580,33 +597,33 @@ function query_atividades_from_users() {
     ";
 }
 
-function query_database_from_users() {
+//function query_database_from_users() {
+//
+//    $alunos_grupo_tutoria = query_alunos_relationship();
+//
+//    return "SELECT u.id AS userid,
+//                   u.polo,
+//                   u.cohort,
+//                   cmc.userid,
+//                   cmc.completionstate,
+//                   'db_activity' as name_activity
+//                FROM (
+//
+//                    {$alunos_grupo_tutoria}
+//
+//                   ) u
+//                JOIN {course_modules_completion} cmc
+//                  ON u.id = cmc.userid
+//               WHERE coursemoduleid = :coursemoduleid
+//               ORDER BY u.firstname;
+//    ";
+//
+//}
 
-    $alunos_grupo_tutoria = query_alunos_relationship();
-
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   u.cohort,
-                   cmc.userid,
-                   cmc.completionstate,
-                   'db_activity' as name_activity
-                FROM (
-
-                    {$alunos_grupo_tutoria}
-
-                   ) u
-                JOIN {course_modules_completion} cmc
-                  ON u.id = cmc.userid
-               WHERE coursemoduleid = :coursemoduleid
-               ORDER BY u.firstname;
-    ";
-
-}
-
-function query_database_adjusted_from_users() {
+function query_database_adjusted_from_users($cohort_estudantes) {
 
     //$alunos_grupo_tutoria = query_alunos_relationship_student();
-    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -647,13 +664,12 @@ function query_database_adjusted_from_users() {
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
-
 }
 
-function query_scorm_from_users () {
+function query_scorm_from_users ($cohort_estudantes) {
 
     //$alunos_grupo_tutoria = query_alunos_relationship_student();
-    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -692,13 +708,12 @@ function query_scorm_from_users () {
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
-
 }
 
-function query_lti_from_users () {
+function query_lti_from_users ($cohort_estudantes) {
 
     //$alunos_grupo_tutoria = query_alunos_relationship_student();
-    $alunos_grupo_tutoria = query_alunos_relationship_student();
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
 
     return "SELECT u3.id AS userid,
@@ -737,7 +752,6 @@ function query_lti_from_users () {
           GROUP BY userid
           ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";
-
 }
 
 /**
@@ -753,8 +767,8 @@ function query_lti_from_users () {
  * @return string
  *
  */
-function query_nota_final() {
-    $alunos_grupo_tutoria = query_alunos_relationship_student();
+function query_nota_final($cohort_estudantes) {
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -812,8 +826,8 @@ function query_nota_final() {
  * @return string
  *
  */
-function query_quiz_from_users() {
-    $alunos_grupo_tutoria = query_alunos_relationship_student();
+function query_quiz_from_users($cohort_estudantes) {
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -860,9 +874,9 @@ function query_quiz_from_users() {
      ";
 }
 
-function query_grades_lti() {
+function query_grades_lti($cohort_estudantes) {
 
-    $alunos_grupo_tutoria = query_alunos_relationship();
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -900,32 +914,31 @@ function query_grades_lti() {
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
-
 }
 
-function query_alunos_modulos() {
-    $alunos_grupo_tutoria = query_alunos_relationship();
-
-    return "SELECT u.id AS userid,
-                   u.polo,
-                   gr.grade,
-                   sub.timecreated AS submission_date,
-                   sub.timemodified AS submission_modified,
-                   gr.timemodified AS grade_modified,
-                   gr.timecreated AS grade_created,
-                   sub.status
-             FROM (
-
-                    {$alunos_grupo_tutoria}
-
-                  ) u
-        LEFT JOIN {assign_submission} sub
-               ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-        LEFT JOIN {assign_grades} gr
-               ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-         ORDER BY grupo_id, u.firstname, u.lastname
-    ";
-}
+//function query_alunos_modulos() {
+//    $alunos_grupo_tutoria = query_alunos_relationship();
+//
+//    return "SELECT u.id AS userid,
+//                   u.polo,
+//                   gr.grade,
+//                   sub.timecreated AS submission_date,
+//                   sub.timemodified AS submission_modified,
+//                   gr.timemodified AS grade_modified,
+//                   gr.timecreated AS grade_created,
+//                   sub.status
+//             FROM (
+//
+//                    {$alunos_grupo_tutoria}
+//
+//                  ) u
+//        LEFT JOIN {assign_submission} sub
+//               ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+//        LEFT JOIN {assign_grades} gr
+//               ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+//         ORDER BY grupo_id, u.firstname, u.lastname
+//    ";
+//}
 
 class LtiPortfolioQuery {
 
@@ -961,7 +974,7 @@ class LtiPortfolioQuery {
         $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_relationship();
+        $query_alunos = query_alunos_relationship($cohort_estudantes);
         $params = array(
                 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
                 'cohort_relationship_id' => $cohort_estudantes->id,
@@ -993,11 +1006,13 @@ class LtiPortfolioQuery {
         /** @var $report report_unasus_factory */
         $report = report_unasus_factory::singleton();
 
+//        $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
+//        $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
         $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
         $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_relationship();
+        $query_alunos = query_alunos_relationship($cohort_estudantes);
 
         $params = array(
                 'cohort_relationship_id' => $cohort_estudantes->id,

@@ -91,14 +91,16 @@ class report_atividades_vs_notas extends report_unasus_factory {
 
     public function get_dados_grafico() {
         global $CFG;
+        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         // Consultas
-        $query_atividades = query_atividades_from_users();
-        $query_quiz       = query_quiz_from_users();
-        $query_forum      = query_postagens_forum_from_users();
-        $query_lti        = query_lti_from_users();
-        $query_database   = query_database_adjusted_from_users();
-        $query_scorm      = query_scorm_from_users();
+        $query_atividades = query_atividades_from_users($cohort_estudantes);
+        $query_quiz       = query_quiz_from_users($cohort_estudantes);
+        $query_forum      = query_postagens_forum_from_users($cohort_estudantes);
+        $query_lti        = query_lti_from_users($cohort_estudantes);
+        $query_database   = query_database_adjusted_from_users($cohort_estudantes);
+        $query_scorm      = query_scorm_from_users($cohort_estudantes);
 
 
         /*  associativo_atividades[modulo][id_aluno][atividade]

@@ -1255,7 +1255,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'relationship_id' => $relationship->id,
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id);
-            $query = query_atividades_from_users();
+            $query = query_atividades_from_users($cohort_estudantes);
             break;
         case 'report_unasus_forum_activity':
             $params = array(
@@ -1266,7 +1266,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
                 'forumid' => $atividade->id);
-            $query = query_postagens_forum_from_users();
+            $query = query_postagens_forum_from_users($cohort_estudantes);
             break;
         case 'report_unasus_quiz_activity':
             $params = array(
@@ -1279,7 +1279,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
                 'forumid' => $atividade->id);
-            $query = query_quiz_from_users();
+            $query = query_quiz_from_users($cohort_estudantes);
             break;
         case 'report_unasus_db_activity':
             $params = array(
@@ -1292,7 +1292,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'grupo' => $grupo->id,
                 'coursemoduleid' => $atividade->coursemoduleid
             );
-            $query = query_database_adjusted_from_users();
+            $query = query_database_adjusted_from_users($cohort_estudantes);
             break;
         case 'report_unasus_scorm_activity':
             $params = array(
@@ -1304,7 +1304,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
             );
-            $query = query_scorm_from_users();
+            $query = query_scorm_from_users($cohort_estudantes);
             break;
         case 'report_unasus_lti_activity':
             $params = array(
@@ -1316,7 +1316,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
             );
-            $query = query_lti_from_users();
+            $query = query_lti_from_users($cohort_estudantes);
             break;
         case 'report_unasus_lti_activity_tcc':
         // case 'report_unasus_lti_tcc':
@@ -1328,7 +1328,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                 'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
             );
-            $query = query_grades_lti();
+            $query = query_grades_lti($cohort_estudantes);
             break;
         default:
             if ($is_boletim) { //Nota final para relatório boletim
@@ -1339,7 +1339,7 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
                     'relationship_id' => $relationship->id,
                     'cohort_relationship_id' => $cohort_estudantes->id,
                     'grupo' => $grupo->id);
-                $query = query_nota_final();
+                $query = query_nota_final($cohort_estudantes);
                 break;
             }
             break;

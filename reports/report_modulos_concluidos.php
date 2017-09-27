@@ -96,37 +96,38 @@ class report_modulos_concluidos extends report_unasus_factory {
             }
 
             if ($this->agrupar_relatorios == AGRUPAR_TUTORES) {
-                // processa estudantes de um grupo
-                foreach ($lista_atividades as $userid => $courses) {
-                    $userid;
+                if (isset($lista_atividades)) {
+                    // processa estudantes de um grupo
+                    foreach ($lista_atividades as $userid => $courses) {
+                        $userid;
 
-                    // passa pelos cursos de um estudante
-                    foreach ($courses as $courseid => $course) {
-                        if ($courseid > 0) {
-                            $course_instance = get_course($courseid);
-                            $info = new completion_info($course_instance);
-                            $uid = 'u.id=' . $userid;
-                            $progress = $info->get_progress_all($uid);
+                        // passa pelos cursos de um estudante
+                        foreach ($courses as $courseid => $course) {
+                            if ($courseid > 0) {
+                                $course_instance = get_course($courseid);
+                                $info = new completion_info($course_instance);
+                                $uid = 'u.id=' . $userid;
+                                $progress = $info->get_progress_all($uid);
 
-                            //Se não houver dados para o aluno, ele não faz aquele módulo
-                            if(isset($progress[$userid])) {
+                                //Se não houver dados para o aluno, ele não faz aquele módulo
+                                if(isset($progress[$userid])) {
 
-                                // passa por todas as atividades configuradas daquele módulo
-                                foreach ($course->get_atividades() as $atividade_modulo_aluno) {
-                                    $pendente = true;
-                                    $has_progress = isset($progress[$userid]->progress[$atividade_modulo_aluno->coursemoduleid]);
-                                    if ( $has_progress ) {
-                                        $pendente = $progress[$userid]->progress[$atividade_modulo_aluno->coursemoduleid]->completionstate == COMPLETION_INCOMPLETE;
-                                    }
-                                    if ($pendente) {
-                                        $course->add_atividade_pendente($atividade_modulo_aluno);
+                                    // passa por todas as atividades configuradas daquele módulo
+                                    foreach ($course->get_atividades() as $atividade_modulo_aluno) {
+                                        $pendente = true;
+                                        $has_progress = isset($progress[$userid]->progress[$atividade_modulo_aluno->coursemoduleid]);
+                                        if ( $has_progress ) {
+                                            $pendente = $progress[$userid]->progress[$atividade_modulo_aluno->coursemoduleid]->completionstate == COMPLETION_INCOMPLETE;
+                                        }
+                                        if ($pendente) {
+                                            $course->add_atividade_pendente($atividade_modulo_aluno);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-
                 $dados[local_tutores_grupos_tutoria::grupo_tutoria_to_string($this->get_categoria_turma_ufsc(), $grupo->id)] = $estudantes;
             }
 

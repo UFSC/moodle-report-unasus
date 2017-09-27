@@ -77,13 +77,16 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
 
     public function get_dados() {
 
+        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+
         // Consulta
-        $query_atividades   = query_atividades_from_users();
-        $query_quiz         = query_quiz_from_users();
-        $query_forum        = query_postagens_forum_from_users();
-        $query_database     = query_database_adjusted_from_users();
-        $query_scorm        = query_scorm_from_users();
-        $query_lti          = query_lti_from_users();
+        $query_atividades   = query_atividades_from_users($cohort_estudantes);
+        $query_quiz         = query_quiz_from_users($cohort_estudantes);
+        $query_forum        = query_postagens_forum_from_users($cohort_estudantes);
+        $query_database     = query_database_adjusted_from_users($cohort_estudantes);
+        $query_scorm        = query_scorm_from_users($cohort_estudantes);
+        $query_lti          = query_lti_from_users($cohort_estudantes);
 
 
         $result_array = loop_atividades_e_foruns_sintese(
@@ -206,7 +209,8 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
                     if($initial_key == 'modulo') {
                         $key_value = substr($key, 7);
                         $atividade = $atividades;
-                        $atividades->set_count($atividades_alunos_modulos[$grupo_id][$key_value]);
+                        $conta = isset($atividades_alunos_modulos[$grupo_id][$key_value]) ? $atividades_alunos_modulos[$grupo_id][$key_value] : 0;
+                        $atividades->set_count($conta);
                         $data[] = $atividades;
                     }
                 }
@@ -220,11 +224,12 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
 
             /* Coluna  N° Alunos com atividades concluídas grupo */
             $somatorioalunosgrupos = isset($atividades_alunos_grupos[$grupo_id]) ? $atividades_alunos_grupos[$grupo_id] : 0;
-            $data[] = new report_unasus_dado_media_render($somatorioalunosgrupos, $total_alunos[$grupo_id]);
+            $total_alunos_tmp = isset($total_alunos[$grupo_id]) ? $total_alunos[$grupo_id] : 0;
+            $data[] = new report_unasus_dado_media_render($somatorioalunosgrupos, $total_alunos_tmp);
 
             $dados[] = $data;
             $somatorio_total_alunos_atividades_concluidas += $somatorioalunosgrupos;
-            $somatorio_total_alunos += $total_alunos[$grupo_id];
+            $somatorio_total_alunos += $total_alunos_tmp;
         }
 
         /* Linha total alunos com atividades concluidas  */

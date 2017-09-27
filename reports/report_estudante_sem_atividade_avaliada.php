@@ -41,12 +41,15 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
             $listagem_forum->add($forum->course_id, $forum);
         }
 
-        $query_alunos_grupo_tutoria = query_atividades_from_users();
-        $query_quiz                 = query_quiz_from_users();
-        $query_forum                = query_postagens_forum_from_users();
-        $query_lti                  = query_lti_from_users();
-        $query_database             = query_database_adjusted_from_users();
-        $query_scorm                = query_scorm_from_users();
+        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+
+        $query_alunos_grupo_tutoria = query_atividades_from_users($cohort_estudantes);
+        $query_quiz                 = query_quiz_from_users($cohort_estudantes);
+        $query_forum                = query_postagens_forum_from_users($cohort_estudantes);
+        $query_lti                  = query_lti_from_users($cohort_estudantes);
+        $query_database             = query_database_adjusted_from_users($cohort_estudantes);
+        $query_scorm                = query_scorm_from_users($cohort_estudantes);
 
         $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
                 $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_lti, $query_database, $query_scorm);
