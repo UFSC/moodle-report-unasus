@@ -71,14 +71,18 @@ class report_potenciais_evasoes extends report_unasus_factory {
         global $CFG;
 
         $modulos = $this->atividades_cursos;
+
+        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+
         // Consulta
-        $query_atividades   = query_atividades_from_users();
-        $query_quiz         = query_quiz_from_users();
-        $query_forum        = query_postagens_forum_from_users();
-        $query_lti          = query_lti_from_users();
+        $query_atividades   = query_atividades_from_users($cohort_estudantes);
+        $query_quiz         = query_quiz_from_users($cohort_estudantes);
+        $query_forum        = query_postagens_forum_from_users($cohort_estudantes);
+        $query_lti          = query_lti_from_users($cohort_estudantes);
         //$query_db           = query_database_from_users();
-        $query_database     = query_database_adjusted_from_users();
-        $query_scorm        = query_scorm_from_users();
+        $query_database     = query_database_adjusted_from_users($cohort_estudantes);
+        $query_scorm        = query_scorm_from_users($cohort_estudantes);
 
 
         // Recupera dados auxiliares
