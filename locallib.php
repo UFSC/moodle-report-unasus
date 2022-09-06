@@ -109,12 +109,13 @@ function report_unasus_verifica_middleware() {
 function report_unasus_get_polos($categoria_turma) {
     $polos = null;
     if (report_unasus_verifica_middleware()) {
-        $academico = Middleware::singleton();
+        try {
+            $academico = Middleware::singleton();
 
-        $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
-        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+            $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
+            $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
-        $sql = "
+            $sql = "
           SELECT DISTINCT(ua.polo), ua.nomepolo
             FROM {View_Usuarios_Dados_Adicionais} ua
             JOIN {user} u
@@ -126,8 +127,11 @@ function report_unasus_get_polos($categoria_turma) {
            WHERE nomepolo != ''
         ORDER BY nomepolo";
 
-        $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
-        $polos = $academico->get_records_sql_menu($sql, $params);
+            $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
+            $polos = $academico->get_records_sql_menu($sql, $params);
+        } catch (Exception $e) {
+            $polos = null;
+        }
     }
     return $polos;
 }

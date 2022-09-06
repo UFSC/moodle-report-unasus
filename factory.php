@@ -149,10 +149,10 @@ class report_unasus_factory {
             $this->data_inicio = $data_inicio;
             $this->data_fim = $data_fim;
         }
-        
+
         // Verifica se é um relatorio valido
         $this->set_relatorio(optional_param('relatorio', null, PARAM_ALPHANUMEXT));
-        
+
         // Verifica se é um modo de exibicao valido
         $this->set_modo_exibicao(optional_param('modo_exibicao', null, PARAM_ALPHANUMEXT));
     }
