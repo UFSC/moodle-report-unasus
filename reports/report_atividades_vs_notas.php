@@ -294,7 +294,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
                         }
 
                         if(isset($atividade->id)){
-                                $lista_atividades[$r->userid][$atividade->course_id.'|'.$atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
+                                $lista_atividades[$r->userid][$atividade->course_id . '|' . $atividade->module_id . '|' . $atividade->id] = new report_unasus_dado_atividades_vs_notas_render($tipo, $atividade->id, $data->grade, $atraso);
                         }
                     }
 

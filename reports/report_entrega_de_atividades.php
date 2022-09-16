@@ -221,7 +221,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_entrega_de_atividades_render($tipo, 0);
 
                         } else if (isset($atividade->id)) {
-                                $lista_atividades[$r->userid][$atividade->course_id . '|' . $atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
+                                $lista_atividades[$r->userid][$atividade->course_id . '|' . $atividade->module_id . '|' . $atividade->id] = new report_unasus_dado_entrega_de_atividades_render($tipo, $atividade->id, $atraso);
                             }
                     }
 

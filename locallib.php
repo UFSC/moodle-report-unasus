@@ -282,11 +282,9 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
         throw new Exception("Falha ao obter as atividades, curso não informado.");
     }
 
-    $atividades_config_curso = array();
+//    $atividades_config_curso = array();
 
-    if ($categoryid != 0){
-        $atividades_config_curso = report_unasus_get_activities_config_report($categoryid, $courses);
-    }
+    $atividades_config_curso = report_unasus_get_activities_config_report($courses);
 
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
     $assigns    = report_unasus_query_assign_courses($courses);
@@ -300,7 +298,7 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
 
     // cria as atividades
     foreach ($assigns as $atividade) {
-        $chave = $atividade->assign_id.'-'.$atividade->course_id;
+        $chave = $atividade->assign_id.'-'.$atividade->module_id.'-'.$atividade->course_id;
         if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
             $assign_object = new report_unasus_assign_activity($atividade, $atividades_config_curso);
             $group_array->add($atividade->course_id, $assign_object);
@@ -308,28 +306,28 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
     }
 
     foreach ($foruns as $forum) {
-        $chave = $forum->forum_id.'-'.$forum->course_id;
+        $chave = $forum->forum_id.'-'.$forum->module_id.'-'.$forum->course_id;
         if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($forum->course_id, new report_unasus_forum_activity($forum, $atividades_config_curso));
         }
     }
 
     foreach ($quizes as $quiz) {
-        $chave = $quiz->quiz_id.'-'.$quiz->course_id;
+        $chave = $quiz->quiz_id.'-'.$quiz->module_id.'-'.$quiz->course_id;
         if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($quiz->course_id, new report_unasus_quiz_activity($quiz, $atividades_config_curso));
         }
     }
 
     foreach ($databases as $database) {
-        $chave = $database->database_id.'-'.$database->course_id;
+        $chave = $database->database_id.'-'.$database->module_id.'-'.$database->course_id;
         if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
             $group_array->add($database->course_id, new report_unasus_db_activity($database, $atividades_config_curso));
         }
     }
 
     foreach ($scorms as $scorm) {
-        $chave = $scorm->scorm_id.'-'.$scorm->course_id;
+        $chave = $scorm->scorm_id.'-'.$scorm->module_id.'-'.$scorm->course_id;
         if (!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)) {
             $group_array->add($scorm->course_id, new report_unasus_scorm_activity($scorm, $atividades_config_curso));
         }
@@ -338,7 +336,7 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
     foreach ($ltis as $db_lti) {
 
         // verifica se está habilitado no config report
-        $chave = $db_lti->lti_id.'-'.$db_lti->course_id;
+        $chave = $db_lti->lti_id.'-'.$db_lti->module_id.'-'.$db_lti->course_id;
         if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso) ){
 
             // se não for para buscar lti ou não for lti de tcc não processa os capítulos
@@ -515,6 +513,8 @@ function report_unasus_query_assign_courses($courses)
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
                      cm.groupingid AS grouping_id,
+	                 cm.module AS module_id,
+	                 m.name AS module_name,
                      cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {assign} AS a
@@ -555,6 +555,8 @@ function report_unasus_query_quiz_courses($courses) {
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
                      cm.groupingid as grouping_id,
+	                 cm.module AS module_id,
+	                 m.name AS module_name,
                      cm.id AS coursemoduleid
                 FROM {course} AS c
                 JOIN {quiz} AS q
@@ -585,6 +587,8 @@ function report_unasus_query_database_courses($courses) {
 	                 c.id AS course_id,
 	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
 	                 cm.groupingid AS grouping_id,
+	                 cm.module AS module_id,
+	                 m.name AS module_name,
                      cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {data} AS d
@@ -615,6 +619,8 @@ function report_unasus_query_scorm_courses($courses) {
 	                 c.id AS course_id,
 	                 REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
 	                 cm.groupingid AS grouping_id,
+	                 cm.module AS module_id,
+	                 m.name AS module_name,
                      cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {scorm} AS s
@@ -772,6 +778,8 @@ function report_unasus_query_lti_courses_moodle($courses) {
 		             REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
                      cm.id AS coursemoduleid,
 	                 cm.groupingid AS grouping_id,
+	                 cm.module AS module_id,
+	                 m.name AS module_name,
 	                 cm.completionexpected
                 FROM {course} AS c
            LEFT JOIN {lti} AS l
@@ -819,6 +827,8 @@ function report_unasus_query_forum_courses($courses) {
                      c.id AS course_id,
                      REPLACE(c.fullname, CONCAT(shortname, ' - '), '') AS course_name,
                      cm.groupingid as grouping_id,
+	                 cm.module AS module_id,
+	                 m.name AS module_name,
                      cm.id AS coursemoduleid
                 FROM {course} AS c
            LEFT JOIN {forum} AS f
@@ -1353,16 +1363,17 @@ function report_unasus_get_atividades($nome_atividade, $atividade, $courseid, $g
     return $DB->get_records_sql($query, $params);
 }
 
-function report_unasus_get_activities_config_report($categoryid, $courses) {
+function report_unasus_get_activities_config_report($courses) {
     global $DB;
 
     $string_courses = report_unasus_get_modulos_validos($courses);
 
     $query = "SELECT id,
-                      CONCAT(activityid,'-',courseid)
+                      CONCAT(activityid,'-',moduleid,'-',courseid)
                 FROM {activities_course_config} AS config
-               WHERE config.courseid IN ({$string_courses}) 
-                 AND config.categoryid = :categoryid
+               WHERE config.courseid IN ({$string_courses})
+               ORDER BY courseid, moduleid, activityid
              ";
-    return $DB->get_records_sql_menu($query, array('categoryid' => $categoryid));
+
+    return $DB->get_records_sql_menu($query);
 }

@@ -129,6 +129,8 @@ class report_unasus_assign_activity_report_config {
 
         $this->id = $db_model->assign_id;
         $this->name = $db_model->assign_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
     }
@@ -148,6 +150,8 @@ class report_unasus_assign_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
@@ -169,6 +173,8 @@ class report_unasus_forum_activity_report_config {
         $this->name = $db_model->forum_name;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
     }
 }
 
@@ -182,6 +188,8 @@ class report_unasus_forum_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
@@ -201,6 +209,8 @@ class report_unasus_quiz_activity_report_config {
 
         $this->id = $db_model->quiz_id;
         $this->name = $db_model->quiz_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
     }
@@ -218,6 +228,8 @@ class report_unasus_quiz_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
@@ -252,6 +264,8 @@ class report_unasus_db_activity_report_config {
 
         $this->id = $db_model->database_id;
         $this->name = $db_model->database_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
     }
@@ -267,6 +281,8 @@ class report_unasus_db_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
@@ -286,6 +302,8 @@ class report_unasus_scorm_activity_report_config {
 
         $this->id = $db_model->scorm_id;
         $this->name = $db_model->scorm_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
     }
@@ -301,6 +319,8 @@ class report_unasus_scorm_activity extends report_unasus_activity {
         $this->deadline = $db_model->completionexpected;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
         $this->config = $config;
@@ -320,6 +340,8 @@ class report_unasus_lti_activity_report_config {
 
         $this->id = $db_model->lti_id;
         $this->name = $db_model->name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
     }
@@ -343,6 +365,8 @@ class report_unasus_lti_activity extends report_unasus_activity {
         $this->course_id = $db_model->course_id;
         $this->course_name = $db_model->course_name;
         $this->coursemoduleid = $db_model->coursemoduleid;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
         $this->baseurl = isset($db_model->baseurl) ? $db_model->baseurl : null;
         $this->consumer_key = isset($db_model->consumer_key) ? $db_model->consumer_key : null;
         $this->grouping = $db_model->grouping_id;
