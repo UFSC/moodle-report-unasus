@@ -8,7 +8,7 @@ require_once($CFG->dirroot . '/report/unasus/datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/queries.php');
 require_once($CFG->dirroot . '/report/unasus/relatorios/loops.php');
-require_once($CFG->dirroot . '/report/unasus/sistematcc.php');
+//require_once($CFG->dirroot . '/report/unasus/sistematcc.php');
 
 function report_unasus_get_datetime_from_unixtime($unixtime) {
     return date_create(date("Y-m-d H:m:s", $unixtime));
@@ -652,15 +652,20 @@ function report_unasus_lti_tcc_definition($lti_id, $course_id) {
 
     // pega os dados da atividade LIT do TCC
     $lti = $DB->get_record_sql(query_lti_activity(), array('course' => $course_id, 'lti_id' => $lti_id));
+    if ($lti) {
+        $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
+        $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
+        $consumer_key = empty($config['resourcekey']) ? "" : $config['resourcekey'];
+        $base_url = empty($lti->baseurl) ? "" : $lti->baseurl;
 
-
-    $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
-    $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
-    $consumer_key = $config['resourcekey'];
-
-    // WS Client
-    $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
-    $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+        // WS Client
+        $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
+        $object = null;
+        if ($client->getZendInstalled()) {
+            $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
+            $object = $client->get_tcc_definition($tcc_definition);
+        }
+    }
     if (!$object) {
         // Ocorreu alguma falha
         return false;
@@ -697,11 +702,16 @@ function report_unasus_query_lti_courses($courses) {
                     foreach ($ltis as $lti) {
                         $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
                         $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
-                        $consumer_key = $config['resourcekey'];
+                        $consumer_key = empty($config['resourcekey']) ? "" : $config['resourcekey'];
+                        $base_url = empty($lti->baseurl) ? "" : $lti->baseurl;
 
                         // WS Client
-                        $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
-                        $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+                        $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
+                        $object = null;
+                        if ($client->getZendInstalled()) {
+                            $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
+                            $object = $client->get_tcc_definition($tcc_definition);
+                        }
 
                         if (!$object) {
                             // Ocorreu alguma falha
@@ -729,11 +739,16 @@ function report_unasus_query_lti_courses($courses) {
             foreach ($ltis as $lti) {
                 $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
                 $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
-                $consumer_key = $config['resourcekey'];
+                $consumer_key = empty($config['resourcekey']) ? "" : $config['resourcekey'];
+                $base_url = empty($lti->baseurl) ? "" : $lti->baseurl;
 
                 // WS Client
-                $client = new report_unasus_SistemaTccClient($lti->baseurl, $consumer_key);
-                $object = $client->get_tcc_definition($customparameters['tcc_definition']);
+                $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
+                $object = null;
+                if ($client->getZendInstalled()) {
+                    $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
+                    $object = $client->get_tcc_definition($tcc_definition);
+                }
 
                 if (!$object) {
                     // Ocorreu alguma falha

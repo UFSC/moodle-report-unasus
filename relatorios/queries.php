@@ -1047,8 +1047,12 @@ class LtiPortfolioQuery {
         }
 
         // WS Client
-        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
-        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data_tcc($user_ids);
+        $consumer_key = empty($atividade->consumer_key) ? "" : $atividade->consumer_key;
+        $base_url = empty($atividade->baseurl) ? "" : $atividade->baseurl;
+
+        $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
+        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] =
+            $client->getZendInstalled() ? $client->get_report_data_tcc($user_ids) : null;
 
         return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
     }
@@ -1075,8 +1079,8 @@ class LtiPortfolioQuery {
         }
 
         // WS Client
-        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
-        $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
+//        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
+//        $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
 
         return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
     }

@@ -2,9 +2,12 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+
 // Carrega o zend framework
-include 'Zend/Loader/Autoloader.php';
-Zend_Loader_Autoloader::autoload('Zend_Loader');
+if (file_exists("Zend/Loader/Autoloader.php")) {
+    include 'Zend/Loader/Autoloader.php';
+    Zend_Loader_Autoloader::autoload('Zend_Loader');
+}
 
 /**
  * Classe para realizar requisições para o webservice do Sistema de TCC
@@ -20,23 +23,31 @@ class report_unasus_SistemaTccClient {
     /** @var \Zend_Http_Client $client */
     private $client;
 
+    private $ZendInstalled;
+
+    public function getZendInstalled() {
+        return $this->ZendInstalled;
+    }
+
     /**
      * @param string $external_url Endereço do sistema de TCC
      * @param string $consumer_key Consumer Key utilizado pela aplicação para realizar a autenticação
      */
     function __construct($external_url, $consumer_key) {
+        $this->ZendInstalled = file_exists("Zend/Loader/Autoloader.php");
+        $new_url = "";
+        if (!empty($external_url)) {
+            // Faz o parse na URL para poder montá-la corretamente em seguida
+            $url = parse_url($external_url);
 
-        // Faz o parse na URL para poder montá-la corretamente em seguida
-        $url = parse_url($external_url);
-
-        $new_url = "{$url['scheme']}://{$url['host']}";
-        if (!empty($url['port'])) {
-            $new_url .= ":{$url['port']}";
+            $new_url = "{$url['scheme']}://{$url['host']}";
+            if (!empty($url['port'])) {
+                $new_url .= ":{$url['port']}";
+            }
         }
-
         $this->url = $new_url;
         $this->consumer_key = $consumer_key;
-        $this->client = new Zend_Http_Client($this->url);
+        $this->client = $this->ZendInstalled ? new Zend_Http_Client($this->url) : null;
     }
 
     /**
