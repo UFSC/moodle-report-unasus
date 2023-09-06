@@ -81,8 +81,6 @@ class report_unasus_student extends report_unasus_person {
  */
 abstract class report_unasus_data_render {
 
-    const MEDIA = 70;
-
     /**
      * Dependendo do tipo do dado ele deve ser apresentado de uma forma diferente
      * Assim esta função é feita para definir qual classe de css deve ser aplicada
@@ -360,7 +358,7 @@ class report_unasus_dado_entrega_de_atividades_render extends report_unasus_data
                 return 'no_prazo';
                 break;
             case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_ENTREGUE_FORA_DO_PRAZO:
-                return ($this->atraso > $CFG->report_unasus_prazo_maximo_entrega) ? 'muito_atraso' : 'pouco_atraso';
+                return ($this->atraso > report_unasus_get_prazo_maximo_entrega()) ? 'muito_atraso' : 'pouco_atraso';
                 break;
             case report_unasus_dado_entrega_de_atividades_render::ATIVIDADE_SEM_PRAZO_ENTREGA:
                 return 'sem_prazo';
@@ -382,8 +380,8 @@ class report_unasus_dado_entrega_de_atividades_render extends report_unasus_data
         $legend['nao_entregue_fora_do_prazo'] = 'Atividade não entregue, já fora do prazo';
         $legend['sem_prazo'] = 'Atividade não realizada, sem prazo definido para a entrega';
         $legend['no_prazo'] = 'Atividade entregue em dia';
-        $legend['pouco_atraso'] = "Atividade entregue, com atraso de até {$CFG->report_unasus_prazo_maximo_entrega} dias";
-        $legend['muito_atraso'] = "Atividade entregue, com atraso de mais de {$CFG->report_unasus_prazo_maximo_entrega} dias";
+        $legend['pouco_atraso'] = "Atividade entregue, com atraso de até ".report_unasus_get_prazo_maximo_entrega()." dias";
+        $legend['muito_atraso'] = "Atividade entregue, com atraso de mais de ".report_unasus_get_prazo_maximo_entrega()." dias";
         $legend['nao_aplicado'] = "Atividade não aplicada";
 
         return $legend;
@@ -428,9 +426,10 @@ class report_unasus_dado_boletim_render extends report_unasus_data_render {
     }
 
     public function get_css_class() {
+        global $DB;
         switch ($this->tipo) {
             case report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA:
-                return (($this->nota / $this->grademax * 100) >= report_unasus_dado_nota_final_render::MEDIA) ? 'na_media' : 'abaixo_media_nota';
+                return (($this->nota / $this->grademax * 100) >= report_unasus_get_passing_grade_percentage()) ? 'na_media' : 'abaixo_media_nota';
                 break;
             case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
@@ -442,10 +441,11 @@ class report_unasus_dado_boletim_render extends report_unasus_data_render {
     }
 
     public static function get_legend() {
+        global $CFG;
         $legend = array();
-        $legend['na_media'] = 'Atividade avaliada com nota acima de 70 %';
-        $legend['abaixo_media_nota'] = 'Atividade avaliada com nota abaixo de 70 %';
-        $legend['abaixo_media'] = 'Média final abaixo de 70 %';
+        $legend['na_media'] = "Atividade avaliada com nota acima de ".report_unasus_get_passing_grade_percentage()." %";
+        $legend['abaixo_media_nota'] = "Atividade avaliada com nota abaixo de ".report_unasus_get_passing_grade_percentage()." %";
+        $legend['abaixo_media'] = "Média final abaixo de ".report_unasus_get_passing_grade_percentage()." %";
         $legend['sem_nota'] = 'Atividade não avaliada ou não entregue';
         $legend['nao_aplicado'] = "Atividade não aplicada";
 
@@ -484,9 +484,10 @@ class report_unasus_dado_nota_final_render extends report_unasus_data_render {
     }
 
     public function get_css_class() {
+        global $CFG;
         switch ($this->tipo) {
             case report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA:
-                return (($this->nota / $this->grademax * 100) >= report_unasus_dado_nota_final_render::MEDIA) ? 'na_media' : 'abaixo_media';
+                return (($this->nota / $this->grademax * 100) >= report_unasus_get_passing_grade_percentage()) ? 'na_media' : 'abaixo_media';
                 break;
             case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
                 return 'sem_nota';
@@ -562,8 +563,8 @@ class report_unasus_dado_historico_atribuicao_notas_render extends report_unasus
         $legend['nao_entregue'] = 'Em aberto (atividade não entregue pelo estudante)';
         $legend['nao_avaliada'] = 'Atividade entregue e não avaliada';
         $legend['no_prazo'] = 'Avaliadas dentro do prazo';
-        $legend['pouco_atraso'] = "Avaliadas fora do prazo, em até {$CFG->report_unasus_prazo_maximo_avaliacao} dias";
-        $legend['muito_atraso'] = "Avaliadas fora do prazo, após  {$CFG->report_unasus_prazo_maximo_avaliacao} dias";
+        $legend['pouco_atraso'] = "Avaliadas fora do prazo, em até ".report_unasus_get_prazo_maximo_avaliacao()." dias";
+        $legend['muito_atraso'] = "Avaliadas fora do prazo, após  ".report_unasus_get_prazo_maximo_avaliacao()." dias";
 
         return $legend;
     }

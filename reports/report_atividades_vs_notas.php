@@ -158,7 +158,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
                         //Atividade entregue e necessita de nota
                         if ($atividade->is_grade_needed()) {
                             $atraso = $atividade->grade_due_days();
-                            ($atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? $count_muito_atraso++ : $count_pouco_atraso++;
+                            ($atraso > report_unasus_get_prazo_maximo_avaliacao()) ? $count_muito_atraso++ : $count_pouco_atraso++;
                         }
 
                         //Atividade tem nota

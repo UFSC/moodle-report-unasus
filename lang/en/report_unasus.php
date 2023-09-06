@@ -73,6 +73,10 @@ $string['potenciais_evasoes_help'] = 'OBJETIVO: estimar se um aluno pode possive
 
 $string['report_unasus_settings'] = 'Configurar Relatórios UNA-SUS';
 
+$string['report_unasus_grade_heading'] = 'Dados de Notas';
+$string['settings_passing_grade_percentage'] = 'Nota para aprovação em percentual (%)';
+$string['description_passing_grade_percentage'] = 'Informe o percentual da nota para a aprovação';
+
 $string['report_unasus_tutor_heading'] = 'Prazos do tutor';
 $string['settings_prazo_esperado_avaliacao'] = 'Prazo esperado para Avaliação';
 $string['description_prazo_esperado_avaliacao'] = 'Informe o prazo em dias';

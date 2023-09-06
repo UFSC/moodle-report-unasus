@@ -885,13 +885,23 @@ function report_unasus_get_modulos_validos($modulos) {
 }
 
 function report_unasus_get_prazo_avaliacao() {
-    global $CFG;
-    return (int) $CFG->report_unasus_prazo_avaliacao;
+    global $DB;
+    return (int) $DB->get_field('config', 'value', array('name' => 'report_unasus_prazo_avaliacao'));
 }
 
 function report_unasus_get_prazo_maximo_avaliacao() {
-    global $CFG;
-    return (int) $CFG->report_unasus_prazo_maximo_avaliacao;
+    global $DB;
+    return (int) $DB->get_field('config', 'value', array('name' => 'report_unasus_prazo_maximo_avaliacao'));
+}
+
+function report_unasus_get_passing_grade_percentage() {
+    global $DB;
+    return (int) $DB->get_field('config', 'value', array('name' => 'report_unasus_passing_grade_percentage'));
+}
+
+function report_unasus_get_prazo_maximo_entrega() {
+    global $DB;
+    return (int) $DB->get_field('config', 'value', array('name' => 'report_unasus_prazo_maximo_entrega'));
 }
 
 /**
