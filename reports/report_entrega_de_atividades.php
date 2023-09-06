@@ -92,7 +92,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
 
                         $atraso = $atividade->submission_due_days();
                         if ($atraso) {
-                            ($atraso > $CFG->report_unasus_prazo_maximo_avaliacao) ? $count_muito_atraso++ : $count_pouco_atraso++;
+                            ($atraso > report_unasus_get_prazo_maximo_avaliacao()) ? $count_muito_atraso++ : $count_pouco_atraso++;
                         } else {
                             $count_entregue_no_prazo++;
                         }

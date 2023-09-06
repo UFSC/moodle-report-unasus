@@ -8,6 +8,12 @@ if ($hassiteconfig) {
 
     $settings = new admin_settingpage('reportunasus', get_string('report_unasus_settings', 'report_unasus'));
 
+    $settings->add(new admin_setting_heading('report_unasus_grade_heading', get_string('report_unasus_grade_heading', 'report_unasus'), null));
+
+    $settings->add(new admin_setting_configtext('report_unasus_passing_grade_percentage',
+        get_string('settings_passing_grade_percentage', 'report_unasus'),
+        get_string('description_passing_grade_percentage', 'report_unasus'), 60, PARAM_INT));
+
     $settings->add(new admin_setting_heading('report_unasus_tutor_heading', get_string('report_unasus_tutor_heading', 'report_unasus'), null));
 
     $settings->add(new admin_setting_configtext('report_unasus_prazo_avaliacao',
