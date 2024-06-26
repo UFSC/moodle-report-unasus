@@ -29,8 +29,8 @@ $plugin->version = 2023090601; // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires = 2014111006; // Requires this Moodle version (2.8.6)
 $plugin->component = 'report_unasus'; // Full name of the plugin (used for diagnostics)
 $plugin->dependencies = array(
-    'local_tutores' => 2017051201,
-    'local_relationship' => 2015020100
+    'local_tutores' => 2024062501,
+    'local_relationship' => 2023040600
 );
 
 $maturity = MATURITY_STABLE;             // This version's maturity level.

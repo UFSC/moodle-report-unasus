@@ -348,6 +348,7 @@ function query_acesso_tutor() {
         $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
         $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
+    $contexto_turma = $factory->get_contexto_turma_ufsc();
 
     return "SELECT year(from_unixtime(l.timecreated)) as calendar_year,
                    month(from_unixtime(l.timecreated)) as calendar_month,
@@ -360,6 +361,10 @@ function query_acesso_tutor() {
                 ON (rg.id=rm.relationshipgroupid AND rg.relationshipid=:relationship_id)
          LEFT JOIN {logstore_standard_log} l
                 ON (u.id=l.userid)
+              JOIN {context} ct
+                ON (ct.id = l.contextid)
+               AND (ct.path like '%/$contexto_turma/%' )
+               AND (ct.contextlevel = 70)
                    {$filtro_tutor}
           GROUP BY calendar_year, calendar_month, calendar_day, u.id
           ORDER BY u.firstname, u.lastname, calendar_year, calendar_month, calendar_day";
@@ -470,6 +475,7 @@ function query_uso_sistema_tutor() {
         $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
         $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
+    $contexto_turma = $factory->get_contexto_turma_ufsc();
 
     return "   SELECT u.id, rd.*
                  FROM {user} u
@@ -482,7 +488,11 @@ function query_uso_sistema_tutor() {
                            date_format( (FROM_UNIXTIME(timecreated))  , '%H') AS hora,
                            ROUND (date_format( (FROM_UNIXTIME(timecreated))  , '%i') / 30) *30 AS min,
                            userid
-                      FROM {logstore_standard_log}
+                      FROM {logstore_standard_log} lsl
+                      JOIN {context} ct
+                        ON (ct.id = lsl.contextid)
+                       AND (ct.path like '%/$contexto_turma/%' )
+                       AND (ct.contextlevel = 70)
 
                      WHERE timecreated > :tempominimo
                            AND timecreated < UNIX_TIMESTAMP(DATE_SUB(date_format(:tempomaximo, '%Y-%m-%d 23:59:59'),INTERVAL 30 MINUTE)) AND userid=:userid

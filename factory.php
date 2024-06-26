@@ -43,6 +43,9 @@ class report_unasus_factory {
     /** @var bool|string $categoria_turma_ufsc ID da categoria da turma do curso UFSC associdado a este relatório */
     protected $categoria_turma_ufsc;
 
+    /** @var bool|string $contexto_turma_ufsc ID do contexto da categoria da turma do curso UFSC associdado a este relatório */
+    protected $contexto_turma_ufsc;
+
     /** @var  string $relatorio relatório atual que será mostrado */
     protected $relatorio;
 
@@ -93,7 +96,7 @@ class report_unasus_factory {
 
         $this->categoria_curso_ufsc = \local_tutores\categoria::curso_ufsc($this->curso_moodle);
         $this->categoria_turma_ufsc = \local_tutores\categoria::turma_ufsc($this->curso_moodle);
-
+        $this->contexto_turma_ufsc  = \local_tutores\categoria::contexto_turma_ufsc($this->categoria_turma_ufsc);
         // Atributos para os gráficos
         // Por default os módulos selecionados são os módulos que o curso escolhido possui
         $this->texto_cabecalho = 'Estudantes';
@@ -159,7 +162,7 @@ class report_unasus_factory {
 
     /**
      * Fabrica um objeto com as definições dos relatórios que também é um singleton
-     * 
+     *
      * @global type $CFG
      * @return report_unasus_factory
      * @throws Exception
@@ -195,7 +198,7 @@ class report_unasus_factory {
 
     /**
      * Verifica se é um relatório válido e o seta
-     * @deprecated 
+     * @deprecated
      * @param string $relatorio nome do relatorio
      */
     public function set_relatorio($relatorio) {
@@ -231,6 +234,13 @@ class report_unasus_factory {
      */
     public function get_categoria_turma_ufsc() {
         return $this->categoria_turma_ufsc;
+    }
+
+    /**
+     * @return int Contexto da categoria da turma do curso ufsc
+     */
+    public function get_contexto_turma_ufsc() {
+        return $this->contexto_turma_ufsc;
     }
 
     /**
