@@ -364,7 +364,6 @@ function query_acesso_tutor() {
               JOIN {context} ct
                 ON (ct.id = l.contextid)
                AND (ct.path like '%/$contexto_turma/%' )
-               AND (ct.contextlevel = 70)
                    {$filtro_tutor}
           GROUP BY calendar_year, calendar_month, calendar_day, u.id
           ORDER BY u.firstname, u.lastname, calendar_year, calendar_month, calendar_day";
@@ -492,8 +491,6 @@ function query_uso_sistema_tutor() {
                       JOIN {context} ct
                         ON (ct.id = lsl.contextid)
                        AND (ct.path like '%/$contexto_turma/%' )
-                       AND (ct.contextlevel = 70)
-
                      WHERE timecreated > :tempominimo
                            AND timecreated < UNIX_TIMESTAMP(DATE_SUB(date_format(:tempomaximo, '%Y-%m-%d 23:59:59'),INTERVAL 30 MINUTE)) AND userid=:userid
                            AND action != 'login' AND action != 'logout'
