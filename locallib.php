@@ -282,9 +282,11 @@ function report_unasus_get_atividades_cursos($courses, $mostrar_nota_final = fal
         throw new Exception("Falha ao obter as atividades, curso não informado.");
     }
 
-//    $atividades_config_curso = array();
-
-    $atividades_config_curso = report_unasus_get_activities_config_report($courses);
+    try {
+        $atividades_config_curso = report_unasus_get_activities_config_report($courses);
+    } catch (Exception $e) {
+        $atividades_config_curso = array();
+    }
 
     // Nesta query de assigns ainda estão voltando os diários - parte 1 e 2 - para o TCC
     $assigns    = report_unasus_query_assign_courses($courses);
