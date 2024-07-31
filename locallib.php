@@ -162,9 +162,10 @@ function report_unasus_get_final_grades($id_aluno, $course_id){
     return $DB->get_records_sql($sql, array('id_aluno' => $id_aluno, 'courseid' => $course_id));
 }
 
-function report_unasus_get_id_nome_modulos($ufsc_category, $method = 'get_records_sql_menu') {
+function report_unasus_get_id_nome_modulos($ufsc_category, $method = 'get_records_sql_menu', $visible = TRUE) {
     global $DB, $SITE;
 
+    $visibleSQL = $visible ? "AND c.visible=TRUE " : "";
     $sql = " SELECT DISTINCT(c.id),
                     REPLACE(fullname,
                     CONCAT(shortname, ' - '), '') AS fullname,
@@ -182,7 +183,7 @@ function report_unasus_get_id_nome_modulos($ufsc_category, $method = 'get_record
                JOIN {course_modules} cm
                  ON (c.id = cm.course)
               WHERE c.id != :siteid
-                AND c.visible=TRUE
+                $visibleSQL
            ORDER BY cc.depth, cc.sortorder, c.sortorder";
 
     $params = array('siteid' => $SITE->id);
@@ -852,7 +853,8 @@ function report_unasus_query_forum_courses($courses) {
                   ON (c.id = f.course AND c.id != :siteid)
            LEFT JOIN {grade_items} AS gi
                   ON (gi.courseid=c.id AND gi.itemtype = 'mod' AND
-                      gi.itemmodule = 'forum'  AND gi.iteminstance=f.id)
+                      gi.itemmodule = 'forum' AND gi.iteminstance=f.id AND 
+                      gi.itemnumber = 0 )
                 JOIN {course_modules} cm
                   ON (cm.course=c.id AND cm.instance=f.id)
                 JOIN {modules} m
