@@ -205,7 +205,7 @@ function report_unasus_get_id_nome_modulos($ufsc_category, $method = 'get_record
  * @return array
  */
 function report_unasus_get_nome_modulos($categoria_curso) {
-    $modulos = report_unasus_get_id_nome_modulos($categoria_curso, 'get_records_sql');
+    $modulos = report_unasus_get_id_nome_modulos($categoria_curso, 'get_records_sql', false);
 
     // Interar para criar array dos modulos separados por grupos
     $listall = array();
