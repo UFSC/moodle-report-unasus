@@ -112,7 +112,7 @@ class report_unasus_factory {
         $this->modulos_selecionados = $modulos;
 
         // chama report_unasus_get_atividades_cursos para montar o conjunto de colunas visíveis do cabeçalho
-        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos(
+        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos_ordem(
             $modulos,
             false,
             false,

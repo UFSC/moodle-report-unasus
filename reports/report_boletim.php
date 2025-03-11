@@ -107,7 +107,7 @@ class report_boletim extends report_unasus_factory {
 
                 foreach ($atividades as $atividade) {
 
-                    $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+                    $result = report_unasus_get_atividades2(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
                     // verifica se está faltando algun estudante nos resultados
                     $estudantes_adicionar = array_diff_key($estudantes_grupo, $result);
@@ -141,8 +141,10 @@ class report_boletim extends report_unasus_factory {
                             $nota = $r->grade;
                         }
 
+                        // se for atividade de nota final
                         if ($r->name_activity == 'nota_final_activity') {
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
+                        // senão, se for atividade normal
                         } else if (isset($atividade->course_id)) {
                                 $lista_atividades[$r->userid][] = new report_unasus_dado_boletim_render($tipo, $atividade->id, $nota, $grademax);
                         }
@@ -164,7 +166,7 @@ class report_boletim extends report_unasus_factory {
     public function get_table_header($mostrar_nota_final = true, $mostrar_total = false) {
 
         $categoria_turma_ufsc = $this->get_categoria_turma_ufsc();
-        $atividades_cursos = report_unasus_get_atividades_cursos($this->modulos_selecionados, $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
+        $atividades_cursos = report_unasus_get_atividades_cursos_ordem($this->modulos_selecionados, $mostrar_nota_final, $mostrar_total, false, $categoria_turma_ufsc);
         $header = array();
 
         foreach ($atividades_cursos as $course_id => $atividades) {
