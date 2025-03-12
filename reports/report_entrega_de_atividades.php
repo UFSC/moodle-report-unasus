@@ -140,7 +140,7 @@ class report_entrega_de_atividades extends report_unasus_factory {
 
                 foreach ($atividades as $atividade) {
                     // $result contém a lista dos estudantes com os dados da atividade
-                    $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this);
+                    $result = report_unasus_get_atividades2(get_class($atividade), $atividade, $courseid, $grupo, $this);
 
                     // verifica se está faltando algum estudante nos resultados
                     $estudantes_adicionar = array_diff_key($estudantes_grupo, $result);

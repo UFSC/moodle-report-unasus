@@ -626,7 +626,7 @@ function report_unasus_query_activities_ordered_courses($courses)
     } else  {
         $query = "
 SELECT
-    CASE
+    CAST( CASE
         WHEN m.name = 'assign' THEN a.id
         WHEN m.name = 'forum' THEN f.id
         WHEN m.name = 'quiz' THEN q.id
@@ -634,7 +634,7 @@ SELECT
         WHEN m.name = 'scorm' THEN s.id
         WHEN m.name = 'lti' THEN l.id
         ELSE 'Descrição não disponível'
-    END AS activity_id,
+    END AS UNSIGNED) AS activity_id,
     CASE
         WHEN m.name = 'assign' THEN a.name
         WHEN m.name = 'forum' THEN f.name
@@ -645,7 +645,7 @@ SELECT
         ELSE 'Descrição não disponível'
     END AS activity_name,
     cm.completionexpected,
-    CASE
+    CAST(CASE
         WHEN m.name = 'assign' THEN a.grade
         WHEN m.name = 'forum' THEN f.scale
         WHEN m.name = 'quiz' THEN q.grade
@@ -653,7 +653,7 @@ SELECT
         WHEN m.name = 'scorm' THEN s.maxgrade
         WHEN m.name = 'lti' THEN l.grade
         ELSE 'Descrição não disponível'
-    END AS activity_grade,
+    END AS UNSIGNED) AS activity_grade,
     /* no submission quer dizer que esta
      atividade não possui uma entrega */
     CASE

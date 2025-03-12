@@ -204,7 +204,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
             foreach ($this->visiveis_atividades_cursos as $courseid => $atividades) {
 
                 foreach ($atividades as $atividade) {
-                    $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+                    $result = report_unasus_get_atividades2(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
                     // verifica se está faltando algun estudante nos resultados
                     $estudantes_adicionar = array_diff_key($estudantes_grupo, $result);

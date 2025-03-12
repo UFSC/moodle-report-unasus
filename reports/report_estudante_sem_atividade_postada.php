@@ -51,7 +51,7 @@ class report_estudante_sem_atividade_postada extends report_unasus_factory {
         $query_scorm                = query_scorm_from_users($cohort_estudantes);
 
 
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo2(
                 $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_lti, $query_database, $query_scorm);
 
         $dados = array();

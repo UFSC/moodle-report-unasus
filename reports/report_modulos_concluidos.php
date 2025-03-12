@@ -54,7 +54,7 @@ class report_modulos_concluidos extends report_unasus_factory {
 
                 // para a lista de atividades pega cada atividade
                 foreach ($atividades as $atividade) {
-                    $result = report_unasus_get_atividades(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
+                    $result = report_unasus_get_atividades2(get_class($atividade), $atividade, $courseid, $grupo, $this, true);
 
                     // para a lista de atividadeas dos alunos pega cada atividade (do aluno)
                     foreach ($result as $r){

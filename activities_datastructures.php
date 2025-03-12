@@ -150,8 +150,8 @@ class report_unasus_generic_activity extends report_unasus_activity {
 
     public function __construct($db_model) {
 
-        $has_submission = !$db_model->nosubmissions;
-        $has_grade = ((int) $db_model->grade) == 0 ? false : true;
+        $has_submission = !$db_model->activity_nosubmissions;
+        $has_grade = ((int) $db_model->activity_grade) == 0 ? false : true;
 
         parent::__construct($has_submission, $has_grade);
 

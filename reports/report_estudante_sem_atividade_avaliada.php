@@ -51,7 +51,7 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
         $query_database             = query_database_adjusted_from_users($cohort_estudantes);
         $query_scorm                = query_scorm_from_users($cohort_estudantes);
 
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo2(
                 $query_alunos_grupo_tutoria, $query_forum, $query_quiz, $query_lti, $query_database, $query_scorm);
 
         $dados = array();
@@ -63,22 +63,10 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
             // para todas os estudantes ($id_aluno), pega os dados (report_activities),
                 // as atividades do estudante com os dados dele
             foreach ($array_dados as $id_aluno => $aluno) {
-
                 $atividades_modulos = new report_unasus_GroupArray();
 
                 // paga cada atividade com os dados do estudante
                 foreach ($aluno as $atividade) {
-
-                    foreach ($this->visiveis_atividades_cursos as $act) {
-                        foreach ($act as $a) {
-                            if ($a->id == $atividade->source_activity->id){
-                                $atividade->source_activity->config = NULL;
-                                if (!empty($a->config)) {
-                                    $atividade->source_activity->config = $a->config;
-                                };
-                            }
-                        }
-                    }
 
                     $atividade_sera_listada = false;
 
@@ -95,7 +83,6 @@ class report_estudante_sem_atividade_avaliada extends report_unasus_factory {
                         $atividades_modulos->add($atividade->source_activity->course_id, array('atividade' => $atividade));
                     }
                 }
-
 
                 $ativ_mod = $atividades_modulos->get_assoc();
 
