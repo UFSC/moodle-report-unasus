@@ -86,7 +86,6 @@ abstract class report_unasus_activity_config {
     public $course_id;
     public $course_name;
     public $grouping;
-    public $config;
 
     public function __construct($has_submission, $has_grade) {
         if (!is_bool($has_submission) || !is_bool($has_grade)) {
@@ -135,10 +134,49 @@ class report_unasus_assign_activity_report_config {
         $this->course_name = $db_model->course_name;
     }
 }
+class report_unasus_generic_activity_report_config {
+
+    public function __construct($db_model) {
+
+        $this->id = $db_model->activity_id;
+        $this->name = $db_model->activity_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+    }
+}
+class report_unasus_generic_activity extends report_unasus_activity {
+
+    public function __construct($db_model) {
+
+        $has_submission = !$db_model->activity_nosubmissions;
+        $has_grade = ((int) $db_model->activity_grade) == 0 ? false : true;
+
+        parent::__construct($has_submission, $has_grade);
+
+        $this->id = $db_model->activity_id;
+        $this->name = $db_model->activity_name;
+        $this->deadline = $db_model->completionexpected;
+        $this->course_id = $db_model->course_id;
+        $this->course_name = $db_model->course_name;
+        $this->module_id = $db_model->module_id;
+        $this->module_name = $db_model->module_name;
+        $this->grouping = $db_model->grouping_id;
+        $this->coursemoduleid = $db_model->coursemoduleid;
+    }
+
+    public function __toString() {
+
+        $name = $this->formatted_name();
+        $atividade_url = new moodle_url('/mod/'.$this->module_name.'/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
+        return html_writer::link($atividade_url, $name, array('target' => '_blank'));
+    }
+}
 
 class report_unasus_assign_activity extends report_unasus_activity {
 
-    public function __construct($db_model, $config) {
+    public function __construct($db_model) {
 
         $has_submission = !$db_model->nosubmissions;
         $has_grade = ((int) $db_model->grade) == 0 ? false : true;
@@ -154,7 +192,6 @@ class report_unasus_assign_activity extends report_unasus_activity {
         $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        $this->config = $config;
     }
 
     public function __toString() {
@@ -180,7 +217,7 @@ class report_unasus_forum_activity_report_config {
 
 class report_unasus_forum_activity extends report_unasus_activity {
 
-    public function __construct($db_model, $config) {
+    public function __construct($db_model) {
         parent::__construct(true, true);
 
         $this->id = $db_model->forum_id;
@@ -192,7 +229,6 @@ class report_unasus_forum_activity extends report_unasus_activity {
         $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        $this->config = $config;
     }
 
     public function __toString() {
@@ -218,7 +254,7 @@ class report_unasus_quiz_activity_report_config {
 
 class report_unasus_quiz_activity extends report_unasus_activity {
 
-    public function __construct($db_model, $config) {
+    public function __construct($db_model) {
 
         $has_grade = ((int) $db_model->grade) == 0 ? false : true;
 
@@ -232,7 +268,6 @@ class report_unasus_quiz_activity extends report_unasus_activity {
         $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        $this->config = $config;
     }
 
     public function __toString() {
@@ -273,7 +308,7 @@ class report_unasus_db_activity_report_config {
 
 class report_unasus_db_activity extends report_unasus_activity {
 
-    public function __construct($db_model, $config) {
+    public function __construct($db_model) {
 
         parent::__construct(true, true);
         $this->id = $db_model->database_id;
@@ -285,7 +320,6 @@ class report_unasus_db_activity extends report_unasus_activity {
         $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        $this->config = $config;
     }
 
     public function __toString() {
@@ -311,7 +345,7 @@ class report_unasus_scorm_activity_report_config {
 
 class report_unasus_scorm_activity extends report_unasus_activity {
 
-    public function __construct($db_model, $config) {
+    public function __construct($db_model) {
 
         parent::__construct(false, true);
         $this->id = $db_model->scorm_id;
@@ -323,7 +357,6 @@ class report_unasus_scorm_activity extends report_unasus_activity {
         $this->module_name = $db_model->module_name;
         $this->grouping = $db_model->grouping_id;
         $this->coursemoduleid = $db_model->coursemoduleid;
-        $this->config = $config;
     }
 
     public function __toString() {
@@ -354,9 +387,8 @@ class report_unasus_lti_activity extends report_unasus_activity {
     public $baseurl;
     public $consumer_key;
     public $custom_parameters;
-    public $config;
 
-    public function __construct($db_model, $config) {
+    public function __construct($db_model) {
         parent::__construct(false, true); //$has_submission, $has_grade
         $this->id = $db_model->lti_id;
         $this->name = $db_model->name;
@@ -371,7 +403,6 @@ class report_unasus_lti_activity extends report_unasus_activity {
         $this->consumer_key = isset($db_model->consumer_key) ? $db_model->consumer_key : null;
         $this->grouping = $db_model->grouping_id;
         $this->custom_parameters = isset($db_model->custom_parameters) ? $db_model->custom_parameters : null;
-        $this->config = $config;
     }
 
     /**
@@ -389,12 +420,41 @@ class report_unasus_lti_activity extends report_unasus_activity {
 
 }
 
+
+class report_unasus_lti_activity2 extends report_unasus_generic_activity {
+
+    public $position;
+    public $coursemoduleid;
+    public $baseurl;
+    public $consumer_key;
+    public $custom_parameters;
+
+    public function __construct($db_model) {
+        parent::__construct($db_model);
+        $this->position = isset($db_model->position) ? $db_model->position : null;
+        $this->baseurl = isset($db_model->baseurl) ? $db_model->baseurl : null;
+        $this->consumer_key = isset($db_model->consumer_key) ? $db_model->consumer_key : null;
+        $this->custom_parameters = isset($db_model->custom_parameters) ? $db_model->custom_parameters : null;
+    }
+
+}
+
 class report_unasus_lti_activity_tcc extends report_unasus_lti_activity{
 
     public $tcc_definition;
 
-    public function __construct($db_model, $config, $tcc_definition) {
-        parent::__construct($db_model, $config);
+    public function __construct($db_model, $tcc_definition) {
+        parent::__construct($db_model);
+        $this->tcc_definition = $tcc_definition;
+    }
+}
+
+class report_unasus_lti_activity_tcc2 extends report_unasus_lti_activity2{
+
+    public $tcc_definition;
+
+    public function __construct($db_model, $tcc_definition) {
+        parent::__construct($db_model);
         $this->tcc_definition = $tcc_definition;
     }
 }
