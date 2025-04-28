@@ -848,8 +848,8 @@ function loop_atividades_e_foruns_sintese($query_atividades, $query_forum, $quer
                                 }
                                 break;
                         }
+                        break;
                     case 'report_unasus_lti_activity_tcc2' :
-
                         // Criar o array caso ainda não tenha sido definido.
                         if (!isset($array_das_atividades[$atividade->id])) {
                             $array_das_atividades[$atividade->id] = array();
