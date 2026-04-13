@@ -1036,7 +1036,7 @@ class LtiPortfolioQuery {
     /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de tutoria
      * @param int $grupo_tutoria código do grupo de tutoria
-     * @param report_unasus_lti_activity $atividade
+     * @param report_unasus_lti_activity2 $atividade
      * @return array
      */
     private function &query_report_data_by_grupo_tutoria($grupo_tutoria, &$atividade) {
@@ -1067,7 +1067,7 @@ class LtiPortfolioQuery {
     /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de orientação
      * @param $grupo_orientacao
-     * @param report_unasus_lti_activity $atividade
+     * @param report_unasus_lti_activity2 $atividade
      * @internal param int $grupo_tutoria
      * @return array
      */
@@ -1086,8 +1086,8 @@ class LtiPortfolioQuery {
         }
 
         // WS Client
-//        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
-//        $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
+        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
+        $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
 
         return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
     }
@@ -1153,7 +1153,7 @@ class LtiPortfolioQuery {
      * Esta função coordena as requisições realizadas via WebService e o processamento das mesmas
      * para retornar em um padrão semelhante aos dados que são retornados pelas consultas na base de dados
      *
-     * @param report_unasus_lti_activity $atividade
+     * @param report_unasus_lti_activity2 $atividade
      * @param int $grupo
      * @param bool $is_orientacao
      * @return array

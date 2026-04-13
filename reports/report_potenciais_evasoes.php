@@ -90,7 +90,7 @@ class report_potenciais_evasoes extends report_unasus_factory {
         $nomes_estudantes = local_tutores_grupos_tutoria::get_estudantes($this->get_categoria_turma_ufsc());
         $nomes_polos = report_unasus_get_polos($this->get_categoria_turma_ufsc());
 
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz,
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum, $query_quiz,
             $query_lti, $query_database, $query_scorm);
 
         //pega a hora atual para comparar se uma atividade esta atrasada ou nao

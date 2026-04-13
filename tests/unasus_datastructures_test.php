@@ -169,7 +169,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $assign_submitted->userid = 1;
         $assign_submitted->grade = 5;
         $assign_submitted->polo = null;
-        $assign_submitted->submission_date = $year_ago;
+        $assign_submitted->submission_modified = $year_ago;  // construtor usa submission_modified para status='submitted'
         $assign_submitted->grade_created = $year_ago;
         $assign_submitted->status = 'submitted';
 

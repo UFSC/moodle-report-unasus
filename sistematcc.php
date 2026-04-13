@@ -1,12 +1,15 @@
 <?php
 
+global $CFG; // Garante acesso às configurações do Moodle
+
 defined('MOODLE_INTERNAL') || die;
 
+$zendpath = $CFG->libdir . '/zend/Zend/Loader/Autoloader.php';
 
 // Carrega o zend framework
-if (file_exists("Zend/Loader/Autoloader.php")) {
-    include 'Zend/Loader/Autoloader.php';
-    Zend_Loader_Autoloader::autoload('Zend_Loader');
+if (file_exists($zendpath)) {
+    require_once($zendpath);
+    Zend_Loader_Autoloader::getInstance(); // No ZF1, usa-se getInstance() em vez de autoload()
 }
 
 /**
@@ -34,7 +37,9 @@ class report_unasus_SistemaTccClient {
      * @param string $consumer_key Consumer Key utilizado pela aplicação para realizar a autenticação
      */
     function __construct($external_url, $consumer_key) {
-        $this->ZendInstalled = file_exists("Zend/Loader/Autoloader.php");
+        global $CFG; // Garante acesso às configurações do Moodle
+        $zendpath = $CFG->libdir . '/zend/Zend/Loader/Autoloader.php';
+        $this->ZendInstalled = file_exists($zendpath);
         $new_url = "";
         if (!empty($external_url)) {
             // Faz o parse na URL para poder montá-la corretamente em seguida

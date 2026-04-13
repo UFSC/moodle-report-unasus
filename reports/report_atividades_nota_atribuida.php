@@ -87,7 +87,7 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $query_scorm        = query_scorm_from_users($cohort_estudantes);
         $query_lti          = query_lti_from_users($cohort_estudantes);
 
-        $result_array = loop_atividades_e_foruns_sintese(
+        $result_array = loop_atividades_e_foruns_sintese2(
             $query_atividades,
             $query_forum,
             $query_quiz,
@@ -199,8 +199,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
 
                 // Array contêm os capítulos do TCC
                 if (is_array($atividades)) {
-                    $data[] = $atividade;
-                    break;
+                    foreach ($atividades as $capitulo) {
+                        $data[] = $capitulo;
+                    }
                 } else {
                     // se for uma coluna de totalização do módulo,
                     // então pega os dados da totalização
@@ -211,7 +212,6 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
 
                     } else {
                         // senão pega a própria atividade
-                        $atividade = $atividades;
                         $data[] = $atividades;
                     }
                 }

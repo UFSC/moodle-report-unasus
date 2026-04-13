@@ -87,7 +87,7 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
         $query_lti          = query_lti_from_users($cohort_estudantes);
 
 
-        $result_array = loop_atividades_e_foruns_sintese(
+        $result_array = loop_atividades_e_foruns_sintese2(
             $query_atividades,
             $query_forum,
             $query_quiz,
@@ -139,7 +139,7 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
                         }  elseif (is_a($atividade, 'report_unasus_data_lti')) {
                             $dado =& $lista_atividade[$grupo_id]['lti_'. $atividade->source_activity->id];
 
-                        }  elseif (is_a($atividade, 'report_unasus_data_lti_tcc')) {
+                        }  elseif (is_a($atividade, 'report_unasus_data_lti_tcc2')) {
                             $dado =& $lista_atividade[$grupo_id][$atividade->source_activity->id][$atividade->source_activity->position];
 
                         }
