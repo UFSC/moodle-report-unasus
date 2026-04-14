@@ -89,7 +89,7 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
         $query_lti          = query_lti_from_users($cohort_estudantes);
 
 
-        $result_array = loop_atividades_e_foruns_sintese(
+        $result_array = loop_atividades_e_foruns_sintese2(
             $query_atividades,
             $query_forum,
             $query_quiz,

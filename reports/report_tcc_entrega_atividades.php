@@ -19,6 +19,15 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
         $this->mostrar_filtro_modulos = true;
         $this->mostrar_filtro_intervalo_tempo = false;
         $this->mostrar_aviso_intervalo_tempo = false;
+
+        // Recarrega as atividades visíveis com buscar_lti=true para que os LTIs de TCC
+        // sejam instanciados como report_unasus_lti_activity_tcc2 antes de get_dados rodar.
+        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos_ordem(
+            $this->get_modulos_ids(),
+            false,
+            false,
+            true
+        );
     }
 
     public function render_report_default($renderer) {
@@ -37,7 +46,7 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, null, false, true);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo2(null, null, null, null, null, null, null, false, true);
 
         $datetime = new DateTime(date('Y-m-d'));
 
@@ -102,16 +111,6 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
      * @return array Com as atividades que serão apresentadas no cabeçalho
      */
     public function get_table_header() {
-//        $atividades_cursos = report_unasus_get_atividades_cursos($this->get_modulos_ids(), false, false, true, $this->get_categoria_turma_ufsc());
-
-        $modulos_ids = $this->get_modulos_ids();
-
-        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos(
-            $modulos_ids,
-            false,
-            false,
-            true
-        );
         $header = array();
 
         foreach ($this->visiveis_atividades_cursos as $course_module_id => $atividades) {
@@ -124,7 +123,7 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
                 foreach ($atividades as $atividade) {
 
                     // se a $atividade for de TCC então
-                    if (is_a($atividade, 'report_unasus_lti_activity_tcc')) {
+                    if (is_a($atividade, 'report_unasus_lti_activity_tcc2')) {
 
                         // cria a atividade de resumo todo: buscar do Webservice
                         $resumo_atividade = new stdClass();
@@ -150,4 +149,4 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
         return $header;
     }
 
-} 
+}

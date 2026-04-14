@@ -380,47 +380,6 @@ class report_unasus_lti_activity_report_config {
     }
 }
 
-class report_unasus_lti_activity extends report_unasus_activity {
-
-    public $position;
-    public $coursemoduleid;
-    public $baseurl;
-    public $consumer_key;
-    public $custom_parameters;
-
-    public function __construct($db_model) {
-        parent::__construct(false, true); //$has_submission, $has_grade
-        $this->id = $db_model->lti_id;
-        $this->name = $db_model->name;
-        $this->deadline = $db_model->completionexpected;
-        $this->position = isset($db_model->position) ? $db_model->position : null;
-        $this->course_id = $db_model->course_id;
-        $this->course_name = $db_model->course_name;
-        $this->coursemoduleid = $db_model->coursemoduleid;
-        $this->module_id = $db_model->module_id;
-        $this->module_name = $db_model->module_name;
-        $this->baseurl = isset($db_model->baseurl) ? $db_model->baseurl : null;
-        $this->consumer_key = isset($db_model->consumer_key) ? $db_model->consumer_key : null;
-        $this->grouping = $db_model->grouping_id;
-        $this->custom_parameters = isset($db_model->custom_parameters) ? $db_model->custom_parameters : null;
-    }
-
-    /**
-     * @todo verificar parametro 'lti', tá vindo vazio e dado erro na linha seguinte $cm->id
-     */
-    public function __toString() {
-        $name = $this->formatted_name();
-        $lti_url = new moodle_url('/mod/lti/view.php', array('id' => $this->coursemoduleid, 'target' => '_blank'));
-        return html_writer::link($lti_url, $name, array('target' => '_blank'));
-    }
-
-    public function has_submission() {
-        return (!empty($this->has_submission));
-    }
-
-}
-
-
 class report_unasus_lti_activity2 extends report_unasus_generic_activity {
 
     public $position;
@@ -437,16 +396,6 @@ class report_unasus_lti_activity2 extends report_unasus_generic_activity {
         $this->custom_parameters = isset($db_model->custom_parameters) ? $db_model->custom_parameters : null;
     }
 
-}
-
-class report_unasus_lti_activity_tcc extends report_unasus_lti_activity{
-
-    public $tcc_definition;
-
-    public function __construct($db_model, $tcc_definition) {
-        parent::__construct($db_model);
-        $this->tcc_definition = $tcc_definition;
-    }
 }
 
 class report_unasus_lti_activity_tcc2 extends report_unasus_lti_activity2{
@@ -478,7 +427,7 @@ class report_unasus_chapter_tcc_activity extends report_unasus_activity {
 
     public function __toString() {
         $name = $this->formatted_name();
-        return html_writer::label(substr($this->source_activity->name.' - '.$name, 0, self::MAX_NAME_LENGTH),
+        return html_writer::label(substr($name, 0, self::MAX_NAME_LENGTH),
             null, false, array('class' => 'c_body'));
     }
 
@@ -575,10 +524,10 @@ abstract class report_unasus_data {
      * @return bool|int false se não estiver em atraso ou o número de dias em atraso
      */
     public function grade_due_days() {
-//
-//        if (!$this->is_grade_needed()) {
-//            return false;
-//        }
+        // Se não há deadline e a atividade possui entrega (online), não há como calcular atraso de nota
+        if (empty($this->source_activity->deadline) && $this->source_activity->has_submission) {
+            return false;
+        }
 
         if (  ($this->source_activity->has_submission) &&
               (!empty($this->submission_date)) &&
@@ -792,13 +741,16 @@ class report_unasus_data_activity extends report_unasus_data {
      */
     public function has_submitted() {
 
+        // HACK: mesmo em rascunho, se tiver nota, considera como submetido
+        // para não quebrar relatórios com dados históricos
+        if ($this->status === 'draft' && $this->has_grade()) {
+            return true;
+        }
+
         // Houve entrega
         if (!empty($this->submission_date)) {
-            // se não for novo ou rascunho, antão enviou
+            // se não for novo ou rascunho, então enviou
             if ( !in_array($this->status, array("new", "draft")) ) {
-                return true;
-            // mesmo em rascunho, se tiver nota, considera como submetido
-            } elseif ($this->has_grade()) {
                 return true;
             }
         } else {

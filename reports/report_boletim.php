@@ -116,7 +116,11 @@ class report_boletim extends report_unasus_factory {
                     foreach ($estudantes_adicionar as $estudante) {
                         $estudante->userid = $estudante->id;
                         $result[$estudante->id] = $estudante;
-                        $result[$estudante->id]->name_activity = substr(get_class($atividade), 14);
+                        if (get_class($atividade) === 'stdClass') {
+                            $result[$estudante->id]->name_activity = 'nota_final_activity';
+                        } else {
+                            $result[$estudante->id]->name_activity = substr(get_class($atividade), 14);
+                        }
                     }
 
                     foreach ($result as $r){

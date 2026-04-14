@@ -19,6 +19,15 @@ class report_tcc_concluido extends report_unasus_factory {
         $this->mostrar_filtro_modulos = true;
         $this->mostrar_filtro_intervalo_tempo = false;
         $this->mostrar_aviso_intervalo_tempo = false;
+
+        // Recarrega as atividades visíveis com buscar_lti=true para que os LTIs de TCC
+        // sejam instanciados como report_unasus_lti_activity_tcc2 antes de get_dados rodar.
+        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos_ordem(
+            $this->get_modulos_ids(),
+            false,
+            false,
+            true
+        );
     }
 
     public function render_report_default($renderer) {
@@ -38,7 +47,7 @@ class report_tcc_concluido extends report_unasus_factory {
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
 
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo(null, null, null, null, null, null, null, false, true);
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo2(null, null, null, null, null, null, null, false, true);
 
         $dados = array();
         foreach ($associativo_atividades as $grupo_id => $array_dados) {
@@ -49,6 +58,7 @@ class report_tcc_concluido extends report_unasus_factory {
 
                 $lista_atividades[] = new report_unasus_student($nomes_estudantes[$id_aluno], $id_aluno, $this->get_curso_moodle(), $aluno[0]->polo, $aluno[0]->cohort);
                 foreach ($aluno as $atividade) {
+                    /** @var report_unasus_data_lti_tcc $atividade */
                     if (is_a($atividade, 'report_unasus_data_empty')) {
                         $lista_atividades[] = new report_unasus_dado_nao_aplicado_render();
                         continue;
@@ -72,14 +82,6 @@ class report_tcc_concluido extends report_unasus_factory {
     }
 
     public function get_table_header() {
-        $modulos_ids = $this->get_modulos_ids();
-
-        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos(
-            $modulos_ids,
-            false,
-            false,
-            true
-        );
 
         $header = array();
 
@@ -93,7 +95,7 @@ class report_tcc_concluido extends report_unasus_factory {
                 foreach ($atividades as $atividade) {
 
                     // se a $atividade for de TCC então
-                    if (is_a($atividade, 'report_unasus_lti_activity_tcc')) {
+                    if (is_a($atividade, 'report_unasus_lti_activity_tcc2')) {
 
                         // cria a atividade de resumo todo: buscar do Webservice
                         $resumo_atividade = new stdClass();
@@ -119,5 +121,4 @@ class report_tcc_concluido extends report_unasus_factory {
 
         return $header;
     }
-
 } 

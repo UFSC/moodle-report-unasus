@@ -107,7 +107,7 @@ class report_atividades_vs_notas extends report_unasus_factory {
          *
          * Para cada módulo ele lista os alunos com suas respectivas atividades (atividades e foruns com avaliação)
          */
-        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo($query_atividades, $query_forum, $query_quiz,
+        $associativo_atividades = loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum, $query_quiz,
             $query_lti, $query_database, $query_scorm);
 
 

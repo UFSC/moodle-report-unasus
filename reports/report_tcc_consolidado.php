@@ -20,6 +20,15 @@ class report_tcc_consolidado extends report_unasus_factory {
         $this->mostrar_filtro_intervalo_tempo = false;
         $this->mostrar_aviso_intervalo_tempo = false;
         $this->mostrar_botao_exportar_csv = true;
+
+        // Recarrega as atividades visíveis com buscar_lti=true para que os LTIs de TCC
+        // sejam instanciados como report_unasus_lti_activity_tcc2 antes de get_dados rodar.
+        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos_ordem(
+            $this->get_modulos_ids(),
+            false,
+            false,
+            true
+        );
     }
 
     public function render_report_default($renderer) {
@@ -52,17 +61,10 @@ class report_tcc_consolidado extends report_unasus_factory {
                 $course_name = $h[1]->course_name;
                 $first_line[] = $course_name;
             }
-            $n = count($h);
-            for ($i = 1; $i < $n+1; $i++) {
-                if (isset($h[$i]->name)) {
-                    $element = $h[$i]->name;
+            foreach ($h as $index => $item) {
+                if (isset($item->name)) {
+                    $element = $item->name;
                     $data_header[] = $element;
-                }
-
-                if ($i == $n - 2) {
-                    $data_header[] = 'Atividades Concluídas';
-                    $data_header[] = 'Não Acessado';
-                    $data_header[] = 'Avaliado';
                 }
             }
         }
@@ -79,16 +81,7 @@ class report_tcc_consolidado extends report_unasus_factory {
 
     public function get_dados() {
         /* Resultados */
-        $modulos_ids = $this->get_modulos_ids();
-
-        $this->visiveis_atividades_cursos = report_unasus_get_atividades_cursos(
-            $modulos_ids,
-            false,
-            false,
-            true
-        );
-
-        $result_array = loop_atividades_e_foruns_sintese(null, null, null, null, null, true);
+        $result_array = loop_atividades_e_foruns_sintese2(null, null, null, null, null, true);
 
         /* Retorno da função loop_atividades */
         $total_alunos = $result_array['total_alunos'];
@@ -264,7 +257,7 @@ class report_tcc_consolidado extends report_unasus_factory {
             }
         }
 
-        array_unshift($dados, $data_total);
+        $dados[] = $data_total;
 
         return $dados;
     }
@@ -284,7 +277,6 @@ class report_tcc_consolidado extends report_unasus_factory {
     }
 
     public function get_table_header() {
-
         $header = array();
 
         foreach ($this->visiveis_atividades_cursos as $course_module_id => $atividades) {
@@ -297,7 +289,7 @@ class report_tcc_consolidado extends report_unasus_factory {
                 foreach ($atividades as $atividade) {
 
                     // se a $atividade for de TCC então
-                    if (is_a($atividade, 'report_unasus_lti_activity_tcc')) {
+                    if (is_a($atividade, 'report_unasus_lti_activity_tcc2')) {
 
                         $this->array_push_header($atividades_curso_array, $atividade, 'Resumo');
 
