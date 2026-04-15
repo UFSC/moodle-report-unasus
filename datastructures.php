@@ -121,6 +121,9 @@ abstract class report_unasus_data_render {
 
 class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_render {
 
+    // Os estados abaixo representam todas as combinações possíveis entre entrega e avaliação.
+    // A ordem dos valores numéricos não é relevante; o que importa é que cada estado
+    // seja tratado de forma independente nos métodos __toString e get_css_class.
     const ATIVIDADE_NAO_ENTREGUE = 0;
     const CORRECAO_ATRASADA = 1;
     const ATIVIDADE_AVALIADA_SEM_ATRASO = 2;
@@ -177,6 +180,8 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_NAO_ENTREGUE:
                 return 'nao_entregue';
             case report_unasus_dado_atividades_vs_notas_render::CORRECAO_ATRASADA:
+                // A classificação de "pouco" ou "muito" atraso depende do prazo máximo
+                // configurado nas definições do plugin, permitindo ajuste por turma.
                 return ($this->atraso > report_unasus_get_prazo_maximo_avaliacao()) ? 'muito_atraso' : 'pouco_atraso';
             case report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_SEM_ATRASO:
                 return 'nota_atribuida';
@@ -429,6 +434,8 @@ class report_unasus_dado_boletim_render extends report_unasus_data_render {
         global $DB;
         switch ($this->tipo) {
             case report_unasus_dado_boletim_render::ATIVIDADE_COM_NOTA:
+                // Normaliza a nota para percentual antes de comparar com o limiar de aprovação,
+                // pois cada atividade pode ter nota máxima diferente (ex.: 10, 100, etc.).
                 return (($this->nota / $this->grademax * 100) >= report_unasus_get_passing_grade_percentage()) ? 'na_media' : 'abaixo_media_nota';
                 break;
             case report_unasus_dado_boletim_render::ATIVIDADE_SEM_NOTA:
@@ -757,12 +764,9 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
                 $this->total_atividades[$course_id] = 0;
             }
 
-            // verifica se a atividade foi concluída
-            // antigo:
-            // if ($dado_atividade->has_submitted()) {
-            // atual:
-//            if ($dado_atividade->has_grade() && $dado_atividade->is_grade_needed()) {
-            // novo
+            // A completude é determinada pelo mecanismo nativo do Moodle (course_modules_completion),
+            // e não apenas pela existência de envio ou nota. Isso respeita critérios como
+            // nota mínima e visualização exigida pelo professor.
             if ($this->user_activity_completion($activity_id, $course_id, $user_id)) {
 
                 $this->atividades_concluidas[$course_id]++;
@@ -784,8 +788,10 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
         global $DB;
 
         $completion = false;
-//        $user_completions = $DB->get_records('course_modules_completion', array('userid' => $user_id), '', 'coursemoduleid, completionstate, timemodified');
 
+        // Busca o estado de completude por instância de atividade (não pelo course_module id),
+        // pois o relatório referencia atividades pelo id do objeto (assign, quiz, etc.),
+        // e não pelo id do course_module diretamente.
         $query = "select
 	cm.instance AS activityid,
 	coursemoduleid,
@@ -803,10 +809,13 @@ where
         );
         $user_completions = $DB->get_records_sql($query, $params);
 
+        // Atividade sem registro equivale a não concluída pelo padrão do Moodle.
         $state = isset($user_completions[$activity_id]) ? $user_completions[$activity_id]->completionstate : COMPLETION_INCOMPLETE;
         switch($state) {
             case COMPLETION_INCOMPLETE    : $completion = false; break;
             case COMPLETION_COMPLETE      : $completion = true;  break;
+            // NOTA: PASS e FAIL também são considerados concluídos para fins de relatório,
+            // pois o estudante chegou ao fim da atividade independentemente do resultado.
             case COMPLETION_COMPLETE_PASS : $completion = true;  break;
             case COMPLETION_COMPLETE_FAIL : $completion = true;  break;
         }
@@ -1037,6 +1046,8 @@ class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_re
     }
 
     public function get_state() {
+        // is_student == 0 indica que o estudante não está matriculado neste módulo/turma,
+        // então a atividade não se aplica a ele e deve ser exibida como "não aplicado".
         if($this->is_student == 0){
             return 2;
         }

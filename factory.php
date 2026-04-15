@@ -125,7 +125,8 @@ class report_unasus_factory {
         $this->tutores_selecionados = optional_param_array('tutores', null, PARAM_INT);
         $this->orientadores_selecionados = optional_param_array('orientadores', null, PARAM_INT);
 
-        //AGRUPAMENTO DO RELATORIO
+        // O agrupamento define como as linhas do relatório serão organizadas:
+        // por tutores (padrão), polos, cohorts ou orientadores.
         $agrupar_relatorio = optional_param('agrupar_tutor_polo_select', null, PARAM_INT);
         switch ($agrupar_relatorio) {
             case 1:
@@ -179,6 +180,9 @@ class report_unasus_factory {
             return false;
         }
 
+        // O nome da classe segue uma convenção de nomenclatura direta:
+        // "report_" + nome do relatório. O arquivo PHP também segue esse padrão,
+        // permitindo carregamento dinâmico sem precisar de um mapa de classes.
         $class_name = "report_{$report}";
 
         // carrega arquivo de definição do relatório
@@ -188,6 +192,8 @@ class report_unasus_factory {
             throw new Exception('Missing format class.');
         }
 
+        // NOTA: A instância é criada uma única vez por requisição e reutilizada.
+        // Isso garante que os filtros e parâmetros sejam consistentes em todo o relatório.
         if (!isset(self::$report)) {
             self::$report = new $class_name;
             self::$report->initialize();
@@ -206,6 +212,8 @@ class report_unasus_factory {
         if (in_array($relatorio, $options)) {
             $this->relatorio = $relatorio;
         } else {
+            // ATENÇÃO: Encerra o processamento se o relatório não for reconhecido,
+            // impedindo acesso indevido a dados de outros relatórios.
             print_error('unknow_report', 'report_unasus');
         }
     }
@@ -281,6 +289,8 @@ class report_unasus_factory {
         if (in_array($modo_exibicao, $options)) {
             $this->modo_exibicao = $modo_exibicao;
         } else {
+            // ATENÇÃO: Encerra o processamento se o modo de exibição não for reconhecido,
+            // evitando renderização de páginas com estados inválidos.
             print_error('unknow_report', 'report_unasus');
         }
     }

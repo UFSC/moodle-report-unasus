@@ -21,6 +21,8 @@ abstract class report_unasus_activity {
     public $grouping;
 
     public function __construct($has_submission, $has_grade) {
+        // Valida os tipos na construção para evitar comportamento inesperado
+        // em verificações como "if ($atividade->has_grade)" ao longo dos relatórios.
         if (!is_bool($has_submission) || !is_bool($has_grade)) {
             throw new InvalidArgumentException;
         }
@@ -60,12 +62,8 @@ abstract class report_unasus_activity {
      * @return string Contendo o nome da atividade devidamente formatado
      */
     protected function formatted_name() {
-//        $initial_name = explode(' ', substr($this->name, 0, 8))[0];
-//
-//        $final_name = trim(substr(substr($this->name, 8),-7));
-//        $final_name = (strlen($final_name) == 0) ? '' : "<br>...$final_name";
-
-//        $initial_name = $this->name;
+        // O nome é truncado para caber no cabeçalho da tabela sem quebrar o layout.
+        // MAX_NAME_LENGTH é definido como constante para facilitar ajuste centralizado.
         $initial_name = substr($this->name, 0, self::MAX_NAME_LENGTH);
         $final_name = '';
 
@@ -150,6 +148,8 @@ class report_unasus_generic_activity extends report_unasus_activity {
 
     public function __construct($db_model) {
 
+        // "nosubmissions" no banco significa que a atividade é offline (sem entrega).
+        // A negação aqui converte para o significado positivo "possui entrega".
         $has_submission = !$db_model->activity_nosubmissions;
         $has_grade = ((int) $db_model->activity_grade) == 0 ? false : true;
 
@@ -271,6 +271,8 @@ class report_unasus_quiz_activity extends report_unasus_activity {
     }
 
     public function __toString() {
+        // Alguns quizzes possuem nomes padronizados por perfil profissional.
+        // A abreviação facilita a leitura no cabeçalho compacto da tabela.
         switch (strtolower($this->name)) {
             case 'questões avaliativas - enfermeiros':
                 $name = 'Q.Enf.';
@@ -532,12 +534,12 @@ abstract class report_unasus_data {
         if (  ($this->source_activity->has_submission) &&
               (!empty($this->submission_date)) &&
               ($this->submission_date > 0) ) {
-            // se a atividade possui entrega ativada
-            // o prazo é contato a partir da data de envio
+            // Para atividades com entrega, o tutor tem um prazo a partir do momento em que
+            // o aluno submete, e não a partir do prazo oficial da atividade.
             $deadline = report_unasus_get_datetime_from_unixtime($this->submission_date);
         } else {
-            // se a atividade não possui entrega ativada
-            // o prazo é contato a partir da data esperada de entrega
+            // Para atividades offline (sem envio), o tutor deve avaliar até a data esperada
+            // de conclusão da atividade, pois não há evento de submissão para disparar o prazo.
             $deadline = report_unasus_get_datetime_from_unixtime($this->source_activity->deadline);
         }
 
@@ -633,7 +635,8 @@ abstract class report_unasus_data {
     public function is_member_of($agrupamentos_membros) {
         $a_grouping = $this->source_activity->grouping;
 
-        // Se atividade não for agrupada (grouping == "0") então todos os estudantes são membros
+        // Agrupamento "0" significa que a atividade não restringe acesso por grupo,
+        // portanto todos os estudantes do curso são considerados membros válidos.
         $is_member = $a_grouping == "0" ? true : false;
 
         if (!$is_member && array_key_exists($a_grouping, $agrupamentos_membros)) {
@@ -697,7 +700,8 @@ abstract class report_unasus_data {
             return false;
         }
 
-        // Se a atividade não tem prazo, a atividade é sempre para o futuro
+        // Atividades sem prazo jamais entram em atraso, portanto sempre são "futuras"
+        // do ponto de vista do relatório de pendências.
         if (!$this->source_activity->has_deadline()) {
             return true;
         }
@@ -706,7 +710,8 @@ abstract class report_unasus_data {
         if ($this->source_activity->deadline > $now) {
             return true;
         }
-// Se ele nao tiver nota e sua entrega estiver atrasada ou necessita de nota, não é uma atividade pro futuro
+
+        // Se chegou aqui, o prazo já passou e não há nota: a atividade está em atraso.
         return false;
     }
 
@@ -724,12 +729,15 @@ class report_unasus_data_activity extends report_unasus_data {
         $this->cohort = isset($db_model->cohort) ? $db_model->cohort : null;
         $this->polo = $db_model->polo;
         $grade = isset($db_model->grade) ? $db_model->grade : null;
+        // O Moodle usa -1 para indicar que a atividade não possui escala de nota.
+        // Nesses casos, a nota é tratada como ausente para fins de relatório.
         if (!is_null($grade) && $grade != -1) {
             $this->grade = (float) $grade;
         }
         $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
         $this->status = $db_model->status;
-//        $this->submission_date = (!is_null($db_model->submission_date)) ? $db_model->submission_date : $db_model->submission_modified;
+        // A data de submissão só é registrada quando o status é 'submitted'.
+        // Status 'draft' não conta como entrega válida para o relatório.
         $this->submission_date = ($this->status == 'submitted') ? $db_model->submission_modified : null;
         $this->grade_date = isset($db_model->grade_created) ? $db_model->grade_created : $db_model->grade_modified;
     }
@@ -741,8 +749,10 @@ class report_unasus_data_activity extends report_unasus_data {
      */
     public function has_submitted() {
 
-        // HACK: mesmo em rascunho, se tiver nota, considera como submetido
-        // para não quebrar relatórios com dados históricos
+        // ATENÇÃO: Comportamento especial para envios em rascunho com nota atribuída.
+        // Um tutor pode avaliar uma submissão em rascunho (sem o aluno confirmar o envio),
+        // e nesse caso o relatório deve reconhecer a atividade como entregue para não
+        // gerar alertas de atraso incorretos em dados históricos.
         if ($this->status === 'draft' && $this->has_grade()) {
             return true;
         }
