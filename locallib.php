@@ -108,6 +108,8 @@ function report_unasus_verifica_middleware() {
  */
 function report_unasus_get_polos($categoria_turma) {
     $polos = null;
+    // Os dados de polo dos estudantes ficam no banco do Middleware (sistema acadêmico externo),
+    // não no Moodle. Por isso, a busca só é feita se o Middleware estiver disponível.
     if (report_unasus_verifica_middleware()) {
         try {
             $academico = Middleware::singleton();
@@ -166,6 +168,8 @@ function report_unasus_get_id_nome_modulos($ufsc_category, $method = 'get_record
     global $DB, $SITE;
 
     $visibleSQL = $visible ? "AND c.visible=TRUE " : "";
+    // NOTA: O parâmetro $visible=FALSE é usado em relatórios de coordenadores que
+    // precisam enxergar módulos ainda não publicados para os estudantes.
     $sql = " SELECT DISTINCT(c.id),
                     REPLACE(fullname,
                     CONCAT(shortname, ' - '), '') AS fullname,
@@ -207,7 +211,9 @@ function report_unasus_get_id_nome_modulos($ufsc_category, $method = 'get_record
 function report_unasus_get_nome_modulos($categoria_curso) {
     $modulos = report_unasus_get_id_nome_modulos($categoria_curso, 'get_records_sql', false);
 
-    // Interar para criar array dos modulos separados por grupos
+    // Separa cursos raiz (depth == 1) dos agrupados em subcategorias,
+    // pois o filtro do relatório exibe cursos de nível 1 diretamente
+    // e os demais agrupados sob o nome da subcategoria.
     $listall = array();
     $list = array();
 
@@ -261,6 +267,8 @@ function report_unasus_get_agrupamentos_membros($courses) {
         $members = $DB->get_recordset_sql(query_group_members(), array('courseid' => $course_id));
 
         foreach ($members as $member) {
+            // A estrutura tridimensional [groupingid][course_id][userid] = true permite
+            // verificar pertencimento em O(1) usando isset(), evitando buscas lineares.
             $groups[$member->groupingid][$course_id][$member->userid] = true;
         }
     }
@@ -288,6 +296,7 @@ function report_unasus_get_atividades_cursos_ordem($courses, $mostrar_nota_final
         // Busca quais atividades não serão apresentadas nos relatórios
         $atividades_config_curso = report_unasus_get_activities_config_report($courses);
     } catch (Exception $e) {
+        // Se o plugin de configuração não estiver instalado, nenhuma atividade é ocultada.
         $atividades_config_curso = array();
     }
 
@@ -302,6 +311,8 @@ function report_unasus_get_atividades_cursos_ordem($courses, $mostrar_nota_final
         if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
 
             if ($buscar_lti && $atividade->module_name === 'lti') {
+                // Tenta conectar ao webservice do sistema de TCC para obter a definição
+                // de capítulos. Se falhar, trata a atividade como LTI genérico.
                 $tcc_lti_array = report_unasus_process_header_tcc($atividade->activity_id, $atividade->course_id);
 
                 if (is_array($tcc_lti_array)) {
@@ -345,8 +356,8 @@ function report_unasus_get_atividades_cursos_ordem($courses, $mostrar_nota_final
     $atividades_ret = array();
 
     if ($buscar_lti) {
-        // (false) {
-        // passa por todas os módulos e todas as suas atividades e incui os módulos que tem LTI de tcc
+        // Filtra apenas os cursos que possuem pelo menos uma atividade LTI de TCC.
+        // Cursos sem TCC são ignorados pois o relatório de TCC não se aplica a eles.
         foreach ($atividades_all as $course_id => $atividades) {
             foreach ($atividades as $atividade) {
                 // Sé conterá atividades de TCC se conseguir conectar com o Webservice do sistema de TCC
@@ -961,6 +972,8 @@ function report_unasus_query_courses_com_nota_final($courses) {
  */
 function report_unasus_get_modulos_validos($modulos) {
 
+    // Quando nenhum módulo é informado, exibe todos os módulos com pelo menos uma atividade.
+    // Isso evita que a query retorne resultados para cursos sem atividades configuradas.
     $string_modulos = empty($modulos) ? report_unasus_int_array_to_sql(report_unasus_get_id_modulos()) : report_unasus_int_array_to_sql($modulos);
     return $string_modulos;
 }
@@ -1036,8 +1049,8 @@ class report_unasus_table extends html_table {
         $heading2 = array(); // Segunda linha
         $heading2[] = $student;
 
-        /* box */
-
+        // Pré-calcula as posições da última atividade de cada módulo para
+        // aplicar a borda visual de separação entre grupos (classe 'ultima_atividade').
         $ultima_atividade_modulo = array();
         $ultimo_alvo = 0;
         $ultima_atividade_modulo[] = $ultimo_alvo;
@@ -1058,7 +1071,8 @@ class report_unasus_table extends html_table {
                 $activity_cell = new html_table_cell($activity);
                 $activity_cell->header = true;
                 $activity_cell->attributes = array('class' => 'relatorio-unasus rotate c_body');
-                /* box */
+                // A última atividade de cada módulo recebe uma classe diferente
+                // para desenhar a borda de separação visual entre módulos.
                 if (in_array($count, $ultima_atividade_modulo)) {
                     $activity_cell->attributes = array('class' => 'ultima_atividade rotate c_body');
                 }
@@ -1084,6 +1098,10 @@ class report_unasus_html_table_cell_header extends html_table_cell {
 /**
  * Estrutura de dados semelhante ao Array() do php, que permite armazenar mais
  * de um dado em uma mesma chave
+ *
+ * Esta estrutura é necessária porque o PHP nativo não permite múltiplos valores
+ * para a mesma chave sem sobrescrever os anteriores. Usada para agrupar
+ * atividades por course_id sem perder as atividades anteriores do mesmo curso.
  *
  * @author Gabriel Mazetto
  */
@@ -1161,6 +1179,8 @@ function report_unasus_int_array_to_IN_OR_EQUAL($array) {
 
     $return_array = implode(',', $array);
 
+    // Quando há apenas um elemento, usar "= X" em vez de "IN (X)" é
+    // mais eficiente pois permite ao banco usar índices de forma mais direta.
     if (strpos($return_array, ',') === FALSE) {
         $return_array = "= {$return_array}";
     } else {
@@ -1184,13 +1204,15 @@ function report_unasus_get_curso_ufsc_id() {
     $category = $DB->get_record('course_categories', array('id' => $course->category), 'id, idnumber, depth, path', MUST_EXIST);
 
     if ($category->depth > 1) {
-        // Pega o primeiro id do caminho
+        // O curso pode estar em uma subcategoria. Percorre o caminho hierárquico
+        // para encontrar a categoria raiz, que contém o idnumber do curso UFSC.
         preg_match('/^\/([0-9]+)\//', $category->path, $matches);
         $root_category = $matches[1];
 
         $category = $DB->get_record('course_categories', array('id' => $root_category), 'id, idnumber, depth, path', MUST_EXIST);
     }
 
+    // O idnumber segue o padrão "curso_XXXX"; remove o prefixo para obter apenas o código.
     $curso_ufsc_id = str_replace('curso_', '', $category->idnumber, $count);
     return ($count) ? $curso_ufsc_id : false;
 }
@@ -1290,7 +1312,8 @@ class report_unasus_date_picker_moodle_form extends moodleform {
 function report_unasus_date_interval_is_valid($data_inicio, $data_fim) {
     if (report_unasus_date_is_valid($data_inicio) && report_unasus_date_is_valid($data_fim)) {
         $diferenca_datas = date_diff(date_create_from_format('d/m/Y', $data_inicio), date_create_from_format('d/m/Y', $data_fim));
-        //intervalo de data de inicio menor que a de fim
+        // O campo 'invert' indica se o intervalo está invertido (data início > data fim).
+        // Quando invert == 0, o intervalo é positivo, ou seja, início é anterior ao fim.
         if ($diferenca_datas->invert == 0) {
             return true;
         }
@@ -1323,6 +1346,8 @@ function report_unasus_date_is_valid($str) {
  * @return bool
  */
 function report_unasus_dot_chart_com_tutores_com_acesso($dados) {
+    // Necessário para contornar limitação do grafael: gráficos com todos os valores zero
+    // causam erro de renderização. Esta função decide se o gráfico deve ser exibido.
     foreach ($dados as $tutor) {
         foreach ($tutor as $dia) {
             if ($dia[0] != 0)
