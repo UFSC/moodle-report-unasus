@@ -731,7 +731,7 @@ class report_unasus_data_activity extends report_unasus_data {
         $grade = isset($db_model->grade) ? $db_model->grade : null;
         // O Moodle usa -1 para indicar que a atividade não possui escala de nota.
         // Nesses casos, a nota é tratada como ausente para fins de relatório.
-        if (!is_null($grade) && $grade != -1) {
+        if (!is_null($grade) && $grade !== -1) {
             $this->grade = (float) $grade;
         }
         $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;

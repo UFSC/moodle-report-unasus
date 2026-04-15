@@ -816,7 +816,7 @@ where
             case COMPLETION_COMPLETE      : $completion = true;  break;
             // NOTA: PASS e FAIL também são considerados concluídos para fins de relatório,
             // pois o estudante chegou ao fim da atividade independentemente do resultado.
-            case COMPLETION_COMPLETE_PASS : $completion = true;  break;
+            case COMPLETION_COMPLETE_PASS :
             case COMPLETION_COMPLETE_FAIL : $completion = true;  break;
         }
 
