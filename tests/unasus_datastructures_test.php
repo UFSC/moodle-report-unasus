@@ -282,4 +282,308 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
 
     }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_activity — construtor e flags
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_activity_invalid_constructor() {
+        // has_submission deve ser bool
+        try {
+            $this->getMockForAbstractClass('report_unasus_activity', array(1, true));
+            $this->fail('Esperada InvalidArgumentException para has_submission não-bool');
+        } catch (InvalidArgumentException $e) {
+            $this->assertInstanceOf('InvalidArgumentException', $e);
+        }
+
+        // has_grade deve ser bool
+        try {
+            $this->getMockForAbstractClass('report_unasus_activity', array(true, 'sim'));
+            $this->fail('Esperada InvalidArgumentException para has_grade não-bool');
+        } catch (InvalidArgumentException $e) {
+            $this->assertInstanceOf('InvalidArgumentException', $e);
+        }
+    }
+
+    public function test_report_unasus_activity_flags() {
+        $with_submission    = $this->getMockForAbstractClass('report_unasus_activity', array(true,  true));
+        $without_submission = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
+
+        $this->assertTrue($with_submission->has_submission());
+        $this->assertFalse($without_submission->has_submission());
+
+        // has_grouping: sem agrupamento
+        $this->assertFalse($with_submission->has_grouping());
+
+        // has_grouping: com agrupamento
+        $with_submission->grouping = 5;
+        $this->assertTrue($with_submission->has_grouping());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data — has_submitted e has_grade na classe base
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_has_submitted_and_grade() {
+        $now = time();
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        // Sem submissão e sem nota
+        $this->assertFalse($data->has_submitted());
+        $this->assertFalse($data->has_grade());
+
+        // Com data de submissão → entregue
+        $data->submission_date = $now;
+        $this->assertTrue($data->has_submitted());
+
+        // Com nota e data de nota → tem nota
+        $data->grade      = 7.5;
+        $data->grade_date = $now;
+        $this->assertTrue($data->has_grade());
+
+        // Nota sem grade_date → não tem nota
+        $data->grade_date = null;
+        $this->assertFalse($data->has_grade());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data — is_submission_due com dados históricos
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_submission_historical() {
+        $now      = time();
+        $year_ago = $now - 60 * 60 * 24 * 365;
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        // Entregue ANTES do prazo → não está em atraso
+        $activity->deadline    = $now;
+        $data->submission_date = $year_ago;
+        $this->assertFalse($data->is_submission_due());
+
+        // Entregue DEPOIS do prazo → em atraso
+        $activity->deadline    = $year_ago;
+        $data->submission_date = $now;
+        $this->assertTrue($data->is_submission_due());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data — is_activity_pending
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_is_activity_pending() {
+        $now       = time();
+        $year_ago  = $now - 60 * 60 * 24 * 365;
+        $next_year = $now + 60 * 60 * 24 * 365;
+
+        // Com nota habilitada e nota atribuída → NÃO pendente
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+        $data->grade      = 5;
+        $data->grade_date = $now;
+        $this->assertFalse($data->is_activity_pending());
+
+        // Com envio habilitado e enviada → NÃO pendente
+        /** @var report_unasus_activity $activity2 */
+        $activity2 = $this->getMockForAbstractClass('report_unasus_activity', array(true, false));
+        /** @var report_unasus_data $data2 */
+        $data2 = $this->getMockForAbstractClass('report_unasus_data', array(&$activity2));
+        $data2->submission_date = $year_ago;
+        $this->assertFalse($data2->is_activity_pending());
+
+        // Atividade offline, sem nota, prazo futuro → NÃO pendente
+        /** @var report_unasus_activity $activity3 */
+        $activity3 = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
+        $activity3->deadline = $next_year;
+        /** @var report_unasus_data $data3 */
+        $data3 = $this->getMockForAbstractClass('report_unasus_data', array(&$activity3));
+        $this->assertFalse($data3->is_activity_pending());
+
+        // Com envio habilitado, não enviada, prazo vencido → pendente
+        /** @var report_unasus_activity $activity4 */
+        $activity4 = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        $activity4->deadline = $year_ago;
+        /** @var report_unasus_data $data4 */
+        $data4 = $this->getMockForAbstractClass('report_unasus_data', array(&$activity4));
+        $this->assertTrue($data4->is_activity_pending());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data — is_a_future_due
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_is_a_future_due() {
+        $now       = time();
+        $year_ago  = $now - 60 * 60 * 24 * 365;
+        $next_year = $now + 60 * 60 * 24 * 365;
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        // Com nota → não é futuro
+        $data->grade      = 5;
+        $data->grade_date = $now;
+        $this->assertFalse($data->is_a_future_due());
+
+        // Sem nota, sem prazo → sempre futuro
+        $data->grade        = null;
+        $data->grade_date   = null;
+        $activity->deadline = 0;
+        $this->assertTrue($data->is_a_future_due());
+
+        // Sem nota, prazo futuro → futuro
+        $activity->deadline = $next_year;
+        $this->assertTrue($data->is_a_future_due());
+
+        // Sem nota, prazo passado → NÃO futuro
+        $activity->deadline = $year_ago;
+        $this->assertFalse($data->is_a_future_due());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data_activity — tratamentos especiais do construtor
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_activity_grade_minus_one() {
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+
+        $db_model                 = new stdClass();
+        $db_model->userid         = 1;
+        $db_model->polo           = null;
+        $db_model->grade          = -1; // Moodle usa -1 para indicar ausência de escala
+        $db_model->grade_created  = null;
+        $db_model->grade_modified = null;
+        $db_model->status         = 'new';
+
+        $data = new report_unasus_data_activity($activity, $db_model);
+
+        // Grade -1 deve ser tratado como ausência de nota
+        $this->assertFalse($data->has_grade());
+    }
+
+    public function test_report_unasus_data_activity_status_new() {
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+
+        $db_model                 = new stdClass();
+        $db_model->userid         = 1;
+        $db_model->polo           = null;
+        $db_model->grade          = null;
+        $db_model->grade_created  = null;
+        $db_model->grade_modified = null;
+        $db_model->status         = 'new';
+
+        $data = new report_unasus_data_activity($activity, $db_model);
+
+        // Status 'new' não é considerado entrega válida
+        $this->assertFalse($data->has_submitted());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data_forum
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_forum() {
+        $now = time();
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+
+        // Com submissão e nota
+        $db_with                  = new stdClass();
+        $db_with->userid          = 1;
+        $db_with->polo            = null;
+        $db_with->grade           = 8.0;
+        $db_with->grademax        = 10;
+        $db_with->submission_date = $now;
+        $db_with->timemodified    = $now;
+
+        $data_with = new report_unasus_data_forum($activity, $db_with);
+        $this->assertTrue($data_with->has_submitted());
+        $this->assertTrue($data_with->has_grade());
+
+        // Sem submissão e sem nota
+        $db_without                  = new stdClass();
+        $db_without->userid          = 1;
+        $db_without->polo            = null;
+        $db_without->grade           = null;
+        $db_without->grademax        = null;
+        $db_without->submission_date = null;
+        $db_without->timemodified    = null;
+
+        $data_without = new report_unasus_data_forum($activity, $db_without);
+        $this->assertFalse($data_without->has_submitted());
+        $this->assertFalse($data_without->has_grade());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data_quiz
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_quiz() {
+        $now = time();
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+
+        // Com submissão e nota normal
+        $db_model                  = new stdClass();
+        $db_model->userid          = 1;
+        $db_model->polo            = null;
+        $db_model->grade           = 7.5;
+        $db_model->grademax        = 10;
+        $db_model->submission_date = $now;
+        $db_model->grade_date      = $now;
+
+        $data = new report_unasus_data_quiz($activity, $db_model);
+        $this->assertTrue($data->has_submitted());
+        $this->assertTrue($data->has_grade());
+
+        // Grade -1 deve ser tratado como ausência de nota
+        $db_model->grade = -1;
+        $data2 = new report_unasus_data_quiz($activity, $db_model);
+        $this->assertFalse($data2->has_grade());
+    }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_data — is_member_of
+    // -----------------------------------------------------------------------
+
+    public function test_report_unasus_data_is_member_of() {
+        /** @var report_unasus_activity $activity */
+        $activity            = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        $activity->course_id = 10;
+        $activity->grouping  = '0';
+
+        /** @var report_unasus_data $data */
+        $data         = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+        $data->userid = 42;
+
+        // Agrupamento 0 → todos são membros
+        $this->assertTrue($data->is_member_of(array()));
+
+        // Agrupamento definido, usuário presente no grupo
+        $activity->grouping = '5';
+        $agrupamentos = array('5' => array(10 => array(42 => true)));
+        $this->assertTrue($data->is_member_of($agrupamentos));
+
+        // Agrupamento definido, usuário ausente do grupo
+        $agrupamentos_sem_usuario = array('5' => array(10 => array(99 => true)));
+        $this->assertFalse($data->is_member_of($agrupamentos_sem_usuario));
+
+        // Agrupamento não encontrado na estrutura
+        $this->assertFalse($data->is_member_of(array()));
+    }
 }

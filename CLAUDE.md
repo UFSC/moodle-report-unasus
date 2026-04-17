@@ -126,11 +126,20 @@ Notes about `run_tests.sh`:
 
 Test file: `tests/unasus_datastructures_test.php`
 
-Tests verify:
-- Activity deadline detection
-- Data submission tracking (is_submission_due)
-- Grade requirements and deadlines
-- Activity submission logic
+Tests verify (16 tests, 73 assertions):
+- Activity deadline detection (`has_deadline`)
+- Activity flags: `has_submission()`, `has_grouping()`
+- Invalid constructor arguments (InvalidArgumentException)
+- Data submission tracking: `is_submission_due()` including historical data
+- Grade requirements and deadlines: `is_grade_needed()`, `grade_due_days()`
+- Has submitted / has grade on base class
+- Activity pending status: `is_activity_pending()`
+- Future due detection: `is_a_future_due()`
+- Activity submission logic: draft, submitted, new statuses
+- Grade -1 treated as absent (Moodle convention)
+- Forum data: `report_unasus_data_forum`
+- Quiz data: `report_unasus_data_quiz`
+- Grouping membership: `is_member_of()`
 
 ### Key Files by Responsibility
 
@@ -189,10 +198,14 @@ Check `lib.php` functions like `report_unasus_relatorios_validos_tutoria_list()`
 
 ### Recent Changes Context
 
-Recent commits focus on report ordering and activity presentation:
+Recent commits focus on report ordering, activity presentation, and test coverage:
 - Activity reordering for synthetic reports
 - Support for hidden Moodle courses in reports
 - Fine-tuning report presentation order
+- Expanded unit test suite from 5 to 16 tests (39 → 73 assertions), covering `is_activity_pending`, `is_a_future_due`, `is_member_of`, forum/quiz data classes, grade -1 handling, and invalid constructor detection
+- Fixed `run_tests.sh` to discover `*_test.php` files explicitly (avoids PHPUnit 4.8 discovery bug)
+- Suppressed Composer 1 deprecation noise in init output
+- Fixed `phpunit/dbUnit` → `phpunit/dbunit` (lowercase) in root `composer.json`
 
 ### Docker Environment
 
