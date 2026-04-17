@@ -20,28 +20,21 @@ defined('MOODLE_INTERNAL') || die;
  * @throws Exception
  * @return string
  */
-function query_alunos_relationship($cohort_estudantes) {
+function query_alunos_relationship() {
 
     /** @var $report report_unasus_factory */
     $report = report_unasus_factory::singleton();
     $query_polo = ' ';
 
-    $query_cohort_estudantes = " JOIN {relationship_cohorts} rlc
-                       ON (rlc.id = rm.relationshipcohortid) ";
-    if (!is_null($cohort_estudantes) && !is_null($cohort_estudantes->cohortid)) {
-        $query_cohort_estudantes = "{$query_cohort_estudantes} AND (rlc.cohortid = {$cohort_estudantes->cohortid}) ";
-    }
-
-
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
 
-    $query_cohort = "";
-    if (!is_null($cohorts)) {
-        $query_cohort = " JOIN {cohort_members} cm
-					ON (u1.id = cm.userid) AND (cm.cohortid IN ({$cohorts})) ";
-    }
+    $query_cohort = " JOIN {relationship_cohorts} rlc
+                       ON (rlc.id = rm.relationshipcohortid) ";
 
+    if (!is_null($cohorts)) {
+        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
+    }
 
     if (!is_null($polos)) {
         $query_polo = "  AND uid.data IN ({$polos}) ";
@@ -65,9 +58,9 @@ function query_alunos_relationship($cohort_estudantes) {
                     FROM {user_info_field}
                     WHERE shortname = 'polo')
                 )
-                {$query_cohort_estudantes}
                 {$query_cohort}
-          WHERE rg.id=:grupo {$query_polo}";
+          WHERE rg.id=:grupo {$query_polo}
+          -- GROUP BY u1.id";
 
     return "SELECT DISTINCT u2.id,
                    u2.firstname,
@@ -82,7 +75,7 @@ function query_alunos_relationship($cohort_estudantes) {
               JOIN {user_enrolments} ue
                 ON (ue.userid = u2.id)
         INNER JOIN {enrol} e
-                ON (e.id = ue.enrolid)";
+                ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
 }
 
 /**
@@ -99,28 +92,20 @@ function query_alunos_relationship($cohort_estudantes) {
  * @throws Exception
  * @return string
  */
-function query_alunos_relationship_student($cohort_estudantes) {
+function query_alunos_relationship_student() {
 
     /** @var $report report_unasus_factory */
     $report = report_unasus_factory::singleton();
     $query_polo = ' ';
 
-    $query_cohort_estudantes = " JOIN {relationship_cohorts} rlc
-                       ON (rlc.id = rm.relationshipcohortid) ";
-    if (!is_null($cohort_estudantes) && !is_null($cohort_estudantes->cohortid)) {
-        $query_cohort_estudantes = "{$query_cohort_estudantes} AND (rlc.cohortid = {$cohort_estudantes->cohortid}) ";
-    }
-
-
     $cohorts = report_unasus_int_array_to_sql($report->cohorts_selecionados);
     $polos = report_unasus_int_array_to_sql($report->polos_selecionados);
-
-    $query_cohort = "";
+    
+    $query_cohort = " JOIN {relationship_cohorts} rlc
+                   ON (rlc.id = rm.relationshipcohortid) ";
     if (!is_null($cohorts)) {
-        $query_cohort = " JOIN {cohort_members} cm
-					ON (u1.id = cm.userid) AND (cm.cohortid IN ({$cohorts})) ";
+        $query_cohort = "{$query_cohort} AND rlc.cohortid IN ({$cohorts}) ";
     }
-
 
     if (!is_null($polos)) {
         $query_polo = "  AND uid.data IN ({$polos}) ";
@@ -144,7 +129,6 @@ function query_alunos_relationship_student($cohort_estudantes) {
                     FROM {user_info_field}
                     WHERE shortname = 'polo')
                 )
-                {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
 
@@ -162,7 +146,7 @@ function query_alunos_relationship_student($cohort_estudantes) {
               JOIN {user_enrolments} ue
                 ON (ue.userid = u2.id)
         INNER JOIN {enrol} e
-                ON (e.id = ue.enrolid)";
+                ON (e.id = ue.enrolid)"; // AND e.courseid =:enrol_courseid)";
 }
 
 /**
@@ -236,8 +220,8 @@ function query_alunos_grupo_orientacao() {
  *
  * @return string
  */
-function query_postagens_forum_from_users($cohort_estudantes) {
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+function query_postagens_forum_from_users() {
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -348,7 +332,6 @@ function query_acesso_tutor() {
         $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
         $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
-    $contexto_turma = $factory->get_contexto_turma_ufsc();
 
     return "SELECT year(from_unixtime(l.timecreated)) as calendar_year,
                    month(from_unixtime(l.timecreated)) as calendar_month,
@@ -361,9 +344,6 @@ function query_acesso_tutor() {
                 ON (rg.id=rm.relationshipgroupid AND rg.relationshipid=:relationship_id)
          LEFT JOIN {logstore_standard_log} l
                 ON (u.id=l.userid)
-              JOIN {context} ct
-                ON (ct.id = l.contextid)
-               AND (ct.path like '%/$contexto_turma/%' )
                    {$filtro_tutor}
           GROUP BY calendar_year, calendar_month, calendar_day, u.id
           ORDER BY u.firstname, u.lastname, calendar_year, calendar_month, calendar_day";
@@ -474,10 +454,9 @@ function query_uso_sistema_tutor() {
         $tutores = report_unasus_int_array_to_sql($factory->tutores_selecionados);
         $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
-    $contexto_turma = $factory->get_contexto_turma_ufsc();
 
     return "   SELECT u.id, rd.*
-                 FROM {user} u
+                 FROM user u
             LEFT JOIN (
             
             SELECT userid, dia , count(*) /2  AS horas
@@ -487,10 +466,8 @@ function query_uso_sistema_tutor() {
                            date_format( (FROM_UNIXTIME(timecreated))  , '%H') AS hora,
                            ROUND (date_format( (FROM_UNIXTIME(timecreated))  , '%i') / 30) *30 AS min,
                            userid
-                      FROM {logstore_standard_log} lsl
-                      JOIN {context} ct
-                        ON (ct.id = lsl.contextid)
-                       AND (ct.path like '%/$contexto_turma/%' )
+                      FROM {logstore_standard_log}
+
                      WHERE timecreated > :tempominimo
                            AND timecreated < UNIX_TIMESTAMP(DATE_SUB(date_format(:tempomaximo, '%Y-%m-%d 23:59:59'),INTERVAL 30 MINUTE)) AND userid=:userid
                            AND action != 'login' AND action != 'logout'
@@ -512,27 +489,27 @@ function query_uso_sistema_tutor() {
  */
 
 //TODO: REVER !
-//function query_potenciais_evasoes_from_users() {
-//    $alunos_grupo_tutoria = query_alunos_relationship();
-//
-//    return "SELECT u.id AS user_id,
-//                   u.polo,
-//                   u.cohort,
-//                   sub.timecreated AS submission_date,
-//                   gr.timemodified,
-//                   gr.grade
-//              FROM (
-//
-//                      {$alunos_grupo_tutoria}
-//
-//                   ) u
-//         LEFT JOIN {assign_submission} sub
-//                ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-//         LEFT JOIN {assign_grades} gr
-//                ON (gr.assignment=sub.assignment AND gr.userid=u.id)
-//          ORDER BY u.firstname, u.lastname
-//    ";
-//}
+function query_potenciais_evasoes_from_users() {
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS user_id,
+                   u.polo,
+                   u.cohort,
+                   sub.timecreated AS submission_date,
+                   gr.timemodified,
+                   gr.grade
+              FROM (
+
+                      {$alunos_grupo_tutoria}
+
+                   ) u
+         LEFT JOIN {assign_submission} sub
+                ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+         LEFT JOIN {assign_grades} gr
+                ON (gr.assignment=sub.assignment AND gr.userid=u.id)
+          ORDER BY u.firstname, u.lastname
+    ";
+}
 
 /**
  * Query para os relatórios
@@ -553,9 +530,8 @@ function query_uso_sistema_tutor() {
  * @return string
  *
  */
-function query_atividades_from_users($cohort_estudantes) {
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
-
+function query_atividades_from_users() {
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -571,6 +547,7 @@ function query_atividades_from_users($cohort_estudantes) {
                    'assign_activity' as name_activity,
                    u.is_student
               FROM (
+
                       {$alunos_grupo_tutoria}
                       JOIN (
                               SELECT
@@ -604,33 +581,33 @@ function query_atividades_from_users($cohort_estudantes) {
     ";
 }
 
-//function query_database_from_users() {
-//
-//    $alunos_grupo_tutoria = query_alunos_relationship();
-//
-//    return "SELECT u.id AS userid,
-//                   u.polo,
-//                   u.cohort,
-//                   cmc.userid,
-//                   cmc.completionstate,
-//                   'db_activity' as name_activity
-//                FROM (
-//
-//                    {$alunos_grupo_tutoria}
-//
-//                   ) u
-//                JOIN {course_modules_completion} cmc
-//                  ON u.id = cmc.userid
-//               WHERE coursemoduleid = :coursemoduleid
-//               ORDER BY u.firstname;
-//    ";
-//
-//}
+function query_database_from_users() {
 
-function query_database_adjusted_from_users($cohort_estudantes) {
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   cmc.userid,
+                   cmc.completionstate,
+                   'db_activity' as name_activity
+                FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                   ) u
+                JOIN {course_modules_completion} cmc
+                  ON u.id = cmc.userid
+               WHERE coursemoduleid = :coursemoduleid
+               ORDER BY u.firstname;
+    ";
+
+}
+
+function query_database_adjusted_from_users() {
 
     //$alunos_grupo_tutoria = query_alunos_relationship_student();
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -671,12 +648,13 @@ function query_database_adjusted_from_users($cohort_estudantes) {
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
+
 }
 
-function query_scorm_from_users ($cohort_estudantes) {
+function query_scorm_from_users () {
 
     //$alunos_grupo_tutoria = query_alunos_relationship_student();
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -715,12 +693,13 @@ function query_scorm_from_users ($cohort_estudantes) {
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
+
 }
 
-function query_lti_from_users ($cohort_estudantes) {
+function query_lti_from_users () {
 
     //$alunos_grupo_tutoria = query_alunos_relationship_student();
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
     $is_student = query_is_student();
 
     return "SELECT u3.id AS userid,
@@ -759,6 +738,7 @@ function query_lti_from_users ($cohort_estudantes) {
           GROUP BY userid
           ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";
+
 }
 
 /**
@@ -774,8 +754,8 @@ function query_lti_from_users ($cohort_estudantes) {
  * @return string
  *
  */
-function query_nota_final($cohort_estudantes) {
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+function query_nota_final() {
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -833,8 +813,8 @@ function query_nota_final($cohort_estudantes) {
  * @return string
  *
  */
-function query_quiz_from_users($cohort_estudantes) {
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+function query_quiz_from_users() {
+    $alunos_grupo_tutoria = query_alunos_relationship_student();
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -881,9 +861,9 @@ function query_quiz_from_users($cohort_estudantes) {
      ";
 }
 
-function query_grades_lti($cohort_estudantes) {
+function query_grades_lti() {
 
-    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $alunos_grupo_tutoria = query_alunos_relationship();
     $is_student = query_is_student();
 
     return "SELECT u.id AS userid,
@@ -921,31 +901,32 @@ function query_grades_lti($cohort_estudantes) {
           GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
+
 }
 
-//function query_alunos_modulos() {
-//    $alunos_grupo_tutoria = query_alunos_relationship();
-//
-//    return "SELECT u.id AS userid,
-//                   u.polo,
-//                   gr.grade,
-//                   sub.timecreated AS submission_date,
-//                   sub.timemodified AS submission_modified,
-//                   gr.timemodified AS grade_modified,
-//                   gr.timecreated AS grade_created,
-//                   sub.status
-//             FROM (
-//
-//                    {$alunos_grupo_tutoria}
-//
-//                  ) u
-//        LEFT JOIN {assign_submission} sub
-//               ON (u.id=sub.userid AND sub.assignment=:assignmentid)
-//        LEFT JOIN {assign_grades} gr
-//               ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
-//         ORDER BY grupo_id, u.firstname, u.lastname
-//    ";
-//}
+function query_alunos_modulos() {
+    $alunos_grupo_tutoria = query_alunos_relationship();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   gr.grade,
+                   sub.timecreated AS submission_date,
+                   sub.timemodified AS submission_modified,
+                   gr.timemodified AS grade_modified,
+                   gr.timecreated AS grade_created,
+                   sub.status
+             FROM (
+
+                    {$alunos_grupo_tutoria}
+
+                  ) u
+        LEFT JOIN {assign_submission} sub
+               ON (u.id=sub.userid AND sub.assignment=:assignmentid)
+        LEFT JOIN {assign_grades} gr
+               ON (gr.assignment=:assignmentid2 AND gr.userid=u.id)
+         ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+}
 
 class LtiPortfolioQuery {
 
@@ -981,7 +962,7 @@ class LtiPortfolioQuery {
         $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_relationship($cohort_estudantes);
+        $query_alunos = query_alunos_relationship();
         $params = array(
                 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
                 'cohort_relationship_id' => $cohort_estudantes->id,
@@ -1013,13 +994,11 @@ class LtiPortfolioQuery {
         /** @var $report report_unasus_factory */
         $report = report_unasus_factory::singleton();
 
-//        $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
-//        $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
         $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
         $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
 
         /* Query alunos */
-        $query_alunos = query_alunos_relationship($cohort_estudantes);
+        $query_alunos = query_alunos_relationship();
 
         $params = array(
                 'cohort_relationship_id' => $cohort_estudantes->id,
@@ -1036,7 +1015,7 @@ class LtiPortfolioQuery {
     /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de tutoria
      * @param int $grupo_tutoria código do grupo de tutoria
-     * @param report_unasus_lti_activity2 $atividade
+     * @param report_unasus_lti_activity $atividade
      * @return array
      */
     private function &query_report_data_by_grupo_tutoria($grupo_tutoria, &$atividade) {
@@ -1054,12 +1033,8 @@ class LtiPortfolioQuery {
         }
 
         // WS Client
-        $consumer_key = empty($atividade->consumer_key) ? "" : $atividade->consumer_key;
-        $base_url = empty($atividade->baseurl) ? "" : $atividade->baseurl;
-
-        $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
-        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] =
-            $client->getZendInstalled() ? $client->get_report_data_tcc($user_ids) : null;
+        $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
+        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] = $client->get_report_data_tcc($user_ids);
 
         return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
     }
@@ -1067,7 +1042,7 @@ class LtiPortfolioQuery {
     /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de orientação
      * @param $grupo_orientacao
-     * @param report_unasus_lti_activity2 $atividade
+     * @param report_unasus_lti_activity $atividade
      * @internal param int $grupo_tutoria
      * @return array
      */
@@ -1153,7 +1128,7 @@ class LtiPortfolioQuery {
      * Esta função coordena as requisições realizadas via WebService e o processamento das mesmas
      * para retornar em um padrão semelhante aos dados que são retornados pelas consultas na base de dados
      *
-     * @param report_unasus_lti_activity2 $atividade
+     * @param report_unasus_lti_activity $atividade
      * @param int $grupo
      * @param bool $is_orientacao
      * @return array
