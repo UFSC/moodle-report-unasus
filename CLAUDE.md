@@ -94,7 +94,22 @@ renderer.php (build filters, render initial page)
 
 ### Running Tests
 
-This plugin uses Moodle's advanced_testcase framework. Run tests via Moodle's CLI:
+This plugin uses Moodle's advanced_testcase framework.
+
+Preferred local command in this repository:
+
+```bash
+# Run all plugin tests (executes each *_test.php file explicitly)
+./run_tests.sh
+
+# Run a specific test file
+./run_tests.sh tests/unasus_datastructures_test.php
+
+# Force PHPUnit DB reset + init
+./run_tests.sh --reset
+```
+
+Equivalent Moodle CLI examples:
 
 ```bash
 # Run all tests for this plugin
@@ -103,6 +118,11 @@ php admin/tool/phpunit/cli/util.php --component=report_unasus
 # Run a specific test file
 php admin/tool/phpunit/cli/util.php --component=report_unasus --file=tests/unasus_datastructures_test.php
 ```
+
+Notes about `run_tests.sh`:
+- By default, PHPUnit init is reused and only reruns when needed (first run, missing phpunit.xml, or Moodle build marker changed).
+- `--reset` forces full reset (`util.php --drop`) and fresh init.
+- The script discovers tests by `*_test.php` and runs them file-by-file to avoid `No tests executed!` in older PHPUnit discovery behavior.
 
 Test file: `tests/unasus_datastructures_test.php`
 
@@ -176,15 +196,20 @@ Recent commits focus on report ordering and activity presentation:
 
 ### Docker Environment
 
-This repository (`www/unasus3`) is mounted by the container **`moodle-local-unasus3`** (defined in `docker-compose.yml`).
+This repository (`www/local-unasuscp`) is mounted by the container **`moodle-local-unasuscp`** (defined in `docker-compose.yml`).
 
 The `run_tests.sh` script must use:
 ```bash
-CONTAINER_NAME="moodle-local-unasus3"
-MOODLE_HOST_DIR="$DOCKER_COMPOSE_DIR/www/unasus3"
+CONTAINER_NAME="moodle-local-unasuscp"
+DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/php56-nginx"
+MOODLE_LOCAL_SITE="www/local-unasuscp"
 ```
 
-There is a second container (`moodle-local-report-unasus3`) that mounts `www/report-unasus3` (a git worktree on `master` branch) — do not confuse the two.
+There is a second container (`moodle-local-report-unasuscp`) that mounts `www/report-unasuscp` (a git worktree on `master` branch) — do not confuse the two.
+
+Composer notes for this legacy stack:
+- Root Moodle `composer.json` should use `phpunit/dbunit` (lowercase).
+- Composer 1 deprecation/upgrade notices may still appear in raw init output due to legacy Moodle constraints.
 
 ## Moodle Plugin Standards
 

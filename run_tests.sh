@@ -18,12 +18,14 @@ set -e
 # ---------------------------------------------------------------------------
 # Configurações
 # ---------------------------------------------------------------------------
-CONTAINER_NAME="moodle-local-SISTEMA"
-DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/phpVERSION"
-MOODLE_LOCAL_SITE="www/local-SISTEMA"
+SISTEM_NAME="local-unasuscp"
+DOCKER_VERSION="php56-nginx"
+CONTAINER_NAME="moodle-$SISTEM_NAME"
+DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/$DOCKER_VERSION"
+MOODLE_LOCAL_SITE="www/$SISTEM_NAME"
 MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
-PHPUNIT_DATAROOT="/home/moodle/moodledata/phpu_unasus"s
 PHPUNIT_PREFIX="phpu_"
+PHPUNIT_DATAROOT="/home/moodle/moodledata/${PHPUNIT_PREFIX}$SISTEM_NAME"
 PLUGIN_COMPONENT="report_unasus"
 
 # Argumentos
@@ -57,6 +59,18 @@ exec_as_moodle() {
 
 get_moodle_build() {
     exec_as_moodle "grep -E '^\s*\\\$build\s*=' '$MOODLE_ROOT_IN_CONTAINER/version.php' | tr -d ' ;' " 2>/dev/null || echo "unknown"
+}
+
+run_phpunit_init() {
+    local output
+
+    if ! output=$(exec_as_root "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/phpunit/cli/init.php' 2>&1"); then
+        echo "$output"
+        return 1
+    fi
+
+    # Filtra apenas avisos informativos do Composer 1 para reduzir ruído no log.
+    echo "$output" | grep -Ev '^A new stable major version of Composer is available|^You are already using composer version 1|^You are using Composer 1 which is deprecated' || true
 }
 
 # ---------------------------------------------------------------------------
@@ -177,10 +191,13 @@ fi
 PHPUNIT_XML="$MOODLE_ROOT_IN_CONTAINER/phpunit.xml"
 PHPUNIT_VERSION_MARKER="$PHPUNIT_DATAROOT/moodle_build_marker"
 
+# Garante o dataroot do PHPUnit para escrita do marcador de versão.
+exec_as_root "mkdir -p '$PHPUNIT_DATAROOT' && chown -R moodle:moodle '$PHPUNIT_DATAROOT'"
+
 if [ -n "$RESET_FLAG" ]; then
     log "Reinicializando tabelas PHPUnit (--reset)..."
     exec_as_root "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/phpunit/cli/util.php' --drop"
-    exec_as_root "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/phpunit/cli/init.php'"
+    run_phpunit_init
     CURRENT_BUILD=$(get_moodle_build)
     exec_as_moodle "echo '$CURRENT_BUILD' > '$PHPUNIT_VERSION_MARKER'"
     log "PHPUnit reinicializado."
@@ -203,7 +220,7 @@ elif ! exec_as_moodle "test -f '$PHPUNIT_XML'" 2>/dev/null; then
         exec_as_root "ln -sf /usr/local/bin/composer '$COMPOSER_PHAR'"
     fi
 
-    exec_as_root "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/phpunit/cli/init.php'"
+    run_phpunit_init
     CURRENT_BUILD=$(get_moodle_build)
     exec_as_moodle "echo '$CURRENT_BUILD' > '$PHPUNIT_VERSION_MARKER'"
     log "PHPUnit inicializado com sucesso."
@@ -212,7 +229,7 @@ else
     STORED_BUILD=$(exec_as_moodle "cat '$PHPUNIT_VERSION_MARKER' 2>/dev/null || echo ''" 2>/dev/null || echo "")
     if [ "$CURRENT_BUILD" != "$STORED_BUILD" ] || [ -z "$STORED_BUILD" ]; then
         log "Versão do Moodle alterada. Atualizando ambiente PHPUnit..."
-        exec_as_root "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/phpunit/cli/init.php'"
+        run_phpunit_init
         exec_as_moodle "echo '$CURRENT_BUILD' > '$PHPUNIT_VERSION_MARKER'"
         log "PHPUnit atualizado com sucesso."
     else
@@ -247,8 +264,18 @@ else
     log "Diretório: $PLUGIN_TEST_DIR"
     echo ""
     exec_as_root "
-        cd '$MOODLE_ROOT_IN_CONTAINER' &&
-        php vendor/bin/phpunit --colors=always '$PLUGIN_TEST_DIR'
+        set -e
+        cd '$MOODLE_ROOT_IN_CONTAINER'
+        TEST_FILES=\$(find '$PLUGIN_TEST_DIR' -type f -name '*_test.php' | sort)
+
+        if [ -z \"\$TEST_FILES\" ]; then
+            echo '[ERROR] Nenhum arquivo *_test.php encontrado em $PLUGIN_TEST_DIR' >&2
+            exit 1
+        fi
+
+        for file in \$TEST_FILES; do
+            php vendor/bin/phpunit --colors=always \"\$file\"
+        done
     "
 fi
 
