@@ -22,7 +22,10 @@ Background:
     | Course1  | c1        | CAT1     | 1         | 1                |
 #    | Course2  | c2        | CAT2     | 1         | 1                |
   And the following config values are set as admin:
-    | enablecompletion | 1 |
+    | enablecompletion            | 1              |
+    | local_tutores_student_roles | student        |
+    | local_tutores_tutor_roles   | editingteacher |
+    | local_tutores_orientador_roles | editingteacher |
 
   And the following "cohorts" exist:
     | name             | idnumber | contextlevel | reference |
@@ -32,14 +35,14 @@ Background:
 # -----------------------------ASSIGN SETUP-----------------------------------------------
 # Unix timestamp 946684800 = 1 jan 2000 at 00h00m00s
   And the following "activities" exist:
-    | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected |
-    | assign   | C1     | a1       | Test assignment one   | Submit something! | 100   | 1                                   | 2147483647         |
-    | assign   | C1     | a2       | Test assignment two   | Submit something! | 100   | 1                                   | 978307200          |
-    | assign   | C1     | a3       | Test assignment three | Submit something! | 100   | 1                                   | 0                  |
-    | assign   | C1     | a4       | Test assignment four  | Submit something! | 100   | 1                                   | 946684800          |
-    | assign   | C1     | a5       | Test assignment five  | Submit something! | 100   | 1                                   | 946684800          |
-    | assign   | C1     | a6       | Test assignment six   | Submit something! | 100   | 1                                   | 946684800          |
-    | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          |
+    | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected | completion |
+    | assign   | C1     | a1       | Test assignment one   | Submit something! | 100   | 1                                   | 2147483647         | 1          |
+    | assign   | C1     | a2       | Test assignment two   | Submit something! | 100   | 1                                   | 978307200          | 1          |
+    | assign   | C1     | a3       | Test assignment three | Submit something! | 100   | 1                                   | 0                  | 1          |
+    | assign   | C1     | a4       | Test assignment four  | Submit something! | 100   | 1                                   | 946684800          | 1          |
+    | assign   | C1     | a5       | Test assignment five  | Submit something! | 100   | 1                                   | 946684800          | 1          |
+    | assign   | C1     | a6       | Test assignment six   | Submit something! | 100   | 1                                   | 946684800          | 1          |
+    | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 1          |
 
 
 #  And the following activity "assigns" exist:
@@ -146,13 +149,13 @@ Background:
   And I add the user "student3" with cohort "student" to cohort members
 
   And the following relationship "relationships" exist:
-    | name          | contextid |
-    | relationship1 | 154005    |
+    | name          | category |
+    | relationship1 | CAT1     |
 
   And the following relationship group "relationship_groups" exist:
-    | name                | relationshipid |
-    | relationship_group1 | 344000         |
-    | relationship_group2 | 344000         |
+    | name                | relationship  |
+    | relationship_group1 | relationship1 |
+    | relationship_group2 | relationship1 |
 
   And instance the tag "grupo_tutoria" at relationship "relationship1"
   And add created cohorts at relationship "relationship1" on relationship_groups "relationship_group1"
@@ -338,7 +341,6 @@ Scenario: Correct report generation
 #    And I pause
     And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    And I pause
     Then I should see "Test assignment one"
 
 

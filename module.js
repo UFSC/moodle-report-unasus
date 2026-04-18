@@ -288,6 +288,9 @@ function objectLength(obj) {
 }
 
 M.report_unasus.fixed_columns = function(Y) {
+    if (typeof SELECTORS === 'undefined' || !SELECTORS.USERCELL) {
+        return;
+    }
     // Grab all cells in the user names column.
     var userColumn = Y.all(SELECTORS.USERCELL),
 

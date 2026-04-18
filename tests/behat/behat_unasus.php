@@ -14,6 +14,7 @@ class behat_unasus extends behat_base
     protected $relationshipcount = 0;
     protected $relationship_groupscount = 0;
     protected $relationship_memberscount = 0;
+    protected $relationships = array();
     public $loremipsum = <<<EOD
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nulla non arcu lacinia neque faucibus fringilla. Vivamus porttitor turpis ac leo. Integer in sapien. Nullam eget nisl. Aliquam erat volutpat. Cras elementum. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Integer malesuada. Nullam lectus justo, vulputate eget mollis sed, tempor sed magna. Mauris elementum mauris vitae tortor. Aliquam erat volutpat.
 Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Pellentesque ipsum. Cras pede libero, dapibus nec, pretium sit amet, tempor quis. Aliquam ante. Proin in tellus sit amet nibh dignissim sagittis. Vivamus porttitor turpis ac leo. Duis bibendum, lectus ut viverra rhoncus, dolor nunc faucibus libero, eget facilisis enim ipsum id lacus. In sem justo, commodo ut, suscipit at, pharetra vitae, orci. Aliquam erat volutpat. Nulla est.
@@ -32,12 +33,14 @@ EOD;
     protected static $elements = array(
         'relationships' => array(
             'datagenerator' => 'relationship',
-            'required' => array('name')
+            'required' => array('name'),
+            'switchids' => array('category' => 'contextid')
         ),
 
         'relationship_groups' => array(
             'datagenerator' => 'relationship_groups',
-            'required' => array('name')
+            'required' => array('name'),
+            'switchids' => array('relationship' => 'relationshipid')
         ),
 
         'relationship_members'=> array(
@@ -65,7 +68,7 @@ EOD;
     public function the_Following_Relationship_Exist($elementname, TableNode $data)
     {
 
-        $this->datagenerator = new behat_unasus;
+        $this->datagenerator = $this;
 
         $elementdatagenerator = self::$elements[$elementname]['datagenerator'];
         $requiredfields = self::$elements[$elementname]['required'];
@@ -363,7 +366,35 @@ EOD;
 
         $id = relationship_add_relationship((object)$record);
 
-        return $DB->get_record('relationship', array('id' => $id), '*', MUST_EXIST);
+        $relationship = $DB->get_record('relationship', array('id' => $id), '*', MUST_EXIST);
+        $this->relationships[$relationship->name] = $relationship->id;
+        return $relationship;
+    }
+
+    /**
+     * Get the context id of a category given its idnumber.
+     * @param string $idnumber
+     * @return int
+     * @throws Exception
+     */
+    public function get_category_id($idnumber) {
+        global $DB;
+        $category = $DB->get_record('course_categories', array('idnumber' => $idnumber), 'id', MUST_EXIST);
+        $context = context_coursecat::instance($category->id);
+        return $context->id;
+    }
+
+    /**
+     * Get the id of a relationship given its name.
+     * @param string $name
+     * @return int
+     * @throws Exception
+     */
+    public function get_relationship_id($name) {
+        if (!isset($this->relationships[$name])) {
+            throw new Exception('The relationship "' . $name . '" was not found. Ensure it was created before the relationship group.');
+        }
+        return $this->relationships[$name];
     }
 
     /**
@@ -588,24 +619,9 @@ EOD;
         $config = $DB->get_field_sql($sql_config);
 
         if($config == 0){
-            $record_config_student = new stdClass();
-            $record_config_student->name = 'local_tutores_student_roles';
-            $record_config_student->value = 'student';
-
-            $DB->insert_record('config', $record_config_student);
-
-            $record_config_teacher = new stdClass();
-            $record_config_teacher->name = 'local_tutores_tutor_roles';
-            $record_config_teacher->value = 'editingteacher';
-
-            $DB->insert_record('config', $record_config_teacher);
-
-            $record_config_editingteacher = new stdClass();
-            $record_config_editingteacher->name = 'local_tutores_orientador_roles';
-            $record_config_editingteacher->value = 'editingteacher';
-
-            $DB->insert_record('config', $record_config_editingteacher);
-
+            set_config('local_tutores_student_roles', 'student');
+            set_config('local_tutores_tutor_roles', 'editingteacher');
+            set_config('local_tutores_orientador_roles', 'editingteacher');
         }
 
         $sql_user = "SELECT id
@@ -675,7 +691,7 @@ EOD;
         $assign_assignid = $DB->get_field_sql($sql, array('idnumber' => $idnumber));
 
         $sql_time = "SELECT completionexpected
-                     FROM bethat_course_modules
+                     FROM {course_modules}
                      WHERE instance = :instance";
 
         $unix_timestamp = $DB->get_field_sql($sql_time, array('instance' => $assign_assignid));

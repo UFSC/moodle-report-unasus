@@ -192,19 +192,15 @@ if [ "$BEHAT_CONFIG_STALE" = "yes" ]; then
     INIT_FLAG="yes"
 fi
 
-# Garantir que behat_wwwroot está com o valor correto ($BEHAT_WWWROOT)
-BEHAT_WWWROOT_CORRECT=$(exec_as_root "
-    grep -qF \"behat_wwwroot  = '$BEHAT_WWWROOT'\" '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no
+# Detectar behat_wwwroot desatualizado (container name em vez do domínio correto)
+BEHAT_WWWROOT_STALE=$(exec_as_root "
+    grep -q \"behat_wwwroot.*moodle-$SISTEM_NAME\" '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no
 " 2>/dev/null || echo "no")
 
-if [ "$BEHAT_WWWROOT_CORRECT" != "yes" ]; then
-    warn "behat_wwwroot incorreto. Corrigindo para '$BEHAT_WWWROOT'..."
-    exec_as_root "php -r \"
-        \\\$f = file_get_contents('$MOODLE_ROOT_IN_CONTAINER/config.php');
-        \\\$f = preg_replace('/\\\\\\\$CFG->behat_wwwroot\s*=\s*\'[^\']+\'/', \\\"\\\\\\\$CFG->behat_wwwroot  = '$BEHAT_WWWROOT'\\\", \\\$f);
-        file_put_contents('$MOODLE_ROOT_IN_CONTAINER/config.php', \\\$f);
-    \""
-    log "behat_wwwroot corrigido. Forçando reinicialização do Behat..."
+if [ "$BEHAT_WWWROOT_STALE" = "yes" ]; then
+    warn "behat_wwwroot aponta para o container ($CONTAINER_NAME) em vez de '$BEHAT_WWWROOT'. Corrigindo config.php..."
+    exec_as_root "sed -i 's|http://$CONTAINER_NAME|$BEHAT_WWWROOT|g' '$MOODLE_ROOT_IN_CONTAINER/config.php'"
+    log "behat_wwwroot corrigido para '$BEHAT_WWWROOT'. Forçando reinicialização do Behat..."
     INIT_FLAG="yes"
 fi
 
@@ -239,6 +235,13 @@ echo ""
 log "============================================================"
 log " Executando testes Behat: $PLUGIN_COMPONENT"
 log "============================================================"
+
+# Diagnóstico: verificar se a front page do site behat está acessível e com o título correto.
+log "Diagnóstico: verificando front page behat em http://$URL_NAME/ ..."
+DIAG_TITLE=$(sudo docker exec "$SELENIUM_CONTAINER" bash -c "curl -sL --max-time 10 'http://$URL_NAME/' 2>&1 | grep -o '<title>[^<]*</title>'" 2>/dev/null || echo "(curl falhou)")
+log "  Título da página: ${DIAG_TITLE:-(sem título / página em branco)}"
+DIAG_STATUS=$(sudo docker exec "$SELENIUM_CONTAINER" bash -c "curl -so /dev/null -w '%{http_code}' --max-time 10 'http://$URL_NAME/'" 2>/dev/null || echo "???")
+log "  HTTP status: $DIAG_STATUS"
 
 BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML' --ansi"
 

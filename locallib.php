@@ -539,16 +539,16 @@ SELECT
     cs.name AS section_name,
     cs.sequence,
     FIND_IN_SET(cm.id, cs.sequence) AS module_order
-FROM course_sections cs
-JOIN course c ON cs.course = c.id
-JOIN course_modules cm ON FIND_IN_SET(cm.id, cs.sequence) > 0
-JOIN modules m ON cm.module = m.id
-LEFT JOIN assign a ON cm.instance = a.id AND m.name = 'assign'
-LEFT JOIN forum f ON cm.instance = f.id AND m.name = 'forum'
-LEFT JOIN quiz q ON cm.instance = q.id AND m.name = 'quiz'
-LEFT JOIN data dt ON cm.instance = dt.id AND m.name = 'data'
-LEFT JOIN scorm s ON cm.instance = s.id AND m.name = 'scorm'
-LEFT JOIN lti l ON cm.instance = l.id AND m.name = 'lti'
+FROM {course_sections} cs
+JOIN {course} c ON cs.course = c.id
+JOIN {course_modules} cm ON FIND_IN_SET(cm.id, cs.sequence) > 0
+JOIN {modules} m ON cm.module = m.id
+LEFT JOIN {assign} a ON cm.instance = a.id AND m.name = 'assign'
+LEFT JOIN {forum} f ON cm.instance = f.id AND m.name = 'forum'
+LEFT JOIN {quiz} q ON cm.instance = q.id AND m.name = 'quiz'
+LEFT JOIN {data} dt ON cm.instance = dt.id AND m.name = 'data'
+LEFT JOIN {scorm} s ON cm.instance = s.id AND m.name = 'scorm'
+LEFT JOIN {lti} l ON cm.instance = l.id AND m.name = 'lti'
 WHERE
     c.id IN ({$string_courses})
     AND (cm.completion != 0)
