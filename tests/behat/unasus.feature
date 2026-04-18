@@ -1,8 +1,8 @@
  @unasus @report_unasus @javascript
-Feature: Edit completion settings of an activity
-  In order to edit completion settings without accidentally breaking user data
-  As a teacher
-  I need to edit the activity and use the unlock button if required
+Feature: Relatórios UNA-SUS: geração e visualização
+  Para acompanhar o progresso dos estudantes no sistema UNA-SUS
+  Como coordenador ou tutor
+  Preciso gerar e visualizar os relatórios de entrega e avaliação de atividades
 
 Background:
   Given the following "users" exist:
@@ -30,7 +30,7 @@ Background:
   And the following "courses" exist:
     | fullname | shortname | category | groupmode | enablecompletion |
     | Course1  | c1        | CAT1     | 1         | 1                |
-#    | Course2  | c2        | CAT2     | 1         | 1                |
+
   And the following config values are set as admin:
     | enablecompletion               | 1              |
     | local_tutores_student_roles    | student        |
@@ -78,79 +78,6 @@ Background:
   And the following "activities" exist:
     | activity | course | idnumber | name          | intro     | completion | completionexpected |
     | lti      | C1     | l1       | Test lti one  | LTI intro | 1          | 978307200          |
-
-
-#  And the following activity "assigns" exist:
-#    | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected |
-#    | assign   | C1     | a1       | Test assignment one   | Submit something! | 100   | 1                                   | time() + 31557600  |
-#    | assign   | C1     | a2       | Test assignment two   | Submit something! | 100   | 1                                   | 1524585600         |
-#    | assign   | C1     | a3       | Test assignment three | Submit something! | 100   | 1                                   | 1524585600         |
-#    | assign   | C1     | a4       | Test assignment four  | Submit something! | 100   | 1                                   | 1524585600         |
-#    | assign   | C1     | a5       | Test assignment five  | Submit something! | 100   | 1                                   | 1524585600         |
-#    | assign   | C1     | a6       | Test assignment six   | Submit something! | 100   | 1                                   | 1524585600         |
-#    | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 1524585600         |
-
-# --------------------------------------------------------------------------------------
-# -----------------------------QUIZ SETUP-----------------------------------------------
-#  And the following "question categories" exist:
-#    | contextlevel | reference | name           |
-#    | Course       | C1        | Test questions |
-#
-#  And the following "activities" exist:
-#    | activity   | name   | intro              | course | idnumber |
-#    | quiz       | Quiz 1 | Quiz 1 description | C1     | quiz1    |
-#
-#
-#  And the following "questions" exist:
-#    | questioncategory | qtype       | name  | questiontext    |
-#    | Test questions   | truefalse   | TF1   | First question  |
-#    | Test questions   | truefalse   | TF2   | Second question |
-#
-#  And quiz "Quiz 1" contains the following questions:
-#    | question | page | maxmark |
-#    | TF1      | 1    |         |
-#    | TF2      | 1    | 3.0     |
-
-# --------------------------------------------------------------------------------------
-# -----------------------------FORUM SETUP-----------------------------------------------
-#  And I log in as "admin"
-#  And I follow "Courses"
-#  And I follow "Category 1"
-#  And I follow "Course1"
-#  And I turn editing mode on
-#  And I click on "Edit settings" "link" in the "Administration" "block"
-#  And I set the following fields to these values:
-#    | Enable completion tracking | Yes |
-#  And I press "Save and display"
-#
-##  And the following "activities" exist:
-##    | activity   | name                   | intro       | course | idnumber     | groupmode |
-##    | forum      | forum                  | Test forum  | C1     | forum        | 0         |
-#
-#  When I add a "forum" to section "1" and I fill the form with:
-#    | Forum name  | Test forum name1       |
-#    | Description | Test forum description |
-#    | course      | C1                     |
-#    | groupmode   | 0                      |
-#    | Completion tracking | Show activity as complete when conditions are met |
-#    | completionview      | 1                                                 |
-#
-#  When I add a "forum" to section "1" and I fill the form with:
-#    | Forum name  | Test forum name2       |
-#    | Description | Test forum description |
-#    | course      | C1                     |
-#    | groupmode   | 0                      |
-#    | Completion tracking | Show activity as complete when conditions are met |
-#    | completionview      | 1                                                 |
-#
-#  When I add a "forum" to section "1" and I fill the form with:
-#    | Forum name  | Test forum name3       |
-#    | Description | Test forum description |
-#    | course      | C1                     |
-#    | groupmode   | 0                      |
-#    | Completion tracking | Show activity as complete when conditions are met |
-#    | completionview      | 1                                                 |
-#  And I log out
 
 # --------------------------------------------------------------------------------------
 
@@ -237,83 +164,6 @@ Background:
     | student11 | relationship_group3 |
     | student12 | relationship_group3 |
 
-
-
-
-  # Resposta do quiz (Entrega da atividade por parte do estudante)
-#  And I log in as "student1"
-#  And I follow "Course1"
-#  And I follow "Quiz 1"
-#  And I press "Attempt quiz now"
-#  And I click on "True" "radio" in the "First question" "question"
-#  And I click on "False" "radio" in the "Second question" "question"
-#  And I follow "Finish attempt ..."
-#  And I press "Submit all and finish"
-#  And I click on "Submit all and finish" "button" in the "Confirmation" "dialogue"
-#  And I log out
-#
-#  And I log in as "student2"
-#  And I follow "Course1"
-#  And I follow "Quiz 1"
-#  And I press "Attempt quiz now"
-#  And I click on "True" "radio" in the "First question" "question"
-#  And I click on "True" "radio" in the "Second question" "question"
-#  And I follow "Finish attempt ..."
-#  And I press "Submit all and finish"
-#  And I click on "Submit all and finish" "button" in the "Confirmation" "dialogue"
-#  And I log out
-#
-#  And I log in as "student3"
-#  And I follow "Course1"
-#  And I follow "Quiz 1"
-#  And I press "Attempt quiz now"
-#  And I click on "False" "radio" in the "First question" "question"
-#  And I click on "False" "radio" in the "Second question" "question"
-#  And I follow "Finish attempt ..."
-#  And I press "Submit all and finish"
-#  And I click on "Submit all and finish" "button" in the "Confirmation" "dialogue"
-#  And I log out
-
-  # Resposta do forum (Entrega da atividade por parte do estudante)
-#  And I log in as "student1"
-#  And I follow "Course1"
-#  And I add a new discussion to "Test forum name1" forum with:
-#    | Subject | Forum discussion 1 |
-#    | Message | How awesome is this forum discussion? |
-#  And I reply "Forum discussion 1" post from "Test forum name1" forum with:
-#    | Message | Actually, I've seen better. |
-#  And I log out
-#
-#  And I log in as "student2"
-#  And I follow "Course1"
-#  And I add a new discussion to "Test forum name2" forum with:
-#    | Subject | Forum discussion 1 |
-#    | Message | How awesome is this forum discussion? |
-#  And I reply "Forum discussion 1" post from "Test forum name2" forum with:
-#    | Message | Actually, I've seen better. |
-#  And I log out
-#
-#  And I log in as "student3"
-#  And I follow "Course1"
-#  And I add a new discussion to "Test forum name3" forum with:
-#    | Subject | Forum discussion 1 |
-#    | Message | How awesome is this forum discussion? |
-#  And I reply "Forum discussion 1" post from "Test forum name3" forum with:
-#    | Message | Actually, I've seen better. |
-#  And I log out
-
-  # Resposta do assignment (Entrega da atividade por parte do estudante)
-#  And I log in as "student1"
-#  And I follow "Course1"
-#  And I follow "Test assignment one"
-#  And I press "Add submission"
-#  And I set the following fields to these values:
-#    | Online text | I'm the student1 submission |
-#  And I press "Save changes"
-#  And I press "Submit assignment"
-#  And I press "Continue"
-#  And I log out
-
   And I log in as "student2"
   And I follow "Course1"
   And I follow "Test assignment two"
@@ -398,19 +248,6 @@ Background:
     | Subject | Forum discussion s2 |
     | Message | I'm the student2 forum post |
   And I log out
-
-  # Atribuição de nota em assignment (Avaliação da atividade por parte do professor)
-#  And I follow "Courses"
-#  And I follow "Category 1"
-#  And I follow "Course1"
-#  And I navigate to "Grades" node in "Course administration"
-#  And I turn editing mode on
-#  And I give the grade "100.00" to the user "Student 1" for the grade item "Test assignment one"
-#  And I give the grade "75.00" to the user "Student 2" for the grade item "Test assignment one"
-#  And I give the grade "50.00" to the user "Student 3" for the grade item "Test assignment one"
-##  And I give the grade "67.00" to the user "Student 1" for the grade item "Test assignment two"
-#  And I press "Save changes"
-
 
   @javascript
 Scenario: Correct report generation
@@ -518,9 +355,3 @@ Scenario: modulos_concluidos - verificacao de completion de atividades
     And I press "Gerar relatório"
     # Deve exibir atividades com estado de conclusao
     Then I should see "Test assignment four"
-
-
-
-
-
-

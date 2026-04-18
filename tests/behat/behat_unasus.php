@@ -7,10 +7,6 @@ use Behat\Gherkin\Node\TableNode as TableNode,
 
 class behat_unasus extends behat_base
 {
-    /**
-     * @var testing_data_generator
-     */
-    protected $datagenerator;
     protected $relationshipcount = 0;
     protected $relationship_groupscount = 0;
     protected $relationship_memberscount = 0;
@@ -51,228 +47,62 @@ EOD;
             'datagenerator' => 'assign',
             'required' => array('course', 'idnumber', 'name')
         )
-        
     );
 
     /**
-     * Creates the specified element. More info about available elements in http://docs.moodle.org/dev/Acceptance_testing#Fixtures.
-     *
      * @Given /^the following relationship "(?P<element_string>(?:[^"]|\\")*)" exist:$/
-     *
      * @throws Exception
      * @throws PendingException
-     * @param string    $elementname The name of the entity to add
-     * @param TableNode $data
      */
-
     public function the_Following_Relationship_Exist($elementname, TableNode $data)
     {
-
-        $this->datagenerator = $this;
-
-        $elementdatagenerator = self::$elements[$elementname]['datagenerator'];
-        $requiredfields = self::$elements[$elementname]['required'];
-        if (!empty(self::$elements[$elementname]['switchids'])) {
-            $switchids = self::$elements[$elementname]['switchids'];
-        }
-
-        foreach ($data->getHash() as $elementdata) {
-
-            // Check if all the required fields are there.
-            foreach ($requiredfields as $requiredfield) {
-                if (!isset($elementdata[$requiredfield])) {
-                    throw new Exception($elementname . ' requires the field ' . $requiredfield . ' to be specified');
-                }
-            }
-
-            // Switch from human-friendly references to ids.
-            if (isset($switchids)) {
-                foreach ($switchids as $element => $field) {
-                    $methodname = 'get_' . $element . '_id';
-
-                    // Not all the switch fields are required, default vars will be assigned by data generators.
-                    if (isset($elementdata[$element])) {
-                        // Temp $id var to avoid problems when $element == $field.
-                        $id = $this->{$methodname}($elementdata[$element]);
-                        unset($elementdata[$element]);
-                        $elementdata[$field] = $id;
-                    }
-                }
-            }
-
-            // Preprocess the entities that requires a special treatment.
-            if (method_exists($this, 'preprocess_' . $elementdatagenerator)) {
-                $elementdata = $this->{'preprocess_' . $elementdatagenerator}($elementdata);
-            }
-
-            // Creates element.
-            $methodname = 'create_' . $elementdatagenerator;
-            // if (method_exists($this->datagenerator, $methodname)) {
-            if(true){
-                // Using data generators directly.
-                $this->datagenerator->{$methodname}($elementdata);
-
-            } else if (method_exists($this, 'process_' . $elementdatagenerator)) {
-                // Using an alternative to the direct data generator call.
-                $this->{'process_' . $elementdatagenerator}($elementdata);
-            } else {
-                throw new PendingException($elementname . ' data generator is not implemented');
-            }
-        }
-
+        $this->_process_elements($elementname, $data);
     }
 
     /**
-     * Creates the specified element. More info about available elements in http://docs.moodle.org/dev/Acceptance_testing#Fixtures.
-     *
      * @Given /^the following relationship group "(?P<element_string>(?:[^"]|\\")*)" exist:$/
-     *
      * @throws Exception
      * @throws PendingException
-     * @param string    $elementname The name of the entity to add
-     * @param TableNode $data
      */
     public function the_Following_Relationship_Groups_Exist($elementname, TableNode $data)
     {
-
-        $this->datagenerator = new behat_unasus;
-
-        $elementdatagenerator = self::$elements[$elementname]['datagenerator'];
-        $requiredfields = self::$elements[$elementname]['required'];
-        if (!empty(self::$elements[$elementname]['switchids'])) {
-            $switchids = self::$elements[$elementname]['switchids'];
-        }
-
-        foreach ($data->getHash() as $elementdata) {
-
-            // Check if all the required fields are there.
-            foreach ($requiredfields as $requiredfield) {
-                if (!isset($elementdata[$requiredfield])) {
-                    throw new Exception($elementname . ' requires the field ' . $requiredfield . ' to be specified');
-                }
-            }
-
-            // Switch from human-friendly references to ids.
-            if (isset($switchids)) {
-                foreach ($switchids as $element => $field) {
-                    $methodname = 'get_' . $element . '_id';
-
-                    // Not all the switch fields are required, default vars will be assigned by data generators.
-                    if (isset($elementdata[$element])) {
-                        // Temp $id var to avoid problems when $element == $field.
-                        $id = $this->{$methodname}($elementdata[$element]);
-                        unset($elementdata[$element]);
-                        $elementdata[$field] = $id;
-                    }
-                }
-            }
-
-            // Preprocess the entities that requires a special treatment.
-            if (method_exists($this, 'preprocess_' . $elementdatagenerator)) {
-                $elementdata = $this->{'preprocess_' . $elementdatagenerator}($elementdata);
-            }
-
-            // Creates element.
-            $methodname = 'create_' . $elementdatagenerator;
-            // if (method_exists($this->datagenerator, $methodname)) {
-            if(true){
-                // Using data generators directly.
-                $this->datagenerator->{$methodname}($elementdata);
-
-            } else if (method_exists($this, 'process_' . $elementdatagenerator)) {
-                // Using an alternative to the direct data generator call.
-                $this->{'process_' . $elementdatagenerator}($elementdata);
-            } else {
-                throw new PendingException($elementname . ' data generator is not implemented');
-            }
-        }
-
+        $this->_process_elements($elementname, $data);
     }
 
     /**
-     * Creates the specified element. More info about available elements in http://docs.moodle.org/dev/Acceptance_testing#Fixtures.
-     *
      * @Given /^the following users belongs to the relationship group as "(?P<element_string>(?:[^"]|\\")*)":$/
-     *
      * @throws Exception
      * @throws PendingException
-     * @param string    $elementname The name of the entity to add
-     * @param TableNode $data
      */
     public function the_Following_Users_Belongs_Relationship_Members($elementname, TableNode $data)
     {
-
-        $this->datagenerator = new behat_unasus;
-
-        $elementdatagenerator = self::$elements[$elementname]['datagenerator'];
-        $requiredfields = self::$elements[$elementname]['required'];
-        if (!empty(self::$elements[$elementname]['switchids'])) {
-            $switchids = self::$elements[$elementname]['switchids'];
-        }
-
-        foreach ($data->getHash() as $elementdata) {
-
-            // Check if all the required fields are there.
-            foreach ($requiredfields as $requiredfield) {
-                if (!isset($elementdata[$requiredfield])) {
-                    throw new Exception($elementname . ' requires the field ' . $requiredfield . ' to be specified');
-                }
-            }
-
-            // Switch from human-friendly references to ids.
-            if (isset($switchids)) {
-                foreach ($switchids as $element => $field) {
-                    $methodname = 'get_' . $element . '_id';
-
-                    // Not all the switch fields are required, default vars will be assigned by data generators.
-                    if (isset($elementdata[$element])) {
-                        // Temp $id var to avoid problems when $element == $field.
-                        $id = $this->{$methodname}($elementdata[$element]);
-                        unset($elementdata[$element]);
-                        $elementdata[$field] = $id;
-                    }
-                }
-            }
-
-            // Preprocess the entities that requires a special treatment.
-            if (method_exists($this, 'preprocess_' . $elementdatagenerator)) {
-                $elementdata = $this->{'preprocess_' . $elementdatagenerator}($elementdata);
-            }
-
-            // Creates element.
-            $methodname = 'create_' . $elementdatagenerator;
-            // if (method_exists($this->datagenerator, $methodname)) {
-            if(true){
-                // Using data generators directly.
-                $this->datagenerator->{$methodname}($elementdata);
-
-            } else if (method_exists($this, 'process_' . $elementdatagenerator)) {
-                // Using an alternative to the direct data generator call.
-                $this->{'process_' . $elementdatagenerator}($elementdata);
-            } else {
-                throw new PendingException($elementname . ' data generator is not implemented');
-            }
-        }
-
+        $this->_process_elements($elementname, $data);
     }
 
     /**
-     * Creates the specified element. More info about available elements in http://docs.moodle.org/dev/Acceptance_testing#Fixtures.
-     *
      * @Given /^the following activity "(?P<element_string>(?:[^"]|\\")*)" exist:$/
-     *
      * @throws Exception
      * @throws PendingException
-     * @param string $elementname The name of the entity to add
-     * @param TableNode $data
      */
     public function the_Following_Assign_Exist($elementname, TableNode $data)
     {
+        $this->_process_elements($elementname, $data);
+    }
 
-        $this->datagenerator = new behat_unasus;
-
+    /**
+     * Shared implementation for all "the following X exist" step definitions.
+     * Handles required field validation, switchids resolution, preprocessing, and creation.
+     *
+     * @param string    $elementname
+     * @param TableNode $data
+     * @throws Exception
+     * @throws PendingException
+     */
+    private function _process_elements($elementname, TableNode $data)
+    {
         $elementdatagenerator = self::$elements[$elementname]['datagenerator'];
         $requiredfields = self::$elements[$elementname]['required'];
+        $switchids = null;
         if (!empty(self::$elements[$elementname]['switchids'])) {
             $switchids = self::$elements[$elementname]['switchids'];
         }
@@ -308,11 +138,9 @@ EOD;
 
             // Creates element.
             $methodname = 'create_' . $elementdatagenerator;
-            // if (method_exists($this->datagenerator, $methodname)) {
-            if(true){
+            if (method_exists($this, $methodname)) {
                 // Using data generators directly.
-                $this->datagenerator->{$methodname}($elementdata);
-
+                $this->{$methodname}($elementdata);
             } else if (method_exists($this, 'process_' . $elementdatagenerator)) {
                 // Using an alternative to the direct data generator call.
                 $this->{'process_' . $elementdatagenerator}($elementdata);
@@ -321,14 +149,11 @@ EOD;
             }
         }
     }
-
-
 
     /**
      * Create a test relationship
      * @param array|stdClass $record
-     * @param array $options with keys:
-     *      'createsections'=>bool precreate all sections
+     * @param array $options
      * @return stdClass relationship record
      */
     public function create_relationship($record = null, array $options=null) {
@@ -400,8 +225,7 @@ EOD;
     /**
      * Create a test relationship_groups
      * @param array|stdClass $record
-     * @param array $options with keys:
-     *      'createsections'=>bool precreate all sections
+     * @param array $options
      * @return stdClass relationship_groups record
      */
     public function create_relationship_groups($record = null, array $options=null) {
@@ -437,48 +261,39 @@ EOD;
     /**
      * Create a test relationship_members
      * @param array|stdClass $record
-     * @param array $options with keys:
-     *      'createsections'=>bool precreate all sections
-     * @return stdClass relationship_groups record
+     * @param array $options
+     * @return stdClass relationship_members record
      */
     public function create_relationship_members($record = null, array $options=null) {
         global $DB, $CFG;
         require_once("$CFG->dirroot/local/relationship/lib.php");
 
         $this->relationship_memberscount++;
-        $i = $this->relationship_memberscount;
 
         $record = (array)$record;
 
         if (!isset($record['relationshipgroupid'])) {
-        $sql="SELECT rg.id
-                FROM {relationship_groups} rg
-                WHERE name = :name";
+            $sql = "SELECT rg.id
+                    FROM {relationship_groups} rg
+                    WHERE name = :name";
 
-        $relationshipgroupid = $DB->get_field_sql($sql, array('name' => $record['group']));
-        $record['relationshipgroupid'] = $relationshipgroupid;
+            $record['relationshipgroupid'] = $DB->get_field_sql($sql, array('name' => $record['group']));
         }
 
         if (!isset($record['relationshipcohortid'])) {
-            $sql="SELECT rc.id
-                    FROM {relationship_cohorts} rc			
+            $sql = "SELECT rc.id
+                    FROM {relationship_cohorts} rc
                     WHERE rc.cohortid = (SELECT cm.cohortid
-                    FROM {cohort_members} cm
-                    WHERE userid = (SELECT u.id
-                                        FROM {user} u
-                                        WHERE u.username = :username))";
+                                        FROM {cohort_members} cm
+                                        WHERE userid = (SELECT u.id
+                                                        FROM {user} u
+                                                        WHERE u.username = :username))";
 
-            $relationshipcohortid = $DB->get_field_sql($sql, array('username' => $record['user']));
-            $record['relationshipcohortid'] = $relationshipcohortid;
+            $record['relationshipcohortid'] = $DB->get_field_sql($sql, array('username' => $record['user']));
         }
 
         if (!isset($record['userid'])) {
-            $sql = "SELECT u.id
-                    FROM {user} u
-                    WHERE u.username = :username";
-            $user_id = $DB->get_field_sql($sql, array('username' => $record['user']));
-
-            $record['userid'] = $user_id;
+            $record['userid'] = $DB->get_field('user', 'id', array('username' => $record['user']), MUST_EXIST);
         }
 
         $id = relationship_add_member($record['relationshipgroupid'],
@@ -489,7 +304,6 @@ EOD;
     }
 
     /**
-     *
      * Adiciona uma tag no relationship.
      *
      * @Given /^instance the tag "([^"]*)" at relationship "([^"]*)"$/
@@ -497,9 +311,10 @@ EOD;
     public function instance_the_tag_at_relationship($tag, $relationship) {
         global $DB;
 
+        $adminid = $DB->get_field('user', 'id', array('username' => 'admin'), MUST_EXIST);
+
         $record = new stdClass();
-        $record->id = 1;
-        $record->userid = 2;
+        $record->userid = $adminid;
         $record->name = $tag;
         $record->rawname = $tag;
         $record->tagtype = 'default';
@@ -520,7 +335,7 @@ EOD;
         $record2->tagid = $id->tagid;
         $record2->component = null;
         $record2->itemtype = 'relationship';
-        $record2->itemid = $id->relationshipid; // itemid = relationshipid! Why??
+        $record2->itemid = $id->relationshipid;
         $record2->contextid = null;
         $record2->tiuserid = 0;
         $record2->ordering = 0;
@@ -531,10 +346,7 @@ EOD;
     }
 
     /**
-     *
-     * Adiciona os cohorts criados no relationship. Para isso é feita a inserção na tabela relationship_cohorts
-     * e relationship_members. Como há mais de um tipo de cohort é utilizado um foreach e assim executada a inclusão
-     * de um cohort em cada iteração.
+     * Adiciona os cohorts criados no relationship.
      *
      * @Given /^add created cohorts at relationship "([^"]*)" on relationship_groups "([^"]*)"$/
      */
@@ -548,11 +360,11 @@ EOD;
 
         $relationshipId = $DB->get_field_sql($sql_relationship, array('relationship' => $relationship));
 
-        $sql = "SELECT DISTINCT role_assignments.userid as id, role_assignments.roleid, cohort.id as cohortid 
-                     FROM {cohort} cohort, {role_assignments} role_assignments
-                     LEFT JOIN {cohort_members} cohort_members 
-                     ON role_assignments.userid = cohort_members.userid
-                     WHERE cohort_members.cohortid = cohort.id";
+        $sql = "SELECT DISTINCT role_assignments.userid as id, role_assignments.roleid, cohort.id as cohortid
+                FROM {cohort} cohort, {role_assignments} role_assignments
+                LEFT JOIN {cohort_members} cohort_members
+                ON role_assignments.userid = cohort_members.userid
+                WHERE cohort_members.cohortid = cohort.id";
 
         $sql_result = $DB->get_records_sql($sql);
 
@@ -564,7 +376,7 @@ EOD;
 
             $roleid = $DB->get_field_sql($sql_roleid, array('roleid' => $id->roleid));
 
-            if($roleid == 0) {
+            if ($roleid == 0) {
                 $record = new stdClass();
                 $record->relationshipid = $relationshipId;
                 $record->roleid = $id->roleid;
@@ -576,41 +388,20 @@ EOD;
 
                 $DB->insert_record('relationship_cohorts', $record);
             }
-
-//            $sql_rc = "SELECT id
-//                       FROM {relationship_cohorts}
-//                       WHERE roleid = :roleid";
-//
-//            $relationshipCohortId = $DB->get_fieldset_sql($sql_rc, array('roleid' => $id->roleid))[0];
-//
-//            $sql_rg = "SELECT id
-//                    FROM {relationship_groups}
-//                    WHERE name = :relationship_group";
-//
-//            $relationshipGroupId = $DB->get_field_sql($sql_rg, array('relationship_group' => $relationship_group));
-//
-//            $record = new stdClass();
-//            $record->relationshipgroupid = $relationshipGroupId;
-//            $record->relationshipcohortid = $relationshipCohortId;
-//            $record->userid = $id->id;
-//            $record->timeadded = time();
-//
-//            $DB->insert_record('relationship_members', $record);
         }
     }
 
     /**
-     * Adds the user to the specified cohort. The user should be specified like "username".
+     * Adds the user to the specified cohort.
      * Obs: Ao adicionar o usuário ao grupo de cohort, automaticamente é adicionado o usuário
      * aos respectivos grupos de tutoria.
      *
      * @Given /^I add the user "([^"]*)" +with cohort "([^"]*)" to cohort members$/
-     * @param string $user, $cohort
+     * @param string $user
+     * @param string $cohort
      */
     public function i_add_user_to_cohort_members($user, $cohort) {
         global $DB;
-
-        //Inclusão dos valores local_tutores_student_roles e local_tutores_tutor_roles
 
         $sql_config = "SELECT COUNT(1)
                        FROM {config} config
@@ -618,23 +409,14 @@ EOD;
 
         $config = $DB->get_field_sql($sql_config);
 
-        if($config == 0){
+        if ($config == 0) {
             set_config('local_tutores_student_roles', 'student');
             set_config('local_tutores_tutor_roles', 'editingteacher');
             set_config('local_tutores_orientador_roles', 'editingteacher');
         }
 
-        $sql_user = "SELECT id
-                     FROM {user}
-                     WHERE username = :user";
-
-        $userId = $DB->get_field_sql($sql_user, array('user' => $user));
-
-        $sql_cohort = "SELECT id
-                     FROM {cohort}
-                     WHERE name = :cohort";
-
-        $cohortId = $DB->get_field_sql($sql_cohort, array('cohort' => 'Cohort '.$cohort));
+        $userId = $DB->get_field('user', 'id', array('username' => $user), MUST_EXIST);
+        $cohortId = $DB->get_field('cohort', 'id', array('name' => 'Cohort ' . $cohort), MUST_EXIST);
 
         $record = new stdClass();
         $record->cohortid = $cohortId;
@@ -643,7 +425,7 @@ EOD;
 
         $DB->insert_record('cohort_members', $record);
 
-        if($cohort == 'student'){
+        if ($cohort == 'student') {
             $record_student_log = new stdClass();
             $record_student_log->userid = $userId;
             $record_student_log->timemodified = time();
@@ -654,13 +436,13 @@ EOD;
             $DB->insert_record('config_log', $record_student_log);
         }
 
-        if($cohort == 'teacher'){
+        if ($cohort == 'teacher') {
             $record_teacher_log = new stdClass();
             $record_teacher_log->userid = $userId;
             $record_teacher_log->timemodified = time();
             $record_teacher_log->plugin = null;
             $record_teacher_log->name = 'local_tutores_tutor_roles';
-            $record_teacher_log->value = 'editing'.$cohort;
+            $record_teacher_log->value = 'editing' . $cohort;
 
             $DB->insert_record('config_log', $record_teacher_log);
 
@@ -669,7 +451,7 @@ EOD;
             $record_editingteacher_log->timemodified = time();
             $record_editingteacher_log->plugin = null;
             $record_editingteacher_log->name = 'local_tutores_orientador_roles';
-            $record_editingteacher_log->value = 'editing'.$cohort;
+            $record_editingteacher_log->value = 'editing' . $cohort;
 
             $DB->insert_record('config_log', $record_editingteacher_log);
         }
@@ -703,7 +485,6 @@ EOD;
             $existing->grader = 2;
             $existing->timemodified = $now;
             $DB->update_record('assign_grades', $existing);
-            $agradeid = $existing->id;
         } else {
             $agrade = new stdClass();
             $agrade->assignment    = $assignid;
@@ -713,7 +494,7 @@ EOD;
             $agrade->grader        = 2;
             $agrade->grade         = $grade;
             $agrade->attemptnumber = 0;
-            $agradeid = $DB->insert_record('assign_grades', $agrade);
+            $DB->insert_record('assign_grades', $agrade);
         }
 
         // grade_items + grade_grades.
@@ -841,27 +622,26 @@ EOD;
     }
 
     /**
-     * Change complete date of an activity.
+     * Change submission date of an activity.
      *
      * @Given /^I set the submission date of activity "([^"]*)" to "([^"]*)" days after$/
-     * @param string $idnumber, $days
+     * @param string $idnumber
+     * @param string $days
      */
     public function i_set_submission_date($idnumber, $days) {
         global $DB;
 
-        $sql = "SELECT instance
-                FROM {course_modules}
-                WHERE idnumber = :idnumber";
+        $assign_assignid = $DB->get_field_sql(
+            "SELECT instance FROM {course_modules} WHERE idnumber = :idnumber",
+            array('idnumber' => $idnumber)
+        );
 
-        $assign_assignid = $DB->get_field_sql($sql, array('idnumber' => $idnumber));
+        $unix_timestamp = $DB->get_field_sql(
+            "SELECT completionexpected FROM {course_modules} WHERE instance = :instance",
+            array('instance' => $assign_assignid)
+        );
 
-        $sql_time = "SELECT completionexpected
-                     FROM {course_modules}
-                     WHERE instance = :instance";
-
-        $unix_timestamp = $DB->get_field_sql($sql_time, array('instance' => $assign_assignid));
-
-        //86400 = 1 dia
+        // 86400 = 1 day in seconds.
         $new_unix_timestamp = $unix_timestamp + ($days * 86400);
 
         $DB->set_field('assign_submission', 'timemodified', $new_unix_timestamp, array('assignment' => $assign_assignid));
