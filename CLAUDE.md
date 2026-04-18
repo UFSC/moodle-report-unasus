@@ -124,6 +124,8 @@ Notes about `run_tests.sh`:
 - `--reset` forces full reset (`util.php --drop`) and fresh init.
 - The script discovers tests by `*_test.php` and runs them file-by-file to avoid `No tests executed!` in older PHPUnit discovery behavior.
 
+For a complete reference of all tests (PHPUnit and Behat), including scenarios, background data, and known limitations, see [TESTS.md](TESTS.md).
+
 Test file: `tests/unasus_datastructures_test.php`
 
 Tests verify (16 tests, 73 assertions):

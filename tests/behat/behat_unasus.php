@@ -604,7 +604,7 @@ EOD;
      * Obs: Ao adicionar o usuário ao grupo de cohort, automaticamente é adicionado o usuário
      * aos respectivos grupos de tutoria.
      *
-     * @Given /^I add the user "([^"]*)" with cohort "([^"]*)" to cohort members$/
+     * @Given /^I add the user "([^"]*)" +with cohort "([^"]*)" to cohort members$/
      * @param string $user, $cohort
      */
     public function i_add_user_to_cohort_members($user, $cohort) {
@@ -672,6 +672,171 @@ EOD;
             $record_editingteacher_log->value = 'editing'.$cohort;
 
             $DB->insert_record('config_log', $record_editingteacher_log);
+        }
+    }
+
+    /**
+     * Sets a grade for a user on an assign activity directly in the database.
+     *
+     * @Given /^I set the grade of activity "([^"]*)" for user "([^"]*)" to "([^"]*)"$/
+     * @param string $idnumber
+     * @param string $username
+     * @param string $grade
+     */
+    public function i_set_grade_of_activity_for_user($idnumber, $username, $grade) {
+        global $DB;
+
+        $assignid = $DB->get_field_sql(
+            "SELECT instance FROM {course_modules} WHERE idnumber = :idnumber",
+            array('idnumber' => $idnumber),
+            MUST_EXIST
+        );
+
+        $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
+
+        $now = time();
+
+        // assign_grades.
+        $existing = $DB->get_record('assign_grades', array('assignment' => $assignid, 'userid' => $userid));
+        if ($existing) {
+            $existing->grade = $grade;
+            $existing->grader = 2;
+            $existing->timemodified = $now;
+            $DB->update_record('assign_grades', $existing);
+            $agradeid = $existing->id;
+        } else {
+            $agrade = new stdClass();
+            $agrade->assignment    = $assignid;
+            $agrade->userid        = $userid;
+            $agrade->timecreated   = $now;
+            $agrade->timemodified  = $now;
+            $agrade->grader        = 2;
+            $agrade->grade         = $grade;
+            $agrade->attemptnumber = 0;
+            $agradeid = $DB->insert_record('assign_grades', $agrade);
+        }
+
+        // grade_items + grade_grades.
+        $courseid = $DB->get_field_sql(
+            "SELECT c.id FROM {course_modules} cm JOIN {course} c ON cm.course = c.id WHERE cm.idnumber = :idnumber",
+            array('idnumber' => $idnumber),
+            MUST_EXIST
+        );
+
+        $itemid = $DB->get_field('grade_items', 'id', array(
+            'courseid'     => $courseid,
+            'itemtype'     => 'mod',
+            'itemmodule'   => 'assign',
+            'iteminstance' => $assignid,
+        ));
+
+        if ($itemid) {
+            $existinggg = $DB->get_record('grade_grades', array('itemid' => $itemid, 'userid' => $userid));
+            if ($existinggg) {
+                $existinggg->rawgrade    = $grade;
+                $existinggg->finalgrade  = $grade;
+                $existinggg->timemodified = $now;
+                $DB->update_record('grade_grades', $existinggg);
+            } else {
+                $gg = new stdClass();
+                $gg->itemid       = $itemid;
+                $gg->userid       = $userid;
+                $gg->rawgrade     = $grade;
+                $gg->finalgrade   = $grade;
+                $gg->timecreated  = $now;
+                $gg->timemodified = $now;
+                $DB->insert_record('grade_grades', $gg);
+            }
+        }
+    }
+
+    /**
+     * Shifts the grade date for a user on an assign activity N days after the submission date.
+     *
+     * @Given /^I set the grade date of activity "([^"]*)" for user "([^"]*)" to "([^"]*)" days after submission$/
+     * @param string $idnumber
+     * @param string $username
+     * @param string $days
+     */
+    public function i_set_grade_date_of_activity_for_user($idnumber, $username, $days) {
+        global $DB;
+
+        $assignid = $DB->get_field_sql(
+            "SELECT instance FROM {course_modules} WHERE idnumber = :idnumber",
+            array('idnumber' => $idnumber),
+            MUST_EXIST
+        );
+
+        $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
+
+        $submissiontime = $DB->get_field('assign_submission', 'timemodified',
+            array('assignment' => $assignid, 'userid' => $userid));
+
+        if (!$submissiontime) {
+            // Fallback: use completionexpected of the cm as reference.
+            $submissiontime = $DB->get_field_sql(
+                "SELECT completionexpected FROM {course_modules} WHERE idnumber = :idnumber",
+                array('idnumber' => $idnumber)
+            );
+        }
+
+        $newtime = (int)$submissiontime + ((int)$days * 86400);
+
+        $DB->set_field('assign_grades', 'timemodified', $newtime,
+            array('assignment' => $assignid, 'userid' => $userid));
+
+        $courseid = $DB->get_field_sql(
+            "SELECT c.id FROM {course_modules} cm JOIN {course} c ON cm.course = c.id WHERE cm.idnumber = :idnumber",
+            array('idnumber' => $idnumber),
+            MUST_EXIST
+        );
+
+        $itemid = $DB->get_field('grade_items', 'id', array(
+            'courseid'     => $courseid,
+            'itemtype'     => 'mod',
+            'itemmodule'   => 'assign',
+            'iteminstance' => $assignid,
+        ));
+
+        if ($itemid) {
+            $DB->set_field('grade_grades', 'timemodified', $newtime,
+                array('itemid' => $itemid, 'userid' => $userid));
+        }
+    }
+
+    /**
+     * Marks a course module as complete for a given user directly in the database.
+     *
+     * @Given /^I mark activity "([^"]*)" as complete for user "([^"]*)"$/
+     * @param string $idnumber
+     * @param string $username
+     */
+    public function i_mark_activity_as_complete_for_user($idnumber, $username) {
+        global $DB;
+
+        $cmid = $DB->get_field_sql(
+            "SELECT id FROM {course_modules} WHERE idnumber = :idnumber",
+            array('idnumber' => $idnumber),
+            MUST_EXIST
+        );
+
+        $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
+
+        $existing = $DB->get_record('course_modules_completion',
+            array('coursemoduleid' => $cmid, 'userid' => $userid));
+
+        if ($existing) {
+            $existing->completionstate = 1;
+            $existing->timemodified    = time();
+            $DB->update_record('course_modules_completion', $existing);
+        } else {
+            $record = new stdClass();
+            $record->coursemoduleid  = $cmid;
+            $record->userid          = $userid;
+            $record->completionstate = 1;
+            $record->viewed          = 1;
+            $record->timemodified    = time();
+            $DB->insert_record('course_modules_completion', $record);
         }
     }
 
