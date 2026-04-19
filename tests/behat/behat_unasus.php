@@ -11,7 +11,7 @@ class behat_unasus extends behat_base
     protected $relationship_groupscount = 0;
     protected $relationship_memberscount = 0;
     protected $relationships = array();
-    public $loremipsum = <<<EOD
+    protected $loremipsum = <<<EOD
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nulla non arcu lacinia neque faucibus fringilla. Vivamus porttitor turpis ac leo. Integer in sapien. Nullam eget nisl. Aliquam erat volutpat. Cras elementum. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Integer malesuada. Nullam lectus justo, vulputate eget mollis sed, tempor sed magna. Mauris elementum mauris vitae tortor. Aliquam erat volutpat.
 Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Pellentesque ipsum. Cras pede libero, dapibus nec, pretium sit amet, tempor quis. Aliquam ante. Proin in tellus sit amet nibh dignissim sagittis. Vivamus porttitor turpis ac leo. Duis bibendum, lectus ut viverra rhoncus, dolor nunc faucibus libero, eget facilisis enim ipsum id lacus. In sem justo, commodo ut, suscipit at, pharetra vitae, orci. Aliquam erat volutpat. Nulla est.
 Vivamus luctus egestas leo. Aenean fermentum risus id tortor. Mauris dictum facilisis augue. Aliquam erat volutpat. Aliquam ornare wisi eu metus. Aliquam id dolor. Duis condimentum augue id magna semper rutrum. Donec iaculis gravida nulla. Pellentesque ipsum. Etiam dictum tincidunt diam. Quisque tincidunt scelerisque libero. Etiam egestas wisi a erat.
@@ -238,7 +238,7 @@ EOD;
         $record = (array)$record;
 
         if (!isset($record['relationshipid'])) {
-            $record['relationshipid'] = context_system::instance()->id;
+            throw new \Exception('relationship_groups requires the field relationshipid to be specified');
         }
 
         if (!isset($record['name'])) {
@@ -327,9 +327,10 @@ EOD;
 
         $sql = "SELECT tag.id as tagid, relationship.id as relationshipid
                 FROM {tag} tag, {relationship} relationship
-                WHERE tag.name = :tag";
+                WHERE tag.name = :tag
+                  AND relationship.name = :relationship";
 
-        $id = $DB->get_record_sql($sql, array('tag' => $tag));
+        $id = $DB->get_record_sql($sql, array('tag' => $tag, 'relationship' => $relationship));
 
         $record2 = new stdClass();
         $record2->tagid = $id->tagid;
@@ -348,9 +349,9 @@ EOD;
     /**
      * Adiciona os cohorts criados no relationship.
      *
-     * @Given /^add created cohorts at relationship "([^"]*)" on relationship_groups "([^"]*)"$/
+     * @Given /^add created cohorts at relationship "([^"]*)"$/
      */
-    public function add_created_cohorts_at_relationship($relationship, $relationship_group)
+    public function add_created_cohorts_at_relationship($relationship)
     {
         global $DB;
 
@@ -454,6 +455,17 @@ EOD;
             $record_editingteacher_log->value = 'editing' . $cohort;
 
             $DB->insert_record('config_log', $record_editingteacher_log);
+        }
+
+        if ($cohort == 'advisor') {
+            $record_advisor_log = new stdClass();
+            $record_advisor_log->userid = $userId;
+            $record_advisor_log->timemodified = time();
+            $record_advisor_log->plugin = null;
+            $record_advisor_log->name = 'local_tutores_orientador_roles';
+            $record_advisor_log->value = 'advisor';
+
+            $DB->insert_record('config_log', $record_advisor_log);
         }
     }
 
@@ -645,5 +657,181 @@ EOD;
         $new_unix_timestamp = $unix_timestamp + ($days * 86400);
 
         $DB->set_field('assign_submission', 'timemodified', $new_unix_timestamp, array('assignment' => $assign_assignid));
+    }
+
+    // -------------------------------------------------------------------------
+    // TCC mock helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Ensures report_unasus_SistemaTccClient is available.
+     * Must be called at step runtime (not at class-load time) because
+     * MOODLE_INTERNAL is only defined after Moodle's bootstrap runs,
+     * which happens after Behat loads the context file.
+     */
+    private function require_sistematcc() {
+        global $CFG;
+        if (!class_exists('report_unasus_SistemaTccClient')) {
+            require_once($CFG->dirroot . '/report/unasus/sistematcc.php');
+        }
+    }
+
+    /**
+     * Configures an LTI activity as a TCC tool by creating the required
+     * lti_types and lti_types_config records and linking them to the activity.
+     *
+     * @Given /^the LTI activity "([^"]*)" is configured as TCC with tcc_definition_id "([^"]*)"$/
+     * @param string $lti_idnumber  idnumber of the course_module
+     * @param string $definition_id tcc_definition_id sent in customparameters
+     */
+    public function lti_configured_as_tcc($lti_idnumber, $definition_id) {
+        global $DB;
+
+        $cm = $DB->get_record_sql(
+            "SELECT instance, course FROM {course_modules} WHERE idnumber = :idnumber",
+            array('idnumber' => $lti_idnumber),
+            MUST_EXIST
+        );
+        $lti_id = $cm->instance;
+
+        // Create lti_types with a fake baseurl (mock intercepts before any HTTP).
+        $type = new stdClass();
+        $type->name          = 'TCC Mock Type';
+        $type->baseurl       = 'http://mock-tcc-system';
+        $type->tooldomain    = 'mock-tcc-system';
+        $type->state         = 1;
+        $type->course        = $cm->course;
+        $type->coursevisible = 0;
+        $type->timecreated   = time();
+        $type->timemodified  = time();
+        $type->createdby     = 2; // admin
+        $typeid = $DB->insert_record('lti_types', $type);
+
+        // resourcekey (consumer_key used by SistemaTccClient).
+        $cfg_key = new stdClass();
+        $cfg_key->typeid = $typeid;
+        $cfg_key->name   = 'resourcekey';
+        $cfg_key->value  = 'mock-consumer-key';
+        $DB->insert_record('lti_types_config', $cfg_key);
+
+        // customparameters containing tcc_definition_id.
+        $cfg_params = new stdClass();
+        $cfg_params->typeid = $typeid;
+        $cfg_params->name   = 'customparameters';
+        $cfg_params->value  = 'tcc_definition_id=' . $definition_id;
+        $DB->insert_record('lti_types_config', $cfg_params);
+
+        // Link the LTI activity instance to the newly created type.
+        $DB->set_field('lti', 'typeid', $typeid, array('id' => $lti_id));
+    }
+
+    /**
+     * Injects a mock response for the TCC definition webservice endpoint.
+     * Stored in the Moodle config table so it is visible to the web server
+     * PHP process when the report page renders (static variables do not cross
+     * PHP process boundaries in Behat tests).
+     *
+     * Table columns: id, title, position
+     *
+     * @Given /^the TCC webservice returns definition with chapters:$/
+     */
+    public function tcc_webservice_returns_definition(\Behat\Gherkin\Node\TableNode $data) {
+        $chapters = array();
+        foreach ($data->getHash() as $row) {
+            $ch             = new stdClass();
+            $ch->id         = (int) $row['id'];
+            $ch->title      = $row['title'];
+            $ch->position   = (int) $row['position'];
+            $ch->created_at = null;
+            $ch->updated_at = null;
+
+            $wrapper                    = new stdClass();
+            $wrapper->chapter_definition = $ch;
+            $chapters[]                 = $wrapper;
+        }
+
+        $tcc_def                    = new stdClass();
+        $tcc_def->chapter_definitions = $chapters;
+
+        $response              = new stdClass();
+        $response->tcc_definition = $tcc_def;
+
+        set_config('behat_tcc_mock_tcc_definition_service', json_encode($response), 'report_unasus');
+    }
+
+    /**
+     * Injects a mock response for the TCC reporting webservice endpoint.
+     * Resolves Moodle user IDs from usernames so the data matches what
+     * LtiPortfolioQuery::get_report_data() expects.
+     * Stored in the Moodle config table so it is visible to the web server
+     * PHP process when the report page renders.
+     *
+     * Table columns: username, chapter_position, state, state_date
+     *   - chapter_position = 0 means the abstract/resumo
+     *   - state values: done | review | draft | null | empty
+     *   - state_date: date string (Y-m-d) or empty for null
+     *
+     * @Given /^the TCC webservice returns student data:$/
+     */
+    public function tcc_webservice_returns_student_data(\Behat\Gherkin\Node\TableNode $data) {
+        global $DB;
+
+        $by_user = array();
+        foreach ($data->getHash() as $row) {
+            $uid  = $DB->get_field('user', 'id', array('username' => $row['username']), MUST_EXIST);
+            $pos  = (int) $row['chapter_position'];
+            $state = $row['state'];
+            $date  = (!empty($row['state_date'])) ? $row['state_date'] : null;
+
+            if (!isset($by_user[$uid])) {
+                $by_user[$uid] = array('abstract' => null, 'chapters' => array());
+            }
+
+            if ($pos === 0) {
+                $abstract             = new stdClass();
+                $abstract->state      = $state;
+                $abstract->state_date = $date;
+                $by_user[$uid]['abstract'] = $abstract;
+            } else {
+                $ch             = new stdClass();
+                $ch->position   = $pos;
+                $ch->state      = $state;
+                $ch->state_date = $date;
+
+                $wrapper          = new stdClass();
+                $wrapper->chapter = $ch;
+                $by_user[$uid]['chapters'][] = $wrapper;
+            }
+        }
+
+        $result = array();
+        foreach ($by_user as $uid => $user_data) {
+            $tcc           = new stdClass();
+            $tcc->user_id  = $uid;
+            $tcc->grade    = null;
+            $tcc->abstract = $user_data['abstract'];
+            $tcc->chapters = $user_data['chapters'];
+
+            $entry      = new stdClass();
+            $entry->tcc = $tcc;
+            $result[]   = $entry;
+        }
+
+        set_config('behat_tcc_mock_reportingservice_tcc', json_encode($result), 'report_unasus');
+    }
+
+    /**
+     * Resets TCC mock responses after each scenario tagged @tcc so that
+     * mock state does not leak into subsequent scenarios.
+     *
+     * @AfterScenario @tcc
+     */
+    public function reset_tcc_mock() {
+        unset_config('behat_tcc_mock_tcc_definition_service', 'report_unasus');
+        unset_config('behat_tcc_mock_reportingservice_tcc', 'report_unasus');
+        // Also clear static mock in case it was set directly (e.g. in same-process unit tests)
+        if (class_exists('report_unasus_SistemaTccClient')) {
+            report_unasus_SistemaTccClient::$mock_responses = null;
+        }
     }
 }

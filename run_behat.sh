@@ -58,12 +58,54 @@ container_is_running() {
     sudo docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | grep -q "true"
 }
 
-exec_as_root() {
+exec_as_moodle() {
     sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
 }
 
-exec_as_moodle() {
+exec_php_as_moodle_for_init() {
     sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
+}
+
+ensure_legacy_composer_for_behat_init() {
+    log "Preparando composer legado para inicialização do Behat..."
+    TMP_COMPOSER_WRAPPER=$(mktemp)
+    cat > "$TMP_COMPOSER_WRAPPER" <<'PHPWRAPPER'
+<?php
+if (PHP_SAPI !== 'cli') {
+    exit(1);
+}
+
+$args = $_SERVER['argv'];
+array_shift($args);
+
+if (!empty($args) && $args[0] === 'self-update') {
+    fwrite(STDOUT, "Skipping composer self-update for legacy PHP environment\n");
+    exit(0);
+}
+
+$real = __DIR__ . '/composer-real.phar';
+$cmd = 'USE_ZEND_ALLOC=0 php -d opcache.enable_cli=0 ' . escapeshellarg($real);
+foreach ($args as $arg) {
+    $cmd .= ' ' . escapeshellarg($arg);
+}
+
+passthru($cmd, $exitcode);
+exit($exitcode);
+PHPWRAPPER
+
+    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "set -e
+        curl -sS -L -o /tmp/composer22.phar https://github.com/composer/composer/releases/download/2.2.21/composer.phar
+        cp /tmp/composer22.phar '$MOODLE_ROOT_IN_CONTAINER/composer-real.phar'
+    "
+    sudo docker cp "$TMP_COMPOSER_WRAPPER" "$CONTAINER_NAME:$MOODLE_ROOT_IN_CONTAINER/composer.phar"
+    rm -f "$TMP_COMPOSER_WRAPPER"
+
+    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "set -e
+        chown moodle:moodle '$MOODLE_ROOT_IN_CONTAINER/composer-real.phar'
+        chmod 555 '$MOODLE_ROOT_IN_CONTAINER/composer-real.phar'
+        chown moodle:moodle '$MOODLE_ROOT_IN_CONTAINER/composer.phar'
+        chmod 555 '$MOODLE_ROOT_IN_CONTAINER/composer.phar'
+    "
 }
 
 # ---------------------------------------------------------------------------
@@ -130,7 +172,7 @@ MOODLE_IP=$(sudo docker inspect -f "{{(index .NetworkSettings.Networks \"$DOCKER
 if [ -z "$MOODLE_IP" ] || [ "$MOODLE_IP" = "<no value>" ]; then
     err "Não foi possível obter IP do container '$CONTAINER_NAME' na rede '$DOCKER_NETWORK'."
 fi
-sudo docker exec -u 0 "$SELENIUM_CONTAINER" bash -c "sed -i '/[[:space:]]$URL_NAME$/d' /etc/hosts; echo '$MOODLE_IP $URL_NAME' >> /etc/hosts"
+sudo docker exec -u 0 "$SELENIUM_CONTAINER" bash -c "TMP=/tmp/hosts.\$\$; grep -v '[[:space:]]$URL_NAME$' /etc/hosts > \"\$TMP\" || true; cat \"\$TMP\" > /etc/hosts; rm -f \"\$TMP\"; echo '$MOODLE_IP $URL_NAME' >> /etc/hosts"
 log "Selenium resolve '$URL_NAME' -> $MOODLE_IP."
 
 # ---------------------------------------------------------------------------
@@ -138,7 +180,7 @@ log "Selenium resolve '$URL_NAME' -> $MOODLE_IP."
 # ---------------------------------------------------------------------------
 log "Verificando configuração Behat no config.php..."
 
-BEHAT_CONFIGURED=$(exec_as_root "
+BEHAT_CONFIGURED=$(exec_as_moodle "
     grep -v '^[[:space:]]*//' '$MOODLE_ROOT_IN_CONTAINER/config.php' | \
     grep -q 'behat_prefix' && echo yes || echo no
 " 2>/dev/null || echo "no")
@@ -146,9 +188,9 @@ BEHAT_CONFIGURED=$(exec_as_root "
 if [ "$BEHAT_CONFIGURED" != "yes" ]; then
     warn "Behat não configurado no config.php. Adicionando configurações..."
 
-    exec_as_root "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
+    exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
 
-    exec_as_root "sed -i \"/require_once.*lib\/setup\.php/i\\
+    exec_as_moodle "sed -i \"/require_once.*lib\/setup\.php/i\\
 \\\$CFG->behat_wwwroot  = '$BEHAT_WWWROOT';\\
 \\\$CFG->behat_prefix   = '$BEHAT_PREFIX';\\
 \\\$CFG->behat_dataroot = '$BEHAT_DATAROOT';\\
@@ -172,13 +214,13 @@ fi
 
 # Detectar configuração desatualizada (chromeOptions/extra_capabilities não são válidos nesta versão)
 # O formato correto para esta versão do MinkExtension é: capabilities.chrome.switches
-BEHAT_CONFIG_STALE=$(exec_as_root "
+BEHAT_CONFIG_STALE=$(exec_as_moodle "
     grep -q 'chromeOptions\|extra_capabilities' '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no
 " 2>/dev/null || echo "no")
 
 if [ "$BEHAT_CONFIG_STALE" = "yes" ]; then
     warn "Configuração Behat desatualizada (chromeOptions/extra_capabilities). Corrigindo config.php..."
-    exec_as_root "php -r \"
+    exec_as_moodle "php -r \"
         \\\$f = file_get_contents('$MOODLE_ROOT_IN_CONTAINER/config.php');
         \\\$old = array(
             \\\"'capabilities' => array('chromeOptions' => array('args' => array('--headless', '--no-sandbox', '--disable-dev-shm-usage')))\\\",
@@ -193,13 +235,13 @@ if [ "$BEHAT_CONFIG_STALE" = "yes" ]; then
 fi
 
 # Detectar behat_wwwroot desatualizado (container name em vez do domínio correto)
-BEHAT_WWWROOT_STALE=$(exec_as_root "
+BEHAT_WWWROOT_STALE=$(exec_as_moodle "
     grep -q \"behat_wwwroot.*moodle-$SISTEM_NAME\" '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no
 " 2>/dev/null || echo "no")
 
 if [ "$BEHAT_WWWROOT_STALE" = "yes" ]; then
     warn "behat_wwwroot aponta para o container ($CONTAINER_NAME) em vez de '$BEHAT_WWWROOT'. Corrigindo config.php..."
-    exec_as_root "sed -i 's|http://$CONTAINER_NAME|$BEHAT_WWWROOT|g' '$MOODLE_ROOT_IN_CONTAINER/config.php'"
+    exec_as_moodle "sed -i 's|http://$CONTAINER_NAME|$BEHAT_WWWROOT|g' '$MOODLE_ROOT_IN_CONTAINER/config.php'"
     log "behat_wwwroot corrigido para '$BEHAT_WWWROOT'. Forçando reinicialização do Behat..."
     INIT_FLAG="yes"
 fi
@@ -211,8 +253,9 @@ BEHAT_YML="$BEHAT_DATAROOT/behat/behat.yml"
 
 if [ -n "$INIT_FLAG" ]; then
     log "Reinicializando ambiente Behat (--init)..."
-    exec_as_moodle "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util_single_run.php' --drop 2>&1 || true"
-    exec_as_moodle "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
+    ensure_legacy_composer_for_behat_init
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util_single_run.php' --drop 2>&1 || true"
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
     log "Behat reinicializado."
 
 elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
@@ -222,7 +265,8 @@ elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
     MOODLE_HOST_DIR="$DOCKER_COMPOSE_DIR/$MOODLE_LOCAL_SITE"
     chmod a+w "$MOODLE_HOST_DIR"
 
-    exec_as_moodle "php '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
+    ensure_legacy_composer_for_behat_init
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
     log "Behat inicializado com sucesso."
 else
     log "Ambiente Behat já inicializado."

@@ -1202,6 +1202,8 @@ class LtiPortfolioQuery {
             $model->coursemoduleid = $atividade->coursemoduleid;
 
             $model->grade_tcc = $r->tcc->grade;
+            $model->status = array();
+            $model->state_date = array();
 
             // Processando capítulos encontrados
             foreach ($chapters as $chapter) {

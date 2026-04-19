@@ -127,9 +127,9 @@ Background:
     | relationship_group3 | relationship1 |
 
   And instance the tag "grupo_tutoria" at relationship "relationship1"
-  And add created cohorts at relationship "relationship1" on relationship_groups "relationship_group1"
-  And add created cohorts at relationship "relationship1" on relationship_groups "relationship_group2"
-  And add created cohorts at relationship "relationship1" on relationship_groups "relationship_group3"
+  And add created cohorts at relationship "relationship1"
+  And add created cohorts at relationship "relationship1"
+  And add created cohorts at relationship "relationship1"
 
   And the following users belongs to the relationship group as "relationship_members":
     | user      | group               |

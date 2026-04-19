@@ -53,11 +53,24 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function build_page() {
+        global $USER;
         /** @var $report report_unasus_factory */
         $report = report_unasus_factory::singleton();
 
         $output = $this->default_header();
         $output .= $this->build_filter();
+
+        // Se o usuário conectado tiver a permissão de visualizar como tutor apenas,
+        // alteramos o que vai ser enviado para o filtro de tutor.
+        if (has_capability('report/unasus:view_tutoria', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->tutores_selecionados = self::get_grupos_tutoria_byuser_id($report, $USER->id);
+        }
+
+        // Se o usuário conectado tiver a permissão de visualizar como orientador apenas,
+        // alteramos o que vai ser enviado para o filtro de orientador.
+        if (has_capability('report/unasus:view_orientacao', $report->get_context()) && !has_capability('report/unasus:view_all', $report->get_context())) {
+            $report->orientadores_selecionados = self::get_grupos_orientacao_byuser_id($report, $USER->id);
+        }
 
         if ($report->mostrar_aviso_intervalo_tempo) {
             $output .= $this->build_warning('Intervalo de Tempo incorreto ou Formato de data inválido ');

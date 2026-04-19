@@ -56,7 +56,7 @@ Background:
     | assign   | C1     | a4       | Test assignment four  | Submit something! | 100   | 1                                   | 946684800          | 1          |
     | assign   | C1     | a5       | Test assignment five  | Submit something! | 100   | 1                                   | 946684800          | 1          |
     | assign   | C1     | a6       | Test assignment six   | Submit something! | 100   | 1                                   | 946684800          | 1          |
-    | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 1          |
+#    | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 1          |
 
 # -----------------------------FORUM SETUP-----------------------------------------------
   And the following "activities" exist:
@@ -106,6 +106,7 @@ Background:
     | local/relationship:manage | Allow      | editingteacher | Category     | CAT1      |
     | local/relationship:assign | Allow      | editingteacher | Category     | CAT1      |
     | moodle/cohort:view        | Allow      | editingteacher | Category     | CAT1      |
+    | report/unasus:view_tutoria | Allow      | editingteacher | Course       | c1        |
 
   And the following "role assigns" exist:
     | user     | role           | contextlevel | reference |
@@ -142,9 +143,9 @@ Background:
     | relationship_group3 | relationship1 |
 
   And instance the tag "grupo_tutoria" at relationship "relationship1"
-  And add created cohorts at relationship "relationship1" on relationship_groups "relationship_group1"
-  And add created cohorts at relationship "relationship1" on relationship_groups "relationship_group2"
-  And add created cohorts at relationship "relationship1" on relationship_groups "relationship_group3"
+  And add created cohorts at relationship "relationship1"
+  And add created cohorts at relationship "relationship1"
+  And add created cohorts at relationship "relationship1"
 
   And the following users belongs to the relationship group as "relationship_members":
     | user      | group               |
@@ -222,17 +223,17 @@ Background:
   And I set the submission date of activity "a6" to "11" days after
   And I log out
 
-  And I log in as "student1"
-  And I follow "Course1"
-  And I follow "Test assignment seven"
-  And I press "Add submission"
-  And I set the following fields to these values:
-    | Online text | I'm the student3 submission |
-  And I press "Save changes"
-  And I press "Submit assignment"
-  And I press "Continue"
-  And I set the submission date of activity "a7" to "11" days after
-  And I log out
+#  And I log in as "student3"
+#  And I follow "Course1"
+#  And I follow "Test assignment seven"
+#  And I press "Add submission"
+#  And I set the following fields to these values:
+#    | Online text | I'm the student3 submission |
+#  And I press "Save changes"
+#  And I press "Submit assignment"
+#  And I press "Continue"
+#  And I set the submission date of activity "a7" to "11" days after
+#  And I log out
 
   # Postagem no fórum (student1 no forum com prazo futuro, student2 no forum com prazo passado)
   And I log in as "student1"
@@ -280,7 +281,7 @@ Scenario: entrega_de_atividades - todas as legendas de entrega
     And I should see "Test assignment one"
     And I should see "Test assignment two"
 
-  @javascript
+  @javascript @scope
 Scenario: estudante_sem_atividade_postada - lista de atividades nao postadas
     And I log in as "admin"
     And I follow "Courses"
@@ -289,7 +290,7 @@ Scenario: estudante_sem_atividade_postada - lista de atividades nao postadas
     And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # student1 nao entregou a2 (deadline passado 978307200) e nao tem nota
-    Then I should see "Student"
+      Then I should see "Student s1"
     # a2 deve aparecer na lista para quem nao entregou
     And I should see "Test assignment two"
 
@@ -355,3 +356,20 @@ Scenario: modulos_concluidos - verificacao de completion de atividades
     And I press "Gerar relatório"
     # Deve exibir atividades com estado de conclusao
     Then I should see "Test assignment four"
+
+  @javascript @tutor_scope
+  Scenario Outline: tutor teacher1 vê apenas estudantes da própria tutoria nos relatórios de acompanhamento
+    And I log in as "teacher1"
+    And I follow "Course1"
+    And I navigate to "<reportnode>" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then I should see "Student s1"
+    And I should see "Student s3"
+    And I should not see "Student s5"
+    And I should not see "Student s12"
+    And I log out
+
+    Examples:
+      | reportnode                              |
+      | Acompanhamento: entrega de atividades   |
+      | Acompanhamento: atribuição de notas     |

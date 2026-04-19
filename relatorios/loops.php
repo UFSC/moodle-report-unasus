@@ -251,9 +251,11 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                         $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
                         foreach ($result as $l) {
-                            $data = new report_unasus_data_lti_tcc($atividade, $l);
-                            // $group_array_do_grupo->add_exclusive($l->userid, $data);
-                            $group_array_do_grupo->add($l->userid, $data);
+                            if (!isset($l->not_found)) {
+                                $data = new report_unasus_data_lti_tcc($atividade, $l);
+                                // $group_array_do_grupo->add_exclusive($l->userid, $data);
+                                $group_array_do_grupo->add($l->userid, $data);
+                            }
                         }
                         break;
                 }
