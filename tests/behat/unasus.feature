@@ -357,6 +357,19 @@ Scenario: modulos_concluidos - verificacao de completion de atividades
     # Deve exibir atividades com estado de conclusao
     Then I should see "Test assignment four"
 
+  @javascript
+Scenario: atividades_concluidas_agrupadas - geracao do relatorio por modulo
+    And I mark activity "a4" as complete for user "student1"
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Sintese: atividades concluidas agrupadas" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then I should see "N° Alunos com atividades concluídas"
+    And I should see "Course1"
+    And I should see "Total alunos com atividade concluida / Total alunos"
+
   @javascript @tutor_scope
   Scenario Outline: tutor teacher1 vê apenas estudantes da própria tutoria nos relatórios de acompanhamento
     And I log in as "teacher1"
