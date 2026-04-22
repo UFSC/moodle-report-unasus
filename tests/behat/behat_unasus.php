@@ -821,6 +821,92 @@ EOD;
     }
 
     /**
+     * Inserts deterministic rows into logstore_standard_log for tutor report tests.
+     *
+     * Table columns: username, course, datetime, action
+     *   - username: Moodle username
+     *   - course: course shortname/fullname/idnumber or numeric id
+     *   - datetime: any strtotime()-compatible value (e.g. 2026-03-10 10:00:00)
+     *   - action: log action (e.g. viewed, updated). For "uso_sistema_tutor",
+     *             use non-login/non-logout actions.
+     *
+     * @Given /^the following tutor report logs exist:$/
+     */
+    public function the_following_tutor_report_logs_exist(\Behat\Gherkin\Node\TableNode $data) {
+        global $DB;
+
+        $required = array('username', 'course', 'datetime', 'action');
+        foreach ($data->getHash() as $row) {
+            foreach ($required as $field) {
+                if (!array_key_exists($field, $row)) {
+                    throw new Exception('tutor report logs step requires column: ' . $field);
+                }
+            }
+
+            $userid = $DB->get_field('user', 'id', array('username' => trim($row['username'])), MUST_EXIST);
+            $courseid = $this->resolve_course_id(trim($row['course']));
+            $context = context_course::instance($courseid);
+
+            $timestamp = strtotime(trim($row['datetime']));
+            if ($timestamp === false) {
+                throw new Exception('Invalid datetime value for tutor report logs step: ' . $row['datetime']);
+            }
+
+            $record = new stdClass();
+            $record->eventname = '\\core\\event\\course_viewed';
+            $record->component = 'core';
+            $record->action = trim($row['action']);
+            $record->target = 'course';
+            $record->objecttable = 'course';
+            $record->objectid = $courseid;
+            $record->crud = 'r';
+            $record->edulevel = 2;
+            $record->contextid = $context->id;
+            $record->contextlevel = $context->contextlevel;
+            $record->contextinstanceid = $context->instanceid;
+            $record->userid = $userid;
+            $record->courseid = $courseid;
+            $record->relateduserid = null;
+            $record->anonymous = 0;
+            $record->other = null;
+            $record->timecreated = $timestamp;
+            $record->origin = 'web';
+            $record->ip = '127.0.0.1';
+            $record->realuserid = null;
+
+            $DB->insert_record('logstore_standard_log', $record);
+        }
+    }
+
+    /**
+     * Resolves a course id from numeric id, shortname, fullname or idnumber.
+     *
+     * @param string $courseidentifier
+     * @return int
+     * @throws Exception
+     */
+    private function resolve_course_id($courseidentifier) {
+        global $DB;
+
+        if (is_numeric($courseidentifier)) {
+            $course = $DB->get_record('course', array('id' => (int) $courseidentifier), 'id');
+            if ($course) {
+                return (int) $course->id;
+            }
+        }
+
+        $fields = array('shortname', 'fullname', 'idnumber');
+        foreach ($fields as $field) {
+            $courseid = $DB->get_field('course', 'id', array($field => $courseidentifier));
+            if ($courseid) {
+                return (int) $courseid;
+            }
+        }
+
+        throw new Exception('Course not found for identifier: ' . $courseidentifier);
+    }
+
+    /**
      * Resets TCC mock responses after each scenario tagged @tcc so that
      * mock state does not leak into subsequent scenarios.
      *
