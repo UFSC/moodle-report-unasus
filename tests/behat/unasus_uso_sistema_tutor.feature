@@ -59,24 +59,16 @@ Background:
     | tutor1 | editingteacher | Category     | CAT1      |
     | tutor2 | editingteacher | Category     | CAT1      |
 
-  And I add the user "tutor1" with cohort "teacher" to cohort members
-  And I add the user "tutor2" with cohort "teacher" to cohort members
-  And I add the user "student1" with cohort "student" to cohort members
-  And I add the user "student2" with cohort "student" to cohort members
+  And the following users are added to cohorts:
+    | user     | cohort  |
+    | tutor1   | teacher |
+    | tutor2   | teacher |
+    | student1 | student |
+    | student2 | student |
 
-  And the following relationship "relationships" exist:
-    | name          | category |
-    | relationship1 | CAT1     |
+  And a basic unasus tutoria environment exists:
 
-  And the following relationship group "relationship_groups" exist:
-    | name                | relationship  |
-    | relationship_group1 | relationship1 |
-    | relationship_group2 | relationship1 |
-
-  And instance the tag "grupo_tutoria" at relationship "relationship1"
-  And add created cohorts at relationship "relationship1"
-
-  And the following users belongs to the relationship group as "relationship_members":
+  And the following tutoria memberships exist:
     | user     | group               |
     | tutor1   | relationship_group1 |
     | student1 | relationship_group1 |

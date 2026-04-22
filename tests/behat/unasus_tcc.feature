@@ -102,41 +102,30 @@ Background:
     | teacher3 | advisor | Category     | CAT1      |
 
   # Each user type in exactly one cohort (prevents duplicate relationship_cohort entries)
-  And I add the user "teacher1" with cohort "advisor" to cohort members
-  And I add the user "teacher2" with cohort "advisor" to cohort members
-  And I add the user "teacher3" with cohort "advisor" to cohort members
-  And I add the user "student1" with cohort "student" to cohort members
-  And I add the user "student2" with cohort "student" to cohort members
-  And I add the user "student3" with cohort "student" to cohort members
-  And I add the user "student4" with cohort "student" to cohort members
-  And I add the user "student5" with cohort "student" to cohort members
-  And I add the user "student6" with cohort "student" to cohort members
-  And I add the user "student7" with cohort "student" to cohort members
-  And I add the user "student8" with cohort "student" to cohort members
-  And I add the user "student9" with cohort "student" to cohort members
-  And I add the user "student10" with cohort "student" to cohort members
-  And I add the user "student11" with cohort "student" to cohort members
-  And I add the user "student12" with cohort "student" to cohort members
+  And the following users are added to cohorts:
+    | user      | cohort  |
+    | teacher1  | advisor |
+    | teacher2  | advisor |
+    | teacher3  | advisor |
+    | student1  | student |
+    | student2  | student |
+    | student3  | student |
+    | student4  | student |
+    | student5  | student |
+    | student6  | student |
+    | student7  | student |
+    | student8  | student |
+    | student9  | student |
+    | student10 | student |
+    | student11 | student |
+    | student12 | student |
 
   # Relationship tagged with both tags: grupo_tutoria (required by loops.php to find student cohort)
   # and grupo_orientacao (required by TCC reports to find orientation groups)
-  And the following relationship "relationships" exist:
-    | name          | category |
-    | relationship1 | CAT1     |
-
-  And the following relationship group "relationship_groups" exist:
-    | name                | relationship  |
-    | relationship_group1 | relationship1 |
-    | relationship_group2 | relationship1 |
-    | relationship_group3 | relationship1 |
-
-  And instance the tag "grupo_tutoria" at relationship "relationship1"
+  And a basic unasus tutoria environment exists:
   And instance the tag "grupo_orientacao" at relationship "relationship1"
 
-  # Registers advisor and student cohorts as relationship_cohorts (one role per cohort)
-  And add created cohorts at relationship "relationship1"
-
-  And the following users belongs to the relationship group as "relationship_members":
+  And the following tutoria memberships exist:
     | user      | group               |
     | teacher1  | relationship_group1 |
     | student1  | relationship_group1 |

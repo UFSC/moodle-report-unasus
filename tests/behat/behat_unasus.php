@@ -50,6 +50,9 @@ EOD;
     );
 
     /**
+     * Legacy generic step kept for backward compatibility.
+     * Prefer using "a basic unasus tutoria environment exists" when applicable.
+     *
      * @Given /^the following relationship "(?P<element_string>(?:[^"]|\\")*)" exist:$/
      * @throws Exception
      * @throws PendingException
@@ -60,6 +63,9 @@ EOD;
     }
 
     /**
+     * Legacy generic step kept for backward compatibility.
+     * Prefer using "a basic unasus tutoria environment exists" when applicable.
+     *
      * @Given /^the following relationship group "(?P<element_string>(?:[^"]|\\")*)" exist:$/
      * @throws Exception
      * @throws PendingException
@@ -70,6 +76,9 @@ EOD;
     }
 
     /**
+     * Legacy generic step kept for backward compatibility.
+     * Prefer using "the following tutoria memberships exist".
+     *
      * @Given /^the following users belongs to the relationship group as "(?P<element_string>(?:[^"]|\\")*)":$/
      * @throws Exception
      * @throws PendingException
@@ -393,6 +402,136 @@ EOD;
     }
 
     /**
+     * Composite setup step for the default tutoria relationship structure.
+     * This step is preferred in new scenarios to reduce repeated setup blocks.
+     *
+     * @Given /^a basic unasus tutoria environment exists:$/
+     */
+    public function a_basic_unasus_tutoria_environment_exists() {
+        $this->ensure_relationship_exists('relationship1', 'CAT1');
+        $this->ensure_relationship_group_exists('relationship_group1', 'relationship1');
+        $this->ensure_relationship_group_exists('relationship_group2', 'relationship1');
+        $this->ensure_relationship_group_exists('relationship_group3', 'relationship1');
+        $this->ensure_relationship_tag_exists('grupo_tutoria', 'relationship1');
+        $this->add_created_cohorts_at_relationship('relationship1');
+    }
+
+    /**
+     * Composite setup step to add multiple users to cohorts.
+     * Columns: user, cohort
+     *
+     * @Given /^the following users are added to cohorts:$/
+     */
+    public function the_following_users_are_added_to_cohorts(\Behat\Gherkin\Node\TableNode $data) {
+        foreach ($data->getHash() as $row) {
+            if (!isset($row['user']) || !isset($row['cohort'])) {
+                throw new \Exception('Step requires columns: user, cohort');
+            }
+            $this->i_add_user_to_cohort_members($row['user'], $row['cohort']);
+        }
+    }
+
+    /**
+     * Composite setup step for standard tutoria memberships.
+     * Columns: user, group
+     *
+     * @Given /^the following tutoria memberships exist:$/
+     */
+    public function the_following_tutoria_memberships_exist(\Behat\Gherkin\Node\TableNode $data) {
+        foreach ($data->getHash() as $row) {
+            if (!isset($row['user']) || !isset($row['group'])) {
+                throw new \Exception('Step requires columns: user, group');
+            }
+            $this->create_relationship_members(array(
+                'user' => $row['user'],
+                'group' => $row['group'],
+            ));
+        }
+    }
+
+    /**
+     * Ensures a relationship exists and is mapped in the local cache.
+     *
+     * @param string $relationshipname
+     * @param string $categoryidnumber
+     * @return int
+     */
+    private function ensure_relationship_exists($relationshipname, $categoryidnumber) {
+        global $DB;
+
+        $existing = $DB->get_record('relationship', array('name' => $relationshipname), 'id');
+        if ($existing) {
+            $this->relationships[$relationshipname] = (int) $existing->id;
+            return (int) $existing->id;
+        }
+
+        $contextid = $this->get_category_id($categoryidnumber);
+        $relationship = $this->create_relationship(array(
+            'name' => $relationshipname,
+            'contextid' => $contextid,
+        ));
+
+        return (int) $relationship->id;
+    }
+
+    /**
+     * Ensures a relationship group exists for a relationship.
+     *
+     * @param string $groupname
+     * @param string $relationshipname
+     * @return int
+     */
+    private function ensure_relationship_group_exists($groupname, $relationshipname) {
+        global $DB;
+
+        $relationshipid = $this->get_relationship_id($relationshipname);
+        $existing = $DB->get_record('relationship_groups', array(
+            'name' => $groupname,
+            'relationshipid' => $relationshipid,
+        ), 'id');
+
+        if ($existing) {
+            return (int) $existing->id;
+        }
+
+        $group = $this->create_relationship_groups(array(
+            'name' => $groupname,
+            'relationshipid' => $relationshipid,
+        ));
+
+        return (int) $group->id;
+    }
+
+    /**
+     * Ensures a tag instance exists for a relationship.
+     *
+     * @param string $tag
+     * @param string $relationshipname
+     */
+    private function ensure_relationship_tag_exists($tag, $relationshipname) {
+        global $DB;
+
+        $relationshipid = $DB->get_field('relationship', 'id', array('name' => $relationshipname), MUST_EXIST);
+        $tagid = $DB->get_field('tag', 'id', array('name' => $tag));
+
+        if ($tagid) {
+            $taginstance = $DB->get_record('tag_instance', array(
+                'tagid' => $tagid,
+                'itemtype' => 'relationship',
+                'itemid' => $relationshipid,
+            ), 'id');
+            if ($taginstance) {
+                return;
+            }
+        }
+
+        $this->instance_the_tag_at_relationship($tag, $relationshipname);
+    }
+
+    /**
+     * Legacy step kept for backward compatibility.
+     * Prefer using "the following users are added to cohorts".
+     *
      * Adds the user to the specified cohort.
      * Obs: Ao adicionar o usuário ao grupo de cohort, automaticamente é adicionado o usuário
      * aos respectivos grupos de tutoria.
