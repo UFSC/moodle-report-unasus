@@ -30,6 +30,7 @@ MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
 DOCKER_NETWORK="moodle-network-php56"
 BEHAT_PREFIX="bht_"
 BEHAT_DATAROOT="/home/moodle/moodledata/behat_$SISTEM_NAME"
+BEHAT_TOGGLE_FILE="/home/moodle/moodledata/$SISTEM_NAME/.enable_behat"
 BEHAT_WWWROOT="http://$URL_NAME"
 PLUGIN_COMPONENT="report_unasus"
 PLUGIN_TAG="@report_unasus"
@@ -59,11 +60,32 @@ container_is_running() {
 }
 
 exec_as_moodle() {
-    sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
+    sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "export MOODLE_ENABLE_BEHAT=1; $1"
 }
 
 exec_php_as_moodle_for_init() {
-    sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
+    sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "export MOODLE_ENABLE_BEHAT=1; $1"
+}
+
+exec_as_root() {
+    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "export MOODLE_ENABLE_BEHAT=1; $1"
+}
+
+enable_behat_mode() {
+    log "Ativando modo Behat..."
+    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "set -e
+        mkdir -p '$(dirname "$BEHAT_TOGGLE_FILE")'
+        touch '$BEHAT_TOGGLE_FILE'
+        chown moodle:moodle '$BEHAT_TOGGLE_FILE'
+        chmod 664 '$BEHAT_TOGGLE_FILE'
+    "
+}
+
+disable_behat_mode() {
+    if container_is_running "$CONTAINER_NAME"; then
+        log "Desativando modo Behat..."
+        sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "rm -f '$BEHAT_TOGGLE_FILE'" || true
+    fi
 }
 
 ensure_legacy_composer_for_behat_init() {
@@ -132,6 +154,10 @@ else
         err "Falha ao iniciar '$CONTAINER_NAME'. Verifique: sudo docker compose logs $CONTAINER_NAME"
 fi
 
+# Mantém o site em modo Behat apenas durante esta execução.
+enable_behat_mode
+trap disable_behat_mode EXIT
+
 # ---------------------------------------------------------------------------
 # 2. Garantir que o container Selenium está rodando
 # ---------------------------------------------------------------------------
@@ -181,33 +207,88 @@ log "Selenium resolve '$URL_NAME' -> $MOODLE_IP."
 log "Verificando configuração Behat no config.php..."
 
 BEHAT_CONFIGURED=$(exec_as_moodle "
-    grep -v '^[[:space:]]*//' '$MOODLE_ROOT_IN_CONTAINER/config.php' | \
-    grep -q 'behat_prefix' && echo yes || echo no
+    CFG_FILE='$MOODLE_ROOT_IN_CONTAINER/config.php'
+    HAS_PREFIX=\$(grep -Ev '^[[:space:]]*(//|#)' \"\$CFG_FILE\" | grep -Eq '^[[:space:]]*\\\$CFG->behat_prefix[[:space:]]*=' && echo yes || echo no)
+    HAS_DATAROOT=\$(grep -Ev '^[[:space:]]*(//|#)' \"\$CFG_FILE\" | grep -Eq '^[[:space:]]*\\\$CFG->behat_dataroot[[:space:]]*=' && echo yes || echo no)
+    HAS_WWWROOT=\$(grep -Ev '^[[:space:]]*(//|#)' \"\$CFG_FILE\" | grep -Eq '^[[:space:]]*\\\$CFG->behat_wwwroot[[:space:]]*=' && echo yes || echo no)
+    if [ \"\$HAS_PREFIX\" = \"yes\" ] && [ \"\$HAS_DATAROOT\" = \"yes\" ] && [ \"\$HAS_WWWROOT\" = \"yes\" ]; then
+        echo yes
+    else
+        echo no
+    fi
 " 2>/dev/null || echo "no")
 
 if [ "$BEHAT_CONFIGURED" != "yes" ]; then
-    warn "Behat não configurado no config.php. Adicionando configurações..."
+    warn "Behat incompleto no config.php. Adicionando configurações obrigatórias..."
 
-    exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
+    exec_as_root "mkdir -p '$BEHAT_DATAROOT'
+if ! chown -R moodle:moodle '$BEHAT_DATAROOT' 2>/dev/null; then
+    echo '[WARN] Sem permissão para chown em $BEHAT_DATAROOT (bind mount). Continuando...'
+fi"
 
-    exec_as_moodle "sed -i \"/require_once.*lib\/setup\.php/i\\
-\\\$CFG->behat_wwwroot  = '$BEHAT_WWWROOT';\\
-\\\$CFG->behat_prefix   = '$BEHAT_PREFIX';\\
-\\\$CFG->behat_dataroot = '$BEHAT_DATAROOT';\\
-\\\$CFG->behat_config   = array(\\
-    'default' => array(\\
-        'extensions' => array(\\
-            'Behat\\\\\\\\MinkExtension\\\\\\\\Extension' => array(\\
-                'selenium2' => array(\\
-                    'browser'      => 'chrome',\\
-                    'capabilities' => array('chrome' => array('switches' => array('--no-sandbox', '--disable-dev-shm-usage'))),\\
-                    'wd_host'      => 'http://$SELENIUM_CONTAINER:4444/wd/hub',\\
-                ),\\
-            ),\\
-        ),\\
-    ),\\
+    exec_as_moodle "set -e
+CFG_FILE='$MOODLE_ROOT_IN_CONTAINER/config.php'
+TMP1=\$(mktemp)
+TMP2=\$(mktemp)
+
+# 1) Remove definições antigas de behat_* e bloco behat_config para evitar duplicação.
+awk '
+BEGIN { skip = 0 }
+{
+    if (skip == 1) {
+        if (\$0 ~ /^[[:space:]]*\\);[[:space:]]*$/) {
+            skip = 0
+        }
+        next
+    }
+    if (\$0 ~ /^[[:space:]]*\\\$CFG->behat_config[[:space:]]*=/) {
+        skip = 1
+        next
+    }
+    if (\$0 ~ /^[[:space:]]*\\\$CFG->behat_(wwwroot|prefix|dataroot)[[:space:]]*=/) {
+        next
+    }
+    print
+}
+' \"\$CFG_FILE\" > \"\$TMP1\"
+
+# 2) Insere bloco novo antes do require lib/setup.php (ou no fim, se não achar).
+awk -v block=\"\\\$CFG->behat_wwwroot  = '$BEHAT_WWWROOT';
+\\\$CFG->behat_prefix   = '$BEHAT_PREFIX';
+\\\$CFG->behat_dataroot = '$BEHAT_DATAROOT';
+\\\$CFG->behat_config   = array(
+    'default' => array(
+        'extensions' => array(
+            'Behat\\\\MinkExtension\\\\Extension' => array(
+                'selenium2' => array(
+                    'browser'      => 'chrome',
+                    'capabilities' => array('chrome' => array('switches' => array('--no-sandbox', '--disable-dev-shm-usage'))),
+                    'wd_host'      => 'http://$SELENIUM_CONTAINER:4444/wd/hub',
+                ),
+            ),
+        ),
+    ),
 );
-\" '$MOODLE_ROOT_IN_CONTAINER/config.php'"
+\" '
+BEGIN { inserted = 0 }
+{
+    if (!inserted && \$0 ~ /require_once.*lib\\/setup\\.php/) {
+        print block
+        inserted = 1
+    }
+    print
+}
+END {
+    if (!inserted) {
+        print \"\"
+        print block
+    }
+}
+' \"\$TMP1\" > \"\$TMP2\"
+
+mv \"\$TMP2\" \"\$CFG_FILE\"
+rm -f \"\$TMP1\"
+"
 
     log "Configurações Behat adicionadas ao config.php."
 fi
@@ -231,6 +312,31 @@ if [ "$BEHAT_CONFIG_STALE" = "yes" ]; then
         file_put_contents('$MOODLE_ROOT_IN_CONTAINER/config.php', \\\$f);
     \""
     log "config.php corrigido. Forçando reinicialização do Behat..."
+    INIT_FLAG="yes"
+fi
+
+# Detectar chave quebrada da extensão Mink no behat_config (ex.: BehatMinkExtensionExtension)
+BEHAT_MINK_EXT_BROKEN=$(exec_as_moodle "
+    grep -q \"BehatMinkExtensionExtension\\|'Behat\\\\MinkExtension\\\\Extension'\" '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no
+" 2>/dev/null || echo "no")
+
+if [ "$BEHAT_MINK_EXT_BROKEN" = "yes" ]; then
+    warn "Chave da extensão Mink no behat_config está inválida. Corrigindo config.php..."
+    exec_as_moodle "php -r \"
+        \\\$file = '$MOODLE_ROOT_IN_CONTAINER/config.php';
+        \\\$f = file_get_contents(\\\$file);
+        \\\$f = preg_replace(
+            array(
+                '/\\x27BehatMinkExtensionExtension\\x27\\s*=>/',
+                '/\\x27Behat\\\\\\\\MinkExtension\\\\\\\\Extension\\x27\\s*=>/',
+                '/\\x27Behat\\\\MinkExtension\\\\Extension\\x27\\s*=>/'
+            ),
+            '\\\\\\\\Behat\\\\\\\\MinkExtension\\\\\\\\Extension::class =>',
+            \\\$f
+        );
+        file_put_contents(\\\$file, \\\$f);
+    \""
+    log "Chave MinkExtension corrigida. Forçando reinicialização do Behat..."
     INIT_FLAG="yes"
 fi
 

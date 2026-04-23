@@ -1,4 +1,4 @@
- @unasus @report_unasus @javascript @tcc
+ @unasus @report_unasus @tcc
 Feature: Relatórios TCC UNA-SUS
   Para acompanhar o progresso dos estudantes nos trabalhos de conclusão de curso
   Como orientador ou coordenador
@@ -210,6 +210,25 @@ Background:
     And I should see "Capítulo 1"
     And I should see "Capítulo 2"
     And I should see "Total por curso"
+
+  Scenario: tcc_consolidado exporta CSV com dados esperados
+    Given the TCC webservice returns student data:
+      | username | chapter_position | state | state_date |
+      | student1 | 0                | done  | 2024-01-01 |
+      | student1 | 1                | done  | 2024-01-10 |
+      | student2 | 0                | done  | 2024-01-01 |
+      | student2 | 1                | draft | 2024-01-05 |
+      | student5 | 0                | null  |            |
+      | student5 | 1                | null  |            |
+    And I log in as "admin"
+    And I export the unasus report "tcc_consolidado" as csv for course "c1" with params:
+      | name       | value       |
+      | modulos[0] | courseid:c1 |
+    Then the exported unasus csv should contain "Resumo"
+    And the exported unasus csv should contain "Capítulo 1"
+    And the exported unasus csv should have a row containing:
+      | value      |
+      | Teacher t1 |
 
   @javascript @advisor_scope
   Scenario Outline: orientador teacher1 vê apenas estudantes do próprio grupo de orientação nos relatórios TCC

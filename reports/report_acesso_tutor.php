@@ -39,10 +39,8 @@ class report_acesso_tutor extends report_unasus_factory {
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
@@ -52,7 +50,7 @@ class report_acesso_tutor extends report_unasus_factory {
         $data_header = array('Tutores');
         $first_line = array('');
 
-        $months = array_map("Factory::eliminate_html", array_keys($header));
+        $months = array_map("report_unasus_factory::eliminate_html", array_keys($header));
         $count = 0;
 
         foreach ($header as $h) {
@@ -76,7 +74,7 @@ class report_acesso_tutor extends report_unasus_factory {
 
         foreach ($dados as $dat) {
             foreach ($dat as $d) {
-                $output = array_map("Factory::eliminate_html", $d);
+                $output = array_map("report_unasus_factory::eliminate_html", $d);
                 fputcsv($fp, $output);
             }
         }

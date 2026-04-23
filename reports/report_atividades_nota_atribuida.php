@@ -28,20 +28,39 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
+        $headertotalalunos = get_string('column_aluno_atividade_concluida', 'report_unasus');
 
         $fp = fopen('php://output', 'w');
 
         $data_header = array('Tutores');
         $first_line = array('');
 
-        foreach ($header as $h) {
+        foreach ($header as $headername => $h) {
+            // Mantém o cabeçalho de 2 níveis igual à tabela HTML:
+            // linha 1 = grupo ("N° Alunos com atividades concluídas"),
+            // linha 2 = coluna ("Total").
+            if ($headername === $headertotalalunos) {
+                $first_line[] = $headername;
+                $n = count($h);
+                for ($i = 0; $i < $n; $i++) {
+                    $item = $h[$i];
+                    if (is_object($item) && isset($item->name)) {
+                        $data_header[] = $item->name;
+                    } else {
+                        $data_header[] = (string) $item;
+                    }
+                    if ($i < $n - 1) {
+                        $first_line[] = '';
+                    }
+                }
+                continue;
+            }
+
             if (isset($h[0]->course_name)) {
                 $course_name = $h[0]->course_name;
                 $first_line[] = $course_name;
@@ -57,19 +76,14 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                     $first_line[] = '';
                 } else
                     continue;
-
-                if ($i == $n - 2) {
-                    $data_header[] = 'Atividades Concluídas';
-                }
             }
         }
-        $data_header[] = 'N° Alunos com atividades concluídas';
 
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
         foreach ($dados as $d) {
-            $output = array_map("Factory::eliminate_html", $d);
+            $output = array_map("report_unasus_factory::eliminate_html", $d);
             fputcsv($fp, $output);
         }
         fclose($fp);

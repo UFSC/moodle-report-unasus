@@ -11,6 +11,9 @@ class behat_unasus extends behat_base
     protected $relationship_groupscount = 0;
     protected $relationship_memberscount = 0;
     protected $relationships = array();
+    protected $last_unasus_error_message = '';
+    protected $last_unasus_csv_content = '';
+    protected $last_unasus_csv_rows = array();
     protected $loremipsum = <<<EOD
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nulla non arcu lacinia neque faucibus fringilla. Vivamus porttitor turpis ac leo. Integer in sapien. Nullam eget nisl. Aliquam erat volutpat. Cras elementum. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Integer malesuada. Nullam lectus justo, vulputate eget mollis sed, tempor sed magna. Mauris elementum mauris vitae tortor. Aliquam erat volutpat.
 Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Pellentesque ipsum. Cras pede libero, dapibus nec, pretium sit amet, tempor quis. Aliquam ante. Proin in tellus sit amet nibh dignissim sagittis. Vivamus porttitor turpis ac leo. Duis bibendum, lectus ut viverra rhoncus, dolor nunc faucibus libero, eget facilisis enim ipsum id lacus. In sem justo, commodo ut, suscipit at, pharetra vitae, orci. Aliquam erat volutpat. Nulla est.
@@ -1015,6 +1018,217 @@ EOD;
 
             $DB->insert_record('logstore_standard_log', $record);
         }
+    }
+
+    /**
+     * Opens a UNA-SUS report URL directly (without navigating from course menu).
+     *
+     * @When /^I open the unasus report "([^"]*)" directly for course "([^"]*)"$/
+     * @param string $reportname
+     * @param string $courseidentifier
+     */
+    public function i_open_the_unasus_report_directly_for_course($reportname, $courseidentifier) {
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $url = new moodle_url('/report/unasus/index.php', array(
+            'relatorio' => trim($reportname),
+            'course' => $courseid,
+        ));
+
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+    }
+
+    /**
+     * Attempts to open a UNA-SUS report URL directly and captures permission errors.
+     *
+     * @When /^I try to open the unasus report "([^"]*)" directly for course "([^"]*)"$/
+     * @param string $reportname
+     * @param string $courseidentifier
+     */
+    public function i_try_to_open_the_unasus_report_directly_for_course($reportname, $courseidentifier) {
+        $this->last_unasus_error_message = '';
+
+        try {
+            $this->i_open_the_unasus_report_directly_for_course($reportname, $courseidentifier);
+        } catch (\Throwable $e) {
+            $this->last_unasus_error_message = $e->getMessage();
+        }
+    }
+
+    /**
+     * Asserts that a permission error was captured while opening UNA-SUS report directly.
+     *
+     * @Then /^I should have a unasus permission error$/
+     */
+    public function i_should_have_a_unasus_permission_error() {
+        if (empty($this->last_unasus_error_message)) {
+            throw new \Exception('Expected a UNA-SUS permission error, but no exception was captured.');
+        }
+
+        $msg = mb_strtolower($this->last_unasus_error_message);
+        if (strpos($msg, 'permission') === false && strpos($msg, 'permiss') === false) {
+            throw new \Exception('Expected a permission-related error. Captured: ' . $this->last_unasus_error_message);
+        }
+    }
+
+    /**
+     * Exports any UNA-SUS report as CSV by direct URL and stores parsed CSV content.
+     * Table columns: name, value
+     *
+     * @When /^I export the unasus report "([^"]*)" as csv for course "([^"]*)" with params:$/
+     */
+    public function i_export_the_unasus_report_as_csv_for_course_with_params($reportname, $courseidentifier, \Behat\Gherkin\Node\TableNode $data) {
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $params = array(
+            'relatorio' => trim($reportname),
+            'course' => $courseid,
+            'modo_exibicao' => 'export_csv',
+        );
+
+        foreach ($data->getHash() as $row) {
+            if (!isset($row['name']) || !array_key_exists('value', $row)) {
+                throw new \Exception('Step requires columns: name, value');
+            }
+            $name = trim($row['name']);
+            $value = trim($row['value']);
+
+            // Allow stable feature params that depend on runtime ids.
+            // value "courseid:<courseidentifier>" resolves to course id.
+            if (strpos($value, 'courseid:') === 0) {
+                $courseidentifier = substr($value, 9);
+                $value = (string) $this->resolve_course_id($courseidentifier);
+            }
+
+            // value "cmid:<activityidnumber>" resolves to course module id.
+            if (strpos($value, 'cmid:') === 0) {
+                $activityidnumber = substr($value, 5);
+                $value = (string) $this->resolve_course_module_id_by_activity_idnumber($courseid, $activityidnumber);
+            }
+
+            $params[$name] = $value;
+        }
+
+        $url = new moodle_url('/report/unasus/index.php', $params);
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+
+        $content = $this->getSession()->getPage()->getContent();
+        $this->last_unasus_csv_content = (string) $content;
+        $this->last_unasus_csv_rows = $this->parse_unasus_csv_rows($this->last_unasus_csv_content);
+    }
+
+    /**
+     * Resolves course_modules.id from an activity idnumber within a course.
+     *
+     * @param int $courseid
+     * @param string $activityidnumber
+     * @return int
+     * @throws Exception
+     */
+    private function resolve_course_module_id_by_activity_idnumber($courseid, $activityidnumber) {
+        global $DB;
+
+        // Most Moodle generators store activity idnumber on course_modules.
+        $cmid = $DB->get_field('course_modules', 'id', array(
+            'course' => $courseid,
+            'idnumber' => $activityidnumber,
+        ));
+        if ($cmid) {
+            return (int) $cmid;
+        }
+
+        // Fallback: try to resolve by module instance table idnumber.
+        $modules = $DB->get_records('modules', null, '', 'id,name');
+        foreach ($modules as $module) {
+            $table = $module->name;
+            if (!$DB->get_manager()->table_exists($table)) {
+                continue;
+            }
+
+            if (!$DB->get_manager()->field_exists($table, 'idnumber')) {
+                continue;
+            }
+
+            $instanceid = $DB->get_field($table, 'id', array('idnumber' => $activityidnumber));
+            if (!$instanceid) {
+                continue;
+            }
+
+            $cmid = $DB->get_field('course_modules', 'id', array(
+                'course' => $courseid,
+                'module' => $module->id,
+                'instance' => $instanceid,
+            ));
+            if ($cmid) {
+                return (int) $cmid;
+            }
+        }
+
+        throw new Exception('Course module not found for activity idnumber: ' . $activityidnumber . ' (course ' . $courseid . ')');
+    }
+
+    /**
+     * Asserts raw exported CSV contains a given text.
+     *
+     * @Then /^the exported unasus csv should contain "([^"]*)"$/
+     */
+    public function the_exported_unasus_csv_should_contain($needle) {
+        if (strpos($this->last_unasus_csv_content, $needle) === false) {
+            throw new \Exception('CSV content does not contain expected text: ' . $needle);
+        }
+    }
+
+    /**
+     * Asserts at least one parsed CSV row contains all provided values.
+     * Single-column table header: value
+     *
+     * @Then /^the exported unasus csv should have a row containing:$/
+     */
+    public function the_exported_unasus_csv_should_have_a_row_containing(\Behat\Gherkin\Node\TableNode $data) {
+        $values = array();
+        foreach ($data->getHash() as $row) {
+            if (!isset($row['value'])) {
+                throw new \Exception('Step requires single column: value');
+            }
+            $values[] = trim($row['value']);
+        }
+
+        foreach ($this->last_unasus_csv_rows as $csvrow) {
+            $line = implode(' | ', $csvrow);
+            $ok = true;
+            foreach ($values as $value) {
+                if (strpos($line, $value) === false) {
+                    $ok = false;
+                    break;
+                }
+            }
+            if ($ok) {
+                return;
+            }
+        }
+
+        throw new \Exception('No CSV row found containing all expected values: ' . implode(', ', $values));
+    }
+
+    /**
+     * Parses CSV rows from a raw CSV string.
+     *
+     * @param string $content
+     * @return array
+     */
+    private function parse_unasus_csv_rows($content) {
+        $rows = array();
+        $lines = preg_split('/\r\n|\r|\n/', (string) $content);
+        foreach ($lines as $line) {
+            if ($line === '') {
+                continue;
+            }
+            $line = preg_replace('/^\xEF\xBB\xBF/', '', $line);
+            $parsed = str_getcsv($line);
+            if ($parsed === null) {
+                continue;
+            }
+            $rows[] = $parsed;
+        }
+        return $rows;
     }
 
     /**

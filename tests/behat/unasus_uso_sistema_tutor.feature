@@ -1,4 +1,4 @@
-@unasus @report_unasus @javascript @uso_sistema_tutor
+@unasus @report_unasus @uso_sistema_tutor
 Feature: Relatório UNA-SUS de uso do sistema pelo tutor com período fixo
   Para validar o relatório de horas de uso do tutor
   Como usuário com capability report/unasus:view_all
@@ -116,3 +116,33 @@ Background:
     And I log in as "tutor1"
     And I follow "Course1"
     Then I should not see "Uso do sistema pelo tutor (horas)"
+
+  @javascript
+  Scenario: uso_sistema_tutor exibe aviso para formato de data inválido
+    And I log in as "manager1"
+    And I follow "Course1"
+    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    And I set the field "data_inicio" to "2026-03-01"
+    And I set the field "data_fim" to "31/03/2026"
+    And I press "Gerar relatório"
+    Then I should not see "10/03/26"
+
+  @javascript
+  Scenario: uso_sistema_tutor exibe opção de exportar CSV para usuário com view_all
+    And I log in as "manager1"
+    And I follow "Course1"
+    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    Then I should see "Exportar para CSV"
+
+  Scenario: uso_sistema_tutor exporta CSV com conteúdo esperado
+    And I log in as "manager1"
+    And I export the unasus report "uso_sistema_tutor" as csv for course "c1" with params:
+      | name       | value      |
+      | data_inicio| 01/03/2026 |
+      | data_fim   | 31/03/2026 |
+    Then the exported unasus csv should contain "Tutores"
+    And the exported unasus csv should contain "Media"
+    And the exported unasus csv should contain "Total"
+    And the exported unasus csv should have a row containing:
+      | value     |
+      | Tutor One |

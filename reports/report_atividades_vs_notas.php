@@ -33,10 +33,8 @@ class report_atividades_vs_notas extends report_unasus_factory {
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
@@ -45,11 +43,6 @@ class report_atividades_vs_notas extends report_unasus_factory {
 
         $data_header = array('Estudante');
         $first_line = array('');
-        $tutor_name = array();
-
-        $name_tutor = array_map("Factory::eliminate_html", array_keys($dados));
-        $count = 0;
-        $n_names = count($name_tutor);
 
         foreach ($header as $h) {
             if (isset($h[0]->course_name)) {
@@ -73,18 +66,12 @@ class report_atividades_vs_notas extends report_unasus_factory {
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
-        foreach ($dados as $dat) {
-
-            if ($count < $n_names) {
-                file_put_contents('php://output', $name_tutor[$count]);
-                fputcsv($fp, $tutor_name);
-            }
+        foreach ($dados as $groupname => $dat) {
+            fputcsv($fp, array(report_unasus_factory::eliminate_html($groupname)));
             foreach ($dat as $d) {
-                $output = array_map("Factory::eliminate_html", $d);
+                $output = array_map("report_unasus_factory::eliminate_html", $d);
                 fputcsv($fp, $output);
             }
-
-            $count++;
         }
         fclose($fp);
     }

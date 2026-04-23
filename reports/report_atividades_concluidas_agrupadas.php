@@ -28,10 +28,8 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
@@ -69,7 +67,7 @@ class report_atividades_concluidas_agrupadas extends report_unasus_factory {
         fputcsv($fp, $data_header);
 
         foreach ($dados as $d) {
-            $output = array_map("Factory::eliminate_html", $d);
+            $output = array_map("report_unasus_factory::eliminate_html", $d);
             fputcsv($fp, $output);
         }
         fclose($fp);

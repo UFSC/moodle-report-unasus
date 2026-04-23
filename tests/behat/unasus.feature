@@ -1,4 +1,4 @@
- @unasus @report_unasus @javascript
+ @unasus @report_unasus
 Feature: Relatórios UNA-SUS: geração e visualização
   Para acompanhar o progresso dos estudantes no sistema UNA-SUS
   Como coordenador ou tutor
@@ -305,6 +305,27 @@ Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
     # Deve exibir tabela com tutores e atividades com avaliacoes pendentes
     Then I should see "Test assignment one"
 
+  Scenario: avaliacoes_em_atraso exporta CSV com dados esperados
+    And I log in as "admin"
+    And I export the unasus report "avaliacoes_em_atraso" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv should contain "Tutores"
+    And the exported unasus csv should contain "Média"
+    And the exported unasus csv should contain "Test assignment one"
+    And the exported unasus csv should have a row containing:
+      | value      |
+      | Teacher t1 |
+
+  Scenario: atividades_nota_atribuida exporta CSV com dados esperados
+    And I log in as "admin"
+    And I export the unasus report "atividades_nota_atribuida" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv should contain "Tutores"
+    And the exported unasus csv should contain "N° Alunos com atividades concluídas"
+    And the exported unasus csv should have a row containing:
+      | value      |
+      | Teacher t1 |
+
   @javascript
 Scenario: atividades_vs_notas - estados de entrega e nota
     And I log in as "admin"
@@ -322,6 +343,16 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     # a2 student1 sem envio, prazo passado -> nao entregue
     And I should see "não entregue"
 
+  Scenario: atividades_vs_notas exporta CSV com dados esperados
+    And I log in as "admin"
+    And I export the unasus report "atividades_vs_notas" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv should contain "Estudante"
+    And the exported unasus csv should contain "Test assignment two"
+    And the exported unasus csv should have a row containing:
+      | value      |
+      | Student s1 |
+
   @javascript
 Scenario: boletim - verificacao de notas
     And I set the grade of activity "a4" for user "student1" to "100"
@@ -333,6 +364,18 @@ Scenario: boletim - verificacao de notas
     And I press "Gerar relatório"
     # student1 tem nota 100 em a4 -> deve aparecer no boletim
     Then I should see "Test assignment four"
+
+  Scenario: boletim exporta CSV com dados esperados
+    And I set the grade of activity "a4" for user "student1" to "100"
+    And I log in as "admin"
+    And I export the unasus report "boletim" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv should contain "Estudante"
+    And the exported unasus csv should contain "Média Final"
+    And the exported unasus csv should contain "Test assignment four"
+    And the exported unasus csv should have a row containing:
+      | value      |
+      | Student s1 |
 
   @javascript
 Scenario: modulos_concluidos - verificacao de completion de atividades
