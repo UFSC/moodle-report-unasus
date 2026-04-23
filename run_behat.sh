@@ -32,6 +32,7 @@ DOCKER_NETWORK="moodle-network-php56"
 BEHAT_PREFIX="bht_"
 BEHAT_DATAROOT="/home/moodle/moodledata/behat_$SISTEM_NAME"
 BEHAT_WWWROOT="http://$URL_NAME"
+BEHAT_ENABLE_FILE="/tmp/.behat_${SISTEM_NAME}_enabled"
 PLUGIN_COMPONENT="report_unasus"
 PLUGIN_TAG="@report_unasus"
 MOODLE_ENABLE_BEHAT=1
@@ -77,6 +78,32 @@ exec_as_moodle() {
 exec_php_as_moodle_for_init() {
     sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
 }
+
+enable_behat_environment() {
+    log "Ativando configuração Behat para esta execução..."
+    exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && touch '$BEHAT_ENABLE_FILE' && rm -f '$BEHAT_DATAROOT/.behat_enabled'"
+}
+
+disable_behat_environment() {
+    if ! container_is_running "$CONTAINER_NAME"; then
+        return
+    fi
+
+    log "Desabilitando modo Behat para restaurar o ambiente local..."
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --disable 2>&1 || true"
+    exec_as_moodle "rm -f '$BEHAT_ENABLE_FILE' '$BEHAT_DATAROOT/.behat_enabled'"
+}
+
+ensure_behat_test_mode_enabled() {
+    log "Garantindo que o modo de testes do Behat esteja habilitado..."
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1"
+}
+
+cleanup() {
+    disable_behat_environment
+}
+
+trap cleanup EXIT
 
 ensure_legacy_composer_for_behat_init() {
     log "Preparando composer legado para inicialização do Behat..."
@@ -207,6 +234,11 @@ sudo docker exec -u 0 "$SELENIUM_CONTAINER" bash -c "TMP=/tmp/hosts.\$\$; grep -
 log "Selenium resolve '$URL_NAME' -> $MOODLE_IP."
 
 # ---------------------------------------------------------------------------
+# 3. Ativar configuração Behat no config.php para esta execução
+# ---------------------------------------------------------------------------
+enable_behat_environment
+
+# ---------------------------------------------------------------------------
 # 3. Configurar Behat no config.php (se ainda não configurado)
 # ---------------------------------------------------------------------------
 log "Verificando configuração Behat no config.php..."
@@ -331,6 +363,11 @@ elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
 else
     log "Ambiente Behat já inicializado."
 fi
+
+# ---------------------------------------------------------------------------
+# 5. Habilitar explicitamente o modo de testes antes da execução
+# ---------------------------------------------------------------------------
+ensure_behat_test_mode_enabled
 
 # ---------------------------------------------------------------------------
 # 5. Executar os testes
