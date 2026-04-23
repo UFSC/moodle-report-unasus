@@ -84,7 +84,7 @@ Background:
     | tutor1   | c1     | 2026-04-05 09:00:00 | viewed  |
     | tutor1   | c1     | 2026-04-05 09:31:00 | updated |
 
-  @javascript
+  @javascript @acesso_tutor
   Scenario: acesso_tutor com período fixo mostra tutores e estados de acesso no mês
     And I log in as "manager1"
     And I follow "Course1"
@@ -99,7 +99,7 @@ Background:
     And I should see "Sim"
     And I should see "Não"
 
-  @javascript
+  @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor com período fixo mostra colunas de média e total
     And I log in as "manager1"
     And I follow "Course1"
@@ -112,7 +112,7 @@ Background:
     And I should see "Media"
     And I should see "Total"
 
-  @javascript
+  @javascript @uso_sistema_tutor
   Scenario: logs fora de março não aparecem no cabeçalho quando o período é março de 2026
     And I log in as "manager1"
     And I follow "Course1"
@@ -124,7 +124,7 @@ Background:
     And I should see "15/03/26"
     And I should not see "05/04/26"
 
-  @javascript
+  @javascript @acesso_tutor @uso_sistema_tutor
   Scenario: usuário sem view_all não visualiza relatórios restritos de logs de tutor
     And I log in as "tutor1"
     And I follow "Course1"

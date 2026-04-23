@@ -149,6 +149,10 @@ class report_boletim extends report_unasus_factory {
 
                         // se for atividade de nota final
                         if ($r->name_activity == 'nota_final_activity') {
+                            // grade_grades.finalgrade está na escala configurada em grade_items.grademax
+                            // do course item (definida pelo administrador no livro de notas).
+                            // Exibe o valor bruto para respeitar a base configurada (ex: 0-10 ou 0-100).
+                            // get_css_class() normaliza internamente para percentual na comparação de corte.
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
                         // senão, se for atividade normal
                         } else if (isset($atividade->course_id)) {

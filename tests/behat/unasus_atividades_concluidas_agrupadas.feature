@@ -77,7 +77,7 @@ Background:
   # Deterministic completion: only student1 concludes the only activity.
   And I mark activity "a_single" as complete for user "student1"
 
-  @javascript
+  @javascript @atividades_concluidas_agrupadas
   Scenario: síntese agrupada exibe valores por grupo e total
     And I log in as "manager1"
     And I follow "Course1"
@@ -89,7 +89,7 @@ Background:
     And I should see "0/1"
     And I should see "1/2"
 
-  @javascript
+  @javascript @atividades_concluidas_agrupadas
   Scenario: tutor sem view_all não visualiza dados de outro grupo na síntese agrupada
     And I log in as "tutor1"
     And I follow "Course1"

@@ -140,7 +140,7 @@ Background:
 
   # Nenhuma submissao realizada. Todos os estudantes estao sem atividade iniciada.
 
-  @javascript
+  @javascript @entrega_de_atividades
 Scenario: sem_dados - entrega_de_atividades mostra atividades sem submissao
     And I log in as "admin"
     And I follow "Courses"
@@ -155,7 +155,7 @@ Scenario: sem_dados - entrega_de_atividades mostra atividades sem submissao
     # Atividade a1 com prazo futuro -> aparece no relatorio
     And I should see "Test assignment one"
 
-  @javascript
+  @javascript @estudante_sem_atividade_postada
 Scenario: sem_dados - estudante_sem_atividade_postada lista todos os estudantes
     And I log in as "admin"
     And I follow "Courses"
@@ -168,7 +168,7 @@ Scenario: sem_dados - estudante_sem_atividade_postada lista todos os estudantes
     # Atividades com prazo passado e sem entrega devem aparecer
     And I should see "Test assignment two"
 
-  @javascript
+  @javascript @estudante_sem_atividade_avaliada
 Scenario: sem_dados - estudante_sem_atividade_avaliada nao lista ninguem
     And I log in as "admin"
     And I follow "Courses"
@@ -179,7 +179,7 @@ Scenario: sem_dados - estudante_sem_atividade_avaliada nao lista ninguem
     # Nenhum estudante entregou -> nao ha nada para avaliar -> nenhum aluno listado
     Then I should not see "Student"
 
-  @javascript
+  @javascript @avaliacoes_em_atraso
 Scenario: sem_dados - avaliacoes_em_atraso sem pendencias de avaliacao
     And I log in as "admin"
     And I follow "Courses"
@@ -191,7 +191,7 @@ Scenario: sem_dados - avaliacoes_em_atraso sem pendencias de avaliacao
     Then I should see "Teacher"
     And I should not see "Student"
 
-  @javascript
+  @javascript @atividades_vs_notas
 Scenario: sem_dados - atividades_vs_notas mostra estados sem entrega
     And I log in as "admin"
     And I follow "Courses"
@@ -206,7 +206,7 @@ Scenario: sem_dados - atividades_vs_notas mostra estados sem entrega
     # Atividade com prazo futuro -> no prazo
     And I should see "no prazo"
 
-  @javascript
+  @javascript @boletim
 Scenario: sem_dados - boletim exibe atividades sem notas
     And I log in as "admin"
     And I follow "Courses"
@@ -218,7 +218,7 @@ Scenario: sem_dados - boletim exibe atividades sem notas
     Then I should see "Test assignment one"
     And I should see "Test assignment two"
 
-  @javascript
+  @javascript @modulos_concluidos
 Scenario: sem_dados - modulos_concluidos sem nenhuma conclusao
     And I log in as "admin"
     And I follow "Courses"

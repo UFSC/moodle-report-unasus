@@ -143,7 +143,7 @@ Background:
     | student11 | relationship_group3 |
     | student12 | relationship_group3 |
 
-  @javascript
+  @javascript @tcc_entrega_atividades
   Scenario: tcc_entrega_atividades - exibe capítulos por estudante com estados corretos
     Given the TCC webservice returns student data:
       | username | chapter_position | state  | state_date |
@@ -164,7 +164,7 @@ Background:
     And I should see "Capítulo 2"
     And I should see "Student s1"
 
-  @javascript
+  @javascript @tcc_concluido
   Scenario: tcc_concluido - capítulo avaliado vs não avaliado por estudante
     Given the TCC webservice returns student data:
       | username | chapter_position | state | state_date |
@@ -184,7 +184,7 @@ Background:
     And I should see "Capítulo 1"
     And I should see "Capítulo 2"
 
-  @javascript
+  @javascript @tcc_consolidado
   Scenario: tcc_consolidado - síntese de progresso por grupo de orientação
     Given the TCC webservice returns student data:
       | username | chapter_position | state | state_date |
@@ -211,6 +211,7 @@ Background:
     And I should see "Capítulo 2"
     And I should see "Total por curso"
 
+  @tcc_consolidado @csv
   Scenario: tcc_consolidado exporta CSV com dados esperados
     Given the TCC webservice returns student data:
       | username | chapter_position | state | state_date |
@@ -230,7 +231,7 @@ Background:
       | value      |
       | Teacher t1 |
 
-  @javascript @advisor_scope
+  @javascript @advisor_scope @tcc_entrega_atividades @tcc_concluido
   Scenario Outline: orientador teacher1 vê apenas estudantes do próprio grupo de orientação nos relatórios TCC
     Given the TCC webservice returns student data:
       | username | chapter_position | state | state_date |

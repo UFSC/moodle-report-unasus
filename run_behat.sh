@@ -149,13 +149,32 @@ fi
 # ---------------------------------------------------------------------------
 log "Verificando container Selenium '$SELENIUM_CONTAINER'..."
 
+if ! sudo docker network inspect "$DOCKER_NETWORK" >/dev/null 2>&1; then
+    warn "Rede Docker '$DOCKER_NETWORK' não encontrada. Criando..."
+    sudo docker network create "$DOCKER_NETWORK" >/dev/null
+fi
+
 if container_is_running "$SELENIUM_CONTAINER"; then
     log "Container Selenium já está rodando."
     sudo docker network connect "$DOCKER_NETWORK" "$SELENIUM_CONTAINER" 2>/dev/null || true
 else
     if sudo docker inspect "$SELENIUM_CONTAINER" &>/dev/null; then
         log "Reiniciando container Selenium existente..."
-        sudo docker start "$SELENIUM_CONTAINER"
+        START_OUTPUT=""
+        if ! START_OUTPUT=$(sudo docker start "$SELENIUM_CONTAINER" 2>&1); then
+            if echo "$START_OUTPUT" | grep -qi "network .* not found"; then
+                warn "Container Selenium preso a rede removida. Recriando container..."
+                sudo docker rm -f "$SELENIUM_CONTAINER" >/dev/null 2>&1 || true
+                sudo docker run -d \
+                    --name "$SELENIUM_CONTAINER" \
+                    --network "$DOCKER_NETWORK" \
+                    --shm-size=2g \
+                    -p 4444:4444 \
+                    "$SELENIUM_IMAGE"
+            else
+                err "Falha ao iniciar '$SELENIUM_CONTAINER': $START_OUTPUT"
+            fi
+        fi
     else
         log "Iniciando novo container Selenium (imagem: $SELENIUM_IMAGE)..."
         sudo docker run -d \
@@ -266,8 +285,37 @@ BEHAT_YML="$BEHAT_DATAROOT/behat/behat.yml"
 if [ -n "$INIT_FLAG" ]; then
     log "Reinicializando ambiente Behat (--init)..."
     ensure_legacy_composer_for_behat_init
+
+    # Tenta preparar o site para modo behat (alguns forks exigem isso explicitamente).
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true"
+
+    # --drop pode falhar se ainda não for site behat; é esperado na primeira execução.
     exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util_single_run.php' --drop 2>&1 || true"
-    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
+
+    INIT_OUTPUT=""
+    if ! INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"); then
+        if echo "$INIT_OUTPUT" | grep -qi "upgraderunning"; then
+            warn "Lock de upgrade detectado durante init do Behat. Limpando lock órfão e tentando novamente..."
+            exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -r \"
+                require('$MOODLE_ROOT_IN_CONTAINER/config.php');
+                global \\$DB;
+                \\$DB->delete_records('config', array('name' => 'upgraderunning'));
+                echo 'upgraderunning lock removido' . PHP_EOL;
+            \" 2>&1"
+            INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1") || {
+                err "Falha ao inicializar Behat após remover lock de upgrade: $INIT_OUTPUT"
+            }
+        elif echo "$INIT_OUTPUT" | grep -qi "This is not a behat test site"; then
+            warn "Site ainda não está em modo Behat. Forçando habilitação e tentando novamente..."
+            exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true"
+            INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1") || {
+                err "Falha ao inicializar Behat após forçar modo behat: $INIT_OUTPUT"
+            }
+        else
+            err "Falha ao inicializar Behat: $INIT_OUTPUT"
+        fi
+    fi
+
     log "Behat reinicializado."
 
 elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then

@@ -719,6 +719,8 @@ EOD;
 
         $DB->set_field('assign_grades', 'timemodified', $newtime,
             array('assignment' => $assignid, 'userid' => $userid));
+        $DB->set_field('assign_grades', 'timecreated', $newtime,
+            array('assignment' => $assignid, 'userid' => $userid));
 
         $courseid = $DB->get_field_sql(
             "SELECT c.id FROM {course_modules} cm JOIN {course} c ON cm.course = c.id WHERE cm.idnumber = :idnumber",
@@ -1116,6 +1118,281 @@ EOD;
     }
 
     /**
+     * Forces Moodle gradebook final grades recalculation for a course.
+     *
+     * @Given /^I recalculate gradebook final grades for course "([^"]*)"$/
+     */
+    public function i_recalculate_gradebook_final_grades_for_course($courseidentifier) {
+        global $CFG;
+
+        if (!function_exists('grade_regrade_final_grades')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        grade_force_full_regrading($courseid);
+        grade_regrade_final_grades($courseid);
+    }
+
+    /**
+     * Sets course category aggregation method in gradebook.
+     *
+     * @Given /^I set gradebook aggregation for course "([^"]*)" to weighted mean of grades$/
+     */
+    public function i_set_gradebook_aggregation_for_course_to_weighted_mean_of_grades($courseidentifier) {
+        global $CFG, $DB;
+
+        if (!class_exists('grade_item') || !class_exists('grade_category')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $category = grade_category::fetch_course_category($courseid);
+        if (!$category) {
+            // Fallback for environments where the helper returns null.
+            $categoryid = $DB->get_field('grade_categories', 'id', array('courseid' => $courseid), IGNORE_MULTIPLE);
+            if ($categoryid) {
+                $category = grade_category::fetch(array('id' => $categoryid));
+            }
+        }
+        if (!$category) {
+            throw new \Exception('Gradebook course category not found for course: ' . $courseidentifier);
+        }
+
+        // In this Moodle fork, weighted mean is represented by UFSC constant and
+        // uses grade_items.aggregationcoef as the weight source.
+        if (defined('GRADE_AGGREGATE_WEIGHTED_MEAN_UFSC')) {
+            $category->aggregation = GRADE_AGGREGATE_WEIGHTED_MEAN_UFSC;
+        } else {
+        $category->aggregation = GRADE_AGGREGATE_WEIGHTED_MEAN;
+        }
+        $category->update();
+    }
+
+    /**
+     * Sets course category aggregation method in gradebook to mean of grades.
+     *
+     * @Given /^I set gradebook aggregation for course "([^"]*)" to mean of grades$/
+     */
+    public function i_set_gradebook_aggregation_for_course_to_mean_of_grades($courseidentifier) {
+        global $CFG, $DB;
+
+        if (!class_exists('grade_item') || !class_exists('grade_category')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $category = grade_category::fetch_course_category($courseid);
+        if (!$category) {
+            $categoryid = $DB->get_field('grade_categories', 'id', array('courseid' => $courseid), IGNORE_MULTIPLE);
+            if ($categoryid) {
+                $category = grade_category::fetch(array('id' => $categoryid));
+            }
+        }
+        if (!$category) {
+            throw new \Exception('Gradebook course category not found for course: ' . $courseidentifier);
+        }
+
+        if (defined('GRADE_AGGREGATE_MEAN_UFSC')) {
+            $category->aggregation = GRADE_AGGREGATE_MEAN_UFSC;
+        } else {
+        $category->aggregation = GRADE_AGGREGATE_MEAN;
+        }
+        $category->update();
+    }
+
+    /**
+     * Sets gradebook include-empty-grades behavior at course category level.
+     *
+     * enabled  => empty grades are included as zero (aggregateonlygraded = 0)
+     * disabled => empty grades are excluded (aggregateonlygraded = 1)
+     *
+     * @Given /^I set gradebook include empty grades for course "([^"]*)" to (enabled|disabled)$/
+     */
+    public function i_set_gradebook_include_empty_grades_for_course_to($courseidentifier, $state) {
+        global $CFG, $DB;
+
+        if (!class_exists('grade_category')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $category = grade_category::fetch_course_category($courseid);
+        if (!$category) {
+            $categoryid = $DB->get_field('grade_categories', 'id', array('courseid' => $courseid), IGNORE_MULTIPLE);
+            if ($categoryid) {
+                $category = grade_category::fetch(array('id' => $categoryid));
+            }
+        }
+        if (!$category) {
+            throw new \Exception('Gradebook course category not found for course: ' . $courseidentifier);
+        }
+
+        $category->aggregateonlygraded = ($state === 'enabled') ? 0 : 1;
+        $category->update();
+    }
+
+    /**
+     * Resets all module grade item weights in course gradebook to zero.
+     *
+     * @Given /^I reset all gradebook weights for course "([^"]*)"$/
+     */
+    public function i_reset_all_gradebook_weights_for_course($courseidentifier) {
+        global $CFG, $DB;
+
+        if (!class_exists('grade_item')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $gradeitems = $DB->get_records('grade_items', array(
+            'courseid' => $courseid,
+            'itemtype' => 'mod',
+        ), '', 'id');
+
+        foreach ($gradeitems as $record) {
+            $gradeitem = grade_item::fetch(array('id' => $record->id));
+            if (!$gradeitem) {
+                continue;
+            }
+            $gradeitem->aggregationcoef = 0.0;
+            $gradeitem->weightoverride = 1;
+            $gradeitem->update();
+        }
+    }
+
+    /**
+     * Sets gradebook weight for one activity grade item by cm idnumber.
+     *
+     * @Given /^I set gradebook weight "([^"]*)" for activity "([^"]*)" in course "([^"]*)"$/
+     */
+    public function i_set_gradebook_weight_for_activity_in_course($weight, $activityidnumber, $courseidentifier) {
+        global $CFG, $DB;
+
+        if (!class_exists('grade_item')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $cm = $DB->get_record('course_modules', array(
+            'course' => $courseid,
+            'idnumber' => trim($activityidnumber),
+        ), 'id,module,instance', MUST_EXIST);
+
+        $modname = $DB->get_field('modules', 'name', array('id' => $cm->module), MUST_EXIST);
+        $gradeitem = grade_item::fetch(array(
+            'courseid' => $courseid,
+            'itemtype' => 'mod',
+            'itemmodule' => $modname,
+            'iteminstance' => $cm->instance,
+            'itemnumber' => 0,
+        ));
+
+        if (!$gradeitem) {
+            throw new \Exception('Gradebook item not found for activity "' . $activityidnumber . '" in course "' . $courseidentifier . '".');
+        }
+
+        // Weighted mean in this fork relies on aggregationcoef.
+        $gradeitem->aggregationcoef = (float) $weight;
+        $gradeitem->weightoverride = 1;
+        $gradeitem->update();
+    }
+
+    /**
+     * Sets the grademax of the course total grade item.
+     * Useful for testing normalization when the course scale differs from activity scales
+     * (e.g. activities in base 100, course total in base 10).
+     *
+     * @Given /^I set gradebook course total grademax for course "([^"]*)" to "([^"]*)"$/
+     */
+    public function i_set_gradebook_course_total_grademax_for_course_to($courseidentifier, $grademax) {
+        global $CFG;
+
+        if (!class_exists('grade_item')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $courseitem = grade_item::fetch_course_item($courseid);
+        if (!$courseitem) {
+            throw new \Exception('Course grade item not found for course: ' . $courseidentifier);
+        }
+
+        $courseitem->grademax = (float) $grademax;
+        $courseitem->update();
+    }
+
+    /**
+     * Asserts Moodle gradebook final grade normalized percentage for one user.
+     *
+     * @Then /^the Moodle gradebook final grade percentage for user "([^"]*)" in course "([^"]*)" should be "([^"]*)"$/
+     */
+    public function the_moodle_gradebook_final_grade_percentage_for_user_in_course_should_be($useridentifier, $courseidentifier, $expectedpercent) {
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $userid = $this->resolve_user_id(trim($useridentifier));
+        $actualpercent = $this->get_gradebook_final_grade_percentage($courseid, $userid, $courseidentifier, $useridentifier);
+        $expected = (float) $expectedpercent;
+        $tolerance = 0.1;
+        if (abs($actualpercent - $expected) > $tolerance) {
+            list($finalgrade, $grademax) = $this->get_gradebook_final_grade_and_max($courseid, $userid, $courseidentifier, $useridentifier);
+            throw new \Exception(
+                'Unexpected gradebook final percentage for user "' . $useridentifier . '" in course "' . $courseidentifier .
+                '". Expected "' . $expected . '" (+/- ' . $tolerance . '), got "' . $actualpercent . '". ' .
+                'Debug: finalgrade=' . $finalgrade . ', grademax=' . $grademax
+            );
+        }
+    }
+
+    /**
+     * Asserts Moodle gradebook final grade percentage is lower than the given threshold.
+     *
+     * @Then /^the Moodle gradebook final grade percentage for user "([^"]*)" in course "([^"]*)" should be lower than "([^"]*)"$/
+     */
+    public function the_moodle_gradebook_final_grade_percentage_for_user_in_course_should_be_lower_than($useridentifier, $courseidentifier, $threshold) {
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $userid = $this->resolve_user_id(trim($useridentifier));
+        $actualpercent = $this->get_gradebook_final_grade_percentage($courseid, $userid, $courseidentifier, $useridentifier);
+        $limit = (float) $threshold;
+
+        if ($actualpercent >= $limit) {
+            throw new \Exception(
+                'Expected gradebook final percentage lower than "' . $limit . '" for user "' . $useridentifier .
+                '" in course "' . $courseidentifier . '", got "' . $actualpercent . '".'
+            );
+        }
+    }
+
+    /**
+     * Asserts report HTML final grade cell matches Moodle gradebook final percentage.
+     *
+     * @Then /^the unasus report table final grade for user "([^"]*)" in course "([^"]*)" should match Moodle gradebook percentage$/
+     */
+    public function the_unasus_report_table_final_grade_for_user_in_course_should_match_moodle_gradebook_percentage($useridentifier, $courseidentifier) {
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $userid = $this->resolve_user_id(trim($useridentifier));
+        $percent = $this->get_gradebook_final_grade_percentage($courseid, $userid, $courseidentifier, $useridentifier);
+        $expected = number_format($percent, 1, '.', '');
+        $rowlabel = $this->get_user_fullname_from_identifier($useridentifier);
+
+        $this->the_unasus_report_table_should_have_at_row_and_column($expected, $rowlabel, 'M.Final');
+    }
+
+    /**
+     * Asserts exported CSV final grade cell matches Moodle gradebook final percentage.
+     *
+     * @Then /^the exported unasus csv final grade for user "([^"]*)" in course "([^"]*)" should match Moodle gradebook percentage$/
+     */
+    public function the_exported_unasus_csv_final_grade_for_user_in_course_should_match_moodle_gradebook_percentage($useridentifier, $courseidentifier) {
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $userid = $this->resolve_user_id(trim($useridentifier));
+        $percent = $this->get_gradebook_final_grade_percentage($courseid, $userid, $courseidentifier, $useridentifier);
+        $expected = number_format($percent, 1, '.', '');
+        $rowlabel = $this->get_user_fullname_from_identifier($useridentifier);
+
+        $this->the_exported_unasus_csv_should_have_at_row_and_column($expected, $rowlabel, 'Média Final');
+    }
+
+    /**
      * Resolves course_modules.id from an activity idnumber within a course.
      *
      * @param int $courseid
@@ -1209,6 +1486,284 @@ EOD;
     }
 
     /**
+     * Asserts one CSV cell value by row label and column label.
+     *
+     * @Then /^the exported unasus csv should have "([^"]*)" at row "([^"]*)" and column "([^"]*)"$/
+     */
+    public function the_exported_unasus_csv_should_have_at_row_and_column($expected, $rowlabel, $columnlabel) {
+        $headerindex = $this->find_unasus_csv_header_row_index();
+        $header = $this->last_unasus_csv_rows[$headerindex];
+
+        $columnindex = null;
+        foreach ($header as $idx => $cell) {
+            if ($this->normalize_unasus_csv_cell($cell) === $this->normalize_unasus_csv_cell($columnlabel)) {
+                $columnindex = (int) $idx;
+                break;
+            }
+        }
+        if ($columnindex === null) {
+            throw new \Exception('CSV column not found: ' . $columnlabel);
+        }
+
+        $rowindex = null;
+        for ($i = $headerindex + 1; $i < count($this->last_unasus_csv_rows); $i++) {
+            $row = $this->last_unasus_csv_rows[$i];
+            if (empty($row)) {
+                continue;
+            }
+            $firstcell = isset($row[0]) ? $row[0] : '';
+            if ($this->normalize_unasus_csv_cell($firstcell) === $this->normalize_unasus_csv_cell($rowlabel)) {
+                $rowindex = $i;
+                break;
+            }
+        }
+        if ($rowindex === null) {
+            throw new \Exception('CSV row not found: ' . $rowlabel);
+        }
+
+        $row = $this->last_unasus_csv_rows[$rowindex];
+        $actual = isset($row[$columnindex]) ? $this->normalize_unasus_csv_cell($row[$columnindex]) : '';
+        $expectednormalized = $this->normalize_unasus_csv_cell($expected);
+
+        if ($actual !== $expectednormalized) {
+            throw new \Exception(
+                'Unexpected CSV cell value at row "' . $rowlabel . '" and column "' . $columnlabel .
+                '". Expected "' . $expectednormalized . '", got "' . $actual . '".'
+            );
+        }
+    }
+
+    /**
+     * Asserts one CSV cell is empty by row label and column label.
+     *
+     * @Then /^the exported unasus csv should have an empty value at row "([^"]*)" and column "([^"]*)"$/
+     */
+    public function the_exported_unasus_csv_should_have_an_empty_value_at_row_and_column($rowlabel, $columnlabel) {
+        $this->the_exported_unasus_csv_should_have_at_row_and_column('', $rowlabel, $columnlabel);
+    }
+
+    /**
+     * Asserts one HTML report table cell value by row label and column label.
+     *
+     * @Then /^the unasus report table should have "([^"]*)" at row "([^"]*)" and column "([^"]*)"$/
+     */
+    public function the_unasus_report_table_should_have_at_row_and_column($expected, $rowlabel, $columnlabel) {
+        $table = $this->getSession()->getPage()->find('css', 'table.relatorio-unasus');
+        if (!$table) {
+            throw new \Exception('UNA-SUS report table not found.');
+        }
+
+        $headerrows = $table->findAll('css', 'thead tr');
+        if (empty($headerrows)) {
+            throw new \Exception('UNA-SUS report table header not found.');
+        }
+
+        $headerrow = end($headerrows);
+        $headercells = $this->get_direct_table_cells($headerrow);
+        if (empty($headercells)) {
+            throw new \Exception('UNA-SUS report table header cells not found.');
+        }
+
+        $columnindex = null;
+        $normalizedcolumnlabel = $this->normalize_unasus_csv_cell($columnlabel);
+        foreach ($headercells as $idx => $cell) {
+            $celltext = $this->normalize_unasus_csv_cell($cell->getText());
+            $matches = ($celltext === $normalizedcolumnlabel);
+            if (!$matches && $celltext !== '' && $normalizedcolumnlabel !== '') {
+                $matches = (strpos($celltext, $normalizedcolumnlabel) !== false
+                    || strpos($normalizedcolumnlabel, $celltext) !== false);
+            }
+            if ($matches) {
+                $columnindex = (int) $idx;
+                break;
+            }
+        }
+        if ($columnindex === null) {
+            throw new \Exception('UNA-SUS report table column not found: ' . $columnlabel);
+        }
+
+        $tbodyrows = $table->findAll('css', 'tbody tr');
+        if (empty($tbodyrows)) {
+            throw new \Exception('UNA-SUS report table body not found.');
+        }
+
+        $targetrow = null;
+        $normalizedrowlabel = $this->normalize_unasus_csv_cell($rowlabel);
+        foreach ($tbodyrows as $row) {
+            $cells = $this->get_direct_table_cells($row);
+            if (empty($cells)) {
+                continue;
+            }
+            $firstcelltext = $this->normalize_unasus_csv_cell($cells[0]->getText());
+            $matchesrow = ($firstcelltext === $normalizedrowlabel);
+            if (!$matchesrow && $firstcelltext !== '' && $normalizedrowlabel !== '') {
+                $matchesrow = (strpos($firstcelltext, $normalizedrowlabel) !== false);
+            }
+
+            if ($matchesrow) {
+                $targetrow = $cells;
+                break;
+            }
+        }
+        if ($targetrow === null) {
+            throw new \Exception('UNA-SUS report table row not found: ' . $rowlabel);
+        }
+
+        $columnlabelnormalized = mb_strtolower($this->normalize_unasus_csv_cell($columnlabel));
+        $isfinalcolumn = ($columnlabelnormalized === 'final' || $columnlabelnormalized === 'm.final');
+
+        if (!isset($targetrow[$columnindex])) {
+            if ($isfinalcolumn) {
+                $columnindex = count($targetrow) - 1;
+            } else {
+                throw new \Exception(
+                    'UNA-SUS report table column index out of range for row "' . $rowlabel .
+                    '" at column "' . $columnlabel . '".'
+                );
+            }
+        }
+
+        $actual = ($columnindex >= 0) ? $this->normalize_unasus_csv_cell($targetrow[$columnindex]->getText()) : '';
+        $expectednormalized = $this->normalize_unasus_csv_cell($expected);
+
+        // Some report tables (notably boletim) may render the final column with
+        // subtle DOM/index shifts despite visual alignment. If the mapped cell
+        // is empty, fallback to the last direct cell of the row.
+        if ($isfinalcolumn && $actual === '' && $expectednormalized !== '') {
+            $lastidx = count($targetrow) - 1;
+            if ($lastidx >= 0) {
+                $actual = $this->normalize_unasus_csv_cell($targetrow[$lastidx]->getText());
+            }
+        }
+
+        if ($actual !== $expectednormalized) {
+            throw new \Exception(
+                'Unexpected HTML table cell value at row "' . $rowlabel . '" and column "' . $columnlabel .
+                '". Expected "' . $expectednormalized . '", got "' . $actual . '".'
+            );
+        }
+    }
+
+    /**
+     * Returns direct child cells (th/td) from a table row element.
+     *
+     * @param \Behat\Mink\Element\NodeElement $row
+     * @return array
+     */
+    private function get_direct_table_cells($row) {
+        $cells = array();
+        $children = $row->findAll('xpath', './*');
+        foreach ($children as $child) {
+            $tag = '';
+            if (method_exists($child, 'getTagName')) {
+                $tag = mb_strtolower((string) $child->getTagName());
+            }
+            if ($tag === 'th' || $tag === 'td') {
+                $cells[] = $child;
+            }
+        }
+        return $cells;
+    }
+
+    /**
+     * Finds the CSV header row that contains "Estudante".
+     *
+     * @return int
+     * @throws Exception
+     */
+    private function find_unasus_csv_header_row_index() {
+        foreach ($this->last_unasus_csv_rows as $idx => $row) {
+            foreach ($row as $cell) {
+                if ($this->normalize_unasus_csv_cell($cell) === 'Estudante') {
+                    return (int) $idx;
+                }
+            }
+        }
+        throw new Exception('CSV header row with "Estudante" not found.');
+    }
+
+    /**
+     * Normalizes CSV cell values for stable comparisons.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private function normalize_unasus_csv_cell($value) {
+        $value = (string) $value;
+        $value = preg_replace('/^\xEF\xBB\xBF/', '', $value);
+        $value = html_entity_decode(strip_tags($value), ENT_QUOTES, 'UTF-8');
+        $value = preg_replace('/\s+/u', ' ', $value);
+        return trim($value);
+    }
+
+    /**
+     * Takes a browser screenshot and stores it in persistent local temp.
+     * It also mirrors to behat dataroot when available.
+     *
+     * @Given /^I take a screenshot$/
+     */
+    public function i_take_a_screenshot() {
+        global $CFG;
+
+        $session = $this->getSession();
+
+        // Increase viewport to capture more report content in one screenshot.
+        if (method_exists($session, 'resizeWindow')) {
+            try {
+                $session->resizeWindow(2560, 4000, 'current');
+            } catch (\Exception $e) {
+                // Ignore resize errors and still attempt screenshot.
+            }
+        }
+
+        // Ensure capture starts from top of the page.
+        try {
+            $session->executeScript('window.scrollTo(0, 0);');
+        } catch (\Exception $e) {
+            // Ignore script errors.
+        }
+
+        if (!method_exists($session, 'getScreenshot')) {
+            return;
+        }
+
+        $screenshot = $session->getScreenshot();
+        if ($screenshot === '' || $screenshot === false) {
+            return;
+        }
+
+        $filename = 'behat_unasus_' . date('Ymd_His') . '_' . uniqid() . '.png';
+
+        $targetpaths = array();
+
+        // Persistent location under dataroot/behat.
+        if (!empty($CFG->dataroot)) {
+            $targetpaths[] = rtrim($CFG->dataroot, DIRECTORY_SEPARATOR) .
+                DIRECTORY_SEPARATOR . 'behat' .
+                DIRECTORY_SEPARATOR . 'behat_screenshots';
+        }
+
+        // Optional mirror in behat_dataroot/behat.
+        if (!empty($CFG->behat_dataroot)) {
+            $targetpaths[] = rtrim($CFG->behat_dataroot, DIRECTORY_SEPARATOR) .
+                DIRECTORY_SEPARATOR . 'behat' .
+                DIRECTORY_SEPARATOR . 'behat_screenshots';
+        }
+
+        if (empty($targetpaths)) {
+            $targetpaths[] = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
+        }
+
+        foreach ($targetpaths as $basepath) {
+            if (!is_dir($basepath) && !@mkdir($basepath, 0777, true)) {
+                continue;
+            }
+            $filepath = $basepath . DIRECTORY_SEPARATOR . $filename;
+            @file_put_contents($filepath, $screenshot);
+        }
+    }
+
+    /**
      * Parses CSV rows from a raw CSV string.
      *
      * @param string $content
@@ -1257,6 +1812,111 @@ EOD;
         }
 
         throw new Exception('Course not found for identifier: ' . $courseidentifier);
+    }
+
+    /**
+     * Resolves full name from user identifier.
+     *
+     * @param string $useridentifier
+     * @return string
+     * @throws Exception
+     */
+    private function get_user_fullname_from_identifier($useridentifier) {
+        global $DB;
+
+        $userid = $this->resolve_user_id($useridentifier);
+        $user = $DB->get_record('user', array('id' => $userid), 'firstname,lastname', MUST_EXIST);
+
+        return trim($user->firstname . ' ' . $user->lastname);
+    }
+
+    /**
+     * Returns gradebook finalgrade and grademax for one user in one course.
+     *
+     * @param int $courseid
+     * @param int $userid
+     * @param string $courseidentifier
+     * @param string $useridentifier
+     * @return array [finalgrade, grademax]
+     * @throws Exception
+     */
+    private function get_gradebook_final_grade_and_max($courseid, $userid, $courseidentifier, $useridentifier) {
+        global $CFG;
+
+        if (!class_exists('grade_item') || !class_exists('grade_grade')) {
+            require_once($CFG->libdir . '/gradelib.php');
+        }
+
+        $courseitem = grade_item::fetch_course_item($courseid);
+        if (!$courseitem) {
+            throw new Exception('Gradebook course item not found for course: ' . $courseidentifier);
+        }
+
+        $gradegrade = grade_grade::fetch(array(
+            'itemid' => $courseitem->id,
+            'userid' => $userid,
+        ));
+        if (!$gradegrade || is_null($gradegrade->finalgrade)) {
+            throw new Exception('Gradebook finalgrade is NULL for user "' . $useridentifier . '" in course "' . $courseidentifier . '".');
+        }
+
+        $grademax = (float) $courseitem->grademax;
+        if ($grademax <= 0.0) {
+            throw new Exception('Gradebook course grademax is invalid: ' . $grademax);
+        }
+
+        return array((float) $gradegrade->finalgrade, $grademax);
+    }
+
+    /**
+     * Returns gradebook final grade percentage normalized to 0-100.
+     *
+     * @param int $courseid
+     * @param int $userid
+     * @param string $courseidentifier
+     * @param string $useridentifier
+     * @return float
+     * @throws Exception
+     */
+    private function get_gradebook_final_grade_percentage($courseid, $userid, $courseidentifier, $useridentifier) {
+        list($finalgrade, $grademax) = $this->get_gradebook_final_grade_and_max($courseid, $userid, $courseidentifier, $useridentifier);
+        return ($finalgrade / $grademax) * 100.0;
+    }
+
+    /**
+     * Resolves a user id from numeric id, username or "Firstname Lastname".
+     *
+     * @param string $useridentifier
+     * @return int
+     * @throws Exception
+     */
+    private function resolve_user_id($useridentifier) {
+        global $DB;
+
+        if (is_numeric($useridentifier)) {
+            $user = $DB->get_record('user', array('id' => (int) $useridentifier), 'id');
+            if ($user) {
+                return (int) $user->id;
+            }
+        }
+
+        $userid = $DB->get_field('user', 'id', array('username' => $useridentifier));
+        if ($userid) {
+            return (int) $userid;
+        }
+
+        $parts = preg_split('/\s+/', trim($useridentifier), 2);
+        if (count($parts) === 2) {
+            $userid = $DB->get_field('user', 'id', array(
+                'firstname' => $parts[0],
+                'lastname' => $parts[1],
+            ));
+            if ($userid) {
+                return (int) $userid;
+            }
+        }
+
+        throw new Exception('User not found for identifier: ' . $useridentifier);
     }
 
     /**

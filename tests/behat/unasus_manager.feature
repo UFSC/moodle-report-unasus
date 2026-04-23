@@ -162,7 +162,7 @@ Background:
     | student11 | relationship_group3 |
     | student12 | relationship_group3 |
 
-  @javascript
+  @javascript @entrega_de_atividades
   Scenario: manager com view_all visualiza todos os estudantes na tutoria
     And I log in as "manager1"
     And I follow "Course1"
@@ -183,7 +183,7 @@ Background:
     And I should see "Student s11"
     And I should see "Student s12"
 
-  @javascript
+  @javascript @tcc_entrega_atividades
   Scenario: manager com view_all visualiza todos os estudantes na orientação TCC
     And I log in as "manager1"
     And I follow "Course1"
@@ -205,7 +205,7 @@ Background:
     And I should see "Student s11"
     And I should see "Student s12"
 
-  @javascript
+  @javascript @entrega_de_atividades
   Scenario: tutor sem view_all nao visualiza estudantes de outros grupos na tutoria
     And I log in as "teacher1"
     And I follow "Course1"
@@ -219,7 +219,7 @@ Background:
     And I should not see "Student s5"
     And I should not see "Student s12"
 
-  @javascript
+  @javascript @tcc_entrega_atividades
   Scenario: orientador sem view_all nao visualiza estudantes de outros grupos no TCC
     And I log in as "teacher1"
     And I follow "Course1"

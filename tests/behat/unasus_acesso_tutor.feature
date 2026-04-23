@@ -84,7 +84,7 @@ Background:
     | tutor1   | c1     | 2026-04-05 09:00:00 | viewed  |
     | tutor1   | c1     | 2026-04-05 09:31:00 | updated |
 
-  @javascript
+  @javascript @acesso_tutor
   Scenario: acesso_tutor com período fixo mostra tutores e estados de acesso no mês
     And I log in as "manager1"
     And I follow "Course1"
@@ -99,7 +99,7 @@ Background:
     And I should see "Sim"
     And I should see "Não"
 
-  @javascript
+  @javascript @acesso_tutor
   Scenario: acesso_tutor não mostra dia de abril quando o período é março de 2026
     And I log in as "manager1"
     And I follow "Course1"
@@ -111,13 +111,13 @@ Background:
     And I should see "15/03/26"
     And I should not see "05/04/26"
 
-  @javascript
+  @javascript @acesso_tutor
   Scenario: usuário sem view_all não visualiza relatório restrito acesso_tutor
     And I log in as "tutor1"
     And I follow "Course1"
     Then I should not see "Uso do sistema pelo tutor (acessos)"
 
-  @javascript
+  @javascript @acesso_tutor
   Scenario: acesso_tutor exibe aviso para intervalo de datas inválido
     And I log in as "manager1"
     And I follow "Course1"
@@ -127,13 +127,14 @@ Background:
     And I press "Gerar relatório"
     Then I should not see "10/03/26"
 
-  @javascript
+  @javascript @acesso_tutor
   Scenario: acesso_tutor exibe opção de exportar CSV para usuário com view_all
     And I log in as "manager1"
     And I follow "Course1"
     And I navigate to "Uso do sistema pelo tutor (acessos)" node in "Reports > UNA-SUS"
     Then I should see "Exportar para CSV"
 
+  @acesso_tutor @csv
   Scenario: acesso_tutor exporta CSV com conteúdo esperado
     And I log in as "manager1"
     And I export the unasus report "acesso_tutor" as csv for course "c1" with params:

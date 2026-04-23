@@ -84,7 +84,7 @@ Background:
     | tutor1   | c1     | 2026-04-05 09:00:00 | viewed  |
     | tutor1   | c1     | 2026-04-05 09:31:00 | updated |
 
-  @javascript
+  @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor com período fixo mostra tutores e colunas de média e total
     And I log in as "manager1"
     And I follow "Course1"
@@ -99,7 +99,7 @@ Background:
     And I should see "Media"
     And I should see "Total"
 
-  @javascript
+  @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor não mostra dia de abril quando o período é março de 2026
     And I log in as "manager1"
     And I follow "Course1"
@@ -111,13 +111,13 @@ Background:
     And I should see "15/03/26"
     And I should not see "05/04/26"
 
-  @javascript
+  @javascript @uso_sistema_tutor
   Scenario: usuário sem view_all não visualiza relatório restrito uso_sistema_tutor
     And I log in as "tutor1"
     And I follow "Course1"
     Then I should not see "Uso do sistema pelo tutor (horas)"
 
-  @javascript
+  @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe aviso para formato de data inválido
     And I log in as "manager1"
     And I follow "Course1"
@@ -127,13 +127,14 @@ Background:
     And I press "Gerar relatório"
     Then I should not see "10/03/26"
 
-  @javascript
+  @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe opção de exportar CSV para usuário com view_all
     And I log in as "manager1"
     And I follow "Course1"
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
     Then I should see "Exportar para CSV"
 
+  @uso_sistema_tutor @csv
   Scenario: uso_sistema_tutor exporta CSV com conteúdo esperado
     And I log in as "manager1"
     And I export the unasus report "uso_sistema_tutor" as csv for course "c1" with params:

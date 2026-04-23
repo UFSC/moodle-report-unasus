@@ -33,6 +33,7 @@ Background:
 
   And the following config values are set as admin:
     | enablecompletion               | 1              |
+    | grade_aggregateonlygraded      | 1              |
     | local_tutores_student_roles    | student        |
     | local_tutores_tutor_roles      | editingteacher |
     | local_tutores_orientador_roles | editingteacher |
@@ -239,7 +240,7 @@ Background:
     | Message | I'm the student2 forum post |
   And I log out
 
-  @javascript
+  @javascript @entrega_de_atividades
 Scenario: Correct report generation
     And I log in as "admin"
 
@@ -250,7 +251,7 @@ Scenario: Correct report generation
     And I press "Gerar relatório"
     Then I should see "Test assignment one"
 
-  @javascript
+  @javascript @entrega_de_atividades
 Scenario: entrega_de_atividades - todas as legendas de entrega
     And I log in as "admin"
     And I follow "Courses"
@@ -270,7 +271,7 @@ Scenario: entrega_de_atividades - todas as legendas de entrega
     And I should see "Test assignment one"
     And I should see "Test assignment two"
 
-  @javascript @scope
+  @javascript @scope @estudante_sem_atividade_postada
 Scenario: estudante_sem_atividade_postada - lista de atividades nao postadas
     And I log in as "admin"
     And I follow "Courses"
@@ -279,11 +280,11 @@ Scenario: estudante_sem_atividade_postada - lista de atividades nao postadas
     And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # student1 nao entregou a2 (deadline passado 978307200) e nao tem nota
-      Then I should see "Student s1"
+    Then I should see "Student s1"
     # a2 deve aparecer na lista para quem nao entregou
     And I should see "Test assignment two"
 
-  @javascript
+  @javascript @estudante_sem_atividade_avaliada
 Scenario: estudante_sem_atividade_avaliada - lista de atividades entregues sem nota
     And I log in as "admin"
     And I follow "Courses"
@@ -294,7 +295,7 @@ Scenario: estudante_sem_atividade_avaliada - lista de atividades entregues sem n
     # student2 entregou a2 (Test assignment two) mas ainda nao tem nota -> deve aparecer
     Then I should see "Test assignment two"
 
-  @javascript
+  @javascript @avaliacoes_em_atraso
 Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
     And I log in as "admin"
     And I follow "Courses"
@@ -305,6 +306,7 @@ Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
     # Deve exibir tabela com tutores e atividades com avaliacoes pendentes
     Then I should see "Test assignment one"
 
+  @avaliacoes_em_atraso @csv
   Scenario: avaliacoes_em_atraso exporta CSV com dados esperados
     And I log in as "admin"
     And I export the unasus report "avaliacoes_em_atraso" as csv for course "c1" with params:
@@ -316,6 +318,7 @@ Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
       | value      |
       | Teacher t1 |
 
+  @atividades_nota_atribuida @csv
   Scenario: atividades_nota_atribuida exporta CSV com dados esperados
     And I log in as "admin"
     And I export the unasus report "atividades_nota_atribuida" as csv for course "c1" with params:
@@ -326,58 +329,391 @@ Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
       | value      |
       | Teacher t1 |
 
-  @javascript
+  @javascript @atividades_vs_notas
 Scenario: atividades_vs_notas - estados de entrega e nota
+    # Cria atividade com prazo definido para validar legenda de nota no prazo (ate 24hs).
+    And the following "activities" exist:
+      | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected | completion |
+      | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 1          |
+
+    # Distribui estados entre estudantes para cobrir variacoes sem concentrar em um unico aluno.
+    # student2 entrega a1 sem nota (deadline futuro -> sem nota).
+    And I log in as "student2"
+    And I follow "Course1"
+    And I follow "Test assignment one"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student2 submission on assignment one |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # Entregas no prazo para a7 em estudantes diferentes (base da legenda nota no prazo).
+    And I log in as "student2"
+    And I follow "Course1"
+    And I follow "Test assignment seven"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student2 submission on assignment seven |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    And I log in as "student3"
+    And I follow "Course1"
+    And I follow "Test assignment seven"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student3 submission on assignment seven |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # Estado de correcao atrasada: forca envio de a2 para 2 dias no passado (student2 sem nota em a2).
+    And I set the submission date of activity "a2" to "-2" days after
+
+    # Estados com nota: no prazo em a4 e com atraso em a5 para student1.
+    And I set the grade of activity "a4" for user "student1" to "90"
+    And I set the grade date of activity "a4" for user "student1" to "0" days after submission
+    And I set the grade of activity "a5" for user "student1" to "70"
+    And I set the grade date of activity "a5" for user "student1" to "2" days after submission
+
+    # Notas no prazo em a7 para estudantes diferentes (<= 24h apos entrega).
+    And I set the submission date of activity "a7" to "0" days after
+    And I set the grade of activity "a7" for user "student2" to "85"
+    And I set the grade date of activity "a7" for user "student2" to "0" days after submission
+    And I set the grade of activity "a7" for user "student3" to "95"
+    And I set the grade date of activity "a7" for user "student3" to "0" days after submission
+
     And I log in as "admin"
     And I follow "Courses"
     And I follow "Category 1"
     And I follow "Course1"
     And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    # a3 deadline=0, sem nota -> sem prazo
-    Then I should see "sem prazo"
-    # a1 deadline futuro, student3 sem envio -> no prazo
-    And I should see "no prazo"
-    # student2 entregou a2 mas nao tem nota -> sem nota ou dias em atraso
-    And I should see "Test assignment two"
-    # a2 student1 sem envio, prazo passado -> nao entregue
-    And I should see "não entregue"
+    # And I take a screenshot
 
+    # Legenda especifica solicitada: nota atribuida no prazo (ate 24hs).
+    Then I should see "Nota atribuída no prazo (até 24hs)"
+
+    # Cobre variacoes textuais: sem prazo, no prazo, nao entregue, sem nota e dias em atraso.
+    And the unasus report table should have "sem prazo" at row "Student s4" and column "Test assignment three"
+    And the unasus report table should have "no prazo" at row "Student s5" and column "Test assignment one"
+    And the unasus report table should have "não entregue" at row "Student s6" and column "Test assignment two"
+    And the unasus report table should have "sem nota" at row "Student s2" and column "Test assignment one"
+    And I should see "dias"
+
+    # Garante que estados/notas estao distribuidos entre alunos diferentes em colunas distintas.
+    And the unasus report table should have "90.0" at row "Student s1" and column "Test assignment four"
+    And the unasus report table should have "70.0" at row "Student s1" and column "Test assignment five"
+    And the unasus report table should have "85.0" at row "Student s2" and column "Test assignment seven"
+    And the unasus report table should have "95.0" at row "Student s3" and column "Test assignment seven"
+
+  @atividades_vs_notas @csv
   Scenario: atividades_vs_notas exporta CSV com dados esperados
+    # Reaplica setup deterministico para o cenario de exportacao CSV.
+    And the following "activities" exist:
+      | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected | completion |
+      | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 1          |
+
+    And I log in as "student2"
+    And I follow "Course1"
+    And I follow "Test assignment one"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student2 submission on assignment one |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    And I log in as "student2"
+    And I follow "Course1"
+    And I follow "Test assignment seven"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student2 submission on assignment seven |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    And I log in as "student3"
+    And I follow "Course1"
+    And I follow "Test assignment seven"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student3 submission on assignment seven |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    And I set the submission date of activity "a2" to "-2" days after
+    And I set the grade of activity "a4" for user "student1" to "90"
+    And I set the grade date of activity "a4" for user "student1" to "0" days after submission
+    And I set the grade of activity "a5" for user "student1" to "70"
+    And I set the grade date of activity "a5" for user "student1" to "2" days after submission
+    And I set the submission date of activity "a7" to "0" days after
+    And I set the grade of activity "a7" for user "student2" to "85"
+    And I set the grade date of activity "a7" for user "student2" to "0" days after submission
+    And I set the grade of activity "a7" for user "student3" to "95"
+    And I set the grade date of activity "a7" for user "student3" to "0" days after submission
+
     And I log in as "admin"
     And I export the unasus report "atividades_vs_notas" as csv for course "c1" with params:
       | name | value |
     Then the exported unasus csv should contain "Estudante"
     And the exported unasus csv should contain "Test assignment two"
-    And the exported unasus csv should have a row containing:
-      | value      |
-      | Student s1 |
+    And the exported unasus csv should have "sem prazo" at row "Student s4" and column "Test assignment three"
+    And the exported unasus csv should have "no prazo" at row "Student s5" and column "Test assignment one"
+    And the exported unasus csv should have "não entregue" at row "Student s6" and column "Test assignment two"
+    And the exported unasus csv should have "sem nota" at row "Student s2" and column "Test assignment one"
+    And the exported unasus csv should contain "dias"
+    And the exported unasus csv should have "90.0" at row "Student s1" and column "Test assignment four"
+    And the exported unasus csv should have "70.0" at row "Student s1" and column "Test assignment five"
+    And the exported unasus csv should have "85.0" at row "Student s2" and column "Test assignment seven"
+    And the exported unasus csv should have "95.0" at row "Student s3" and column "Test assignment seven"
 
-  @javascript
+  @javascript @boletim
 Scenario: boletim - verificacao de notas
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
     And I follow "Courses"
     And I follow "Category 1"
     And I follow "Course1"
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    # student1 tem nota 100 em a4 -> deve aparecer no boletim
+    # student1 tem notas 100 (a4) e 80 (a5) -> media final deve ser 90.0
     Then I should see "Test assignment four"
+    And the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+    And I should see "Atividade avaliada com nota acima de"
+    And I should see "Atividade avaliada com nota abaixo de"
+    And I should see "Média final abaixo de"
+    And I should see "Atividade não avaliada ou não entregue"
+    And I should see "Atividade não aplicada"
 
+  @boletim @csv
   Scenario: boletim exporta CSV com dados esperados
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
     And I export the unasus report "boletim" as csv for course "c1" with params:
       | name | value |
     Then the exported unasus csv should contain "Estudante"
     And the exported unasus csv should contain "Média Final"
     And the exported unasus csv should contain "Test assignment four"
-    And the exported unasus csv should have a row containing:
-      | value      |
-      | Student s1 |
+    And the exported unasus csv should have "100.0" at row "Student s1" and column "Test assignment four"
+    And the exported unasus csv should have "80.0" at row "Student s1" and column "Test assignment five"
+    And the exported unasus csv should have "90.0" at row "Student s1" and column "Média Final"
+    And the exported unasus csv should have an empty value at row "Student s1" and column "Test assignment one"
 
-  @javascript
+  @javascript @boletim
+Scenario: boletim - média ponderada no gradebook
+    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I set gradebook weight "75" for activity "a4" in course "c1"
+    And I set gradebook weight "25" for activity "a5" in course "c1"
+    And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "95.0"
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Boletim" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+
+  @boletim @csv
+  Scenario: boletim - média ponderada no gradebook exporta CSV
+    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I set gradebook weight "75" for activity "a4" in course "c1"
+    And I set gradebook weight "25" for activity "a5" in course "c1"
+    And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "95.0"
+    And I log in as "admin"
+    And I export the unasus report "boletim" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv should contain "Média Final"
+    And the exported unasus csv should have "100.0" at row "Student s1" and column "Test assignment four"
+    And the exported unasus csv should have "80.0" at row "Student s1" and column "Test assignment five"
+    And the exported unasus csv should have "95.0" at row "Student s1" and column "Média Final"
+
+  @javascript @boletim
+Scenario: boletim - média simples com vazias=zero
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to enabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be lower than "90.0"
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Boletim" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then I should see "Test assignment four"
+    Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+
+  @boletim @csv
+  Scenario: boletim - média simples com vazias=zero exporta CSV
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to enabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be lower than "90.0"
+    And I log in as "admin"
+    And I export the unasus report "boletim" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+
+  @javascript @boletim
+Scenario: boletim - média ponderada com vazias=zero
+    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    And I set gradebook include empty grades for course "c1" to enabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I reset all gradebook weights for course "c1"
+    And I set gradebook weight "60" for activity "a4" in course "c1"
+    And I set gradebook weight "20" for activity "a5" in course "c1"
+    And I set gradebook weight "20" for activity "a1" in course "c1"
+    And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be lower than "95.0"
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Boletim" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+
+  @boletim @csv
+  Scenario: boletim - média ponderada com vazias=zero exporta CSV
+    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    And I set gradebook include empty grades for course "c1" to enabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I reset all gradebook weights for course "c1"
+    And I set gradebook weight "60" for activity "a4" in course "c1"
+    And I set gradebook weight "20" for activity "a5" in course "c1"
+    And I set gradebook weight "20" for activity "a1" in course "c1"
+    And I set the grade of activity "a4" for user "student1" to "100"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be lower than "95.0"
+    And I log in as "admin"
+    And I export the unasus report "boletim" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+
+  @javascript @boletim
+Scenario: boletim - atividades base 100 com nota final base 10
+    # Atividades têm grademax=100; course total configurado para base 10 (grademax=10).
+    # finalgrade armazenado em escala 0-10 → boletim exibe valor bruto: 7.0 (não 70.0).
+    # student1: a4=80/100 (80%), a5=60/100 (60%) → média=70% → finalgrade=7.0
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "10"
+    And I set the grade of activity "a4" for user "student1" to "80"
+    And I set the grade of activity "a5" for user "student1" to "60"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "70.0"
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Boletim" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then the unasus report table should have "7.0" at row "Student s1" and column "M.Final"
+
+  @boletim @csv
+  Scenario: boletim - atividades base 100 com nota final base 10 exporta CSV
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "10"
+    And I set the grade of activity "a4" for user "student1" to "80"
+    And I set the grade of activity "a5" for user "student1" to "60"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "70.0"
+    And I log in as "admin"
+    And I export the unasus report "boletim" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv should have "7.0" at row "Student s1" and column "Média Final"
+
+  @javascript @boletim
+Scenario: boletim - todas as atividades avaliadas verifica media final
+    # student1: a1=60, a2=70, a3=80, a4=90, a5=100, a6=80
+    # media simples (6 notas) = 480/6 = 80.0%
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I set the grade of activity "a1" for user "student1" to "60"
+    And I set the grade of activity "a2" for user "student1" to "70"
+    And I set the grade of activity "a3" for user "student1" to "80"
+    And I set the grade of activity "a4" for user "student1" to "90"
+    And I set the grade of activity "a5" for user "student1" to "100"
+    And I set the grade of activity "a6" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "80.0"
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Boletim" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    # And I take a screenshot
+    Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+
+  @boletim @csv
+  Scenario: boletim - todas as atividades avaliadas verifica media final exporta CSV
+    # student1: a1=60, a2=70, a3=80, a4=90, a5=100, a6=80
+    # media simples (6 notas) = 480/6 = 80.0%
+    And I set gradebook aggregation for course "c1" to mean of grades
+    And I set gradebook include empty grades for course "c1" to disabled
+    And I set gradebook course total grademax for course "c1" to "100"
+    And I set the grade of activity "a1" for user "student1" to "60"
+    And I set the grade of activity "a2" for user "student1" to "70"
+    And I set the grade of activity "a3" for user "student1" to "80"
+    And I set the grade of activity "a4" for user "student1" to "90"
+    And I set the grade of activity "a5" for user "student1" to "100"
+    And I set the grade of activity "a6" for user "student1" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "80.0"
+    And I log in as "admin"
+    And I export the unasus report "boletim" as csv for course "c1" with params:
+      | name | value |
+    Then the exported unasus csv should have "60.0" at row "Student s1" and column "Test assignment one"
+    And the exported unasus csv should have "70.0" at row "Student s1" and column "Test assignment two"
+    And the exported unasus csv should have "80.0" at row "Student s1" and column "Test assignment three"
+    And the exported unasus csv should have "90.0" at row "Student s1" and column "Test assignment four"
+    And the exported unasus csv should have "100.0" at row "Student s1" and column "Test assignment five"
+    And the exported unasus csv should have "80.0" at row "Student s1" and column "Test assignment six"
+    And the exported unasus csv should have "80.0" at row "Student s1" and column "Média Final"
+
+  @javascript @modulos_concluidos
 Scenario: modulos_concluidos - verificacao de completion de atividades
     And I mark activity "a4" as complete for user "student1"
     And I log in as "admin"
@@ -389,7 +725,7 @@ Scenario: modulos_concluidos - verificacao de completion de atividades
     # Deve exibir atividades com estado de conclusao
     Then I should see "Test assignment four"
 
-  @javascript
+  @javascript @atividades_concluidas_agrupadas
 Scenario: atividades_concluidas_agrupadas - geracao do relatorio por modulo
     And I mark activity "a4" as complete for user "student1"
     And I log in as "admin"
@@ -402,7 +738,7 @@ Scenario: atividades_concluidas_agrupadas - geracao do relatorio por modulo
     And I should see "Course1"
     And I should see "Total alunos com atividade concluida / Total alunos"
 
-  @javascript @tutor_scope
+  @javascript @tutor_scope @entrega_de_atividades @atividades_vs_notas
   Scenario Outline: tutor teacher1 vê apenas estudantes da própria tutoria nos relatórios de acompanhamento
     And I log in as "teacher1"
     And I follow "Course1"
