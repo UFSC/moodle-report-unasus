@@ -1645,6 +1645,113 @@ EOD;
     }
 
     /**
+     * Asserts a student row contains an activity text.
+     *
+     * @Then /^the unasus report row "([^"]*)" should contain activity "([^"]*)"$/
+     */
+    public function the_unasus_report_row_should_contain_activity($rowlabel, $activityname) {
+        $rowtext = $this->get_unasus_report_row_text_by_label($rowlabel);
+        $needle = $this->normalize_unasus_csv_cell($activityname);
+
+        if (strpos($rowtext, $needle) === false) {
+            throw new \Exception(
+                'Expected row "' . $rowlabel . '" to contain activity "' . $activityname . '", but it did not.'
+            );
+        }
+    }
+
+    /**
+     * Asserts a student row does not contain an activity text.
+     *
+     * @Then /^the unasus report row "([^"]*)" should not contain activity "([^"]*)"$/
+     */
+    public function the_unasus_report_row_should_not_contain_activity($rowlabel, $activityname) {
+        $rowtext = $this->get_unasus_report_row_text_by_label($rowlabel);
+        $needle = $this->normalize_unasus_csv_cell($activityname);
+
+        if (strpos($rowtext, $needle) !== false) {
+            throw new \Exception(
+                'Expected row "' . $rowlabel . '" to not contain activity "' . $activityname . '", but it did.'
+            );
+        }
+    }
+
+    /**
+     * Asserts a student row exists in the UNA-SUS report table.
+     *
+     * @Then /^the unasus report should have row "([^"]*)"$/
+     */
+    public function the_unasus_report_should_have_row($rowlabel) {
+        $this->get_unasus_report_row_text_by_label($rowlabel);
+    }
+
+    /**
+     * Asserts a student row does not exist in the UNA-SUS report table.
+     *
+     * @Then /^the unasus report should not have row "([^"]*)"$/
+     */
+    public function the_unasus_report_should_not_have_row($rowlabel) {
+        $rowtext = $this->find_unasus_report_row_text_by_label($rowlabel);
+        if ($rowtext !== null) {
+            throw new \Exception('Unexpected UNA-SUS report table row found: ' . $rowlabel . '. Row text: ' . $rowtext);
+        }
+    }
+
+    /**
+     * Returns normalized text of a report table row found by first-column label.
+     *
+     * @param string $rowlabel
+     * @return string
+     */
+    private function get_unasus_report_row_text_by_label($rowlabel) {
+        $rowtext = $this->find_unasus_report_row_text_by_label($rowlabel);
+        if ($rowtext !== null) {
+            return $rowtext;
+        }
+
+        throw new \Exception('UNA-SUS report table row not found: ' . $rowlabel);
+    }
+
+    /**
+     * Finds normalized text of a report table row by first-column label.
+     * Returns null when no row matches.
+     *
+     * @param string $rowlabel
+     * @return string|null
+     */
+    private function find_unasus_report_row_text_by_label($rowlabel) {
+        $table = $this->getSession()->getPage()->find('css', 'table.relatorio-unasus');
+        if (!$table) {
+            throw new \Exception('UNA-SUS report table not found.');
+        }
+
+        $tbodyrows = $table->findAll('css', 'tbody tr');
+        if (empty($tbodyrows)) {
+            throw new \Exception('UNA-SUS report table body not found.');
+        }
+
+        $normalizedrowlabel = $this->normalize_unasus_csv_cell($rowlabel);
+        foreach ($tbodyrows as $row) {
+            $cells = $this->get_direct_table_cells($row);
+            if (empty($cells)) {
+                continue;
+            }
+
+            $firstcelltext = $this->normalize_unasus_csv_cell($cells[0]->getText());
+            $matchesrow = ($firstcelltext === $normalizedrowlabel);
+            if (!$matchesrow && $firstcelltext !== '' && $normalizedrowlabel !== '') {
+                $matchesrow = (strpos($firstcelltext, $normalizedrowlabel) !== false);
+            }
+
+            if ($matchesrow) {
+                return $this->normalize_unasus_csv_cell($row->getText());
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns direct child cells (th/td) from a table row element.
      *
      * @param \Behat\Mink\Element\NodeElement $row
