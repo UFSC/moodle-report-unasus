@@ -803,6 +803,125 @@ EOD;
         $DB->set_field('assign_submission', 'timemodified', $new_unix_timestamp, array('assignment' => $assign_assignid));
     }
 
+    /**
+     * Sets the grade of any activity type directly in grade_grades (regardless of module type).
+     * Works for database, lti, forum, quiz, or any gradeable activity.
+     * Unlike "I set the grade of activity" (which is assign-specific), this step only writes
+     * to grade_grades and is sufficient to make has_grade() return true in UNA-SUS reports.
+     *
+     * @Given /^I set the generic grade of activity "([^"]*)" for user "([^"]*)" to "([^"]*)"$/
+     * @param string $idnumber
+     * @param string $username
+     * @param string $grade
+     */
+    public function i_set_generic_grade_of_activity_for_user($idnumber, $username, $grade) {
+        global $DB;
+
+        $cm = $DB->get_record_sql(
+            "SELECT cm.instance, cm.course, m.name as modname
+               FROM {course_modules} cm
+               JOIN {modules} m ON cm.module = m.id
+              WHERE cm.idnumber = :idnumber",
+            array('idnumber' => $idnumber),
+            MUST_EXIST
+        );
+
+        $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
+        $now = time();
+
+        $itemid = $DB->get_field('grade_items', 'id', array(
+            'courseid'     => $cm->course,
+            'itemtype'     => 'mod',
+            'itemmodule'   => $cm->modname,
+            'iteminstance' => $cm->instance,
+        ));
+
+        if (!$itemid) {
+            throw new \Exception(
+                "No grade_items found for activity '{$idnumber}' (module: {$cm->modname})."
+            );
+        }
+
+        $existing = $DB->get_record('grade_grades', array('itemid' => $itemid, 'userid' => $userid));
+        if ($existing) {
+            $existing->rawgrade     = $grade;
+            $existing->finalgrade   = $grade;
+            $existing->timemodified = $now;
+            $DB->update_record('grade_grades', $existing);
+        } else {
+            $gg = new stdClass();
+            $gg->itemid       = $itemid;
+            $gg->userid       = $userid;
+            $gg->rawgrade     = $grade;
+            $gg->finalgrade   = $grade;
+            $gg->timecreated  = $now;
+            $gg->timemodified = $now;
+            $DB->insert_record('grade_grades', $gg);
+        }
+    }
+
+    /**
+     * Creates a minimal finished quiz attempt for a user, making has_submitted() and has_grade()
+     * return true for that quiz in UNA-SUS reports. Used to simulate quiz completion without
+     * going through the full Moodle quiz flow (which requires actual quiz questions).
+     *
+     * @Given /^I mark quiz "([^"]*)" as completed for user "([^"]*)"$/
+     * @param string $idnumber
+     * @param string $username
+     */
+    public function i_mark_quiz_as_completed_for_user($idnumber, $username) {
+        global $DB;
+
+        $cm = $DB->get_record_sql(
+            "SELECT cm.instance as quizid, cm.id as cmid, cm.course
+               FROM {course_modules} cm
+               JOIN {modules} m ON cm.module = m.id
+              WHERE cm.idnumber = :idnumber AND m.name = 'quiz'",
+            array('idnumber' => $idnumber),
+            MUST_EXIST
+        );
+
+        $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
+        $now = time();
+
+        // Context for the course module (contextlevel 70 = module).
+        $contextid = $DB->get_field_sql(
+            "SELECT id FROM {context} WHERE instanceid = :cmid AND contextlevel = 70",
+            array('cmid' => $cm->cmid),
+            MUST_EXIST
+        );
+
+        // question_usages is required by the quiz_attempts.uniqueid FK.
+        $qu = new stdClass();
+        $qu->contextid          = $contextid;
+        $qu->component          = 'mod_quiz';
+        $qu->preferredbehaviour = 'deferredfeedback';
+        $quid = $DB->insert_record('question_usages', $qu);
+
+        // Create a finished quiz attempt so that submission_date (timefinish) is non-null.
+        $qa = new stdClass();
+        $qa->quiz         = $cm->quizid;
+        $qa->userid       = $userid;
+        $qa->attempt      = 1;
+        $qa->uniqueid     = $quid;
+        $qa->layout       = '';
+        $qa->currentpage  = 0;
+        $qa->state        = 'finished';
+        $qa->timestart    = $now - 300;
+        $qa->timefinish   = $now;
+        $qa->timemodified = $now;
+        $qa->sumgrades    = 0;
+        $DB->insert_record('quiz_attempts', $qa);
+
+        // quiz_grades so that has_grade() returns true in the report.
+        $qg = new stdClass();
+        $qg->quiz         = $cm->quizid;
+        $qg->userid       = $userid;
+        $qg->grade        = 0;
+        $qg->timemodified = $now;
+        $DB->insert_record('quiz_grades', $qg);
+    }
+
     // -------------------------------------------------------------------------
     // TCC mock helpers
     // -------------------------------------------------------------------------
