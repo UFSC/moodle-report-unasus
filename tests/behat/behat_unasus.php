@@ -1667,98 +1667,85 @@ EOD;
      * @Then /^the unasus report table should have "([^"]*)" at row "([^"]*)" and column "([^"]*)"$/
      */
     public function the_unasus_report_table_should_have_at_row_and_column($expected, $rowlabel, $columnlabel) {
-        $table = $this->getSession()->getPage()->find('css', 'table.relatorio-unasus');
-        if (!$table) {
-            throw new \Exception('UNA-SUS report table not found.');
-        }
-
-        $headerrows = $table->findAll('css', 'thead tr');
-        if (empty($headerrows)) {
-            throw new \Exception('UNA-SUS report table header not found.');
-        }
-
-        $headerrow = end($headerrows);
-        $headercells = $this->get_direct_table_cells($headerrow);
-        if (empty($headercells)) {
-            throw new \Exception('UNA-SUS report table header cells not found.');
-        }
-
-        $columnindex = null;
-        $normalizedcolumnlabel = $this->normalize_unasus_csv_cell($columnlabel);
-        foreach ($headercells as $idx => $cell) {
-            $celltext = $this->normalize_unasus_csv_cell($cell->getText());
-            $matches = ($celltext === $normalizedcolumnlabel);
-            if (!$matches && $celltext !== '' && $normalizedcolumnlabel !== '') {
-                $matches = (strpos($celltext, $normalizedcolumnlabel) !== false
-                    || strpos($normalizedcolumnlabel, $celltext) !== false);
-            }
-            if ($matches) {
-                $columnindex = (int) $idx;
-                break;
-            }
-        }
-        if ($columnindex === null) {
-            throw new \Exception('UNA-SUS report table column not found: ' . $columnlabel);
-        }
-
-        $tbodyrows = $table->findAll('css', 'tbody tr');
-        if (empty($tbodyrows)) {
-            throw new \Exception('UNA-SUS report table body not found.');
-        }
-
-        $targetrow = null;
-        $normalizedrowlabel = $this->normalize_unasus_csv_cell($rowlabel);
-        foreach ($tbodyrows as $row) {
-            $cells = $this->get_direct_table_cells($row);
-            if (empty($cells)) {
-                continue;
-            }
-            $firstcelltext = $this->normalize_unasus_csv_cell($cells[0]->getText());
-            $matchesrow = ($firstcelltext === $normalizedrowlabel);
-            if (!$matchesrow && $firstcelltext !== '' && $normalizedrowlabel !== '') {
-                $matchesrow = (strpos($firstcelltext, $normalizedrowlabel) !== false);
-            }
-
-            if ($matchesrow) {
-                $targetrow = $cells;
-                break;
-            }
-        }
-        if ($targetrow === null) {
-            throw new \Exception('UNA-SUS report table row not found: ' . $rowlabel);
-        }
-
-        $columnlabelnormalized = mb_strtolower($this->normalize_unasus_csv_cell($columnlabel));
-        $isfinalcolumn = ($columnlabelnormalized === 'final' || $columnlabelnormalized === 'm.final');
-
-        if (!isset($targetrow[$columnindex])) {
-            if ($isfinalcolumn) {
-                $columnindex = count($targetrow) - 1;
-            } else {
-                throw new \Exception(
-                    'UNA-SUS report table column index out of range for row "' . $rowlabel .
-                    '" at column "' . $columnlabel . '".'
-                );
-            }
-        }
-
-        $actual = ($columnindex >= 0) ? $this->normalize_unasus_csv_cell($targetrow[$columnindex]->getText()) : '';
+        $actual = $this->get_unasus_report_cell_text_by_row_and_column($rowlabel, $columnlabel);
         $expectednormalized = $this->normalize_unasus_csv_cell($expected);
-
-        // Some report tables (notably boletim) may render the final column with
-        // subtle DOM/index shifts despite visual alignment. If the mapped cell
-        // is empty, fallback to the last direct cell of the row.
-        if ($isfinalcolumn && $actual === '' && $expectednormalized !== '') {
-            $lastidx = count($targetrow) - 1;
-            if ($lastidx >= 0) {
-                $actual = $this->normalize_unasus_csv_cell($targetrow[$lastidx]->getText());
-            }
-        }
 
         if ($actual !== $expectednormalized) {
             throw new \Exception(
                 'Unexpected HTML table cell value at row "' . $rowlabel . '" and column "' . $columnlabel .
                 '". Expected "' . $expectednormalized . '", got "' . $actual . '".'
+            );
+        }
+    }
+
+    /**
+     * Asserts one HTML report table cell contains a value by row label and column label.
+     *
+     * @Then /^the unasus report table cell at row "([^"]*)" and column "([^"]*)" should contain "([^"]*)"$/
+     */
+    public function the_unasus_report_table_cell_at_row_and_column_should_contain($rowlabel, $columnlabel, $expected) {
+        $actual = $this->get_unasus_report_cell_text_by_row_and_column($rowlabel, $columnlabel);
+        $expectednormalized = $this->normalize_unasus_csv_cell($expected);
+
+        if (strpos($actual, $expectednormalized) === false) {
+            throw new \Exception(
+                'Expected HTML table cell at row "' . $rowlabel . '" and column "' . $columnlabel .
+                '" to contain "' . $expectednormalized . '", but got "' . $actual . '".'
+            );
+        }
+    }
+
+    /**
+     * Asserts one HTML report table cell does not contain a value by row label and column label.
+     *
+     * @Then /^the unasus report table cell at row "([^"]*)" and column "([^"]*)" should not contain "([^"]*)"$/
+     */
+    public function the_unasus_report_table_cell_at_row_and_column_should_not_contain($rowlabel, $columnlabel, $unexpected) {
+        $actual = $this->get_unasus_report_cell_text_by_row_and_column($rowlabel, $columnlabel);
+        $unexpectednormalized = $this->normalize_unasus_csv_cell($unexpected);
+
+        if (strpos($actual, $unexpectednormalized) !== false) {
+            throw new \Exception(
+                'Expected HTML table cell at row "' . $rowlabel . '" and column "' . $columnlabel .
+                '" to not contain "' . $unexpectednormalized . '", but got "' . $actual . '".'
+            );
+        }
+    }
+
+    /**
+     * Asserts the module completion report cell matches Moodle course grade string.
+     *
+     * @Then /^the unasus module completion final grade for user "([^"]*)" in course "([^"]*)" should match Moodle gradebook$/
+     */
+    public function the_unasus_module_completion_final_grade_for_user_in_course_should_match_moodle_gradebook($useridentifier, $courseidentifier) {
+        global $CFG;
+
+        if (!function_exists('grade_get_course_grade')) {
+            require_once($CFG->libdir . '/gradelib.php');
+            require_once($CFG->dirroot . '/grade/querylib.php');
+        }
+
+        $courseid = $this->resolve_course_id($courseidentifier);
+        $userid = $this->resolve_user_id($useridentifier);
+        $grade = grade_get_course_grade($userid, $courseid);
+
+        if (!$grade || !isset($grade->str_grade)) {
+            throw new \Exception(
+                'Moodle gradebook course grade not found for user "' . $useridentifier .
+                '" in course "' . $courseidentifier . '".'
+            );
+        }
+
+        $rowlabel = $this->get_user_fullname_from_identifier($useridentifier);
+        $course = get_course($courseid);
+        $actual = $this->get_unasus_report_cell_text_by_row_and_column($rowlabel, $course->fullname);
+        $expected = $this->normalize_unasus_csv_cell($grade->str_grade);
+
+        if ($actual !== $expected) {
+            throw new \Exception(
+                'Unexpected module completion final grade for user "' . $useridentifier .
+                '" in course "' . $courseidentifier . '". Expected "' . $expected .
+                '", got "' . $actual . '".'
             );
         }
     }
@@ -1832,6 +1819,103 @@ EOD;
     }
 
     /**
+     * Returns normalized text of a report table cell found by row and column labels.
+     *
+     * @param string $rowlabel
+     * @param string $columnlabel
+     * @return string
+     * @throws Exception
+     */
+    private function get_unasus_report_cell_text_by_row_and_column($rowlabel, $columnlabel) {
+        $table = $this->find_unasus_report_table();
+
+        $headerrows = $table->findAll('css', 'thead tr');
+        if (empty($headerrows)) {
+            throw new \Exception('UNA-SUS report table header not found.');
+        }
+
+        $headerrow = end($headerrows);
+        $headercells = $this->get_direct_table_cells($headerrow);
+        if (empty($headercells)) {
+            throw new \Exception('UNA-SUS report table header cells not found.');
+        }
+
+        $columnindex = null;
+        $normalizedcolumnlabel = $this->normalize_unasus_csv_cell($columnlabel);
+        foreach ($headercells as $idx => $cell) {
+            $celltext = $this->normalize_unasus_csv_cell($cell->getText());
+            $matches = ($celltext === $normalizedcolumnlabel);
+            if (!$matches && $celltext !== '' && $normalizedcolumnlabel !== '') {
+                $matches = (strpos($celltext, $normalizedcolumnlabel) !== false
+                    || strpos($normalizedcolumnlabel, $celltext) !== false);
+            }
+            if ($matches) {
+                $columnindex = (int) $idx;
+                break;
+            }
+        }
+        if ($columnindex === null) {
+            throw new \Exception('UNA-SUS report table column not found: ' . $columnlabel);
+        }
+
+        $tbodyrows = $table->findAll('css', 'tbody tr');
+        if (empty($tbodyrows)) {
+            throw new \Exception('UNA-SUS report table body not found.');
+        }
+
+        $targetrow = null;
+        $normalizedrowlabel = $this->normalize_unasus_csv_cell($rowlabel);
+        foreach ($tbodyrows as $row) {
+            $cells = $this->get_direct_table_cells($row);
+            if (empty($cells)) {
+                continue;
+            }
+
+            $firstcelltext = $this->normalize_unasus_csv_cell($cells[0]->getText());
+            $matchesrow = ($firstcelltext === $normalizedrowlabel);
+            if (!$matchesrow && $firstcelltext !== '' && $normalizedrowlabel !== '') {
+                $matchesrow = (strpos($firstcelltext, $normalizedrowlabel) !== false);
+            }
+
+            if ($matchesrow) {
+                $targetrow = $cells;
+                break;
+            }
+        }
+        if ($targetrow === null) {
+            throw new \Exception('UNA-SUS report table row not found: ' . $rowlabel);
+        }
+
+        $columnlabelnormalized = mb_strtolower($this->normalize_unasus_csv_cell($columnlabel));
+        $isfinalcolumn = ($columnlabelnormalized === 'final' || $columnlabelnormalized === 'm.final');
+
+        if (!isset($targetrow[$columnindex])) {
+            if ($isfinalcolumn) {
+                $columnindex = count($targetrow) - 1;
+            } else {
+                throw new \Exception(
+                    'UNA-SUS report table column index out of range for row "' . $rowlabel .
+                    '" at column "' . $columnlabel . '".'
+                );
+            }
+        }
+
+        $actual = ($columnindex >= 0) ? $this->normalize_unasus_csv_cell($targetrow[$columnindex]->getText()) : '';
+
+        // Some report tables (notably boletim) may render the final column with
+        // subtle DOM/index shifts despite visual alignment. If the mapped cell
+        // is empty, fallback to the last direct cell of the row.
+        if ($isfinalcolumn && $actual === '') {
+            $lastidx = count($targetrow) - 1;
+            if ($lastidx >= 0) {
+                $actual = $this->normalize_unasus_csv_cell($targetrow[$lastidx]->getText());
+            }
+        }
+
+        return $actual;
+    }
+
+    /**
      * Finds normalized text of a report table row by first-column label.
      * Returns null when no row matches.
      *
@@ -1839,10 +1923,7 @@ EOD;
      * @return string|null
      */
     private function find_unasus_report_row_text_by_label($rowlabel) {
-        $table = $this->getSession()->getPage()->find('css', 'table.relatorio-unasus');
-        if (!$table) {
-            throw new \Exception('UNA-SUS report table not found.');
-        }
+        $table = $this->find_unasus_report_table();
 
         $tbodyrows = $table->findAll('css', 'tbody tr');
         if (empty($tbodyrows)) {
@@ -1868,6 +1949,39 @@ EOD;
         }
 
         return null;
+    }
+
+    /**
+     * Finds the rendered UNA-SUS report table.
+     *
+     * Some reports render the relatorio-unasus class on the table itself, while
+     * Moodle html_table based reports render it on the wrapper or cells.
+     *
+     * @return \Behat\Mink\Element\NodeElement
+     * @throws Exception
+     */
+    private function find_unasus_report_table() {
+        $selectors = array(
+            'table.relatorio-unasus',
+            'div.relatorio-unasus.relatorio-wrapper table',
+            'table.generaltable_without_stripes',
+        );
+
+        foreach ($selectors as $selector) {
+            try {
+                return $this->find(
+                    'css',
+                    $selector,
+                    new \Exception('UNA-SUS report table not found: ' . $selector),
+                    false,
+                    2
+                );
+            } catch (\Exception $e) {
+                // Try the next known table shape.
+            }
+        }
+
+        throw new \Exception('UNA-SUS report table not found.');
     }
 
     /**
