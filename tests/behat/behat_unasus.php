@@ -757,6 +757,18 @@ EOD;
             MUST_EXIST
         );
 
+        $this->mark_course_module_complete_for_user((int) $cmid, $username);
+    }
+
+    /**
+     * Marks a course module as complete for a given user directly in the database.
+     *
+     * @param int $cmid
+     * @param string $username
+     */
+    private function mark_course_module_complete_for_user($cmid, $username) {
+        global $DB;
+
         $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
 
         $existing = $DB->get_record('course_modules_completion',
@@ -774,6 +786,30 @@ EOD;
             $record->viewed          = 1;
             $record->timemodified    = time();
             $DB->insert_record('course_modules_completion', $record);
+        }
+    }
+
+    /**
+     * Marks every completion-enabled course module as complete for a user.
+     *
+     * @Given /^I mark all completion-enabled activities in course "([^"]*)" as complete for user "([^"]*)"$/
+     * @param string $courseidentifier
+     * @param string $username
+     */
+    public function i_mark_all_completion_enabled_activities_in_course_as_complete_for_user($courseidentifier, $username) {
+        global $DB;
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $modules = $DB->get_records_select(
+            'course_modules',
+            'course = :course AND completion <> 0',
+            array('course' => $courseid),
+            'id ASC',
+            'id'
+        );
+
+        foreach ($modules as $module) {
+            $this->mark_course_module_complete_for_user((int) $module->id, $username);
         }
     }
 

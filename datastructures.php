@@ -754,9 +754,9 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
                 continue;
             }
 
-            $activity_id = $dado_atividade->source_activity->id;
-            $course_id   = $dado_atividade->source_activity->course_id;
-            $user_id     = $dado_atividade->userid;
+            $coursemodule_id = $dado_atividade->source_activity->coursemoduleid;
+            $course_id       = $dado_atividade->source_activity->course_id;
+            $user_id         = $dado_atividade->userid;
             $this->user_id = $user_id;
 
             if (!array_key_exists($course_id, $this->atividades_concluidas)) {
@@ -767,7 +767,7 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
             // A completude é determinada pelo mecanismo nativo do Moodle (course_modules_completion),
             // e não apenas pela existência de envio ou nota. Isso respeita critérios como
             // nota mínima e visualização exigida pelo professor.
-            if ($this->user_activity_completion($activity_id, $course_id, $user_id)) {
+            if ($this->user_activity_completion($coursemodule_id, $user_id)) {
 
                 $this->atividades_concluidas[$course_id]++;
             }
@@ -780,37 +780,26 @@ class report_unasus_dado_atividades_nota_atribuida_alunos_render extends report_
     /**
      * Retorna as atividades de um usuário e os seus estados de completude
      *
-     * @param $activity_id, $course_id, $user_id
+     * @param int $coursemodule_id
+     * @param int $user_id
      * @return boolean
      */
-    private function user_activity_completion($activity_id, $course_id, $user_id)
+    private function user_activity_completion($coursemodule_id, $user_id)
     {
         global $DB;
 
         $completion = false;
 
-        // Busca o estado de completude por instância de atividade (não pelo course_module id),
-        // pois o relatório referencia atividades pelo id do objeto (assign, quiz, etc.),
-        // e não pelo id do course_module diretamente.
-        $query = "select
-	cm.instance AS activityid,
-	coursemoduleid,
-	completionstate,
-	timemodified
-  from {course_modules_completion} cmc
-	inner join {course_modules} cm
-		on (cmc.coursemoduleid = cm.id)
-where
-	cmc.userid = :user_id
-	and cm.course = :course_id";
-        $params = array(
-            'user_id' => $user_id,
-            'course_id' => $course_id,
-        );
-        $user_completions = $DB->get_records_sql($query, $params);
+        $state = $DB->get_field('course_modules_completion', 'completionstate', array(
+            'coursemoduleid' => $coursemodule_id,
+            'userid' => $user_id,
+        ));
 
-        // Atividade sem registro equivale a não concluída pelo padrão do Moodle.
-        $state = isset($user_completions[$activity_id]) ? $user_completions[$activity_id]->completionstate : COMPLETION_INCOMPLETE;
+        if ($state === false) {
+            // Atividade sem registro equivale a não concluída pelo padrão do Moodle.
+            $state = COMPLETION_INCOMPLETE;
+        }
+
         switch($state) {
             case COMPLETION_INCOMPLETE    : $completion = false; break;
             case COMPLETION_COMPLETE      : $completion = true;  break;

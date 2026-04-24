@@ -97,9 +97,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $query_atividades   = query_atividades_from_users($cohort_estudantes);
         $query_quiz         = query_quiz_from_users($cohort_estudantes);
         $query_forum        = query_postagens_forum_from_users($cohort_estudantes);
-        $query_database     = query_database_adjusted_from_users($cohort_estudantes);
+        $query_database     = query_database_completion_from_users($cohort_estudantes);
         $query_scorm        = query_scorm_from_users($cohort_estudantes);
-        $query_lti          = query_lti_from_users($cohort_estudantes);
+        $query_lti          = query_lti_completion_from_users($cohort_estudantes);
 
         $result_array = loop_atividades_e_foruns_sintese2(
             $query_atividades,
@@ -125,42 +125,21 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         // Total do grupo (tutor ou polo)
         $atividades_alunos_grupos = $atividades_alunos->somatorio_grupos;
 
+        $completionstates = $this->get_completion_states_by_user();
+
         // passa pelos dados de cada atividade, de cada aluno e agrupado (polo ou tutor)
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
 
             // passa pelos alunos do grupo
             foreach ($array_dados as $aluno_id => $aluno_activities) {
-                $courseid = '';
-                $progress = null;
 
                 // passa por todas as atividades de cada aluno
                 foreach ($aluno_activities as $atividade) {
-                    if (isset($atividade) &&
-                        $courseid != $atividade->source_activity->course_id) {
-
-                        $courseid = $atividade->source_activity->course_id;
-
-                        $course_instance = get_course($courseid);
-                        $info = new completion_info($course_instance);
-                        $uid = 'u.id=' . $aluno_id;
-                        $progress = $info->get_progress_all($uid);
-
-                    }
-
-                    //Se não houver dados para o aluno, ele não faz aquele módulo
-                    if ( isset($progress) &&
-                        isset($progress[$aluno_id]) ) {
-
-                        // passa por todas as atividades configuradas daquele módulo
-                            $pendente = true;
-                            $has_progress = isset($progress[$aluno_id]->progress[$atividade->source_activity->coursemoduleid]);
-                            if ( $has_progress ) {
-                                $pendente = $progress[$aluno_id]->progress[$atividade->source_activity->coursemoduleid]->completionstate == COMPLETION_INCOMPLETE;
-                            }
-                    } else {
-                        // se não achou a completude, então pega a regra geral, se a nota foi dada quando precisar de nota
-                        $pendente = ($atividade->has_grade() && $atividade->is_grade_needed());
-                    }
+                    $pendente = !$this->is_activity_complete_for_user(
+                        $completionstates,
+                        $aluno_id,
+                        $atividade->source_activity->coursemoduleid
+                    );
 
                     if (!$pendente) {
 
@@ -279,6 +258,48 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $dados[] = $data_total;
 
         return $dados;
+    }
+
+    /**
+     * Returns course module completion states indexed by user and course module.
+     *
+     * @return array
+     */
+    private function get_completion_states_by_user() {
+        global $DB;
+
+        $states = array();
+        $records = $DB->get_records('course_modules_completion', null, '', 'id,userid,coursemoduleid,completionstate');
+
+        foreach ($records as $record) {
+            if (!isset($states[$record->userid])) {
+                $states[$record->userid] = array();
+            }
+            $states[$record->userid][$record->coursemoduleid] = (int) $record->completionstate;
+        }
+
+        return $states;
+    }
+
+    /**
+     * Checks whether a user completed a course module.
+     *
+     * @param array $completionstates
+     * @param int $userid
+     * @param int $coursemoduleid
+     * @return bool
+     */
+    private function is_activity_complete_for_user(array $completionstates, $userid, $coursemoduleid) {
+        if (!isset($completionstates[$userid][$coursemoduleid])) {
+            return false;
+        }
+
+        $state = $completionstates[$userid][$coursemoduleid];
+        return in_array($state, array(
+            COMPLETION_COMPLETE,
+            COMPLETION_COMPLETE_PASS,
+            COMPLETION_COMPLETE_FAIL,
+        ), true);
     }
 
     public function get_table_header() {

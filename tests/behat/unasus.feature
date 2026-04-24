@@ -600,16 +600,87 @@ Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
     And the exported unasus csv should have "0/4 0.0%" at row "Teacher t3" and column "Test assignment six"
     And the exported unasus csv should have "0/44 0.0%" at row "Teacher t3" and column "Média"
 
+  @javascript @atividades_nota_atribuida
+  Scenario: atividades_nota_atribuida - sintese de completude por tutor
+    # Teacher t1: dois estudantes concluiram todas as atividades com completude ativa.
+    And I mark all completion-enabled activities in course "c1" as complete for user "student1"
+    And I mark all completion-enabled activities in course "c1" as complete for user "student2"
+
+    # Teacher t2: um estudante concluiu todas; outro concluiu apenas uma atividade.
+    And I mark all completion-enabled activities in course "c1" as complete for user "student5"
+    And I mark activity "a1" as complete for user "student6"
+
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Síntese: atividades concluídas" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then I should see "Test assignment"
+    And I take a screenshot
+
+    Then the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment one"
+    And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment two"
+    And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test forum one"
+    And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test database one"
+    And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test lti one"
+    And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Total"
+
+    And the unasus report table should have "2/4 50.0%" at row "Teacher t2" and column "Test assignment one"
+    And the unasus report table should have "1/4 25.0%" at row "Teacher t2" and column "Test assignment two"
+    And the unasus report table should have "1/4 25.0%" at row "Teacher t2" and column "Test database one"
+    And the unasus report table should have "1/4 25.0%" at row "Teacher t2" and column "Test lti one"
+    And the unasus report table should have "1/4 25.0%" at row "Teacher t2" and column "Total"
+
+    And the unasus report table should have "0/4 0.0%" at row "Teacher t3" and column "Test assignment one"
+    And the unasus report table should have "0/4 0.0%" at row "Teacher t3" and column "Test database one"
+    And the unasus report table should have "0/4 0.0%" at row "Teacher t3" and column "Test lti one"
+    And the unasus report table should have "0/4 0.0%" at row "Teacher t3" and column "Total"
+
+    And the unasus report table should have "4/12 33.3%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment one"
+    And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment two"
+    And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test database one"
+    And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test lti one"
+    And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Total"
+
   @atividades_nota_atribuida @csv
   Scenario: atividades_nota_atribuida exporta CSV com dados esperados
+    # Teacher t1: dois estudantes concluiram todas as atividades com completude ativa.
+    And I mark all completion-enabled activities in course "c1" as complete for user "student1"
+    And I mark all completion-enabled activities in course "c1" as complete for user "student2"
+
+    # Teacher t2: um estudante concluiu todas; outro concluiu apenas uma atividade.
+    And I mark all completion-enabled activities in course "c1" as complete for user "student5"
+    And I mark activity "a1" as complete for user "student6"
+
     And I log in as "admin"
     And I export the unasus report "atividades_nota_atribuida" as csv for course "c1" with params:
       | name | value |
     Then the exported unasus csv should contain "Tutores"
     And the exported unasus csv should contain "N° Alunos com atividades concluídas"
-    And the exported unasus csv should have a row containing:
-      | value      |
-      | Teacher t1 |
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment one"
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment two"
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test forum one"
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test database one"
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test lti one"
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Total"
+
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t2" and column "Test assignment one"
+    And the exported unasus csv should have "1/4 25.0%" at row "Teacher t2" and column "Test assignment two"
+    And the exported unasus csv should have "1/4 25.0%" at row "Teacher t2" and column "Test database one"
+    And the exported unasus csv should have "1/4 25.0%" at row "Teacher t2" and column "Test lti one"
+    And the exported unasus csv should have "1/4 25.0%" at row "Teacher t2" and column "Total"
+
+    And the exported unasus csv should have "0/4 0.0%" at row "Teacher t3" and column "Test assignment one"
+    And the exported unasus csv should have "0/4 0.0%" at row "Teacher t3" and column "Test database one"
+    And the exported unasus csv should have "0/4 0.0%" at row "Teacher t3" and column "Test lti one"
+    And the exported unasus csv should have "0/4 0.0%" at row "Teacher t3" and column "Total"
+
+    And the exported unasus csv should have "4/12 33.3%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment one"
+    And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment two"
+    And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test database one"
+    And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test lti one"
+    And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Total"
 
   @javascript @atividades_vs_notas
 Scenario: atividades_vs_notas - estados de entrega e nota

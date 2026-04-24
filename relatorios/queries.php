@@ -673,6 +673,50 @@ function query_database_adjusted_from_users($cohort_estudantes) {
     ";
 }
 
+function query_database_completion_from_users($cohort_estudantes) {
+
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $is_student = query_is_student();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   d.id AS databaseid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   dr.timemodified AS submission_date,
+                   gg.timemodified AS grade_date,
+                   'db_activity' as name_activity,
+                   u.is_student
+              FROM (
+                    {$alunos_grupo_tutoria}
+                        JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
+                     ) u
+              JOIN {data} d
+                ON d.id = :id_activity
+         LEFT JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'data' AND gi.iteminstance = d.id)
+         LEFT JOIN {grade_grades} gg
+                ON (gg.userid = u.id AND gg.itemid = gi.id)
+         LEFT JOIN {data_records} dr
+                ON (d.id = dr.dataid AND u.id = dr.userid)
+          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+}
+
 function query_scorm_from_users ($cohort_estudantes) {
 
     //$alunos_grupo_tutoria = query_alunos_relationship_student();
@@ -756,6 +800,48 @@ function query_lti_from_users ($cohort_estudantes) {
               JOIN {lti} l
                 ON gi.iteminstance = l.id
              WHERE l.id = :id_activity
+          GROUP BY userid
+          ORDER BY u3.grupo_id, u3.firstname, u3.lastname
+    ";
+}
+
+function query_lti_completion_from_users ($cohort_estudantes) {
+
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $is_student = query_is_student();
+
+    return "SELECT u3.id AS userid,
+                   u3.polo,
+                   u3.cohort,
+                   gg.itemid,
+                   l.id AS lti_id,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gg.timemodified AS submission_date,
+                   'lti_activity' as name_activity,
+                   u3.is_student
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+                      JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
+                   ) u3
+              JOIN {lti} l
+                ON l.id = :id_activity
+         LEFT JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'lti' AND gi.iteminstance = l.id)
+         LEFT JOIN {grade_grades} gg
+                ON (gg.userid = u3.id AND gg.itemid = gi.id)
           GROUP BY userid
           ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";
