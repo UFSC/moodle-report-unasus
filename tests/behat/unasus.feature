@@ -616,8 +616,8 @@ Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
     And I follow "Course1"
     And I navigate to "Síntese: atividades concluídas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    Then I should see "Test assignment"
-    And I take a screenshot
+    # Then I should see "Test assignment"
+    # And I take a screenshot
 
     Then the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment one"
     And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment two"
@@ -1147,7 +1147,17 @@ Scenario: modulos_concluidos - verificacao de completion de atividades
 
   @javascript @atividades_concluidas_agrupadas
 Scenario: atividades_concluidas_agrupadas - geracao do relatorio por modulo
-    And I mark activity "a4" as complete for user "student1"
+    # Tutor teacher1 (relationship_group1): 100% -> 4/4 estudantes com curso concluído.
+    And I mark all completion-enabled activities in course "c1" as complete for user "student1"
+    And I mark all completion-enabled activities in course "c1" as complete for user "student2"
+    And I mark all completion-enabled activities in course "c1" as complete for user "student3"
+    And I mark all completion-enabled activities in course "c1" as complete for user "student4"
+
+    # Tutor teacher2 (relationship_group2): ~30% (1/4 = 25.0%)
+    And I mark all completion-enabled activities in course "c1" as complete for user "student5"
+
+    # Tutor teacher3 (relationship_group3): 0% (0/4)
+
     And I log in as "admin"
     And I follow "Courses"
     And I follow "Category 1"
@@ -1155,8 +1165,32 @@ Scenario: atividades_concluidas_agrupadas - geracao do relatorio por modulo
     And I navigate to "Sintese: atividades concluidas agrupadas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then I should see "N° Alunos com atividades concluídas"
-    And I should see "Course1"
-    And I should see "Total alunos com atividade concluida / Total alunos"
+
+    # Checagem por linha (tutor) e por coluna (módulo + total).
+    And the unasus report table should have "4/4 100.0%" at row "relationship_group1 - Teacher t1" and column "Course1"
+    And the unasus report table should have "4/4 100.0%" at row "relationship_group1 - Teacher t1" and column "N° Alunos com atividades concluídas"
+
+    And the unasus report table should have "1/4 25.0%" at row "relationship_group2 - Teacher t2" and column "Course1"
+    And the unasus report table should have "1/4 25.0%" at row "relationship_group2 - Teacher t2" and column "N° Alunos com atividades concluídas"
+
+    And the unasus report table should have "0/4 0.0%" at row "relationship_group3 - Teacher t3" and column "Course1"
+    And the unasus report table should have "0/4 0.0%" at row "relationship_group3 - Teacher t3" and column "N° Alunos com atividades concluídas"
+
+    # Total por linhas: coluna de total por tutor.
+    And the unasus report table cell at row "relationship_group1 - Teacher t1" and column "N° Alunos com atividades concluídas" should contain "4/4"
+    And the unasus report table cell at row "relationship_group1 - Teacher t1" and column "N° Alunos com atividades concluídas" should contain "100.0%"
+    And the unasus report table cell at row "relationship_group2 - Teacher t2" and column "N° Alunos com atividades concluídas" should contain "1/4"
+    And the unasus report table cell at row "relationship_group2 - Teacher t2" and column "N° Alunos com atividades concluídas" should contain "25.0%"
+    And the unasus report table cell at row "relationship_group3 - Teacher t3" and column "N° Alunos com atividades concluídas" should contain "0/4"
+    And the unasus report table cell at row "relationship_group3 - Teacher t3" and column "N° Alunos com atividades concluídas" should contain "0.0%"
+
+    # Total por colunas: linha de total geral em cada coluna.
+    And the unasus report table should have "5/12 41.7%" at row "Total alunos com atividade concluida / Total alunos" and column "Course1"
+    And the unasus report table should have "5/12 41.7%" at row "Total alunos com atividade concluida / Total alunos" and column "N° Alunos com atividades concluídas"
+    And the unasus report table cell at row "Total alunos com atividade concluida / Total alunos" and column "Course1" should contain "5/12"
+    And the unasus report table cell at row "Total alunos com atividade concluida / Total alunos" and column "Course1" should contain "41.7%"
+    And the unasus report table cell at row "Total alunos com atividade concluida / Total alunos" and column "N° Alunos com atividades concluídas" should contain "5/12"
+    And the unasus report table cell at row "Total alunos com atividade concluida / Total alunos" and column "N° Alunos com atividades concluídas" should contain "41.7%"
 
   @javascript @tutor_scope @entrega_de_atividades @atividades_vs_notas
   Scenario Outline: tutor teacher1 vê apenas estudantes da própria tutoria nos relatórios de acompanhamento
