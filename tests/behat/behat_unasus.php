@@ -1625,13 +1625,20 @@ EOD;
         }
 
         $rowindex = null;
+        $normalizedrowlabel = $this->normalize_unasus_csv_cell($rowlabel);
         for ($i = $headerindex + 1; $i < count($this->last_unasus_csv_rows); $i++) {
             $row = $this->last_unasus_csv_rows[$i];
             if (empty($row)) {
                 continue;
             }
             $firstcell = isset($row[0]) ? $row[0] : '';
-            if ($this->normalize_unasus_csv_cell($firstcell) === $this->normalize_unasus_csv_cell($rowlabel)) {
+            $firstcelltext = $this->normalize_unasus_csv_cell($firstcell);
+            $matchesrow = ($firstcelltext === $normalizedrowlabel);
+            if (!$matchesrow && $firstcelltext !== '' && $normalizedrowlabel !== '') {
+                $matchesrow = (strpos($firstcelltext, $normalizedrowlabel) !== false);
+            }
+
+            if ($matchesrow) {
                 $rowindex = $i;
                 break;
             }
@@ -1830,11 +1837,21 @@ EOD;
         $table = $this->find_unasus_report_table();
 
         $headerrows = $table->findAll('css', 'thead tr');
+        $tbodyrows = $table->findAll('css', 'tbody tr');
+
         if (empty($headerrows)) {
-            throw new \Exception('UNA-SUS report table header not found.');
+            $allrows = $table->findAll('css', 'tr');
+            if (count($allrows) < 2) {
+                throw new \Exception('UNA-SUS report table header not found.');
+            }
+            // Some html_table based reports put the double header into table data
+            // instead of rendering a thead. The second row contains the columns.
+            $headerrow = $allrows[1];
+            $tbodyrows = array_slice($allrows, 2);
+        } else {
+            $headerrow = end($headerrows);
         }
 
-        $headerrow = end($headerrows);
         $headercells = $this->get_direct_table_cells($headerrow);
         if (empty($headercells)) {
             throw new \Exception('UNA-SUS report table header cells not found.');
@@ -1858,7 +1875,6 @@ EOD;
             throw new \Exception('UNA-SUS report table column not found: ' . $columnlabel);
         }
 
-        $tbodyrows = $table->findAll('css', 'tbody tr');
         if (empty($tbodyrows)) {
             throw new \Exception('UNA-SUS report table body not found.');
         }
@@ -2006,20 +2022,22 @@ EOD;
     }
 
     /**
-     * Finds the CSV header row that contains "Estudante".
+     * Finds the CSV header row with the row-label column.
      *
      * @return int
      * @throws Exception
      */
     private function find_unasus_csv_header_row_index() {
+        $rowlabelheaders = array('Estudante', 'Tutores', 'Orientadores');
+
         foreach ($this->last_unasus_csv_rows as $idx => $row) {
             foreach ($row as $cell) {
-                if ($this->normalize_unasus_csv_cell($cell) === 'Estudante') {
+                if (in_array($this->normalize_unasus_csv_cell($cell), $rowlabelheaders, true)) {
                     return (int) $idx;
                 }
             }
         }
-        throw new Exception('CSV header row with "Estudante" not found.');
+        throw new Exception('CSV header row with row label column not found.');
     }
 
     /**
