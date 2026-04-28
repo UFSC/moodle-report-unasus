@@ -41,6 +41,7 @@ Background:
     | report_unasus_prazo_maximo_avaliacao | 5  |
     | report_unasus_prazo_avaliacao        | 1  |
     | report_unasus_tolerancia_potencial_evasao | 1 |
+    | report_unasus_passing_grade_percentage   | 60 |
 
   And the following "cohorts" exist:
     | name             | idnumber | contextlevel | reference |
@@ -856,6 +857,7 @@ Scenario: boletim - verificacao de notas
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a4" for user "student1" to "100"
     And I set the grade of activity "a5" for user "student1" to "80"
+    And I set the grade of activity "a1" for user "student2" to "40"
     And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
     And I follow "Courses"
@@ -864,8 +866,17 @@ Scenario: boletim - verificacao de notas
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # student1 tem notas 100 (a4) e 80 (a5) -> media final deve ser 90.0
-    Then I should see "Test assignment four"
+    Then the unasus report table should have "100.0" at row "Student s1" and column "Test assignment four"
+    And the unasus report table should have "80.0" at row "Student s1" and column "Test assignment five"
+    And the unasus report table should have "40.0" at row "Student s2" and column "Test assignment one"
     And the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
+    # CSS class cobre na_media, abaixo_media_nota, sem_nota, abaixo_media (nota final).
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment one" should have css class "sem_nota"
+    And the unasus report table cell at row "Student s2" and column "Test assignment one" should have css class "abaixo_media_nota"
+    And the unasus report table cell at row "Student s1" and column "M.Final" should have css class "na_media"
+    And the unasus report table cell at row "Student s2" and column "M.Final" should have css class "abaixo_media"
     And I should see "Atividade avaliada com nota acima de"
     And I should see "Atividade avaliada com nota abaixo de"
     And I should see "Média final abaixo de"
@@ -908,6 +919,10 @@ Scenario: boletim - média ponderada no gradebook
     And I follow "Course1"
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
+    And the unasus report table should have "100.0" at row "Student s1" and column "Test assignment four"
+    And the unasus report table should have "80.0" at row "Student s1" and column "Test assignment five"
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "na_media"
     Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
 
   @boletim @csv
@@ -944,7 +959,11 @@ Scenario: boletim - média simples com vazias=zero
     And I follow "Course1"
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    Then I should see "Test assignment four"
+    Then the unasus report table should have "100.0" at row "Student s1" and column "Test assignment four"
+    And the unasus report table should have "80.0" at row "Student s1" and column "Test assignment five"
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment one" should have css class "sem_nota"
     Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
 
   @boletim @csv
@@ -980,6 +999,10 @@ Scenario: boletim - média ponderada com vazias=zero
     And I follow "Course1"
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
+    And the unasus report table should have "100.0" at row "Student s1" and column "Test assignment four"
+    And the unasus report table should have "80.0" at row "Student s1" and column "Test assignment five"
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "na_media"
     Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
 
   @boletim @csv
@@ -1018,7 +1041,12 @@ Scenario: boletim - atividades base 100 com nota final base 10
     And I follow "Course1"
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    Then the unasus report table should have "7.0" at row "Student s1" and column "M.Final"
+    Then the unasus report table should have "80.0" at row "Student s1" and column "Test assignment four"
+    And the unasus report table should have "60.0" at row "Student s1" and column "Test assignment five"
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "M.Final" should have css class "na_media"
+    And the unasus report table should have "7.0" at row "Student s1" and column "M.Final"
 
   @boletim @csv
   Scenario: boletim - atividades base 100 com nota final base 10 exporta CSV
@@ -1055,7 +1083,11 @@ Scenario: boletim - todas as atividades avaliadas verifica media final
     And I follow "Course1"
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    # And I take a screenshot
+    And the unasus report table should have "90.0" at row "Student s1" and column "Test assignment four"
+    And the unasus report table should have "60.0" at row "Student s1" and column "Test assignment one"
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "Test assignment one" should have css class "na_media"
+    And the unasus report table cell at row "Student s1" and column "M.Final" should have css class "na_media"
     Then the unasus report table final grade for user "student1" in course "c1" should match Moodle gradebook percentage
 
   @boletim @csv
