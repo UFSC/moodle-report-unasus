@@ -75,6 +75,12 @@ Background:
     | tutor2   | relationship_group2 |
     | student2 | relationship_group2 |
 
+  # 1773136800 = 10/03/2026 07:00:00
+  # 1773138660 = 10/03/2026 07:31:00
+  # 1773586800 = 15/03/2026 12:00:00
+  # 1773588660 = 15/03/2026 12:31:00
+  # 1775379600 = 05/04/2026 06:00:00
+  # 1775381460 = 05/04/2026 06:31:00
   And the following tutor report logs exist:
     | username | course | datetime   | action  |
     | tutor1   | c1     | 1773136800 | viewed  |
