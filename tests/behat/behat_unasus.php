@@ -840,6 +840,26 @@ EOD;
     }
 
     /**
+     * Sets submission date relative to now, enabling deterministic pouco_atraso/muito_atraso states
+     * without depending on fixed completionexpected timestamps.
+     *
+     * @Given /^I set the submission date of activity "([^"]*)" to "([^"]*)" days before now$/
+     * @param string $idnumber
+     * @param string $days
+     */
+    public function i_set_submission_date_days_before_now($idnumber, $days) {
+        global $DB;
+
+        $assign_assignid = $DB->get_field_sql(
+            "SELECT instance FROM {course_modules} WHERE idnumber = :idnumber",
+            array('idnumber' => $idnumber)
+        );
+
+        $new_unix_timestamp = time() - ($days * 86400);
+        $DB->set_field('assign_submission', 'timemodified', $new_unix_timestamp, array('assignment' => $assign_assignid));
+    }
+
+    /**
      * Sets the grade of any activity type directly in grade_grades (regardless of module type).
      * Works for database, lti, forum, quiz, or any gradeable activity.
      * Unlike "I set the grade of activity" (which is assign-specific), this step only writes
@@ -1753,6 +1773,109 @@ EOD;
                 '" to not contain "' . $unexpectednormalized . '", but got "' . $actual . '".'
             );
         }
+    }
+
+    /**
+     * Asserts one HTML report table cell has a specific CSS class.
+     *
+     * Useful for reports (e.g. entrega_de_atividades) where cell states are
+     * encoded only as CSS classes and the text content is empty.
+     *
+     * @Then /^the unasus report table cell at row "([^"]*)" and column "([^"]*)" should have css class "([^"]*)"$/
+     */
+    public function the_unasus_report_table_cell_at_row_and_column_should_have_css_class($rowlabel, $columnlabel, $expectedclass) {
+        $node = $this->find_unasus_report_cell_node($rowlabel, $columnlabel);
+        $classattr = (string) $node->getAttribute('class');
+        $classes = preg_split('/\s+/', trim($classattr));
+        if (!in_array($expectedclass, $classes, true)) {
+            throw new \Exception(
+                'Expected HTML table cell at row "' . $rowlabel . '" and column "' . $columnlabel .
+                '" to have css class "' . $expectedclass . '", but class attribute was "' . $classattr . '".'
+            );
+        }
+    }
+
+    /**
+     * Returns the NodeElement for a report table cell found by row and column labels.
+     * Does not apply the "final column" fallback used by the text variant.
+     *
+     * @param string $rowlabel
+     * @param string $columnlabel
+     * @return \Behat\Mink\Element\NodeElement
+     * @throws Exception
+     */
+    private function find_unasus_report_cell_node($rowlabel, $columnlabel) {
+        $table = $this->find_unasus_report_table();
+
+        $headerrows = $table->findAll('css', 'thead tr');
+        $tbodyrows  = $table->findAll('css', 'tbody tr');
+
+        if (empty($headerrows)) {
+            $allrows = $table->findAll('css', 'tr');
+            if (count($allrows) < 2) {
+                throw new \Exception('UNA-SUS report table header not found.');
+            }
+            $headerrow = $allrows[1];
+            $tbodyrows = array_slice($allrows, 2);
+        } else {
+            $headerrow = end($headerrows);
+        }
+
+        $headercells = $this->get_direct_table_cells($headerrow);
+        if (empty($headercells)) {
+            throw new \Exception('UNA-SUS report table header cells not found.');
+        }
+
+        $columnindex = null;
+        $normalizedcolumnlabel = $this->normalize_unasus_csv_cell($columnlabel);
+        foreach ($headercells as $idx => $cell) {
+            $celltext = $this->normalize_unasus_csv_cell($cell->getText());
+            $matches  = ($celltext === $normalizedcolumnlabel);
+            if (!$matches && $celltext !== '' && $normalizedcolumnlabel !== '') {
+                $matches = (strpos($celltext, $normalizedcolumnlabel) !== false
+                    || strpos($normalizedcolumnlabel, $celltext) !== false);
+            }
+            if ($matches) {
+                $columnindex = (int) $idx;
+                break;
+            }
+        }
+        if ($columnindex === null) {
+            throw new \Exception('UNA-SUS report table column not found: ' . $columnlabel);
+        }
+
+        if (empty($tbodyrows)) {
+            throw new \Exception('UNA-SUS report table body not found.');
+        }
+
+        $targetcells = null;
+        $normalizedrowlabel = $this->normalize_unasus_csv_cell($rowlabel);
+        foreach ($tbodyrows as $row) {
+            $cells = $this->get_direct_table_cells($row);
+            if (empty($cells)) {
+                continue;
+            }
+            $firstcelltext = $this->normalize_unasus_csv_cell($cells[0]->getText());
+            $matchesrow = ($firstcelltext === $normalizedrowlabel);
+            if (!$matchesrow && $firstcelltext !== '' && $normalizedrowlabel !== '') {
+                $matchesrow = (strpos($firstcelltext, $normalizedrowlabel) !== false);
+            }
+            if ($matchesrow) {
+                $targetcells = $cells;
+                break;
+            }
+        }
+        if ($targetcells === null) {
+            throw new \Exception('UNA-SUS report table row not found: ' . $rowlabel);
+        }
+        if (!isset($targetcells[$columnindex])) {
+            throw new \Exception(
+                'UNA-SUS report table column index out of range for row "' . $rowlabel .
+                '" at column "' . $columnlabel . '".'
+            );
+        }
+
+        return $targetcells[$columnindex];
     }
 
     /**

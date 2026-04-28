@@ -241,17 +241,6 @@ Background:
   And I log out
 
   @javascript @entrega_de_atividades
-Scenario: Correct report generation
-    And I log in as "admin"
-
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
-    And I press "Gerar relatório"
-    Then I should see "Test assignment one"
-
-  @javascript @entrega_de_atividades
 Scenario: entrega_de_atividades - todas as legendas de entrega
     And I log in as "admin"
     And I follow "Courses"
@@ -259,17 +248,25 @@ Scenario: entrega_de_atividades - todas as legendas de entrega
     And I follow "Course1"
     And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    # a3 tem deadline=0 -> sem prazo
-    Then I should see "sem prazo"
-    # a5 foi entregue com 10 dias de atraso -> pouco atraso (dentro de prazo_maximo=10)
-    And I should see "10 dias"
-    # a6 foi entregue com 11 dias de atraso -> muito atraso (acima de prazo_maximo=10)
-    And I should see "11 dias"
-    # a2 sem envio de student1 com prazo passado -> nao entregue fora do prazo
-    # a1 prazo futuro sem envio de student3 -> nao entregue mas no prazo
-    # Verifica que há atividades com prazo futuro no relatório
-    And I should see "Test assignment one"
-    And I should see "Test assignment two"
+    # a3 deadline=0: estudantes que nao entregaram aparecem como "sem prazo" na coluna.
+    Then the unasus report table should have "sem prazo" at row "Student s1" and column "Test assignment three"
+    And the unasus report table should have "sem prazo" at row "Student s2" and column "Test assignment three"
+    # a5 entregue com 10 dias de atraso -> pouco atraso (dentro de prazo_maximo=10).
+    And the unasus report table should have "10 dias" at row "Student s1" and column "Test assignment five"
+    # a6 entregue com 11 dias de atraso -> muito atraso (acima de prazo_maximo=10).
+    And the unasus report table should have "11 dias" at row "Student s1" and column "Test assignment six"
+    # Estados sem texto visivel verificados por CSS class:
+    # a1 prazo futuro, student1 nao entregou -> nao_entregue_mas_no_prazo.
+    And the unasus report table cell at row "Student s1" and column "Test assignment one" should have css class "nao_entregue_mas_no_prazo"
+    # a2 prazo passado, student1 nao entregou -> nao_entregue_fora_do_prazo.
+    And the unasus report table cell at row "Student s1" and column "Test assignment two" should have css class "nao_entregue_fora_do_prazo"
+    # a4 entregue no prazo por student1 (0 dias de atraso) -> no_prazo.
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "no_prazo"
+    # a3 entregue por student3 (sem deadline) -> no_prazo.
+    And the unasus report table cell at row "Student s3" and column "Test assignment three" should have css class "no_prazo"
+    # a5 pouco atraso (<=10 dias) e a6 muito atraso (>10 dias) confirmados por CSS.
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "pouco_atraso"
+    And the unasus report table cell at row "Student s1" and column "Test assignment six" should have css class "muito_atraso"
 
   @javascript @scope @estudante_sem_atividade_postada
 Scenario: estudante_sem_atividade_postada - cobertura com limites e variacoes de borda
@@ -728,6 +725,9 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     # Estado de correcao atrasada: forca envio de a2 para 2 dias no passado (student2 sem nota em a2).
     And I set the submission date of activity "a2" to "-2" days after
 
+    # pouco_atraso: student1 submeteu a6 no Background; forcamos a 4 dias antes de agora (2-5 dias > prazo_avaliacao=1, <= prazo_maximo=5).
+    And I set the submission date of activity "a6" to "4" days before now
+
     # Estados com nota: no prazo em a4 e com atraso em a5 para student1.
     And I set the grade of activity "a4" for user "student1" to "90"
     And I set the grade date of activity "a4" for user "student1" to "0" days after submission
@@ -747,7 +747,7 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     And I follow "Course1"
     And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    # And I take a screenshot
+#    And I take a screenshot
 
     # Legenda especifica solicitada: nota atribuida no prazo (ate 24hs).
     Then I should see "Nota atribuída no prazo (até 24hs)"
@@ -757,13 +757,26 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     And the unasus report table should have "no prazo" at row "Student s5" and column "Test assignment one"
     And the unasus report table should have "não entregue" at row "Student s6" and column "Test assignment two"
     And the unasus report table should have "sem nota" at row "Student s2" and column "Test assignment one"
-    And I should see "dias"
 
     # Garante que estados/notas estao distribuidos entre alunos diferentes em colunas distintas.
     And the unasus report table should have "90.0" at row "Student s1" and column "Test assignment four"
     And the unasus report table should have "70.0" at row "Student s1" and column "Test assignment five"
     And the unasus report table should have "85.0" at row "Student s2" and column "Test assignment seven"
     And the unasus report table should have "95.0" at row "Student s3" and column "Test assignment seven"
+
+    # CSS class de cada estado da legenda confirmado por celula.
+    And the unasus report table cell at row "Student s4" and column "Test assignment three" should have css class "sem_prazo"
+    And the unasus report table cell at row "Student s5" and column "Test assignment one" should have css class "nao_realizada"
+    And the unasus report table cell at row "Student s6" and column "Test assignment two" should have css class "nao_entregue"
+    # a2 correcao atrasada: student2 submeteu em Dez/2000, sem nota -> "X dias" (variavel), CSS muito_atraso.
+    And the unasus report table cell at row "Student s2" and column "Test assignment two" should have css class "muito_atraso"
+    And the unasus report table cell at row "Student s2" and column "Test assignment one" should have css class "avaliado_sem_nota"
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "nota_atribuida"
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "nota_atribuida_atraso"
+    And the unasus report table cell at row "Student s2" and column "Test assignment seven" should have css class "nota_atribuida"
+    And the unasus report table cell at row "Student s3" and column "Test assignment seven" should have css class "nota_atribuida"
+    # pouco_atraso: student1/a6 submetido 4 dias antes de agora, sem nota -> dentro do prazo maximo (1-5 dias).
+    And the unasus report table cell at row "Student s1" and column "Test assignment six" should have css class "pouco_atraso"
 
   @atividades_vs_notas @csv
   Scenario: atividades_vs_notas exporta CSV com dados esperados
@@ -806,6 +819,8 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     And I log out
 
     And I set the submission date of activity "a2" to "-2" days after
+    # pouco_atraso: student1/a6 submetido no Background; forcamos 4 dias antes de agora (> prazo_avaliacao=1, <= prazo_maximo=5).
+    And I set the submission date of activity "a6" to "4" days before now
     And I set the grade of activity "a4" for user "student1" to "90"
     And I set the grade date of activity "a4" for user "student1" to "0" days after submission
     And I set the grade of activity "a5" for user "student1" to "70"
@@ -825,11 +840,14 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     And the exported unasus csv should have "no prazo" at row "Student s5" and column "Test assignment one"
     And the exported unasus csv should have "não entregue" at row "Student s6" and column "Test assignment two"
     And the exported unasus csv should have "sem nota" at row "Student s2" and column "Test assignment one"
+    # Correcao atrasada: student2/a2 submetido em Dez/2000, sem nota -> formato "X dias" (variavel).
     And the exported unasus csv should contain "dias"
     And the exported unasus csv should have "90.0" at row "Student s1" and column "Test assignment four"
     And the exported unasus csv should have "70.0" at row "Student s1" and column "Test assignment five"
     And the exported unasus csv should have "85.0" at row "Student s2" and column "Test assignment seven"
     And the exported unasus csv should have "95.0" at row "Student s3" and column "Test assignment seven"
+    # pouco_atraso: student1/a6 com 4 dias sem nota -> "4 dias" no CSV.
+    And the exported unasus csv should have "4 dias" at row "Student s1" and column "Test assignment six"
 
   @javascript @boletim
 Scenario: boletim - verificacao de notas

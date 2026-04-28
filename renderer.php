@@ -368,7 +368,7 @@ class report_unasus_renderer extends plugin_renderer_base {
                             // Aplica a classe CSS para criar o contorno dos modulos na tabela
                             $cell->attributes = array('class' => $valor->get_css_class() . " ultima_atividade relatorio-unasus c_body");
                         } else {
-                            $cell->attributes = array('class' => $valor->get_css_class() . "relatorio-unasus c_body");
+                            $cell->attributes = array('class' => $valor->get_css_class() . " relatorio-unasus c_body");
                         }
                     } else { // Aluno
                         $cell = new html_table_cell($valor);
