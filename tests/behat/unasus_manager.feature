@@ -58,8 +58,7 @@ Background:
   And the LTI activity "ltcc1" is configured as TCC with tcc_definition_id "1"
   And the TCC webservice returns definition with chapters:
     | id | title      | position |
-    | 1  | Resumo     | 0        |
-    | 2  | Capítulo 1 | 1        |
+    | 1  | Capítulo 1 | 1        |
 
   And the TCC webservice returns student data:
     | username  | chapter_position | state | state_date |
@@ -183,6 +182,56 @@ Background:
     And I should see "Student s11"
     And I should see "Student s12"
 
+  @javascript @entrega_de_atividades
+  Scenario: manager filtra relatório de tutoria por grupo de tutoria
+    And I log in as "manager1"
+    And I open the unasus report "entrega_de_atividades" directly for course "c1" with params:
+      | name           | value                                      |
+      | modo_exibicao  | tabela                                     |
+      | tutores[0]     | relationshipgroup:relationship_group1     |
+    Then I should see "Student s1"
+    And I should see "Student s2"
+    And I should see "Student s3"
+    And I should see "Student s4"
+    And I should not see "Student s5"
+    And I should not see "Student s12"
+
+  @javascript @modulos_concluidos @atividades_nota_atribuida
+  Scenario Outline: manager filtra relatório por módulo
+    And the following "courses" exist:
+      | fullname | shortname | category | groupmode | enablecompletion |
+      | Course2  | c2        | CAT1     | 1         | 1                |
+    And the following "activities" exist:
+      | activity | course | idnumber | name                 | intro          | grade | assignsubmission_onlinetext_enabled | completionexpected | completion |
+      | assign   | C2     | a2       | Manager assignment 2 | Submit later   | 100   | 1                                   | 978307200          | 1          |
+    And I log in as "manager1"
+    And I open the unasus report "<report>" directly for course "c1" with params:
+      | name          | value       |
+      | modo_exibicao | tabela      |
+      | modulos[0]    | courseid:c1 |
+    Then I should see "Manager assignment"
+    And I should not see "Manager assignment 2"
+
+    Examples:
+      | report                     |
+      | modulos_concluidos         |
+      | atividades_nota_atribuida  |
+
+  @javascript @modulos_concluidos @atividades_nota_atribuida
+  Scenario Outline: manager filtra sínteses de tutoria por grupo de tutoria
+    And I log in as "manager1"
+    And I open the unasus report "<report>" directly for course "c1" with params:
+      | name          | value                                  |
+      | modo_exibicao | tabela                                 |
+      | tutores[0]    | relationshipgroup:relationship_group1 |
+    Then I should see "Teacher t1"
+    And I should not see "Teacher t2"
+
+    Examples:
+      | report                     |
+      | avaliacoes_em_atraso       |
+      | atividades_nota_atribuida  |
+
   @javascript @tcc_entrega_atividades
   Scenario: manager com view_all visualiza todos os estudantes na orientação TCC
     And I log in as "manager1"
@@ -204,6 +253,29 @@ Background:
     And I should see "Student s10"
     And I should see "Student s11"
     And I should see "Student s12"
+
+  @javascript @tcc_entrega_atividades
+  Scenario: manager filtra relatório TCC por grupo de orientação
+    And I log in as "manager1"
+    And I open the unasus report "tcc_entrega_atividades" directly for course "c1" with params:
+      | name            | value                                  |
+      | modo_exibicao   | tabela                                 |
+      | orientadores[0] | relationshipgroup:relationship_group1 |
+      | modulos[0]      | courseid:c1                            |
+    Then I should see "Student s1"
+    And I should see "Student s2"
+    And I should see "Student s3"
+    And I should see "Student s4"
+    And I should not see "Student s5"
+    And I should not see "Student s12"
+
+  @javascript @entrega_de_atividades
+  Scenario: estudante não acessa diretamente relatório de tutoria
+    Then the user "student1" should not have direct access to the unasus report "entrega_de_atividades" in course "c1"
+
+  @javascript @tcc_entrega_atividades
+  Scenario: estudante não acessa diretamente relatório TCC
+    Then the user "student1" should not have direct access to the unasus report "tcc_entrega_atividades" in course "c1"
 
   @javascript @entrega_de_atividades
   Scenario: tutor sem view_all nao visualiza estudantes de outros grupos na tutoria

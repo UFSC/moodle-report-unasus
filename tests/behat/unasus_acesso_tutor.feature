@@ -128,7 +128,6 @@ Background:
     And I set the field "data_fim" to "23/03/2026"
     And I press "Gerar relatório"
     Then the unasus report table should have "Sim" at row "Tutor One" and column "22/03/26"
-    And I take a screenshot
     And the unasus report table should have "Sim" at row "Tutor One" and column "23/03/26"
     And the unasus report table should have "Não" at row "Tutor Two" and column "22/03/26"
     And the unasus report table should have "Não" at row "Tutor Two" and column "23/03/26"
@@ -154,6 +153,10 @@ Background:
     And I log in as "tutor1"
     And I follow "Course1"
     Then I should not see "Uso do sistema pelo tutor (acessos)"
+
+  @javascript @acesso_tutor
+  Scenario: usuário sem view_all não acessa diretamente relatório restrito acesso_tutor
+    Then the user "tutor1" should not have direct access to the unasus report "acesso_tutor" in course "c1"
 
   @javascript @acesso_tutor
   Scenario: acesso_tutor exibe aviso para intervalo de datas inválido
@@ -185,3 +188,7 @@ Background:
     And the exported unasus csv should have a row containing:
       | value     |
       | Tutor One |
+    And the exported unasus csv should have "Sim" at row "Tutor One" and column "10/03/26"
+    And the exported unasus csv should have "Não" at row "Tutor One" and column "15/03/26"
+    And the exported unasus csv should have "Não" at row "Tutor Two" and column "10/03/26"
+    And the exported unasus csv should have "Sim" at row "Tutor Two" and column "15/03/26"

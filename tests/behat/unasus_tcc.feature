@@ -58,12 +58,12 @@ Background:
 
   And the LTI activity "ltcc1" is configured as TCC with tcc_definition_id "1"
 
-  # Chapter definitions returned by mock webservice (position 0 = abstract/resumo)
+  # Chapter definitions returned by mock webservice.
+  # The report adds "Resumo" from chapter_position 0 automatically.
   And the TCC webservice returns definition with chapters:
     | id | title      | position |
-    | 1  | Resumo     | 0        |
-    | 2  | Capítulo 1 | 1        |
-    | 3  | Capítulo 2 | 2        |
+    | 1  | Capítulo 1 | 1        |
+    | 2  | Capítulo 2 | 2        |
 
   # Only students enrolled in the course (teachers have only category-level advisor role)
   And the following "course enrolments" exist:
@@ -230,9 +230,13 @@ Background:
       | modulos[0] | courseid:c1 |
     Then the exported unasus csv should contain "Resumo"
     And the exported unasus csv should contain "Capítulo 1"
+    And the exported unasus csv should contain "Total por curso"
     And the exported unasus csv should have a row containing:
       | value      |
       | Teacher t1 |
+    And the exported unasus csv should have a row containing:
+      | value           |
+      | Total por curso |
 
   @javascript @advisor_scope @tcc_entrega_atividades @tcc_concluido
   Scenario Outline: orientador teacher1 vê apenas estudantes do próprio grupo de orientação nos relatórios TCC

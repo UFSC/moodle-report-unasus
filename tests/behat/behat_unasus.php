@@ -1050,7 +1050,9 @@ EOD;
      * PHP process when the report page renders (static variables do not cross
      * PHP process boundaries in Behat tests).
      *
-     * Table columns: id, title, position
+     * Table columns: id, title, position.
+     * Do not include the abstract/resumo here; TCC reports add it from
+     * student data at chapter_position 0.
      *
      * @Given /^the TCC webservice returns definition with chapters:$/
      */
@@ -1220,6 +1222,33 @@ EOD;
     }
 
     /**
+     * Opens any UNA-SUS report URL directly with stable, resolvable params.
+     * Table columns: name, value
+     *
+     * Supported value prefixes:
+     *   - courseid:<courseidentifier>
+     *   - cmid:<activityidnumber>
+     *   - cohort:<cohortidnumber>
+     *   - relationshipgroup:<relationship group name>
+     *
+     * @When /^I open the unasus report "([^"]*)" directly for course "([^"]*)" with params:$/
+     */
+    public function i_open_the_unasus_report_directly_for_course_with_params($reportname, $courseidentifier, \Behat\Gherkin\Node\TableNode $data) {
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $params = array(
+            'relatorio' => trim($reportname),
+            'course' => $courseid,
+        );
+
+        foreach ($this->resolve_unasus_report_params($courseid, $data) as $name => $value) {
+            $params[$name] = $value;
+        }
+
+        $url = new moodle_url('/report/unasus/index.php', $params);
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+    }
+
+    /**
      * Attempts to open a UNA-SUS report URL directly and captures permission errors.
      *
      * @When /^I try to open the unasus report "([^"]*)" directly for course "([^"]*)"$/
@@ -1231,7 +1260,14 @@ EOD;
 
         try {
             $this->i_open_the_unasus_report_directly_for_course($reportname, $courseidentifier);
-        } catch (\Throwable $e) {
+            $page_text = $this->getSession()->getPage()->getText();
+            $msg = mb_strtolower($page_text);
+            if (strpos($msg, 'permission') !== false ||
+                    strpos($msg, 'permiss') !== false ||
+                    strpos($msg, 'nopermissions') !== false) {
+                $this->last_unasus_error_message = $page_text;
+            }
+        } catch (\Exception $e) {
             $this->last_unasus_error_message = $e->getMessage();
         }
     }
@@ -1253,6 +1289,34 @@ EOD;
     }
 
     /**
+     * Asserts direct access denial without navigating to a Moodle exception page.
+     *
+     * @Then /^the user "([^"]*)" should not have direct access to the unasus report "([^"]*)" in course "([^"]*)"$/
+     */
+    public function the_user_should_not_have_direct_access_to_the_unasus_report_in_course($useridentifier, $reportname, $courseidentifier) {
+        global $CFG, $DB;
+
+        require_once($CFG->dirroot . '/report/unasus/lib.php');
+
+        $reportname = trim($reportname);
+        if (!in_array($reportname, report_unasus_relatorios_validos_list(), true)) {
+            throw new \Exception('Unknown UNA-SUS report: ' . $reportname);
+        }
+
+        $courseid = $this->resolve_course_id(trim($courseidentifier));
+        $userid = $this->resolve_user_id(trim($useridentifier));
+        $user = $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
+        $context = context_course::instance($courseid);
+
+        if ($this->user_can_open_unasus_report($user, $context, $reportname)) {
+            throw new \Exception(
+                'Expected user "' . $useridentifier . '" not to have direct access to UNA-SUS report "' .
+                $reportname . '" in course "' . $courseidentifier . '".'
+            );
+        }
+    }
+
+    /**
      * Exports any UNA-SUS report as CSV by direct URL and stores parsed CSV content.
      * Table columns: name, value
      *
@@ -1266,26 +1330,7 @@ EOD;
             'modo_exibicao' => 'export_csv',
         );
 
-        foreach ($data->getHash() as $row) {
-            if (!isset($row['name']) || !array_key_exists('value', $row)) {
-                throw new \Exception('Step requires columns: name, value');
-            }
-            $name = trim($row['name']);
-            $value = trim($row['value']);
-
-            // Allow stable feature params that depend on runtime ids.
-            // value "courseid:<courseidentifier>" resolves to course id.
-            if (strpos($value, 'courseid:') === 0) {
-                $courseidentifier = substr($value, 9);
-                $value = (string) $this->resolve_course_id($courseidentifier);
-            }
-
-            // value "cmid:<activityidnumber>" resolves to course module id.
-            if (strpos($value, 'cmid:') === 0) {
-                $activityidnumber = substr($value, 5);
-                $value = (string) $this->resolve_course_module_id_by_activity_idnumber($courseid, $activityidnumber);
-            }
-
+        foreach ($this->resolve_unasus_report_params($courseid, $data) as $name => $value) {
             $params[$name] = $value;
         }
 
@@ -1295,6 +1340,70 @@ EOD;
         $content = $this->getSession()->getPage()->getContent();
         $this->last_unasus_csv_content = (string) $content;
         $this->last_unasus_csv_rows = $this->parse_unasus_csv_rows($this->last_unasus_csv_content);
+    }
+
+    /**
+     * Resolves table params used by direct report URL and CSV export steps.
+     *
+     * @param int $courseid
+     * @param \Behat\Gherkin\Node\TableNode $data
+     * @return array
+     * @throws \Exception
+     */
+    private function resolve_unasus_report_params($courseid, \Behat\Gherkin\Node\TableNode $data) {
+        $params = array();
+
+        foreach ($data->getHash() as $row) {
+            if (!isset($row['name']) || !array_key_exists('value', $row)) {
+                throw new \Exception('Step requires columns: name, value');
+            }
+
+            $name = trim($row['name']);
+            $value = trim($row['value']);
+            $params[$name] = $this->resolve_unasus_report_param_value($courseid, $value);
+        }
+
+        return $params;
+    }
+
+    /**
+     * Resolves one stable report param value.
+     *
+     * @param int $courseid
+     * @param string $value
+     * @return string
+     * @throws \Exception
+     */
+    private function resolve_unasus_report_param_value($courseid, $value) {
+        global $DB;
+
+        if (strpos($value, 'courseid:') === 0) {
+            return (string) $this->resolve_course_id(substr($value, 9));
+        }
+
+        if (strpos($value, 'cmid:') === 0) {
+            return (string) $this->resolve_course_module_id_by_activity_idnumber($courseid, substr($value, 5));
+        }
+
+        if (strpos($value, 'cohort:') === 0) {
+            $idnumber = substr($value, 7);
+            $cohortid = $DB->get_field('cohort', 'id', array('idnumber' => $idnumber));
+            if (!$cohortid) {
+                throw new \Exception('Cohort not found for idnumber: ' . $idnumber);
+            }
+            return (string) $cohortid;
+        }
+
+        if (strpos($value, 'relationshipgroup:') === 0) {
+            $name = substr($value, 18);
+            $groupid = $DB->get_field('relationship_groups', 'id', array('name' => $name));
+            if (!$groupid) {
+                throw new \Exception('Relationship group not found for name: ' . $name);
+            }
+            return (string) $groupid;
+        }
+
+        return $value;
     }
 
     /**
@@ -2462,6 +2571,38 @@ EOD;
         }
 
         throw new Exception('User not found for identifier: ' . $useridentifier);
+    }
+
+    /**
+     * Mirrors the permission gates from report/unasus/index.php for one report.
+     *
+     * @param stdClass $user
+     * @param context_course $context
+     * @param string $reportname
+     * @return bool
+     */
+    private function user_can_open_unasus_report($user, context_course $context, $reportname) {
+        $canviewall = has_capability('report/unasus:view_all', $context, $user, true);
+        $canviewtutoria = has_capability('report/unasus:view_tutoria', $context, $user, true);
+        $canvieworientacao = has_capability('report/unasus:view_orientacao', $context, $user, true);
+
+        if (!($canviewall || $canviewtutoria || $canvieworientacao)) {
+            return false;
+        }
+
+        if (in_array($reportname, report_unasus_relatorios_validos_orientacao_list(), true)) {
+            return $canviewall || $canvieworientacao;
+        }
+
+        if (in_array($reportname, report_unasus_relatorios_validos_tutoria_list(), true)) {
+            return $canviewall || $canviewtutoria;
+        }
+
+        if (in_array($reportname, report_unasus_relatorios_restritos_list(), true)) {
+            return $canviewall;
+        }
+
+        return false;
     }
 
     /**

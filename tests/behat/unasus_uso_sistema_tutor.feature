@@ -180,6 +180,10 @@ Background:
     Then I should not see "Uso do sistema pelo tutor (horas)"
 
   @javascript @uso_sistema_tutor
+  Scenario: usuário sem view_all não acessa diretamente relatório restrito uso_sistema_tutor
+    Then the user "tutor1" should not have direct access to the unasus report "uso_sistema_tutor" in course "c1"
+
+  @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe aviso para formato de data inválido
     And I log in as "manager1"
     And I follow "Course1"
@@ -209,3 +213,43 @@ Background:
     And the exported unasus csv should have a row containing:
       | value     |
       | Tutor One |
+    And the exported unasus csv should have "1" at row "Tutor One" and column "10/03/26"
+    And the exported unasus csv should have "0" at row "Tutor One" and column "15/03/26"
+    And the exported unasus csv should have "0.0" at row "Tutor One" and column "Media"
+    And the exported unasus csv should have "1" at row "Tutor One" and column "Total"
+    And the exported unasus csv should have "0" at row "Tutor Two" and column "10/03/26"
+    And the exported unasus csv should have "1" at row "Tutor Two" and column "15/03/26"
+    And the exported unasus csv should have "0.0" at row "Tutor Two" and column "Media"
+    And the exported unasus csv should have "1" at row "Tutor Two" and column "Total"
+
+  @uso_sistema_tutor @csv
+  Scenario: uso_sistema_tutor exporta CSV com meia hora, média e total exatos
+    # 1774011660 = 20/03/2026 10:01:00
+    # 1774012200 = 20/03/2026 10:10:00
+    # 1774013460 = 20/03/2026 10:31:00
+    # 1774101900 = 21/03/2026 11:05:00
+    # 1774102020 = 21/03/2026 11:07:00
+    # 1774180800 = 22/03/2026 09:00:00
+    # 1774182000 = 22/03/2026 09:20:00
+    And the following tutor report logs exist:
+      | username | course | datetime   | action  |
+      | tutor1   | c1     | 1774011660 | viewed  |
+      | tutor1   | c1     | 1774012200 | updated |
+      | tutor1   | c1     | 1774013460 | viewed  |
+      | tutor1   | c1     | 1774101900 | viewed  |
+      | tutor1   | c1     | 1774102020 | viewed  |
+      | tutor2   | c1     | 1774180800 | login   |
+      | tutor2   | c1     | 1774182000 | logout  |
+    And I log in as "manager1"
+    And I export the unasus report "uso_sistema_tutor" as csv for course "c1" with params:
+      | name        | value      |
+      | data_inicio | 09/03/2026 |
+      | data_fim    | 22/03/2026 |
+    Then the exported unasus csv should have "1" at row "Tutor One" and column "10/03/26"
+    And the exported unasus csv should have "1" at row "Tutor One" and column "20/03/26"
+    And the exported unasus csv should have "0.5" at row "Tutor One" and column "21/03/26"
+    And the exported unasus csv should have "0.2" at row "Tutor One" and column "Media"
+    And the exported unasus csv should have "2.5" at row "Tutor One" and column "Total"
+    And the exported unasus csv should have "0" at row "Tutor Two" and column "22/03/26"
+    And the exported unasus csv should have "0.1" at row "Tutor Two" and column "Media"
+    And the exported unasus csv should have "1" at row "Tutor Two" and column "Total"

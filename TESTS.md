@@ -62,6 +62,13 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 # Feature sem dados (sem submissões)
 ./run_behat.sh tests/behat/unasus_sem_dados.feature
+
+# Relatórios restritos de logs de tutor
+./run_behat.sh tests/behat/unasus_acesso_tutor.feature
+./run_behat.sh tests/behat/unasus_uso_sistema_tutor.feature
+
+# Relatórios TCC
+./run_behat.sh tests/behat/unasus_tcc.feature
 ```
 
 ---
@@ -92,7 +99,7 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
   - `student1` → `f1` (discussão no fórum com prazo futuro)
   - `student2` → `f2` (discussão no fórum com prazo passado)
 
-#### Cenários (8 total)
+#### Cenários principais
 
 | Cenário | Relatório | O que verifica |
 |---------|-----------|----------------|
@@ -115,7 +122,7 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 Idêntico ao `unasus.feature` (mesmos 15 usuários, mesmo curso, mesmas atividades, mesmos 3 grupos), **porém sem nenhuma submissão realizada por qualquer estudante**.
 
-#### Cenários (7 total)
+#### Cenários principais
 
 | Cenário | Relatório | O que verifica |
 |---------|-----------|----------------|
@@ -139,6 +146,8 @@ Definidos em `tests/behat/behat_unasus.php`:
 | `I set the grade of activity "X" for user "Y" to "Z"` | Atribui nota a uma entrega via banco de dados |
 | `I set the submission date of activity "X" to "N" days after` | Ajusta data de submissão relativa ao deadline da atividade |
 | `I mark activity "X" as complete for user "Y"` | Marca conclusão de atividade diretamente no banco |
+| `I open the unasus report "X" directly for course "Y" with params` | Abre relatório por URL com parâmetros estáveis resolvidos (`courseid:`, `cmid:`, `cohort:`, `relationshipgroup:`) |
+| `the user "X" should not have direct access to the unasus report "Y" in course "Z"` | Valida a matriz de capabilities do acesso direto sem depender da página de erro do Moodle |
 
 ---
 
@@ -146,5 +155,5 @@ Definidos em `tests/behat/behat_unasus.php`:
 
 - **SCORM excluído dos testes Behat:** falha em `iconv('iso-8859-1', 'utf-8//TRANSLIT')` durante `scorm_parse()` em `mod/scorm/tests/generator/lib.php` neste ambiente (PHP 5.6 + Linux).
 - **potenciais_evasoes:** comentado em `lib.php` — entrada de menu indisponível nesta versão.
-- **acesso_tutor / uso_sistema_tutor:** exclusivos de coordenadores; não cobertos nos cenários atuais.
-- **tcc_*:** relatórios de orientação; requerem configuração adicional do sistema TCC externo.
+- **acesso_tutor / uso_sistema_tutor:** exclusivos de coordenadores; cobertos em features próprias com cenários de tabela, CSV, permissões e limites de data.
+- **tcc_*:** relatórios de orientação; cobertos com webservice TCC mockado nos cenários Behat.
