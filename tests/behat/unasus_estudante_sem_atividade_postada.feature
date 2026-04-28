@@ -1,8 +1,8 @@
  @unasus @report_unasus
-Feature: Relatórios UNA-SUS: geração e visualização
-  Para acompanhar o progresso dos estudantes no sistema UNA-SUS
+Feature: Relatório UNA-SUS: estudante sem atividade postada
+  Para acompanhar estudantes sem entregas no sistema UNA-SUS
   Como coordenador ou tutor
-  Preciso gerar e visualizar os relatórios de entrega e avaliação de atividades
+  Preciso visualizar a lista de estudantes com atividades não postadas
 
 Background:
   Given the following "users" exist:
@@ -240,3 +240,117 @@ Background:
     | Subject | Forum discussion s2 |
     | Message | I'm the student2 forum post |
   And I log out
+
+  @javascript @scope @estudante_sem_atividade_postada
+Scenario: estudante_sem_atividade_postada - cobertura com limites e variacoes de borda
+    # Relatório lista estudantes que têm atividades sem entrega e sem nota.
+    # Casos de borda:
+    # - student9  (grupo3): nenhuma entrega -> aparece com todas as atividades pendentes.
+    # - student10 (grupo3): entregou apenas a4 -> aparece, a4 ausente na linha.
+    # - student11 (grupo3): entregou a4 e a5 -> aparece, a4 e a5 ausentes na linha.
+    # - student12 (grupo3): todas as atividades cobertas -> NAO deve aparecer.
+    # - student1  (grupo1): background - entregou a4/a5/a6, a2 pendente -> aparece.
+    # - student2  (grupo1): background - entregou a2, postou em f2; a4/a5/a6 pendentes -> aparece.
+
+    # --- setup student10: entrega apenas a4 ---
+    And I log in as "student10"
+    And I follow "Course1"
+    And I follow "Test assignment four"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student10 submission on assignment four |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # --- setup student11: entrega a4 e a5 ---
+    And I log in as "student11"
+    And I follow "Course1"
+    And I follow "Test assignment four"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student11 submission on assignment four |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    And I log in as "student11"
+    And I follow "Course1"
+    And I follow "Test assignment five"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student11 submission on assignment five |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # --- setup student12: todas as atividades cobertas (nao deve aparecer) ---
+    # Atribui nota a todos os assignments sem exigir submissão (!has_grade() -> false).
+    And I set the grade of activity "a1" for user "student12" to "0"
+    And I set the grade of activity "a2" for user "student12" to "0"
+    And I set the grade of activity "a3" for user "student12" to "0"
+    And I set the grade of activity "a4" for user "student12" to "0"
+    And I set the grade of activity "a5" for user "student12" to "0"
+    And I set the grade of activity "a6" for user "student12" to "0"
+    # Posta nos fóruns para que has_submitted() = true neles.
+    And I log in as "student12"
+    And I follow "Course1"
+    And I add a new discussion to "Test forum one" forum with:
+      | Subject | Forum discussion s12 f1 |
+      | Message | I'm the student12 forum one post |
+    And I add a new discussion to "Test forum two" forum with:
+      | Subject | Forum discussion s12 f2 |
+      | Message | I'm the student12 forum two post |
+    And I log out
+    # Cobre quiz (quiz_attempts + quiz_grades) e database (grade_grades).
+    And I mark quiz "q1" as completed for user "student12"
+
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+
+    # Verificações de presença no relatório.
+    Then the unasus report should have row "Student s1"
+    And the unasus report should have row "Student s2"
+    And the unasus report should have row "Student s9"
+    And the unasus report should have row "Student s10"
+    And the unasus report should have row "Student s11"
+    # student12: todas as atividades cobertas -> nao deve aparecer.
+    And the unasus report should not have row "Student s12"
+
+    # Verificação por linha: student1 (background - entregou a4, a5, a6).
+    And the unasus report row "Student s1" should contain activity "Test assignment two"
+    And the unasus report row "Student s1" should not contain activity "Test assignment four"
+    And the unasus report row "Student s1" should not contain activity "Test assignment five"
+    And the unasus report row "Student s1" should not contain activity "Test assignment six"
+
+    # Verificação por linha: student2 (background - entregou a2, postou em f2).
+    And the unasus report row "Student s2" should not contain activity "Test assignment two"
+    And the unasus report row "Student s2" should not contain activity "Test forum two"
+    And the unasus report row "Student s2" should contain activity "Test assignment four"
+    And the unasus report row "Student s2" should contain activity "Test assignment five"
+    And the unasus report row "Student s2" should contain activity "Test assignment six"
+
+    # Verificação por linha: student9 (nenhuma entrega - caso zero envios).
+    And the unasus report row "Student s9" should contain activity "Test assignment two"
+    And the unasus report row "Student s9" should contain activity "Test assignment four"
+    And the unasus report row "Student s9" should contain activity "Test assignment five"
+    And the unasus report row "Student s9" should contain activity "Test assignment six"
+
+    # Verificação por linha: student10 (entregou apenas a4).
+    And the unasus report row "Student s10" should not contain activity "Test assignment four"
+    And the unasus report row "Student s10" should contain activity "Test assignment two"
+    And the unasus report row "Student s10" should contain activity "Test assignment five"
+    And the unasus report row "Student s10" should contain activity "Test assignment six"
+
+    # Verificação por linha: student11 (entregou a4 e a5).
+    And the unasus report row "Student s11" should not contain activity "Test assignment four"
+    And the unasus report row "Student s11" should not contain activity "Test assignment five"
+    And the unasus report row "Student s11" should contain activity "Test assignment two"
+    And the unasus report row "Student s11" should contain activity "Test assignment six"

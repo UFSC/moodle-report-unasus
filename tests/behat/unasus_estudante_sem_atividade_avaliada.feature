@@ -1,8 +1,8 @@
  @unasus @report_unasus
-Feature: Relatórios UNA-SUS: geração e visualização
-  Para acompanhar o progresso dos estudantes no sistema UNA-SUS
+Feature: Relatório UNA-SUS: estudante sem atividade avaliada
+  Para acompanhar estudantes com entregas pendentes de avaliação no sistema UNA-SUS
   Como coordenador ou tutor
-  Preciso gerar e visualizar os relatórios de entrega e avaliação de atividades
+  Preciso visualizar a lista de estudantes com atividades entregues e sem nota
 
 Background:
   Given the following "users" exist:
@@ -240,3 +240,163 @@ Background:
     | Subject | Forum discussion s2 |
     | Message | I'm the student2 forum post |
   And I log out
+
+  @javascript @estudante_sem_atividade_avaliada
+Scenario: estudante_sem_atividade_avaliada - cobertura com limites e variacoes de borda
+    # student2: duas entregas, uma corrigida e outra sem nota (deve aparecer).
+    And I log in as "student2"
+    And I follow "Course1"
+    And I follow "Test assignment four"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student2 submission on assignment four |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # student4: duas entregas, uma corrigida e outra sem nota (deve aparecer).
+    And I log in as "student4"
+    And I follow "Course1"
+    And I follow "Test assignment one"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student4 submission on assignment one |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    And I log in as "student4"
+    And I follow "Course1"
+    And I follow "Test assignment two"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student4 submission on assignment two |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # student5: uma entrega corrigida (nao deve aparecer).
+    And I log in as "student5"
+    And I follow "Course1"
+    And I follow "Test assignment five"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student5 submission on assignment five |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # student6: uma entrega sem nota (deve aparecer).
+    And I log in as "student6"
+    And I follow "Course1"
+    And I follow "Test assignment six"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student6 submission on assignment six |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # student8: duas entregas, ambas corrigidas (nao deve aparecer).
+    And I log in as "student8"
+    And I follow "Course1"
+    And I follow "Test assignment four"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student8 submission on assignment four |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    And I log in as "student8"
+    And I follow "Course1"
+    And I follow "Test assignment five"
+    And I press "Add submission"
+    And I set the following fields to these values:
+      | Online text | I'm the student8 submission on assignment five |
+    And I press "Save changes"
+    And I press "Submit assignment"
+    And I press "Continue"
+    And I log out
+
+    # Ajusta notas para compor os cenarios de borda.
+    # student1 entregou a4, a5 e a6 no background; todas corrigidas (nao deve aparecer).
+    And I set the grade of activity "a4" for user "student1" to "90"
+    And I set the grade of activity "a5" for user "student1" to "80"
+    And I set the grade of activity "a6" for user "student1" to "70"
+
+    # student2: corrige a4, mantendo a2 sem nota.
+    And I set the grade of activity "a4" for user "student2" to "85"
+
+    # student4: corrige a1, mantendo a2 sem nota.
+    And I set the grade of activity "a1" for user "student4" to "88"
+
+    # student5: entrega corrigida.
+    And I set the grade of activity "a5" for user "student5" to "92"
+
+    # student8: todas as entregas corrigidas.
+    And I set the grade of activity "a4" for user "student8" to "77"
+    And I set the grade of activity "a5" for user "student8" to "79"
+
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Lista: atividades não avaliadas" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+
+    # Deve listar estudantes com pelo menos uma entrega/postagem sem nota.
+    Then the unasus report should have row "Student s1"
+    And the unasus report should have row "Student s2"
+    And the unasus report should have row "Student s3"
+    And the unasus report should have row "Student s4"
+    And the unasus report should have row "Student s5"
+    And the unasus report should have row "Student s6"
+    And the unasus report should have row "Student s8"
+
+    # Nao deve listar quem nao tem entrega pendente de avaliacao.
+    And the unasus report should not have row "Student s7"
+
+    # Verifica por linha se cada estudante possui exatamente as atividades pendentes esperadas.
+    And the unasus report row "Student s1" should contain activity "Test forum one"
+    And the unasus report row "Student s1" should not contain activity "Test assignment one"
+    And the unasus report row "Student s1" should not contain activity "Test assignment two"
+    And the unasus report row "Student s1" should not contain activity "Test assignment three"
+    And the unasus report row "Student s1" should not contain activity "Test assignment six"
+
+    And the unasus report row "Student s2" should contain activity "Test assignment two"
+    And the unasus report row "Student s2" should contain activity "Test forum two"
+    And the unasus report row "Student s2" should not contain activity "Test assignment one"
+    And the unasus report row "Student s2" should not contain activity "Test assignment three"
+    And the unasus report row "Student s2" should not contain activity "Test assignment six"
+
+    And the unasus report row "Student s3" should contain activity "Test assignment three"
+    And the unasus report row "Student s3" should not contain activity "Test assignment two"
+    And the unasus report row "Student s3" should not contain activity "Test assignment one"
+    And the unasus report row "Student s3" should not contain activity "Test assignment six"
+
+    And the unasus report row "Student s4" should contain activity "Test assignment two"
+    And the unasus report row "Student s4" should not contain activity "Test assignment one"
+    And the unasus report row "Student s4" should not contain activity "Test assignment three"
+    And the unasus report row "Student s4" should not contain activity "Test assignment six"
+
+    And the unasus report row "Student s5" should contain activity "Test lti one"
+    And the unasus report row "Student s5" should not contain activity "Test assignment five"
+    And the unasus report row "Student s5" should not contain activity "Test assignment two"
+    And the unasus report row "Student s5" should not contain activity "Test assignment six"
+
+    And the unasus report row "Student s6" should contain activity "Test assignment six"
+    And the unasus report row "Student s6" should not contain activity "Test assignment one"
+    And the unasus report row "Student s6" should not contain activity "Test assignment two"
+    And the unasus report row "Student s6" should not contain activity "Test assignment three"
+
+    And the unasus report row "Student s8" should contain activity "Test lti one"
+    And the unasus report row "Student s8" should not contain activity "Test assignment four"
+    And the unasus report row "Student s8" should not contain activity "Test assignment five"
+    And the unasus report row "Student s8" should not contain activity "Test assignment two"

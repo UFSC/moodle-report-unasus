@@ -1,8 +1,8 @@
  @unasus @report_unasus
-Feature: Relatórios UNA-SUS: geração e visualização
-  Para acompanhar o progresso dos estudantes no sistema UNA-SUS
+Feature: Relatório UNA-SUS: entrega de atividades
+  Para acompanhar as entregas de atividades no sistema UNA-SUS
   Como coordenador ou tutor
-  Preciso gerar e visualizar os relatórios de entrega e avaliação de atividades
+  Preciso visualizar as legendas de entrega e o escopo de tutoria
 
 Background:
   Given the following "users" exist:
@@ -240,3 +240,43 @@ Background:
     | Subject | Forum discussion s2 |
     | Message | I'm the student2 forum post |
   And I log out
+
+  @javascript @entrega_de_atividades
+Scenario: entrega_de_atividades - todas as legendas de entrega
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    # a3 deadline=0: estudantes que nao entregaram aparecem como "sem prazo" na coluna.
+    Then the unasus report table should have "sem prazo" at row "Student s1" and column "Test assignment three"
+    And the unasus report table should have "sem prazo" at row "Student s2" and column "Test assignment three"
+    # a5 entregue com 10 dias de atraso -> pouco atraso (dentro de prazo_maximo=10).
+    And the unasus report table should have "10 dias" at row "Student s1" and column "Test assignment five"
+    # a6 entregue com 11 dias de atraso -> muito atraso (acima de prazo_maximo=10).
+    And the unasus report table should have "11 dias" at row "Student s1" and column "Test assignment six"
+    # Estados sem texto visivel verificados por CSS class:
+    # a1 prazo futuro, student1 nao entregou -> nao_entregue_mas_no_prazo.
+    And the unasus report table cell at row "Student s1" and column "Test assignment one" should have css class "nao_entregue_mas_no_prazo"
+    # a2 prazo passado, student1 nao entregou -> nao_entregue_fora_do_prazo.
+    And the unasus report table cell at row "Student s1" and column "Test assignment two" should have css class "nao_entregue_fora_do_prazo"
+    # a4 entregue no prazo por student1 (0 dias de atraso) -> no_prazo.
+    And the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "no_prazo"
+    # a3 entregue por student3 (sem deadline) -> no_prazo.
+    And the unasus report table cell at row "Student s3" and column "Test assignment three" should have css class "no_prazo"
+    # a5 pouco atraso (<=10 dias) e a6 muito atraso (>10 dias) confirmados por CSS.
+    And the unasus report table cell at row "Student s1" and column "Test assignment five" should have css class "pouco_atraso"
+    And the unasus report table cell at row "Student s1" and column "Test assignment six" should have css class "muito_atraso"
+
+  @javascript @tutor_scope @entrega_de_atividades
+  Scenario: tutor teacher1 vê apenas estudantes da própria tutoria no relatório de entrega de atividades
+    And I log in as "teacher1"
+    And I follow "Course1"
+    And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then I should see "Student s1"
+    And I should see "Student s3"
+    And I should not see "Student s5"
+    And I should not see "Student s12"
+    And I log out

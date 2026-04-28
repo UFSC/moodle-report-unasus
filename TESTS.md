@@ -57,8 +57,35 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 ### Como executar
 
 ```bash
-# Feature principal (com submissões)
+# Background compartilhado (sem cenários — apenas fixture de dados)
 ./run_behat.sh tests/behat/unasus.feature
+
+# Relatório Boletim
+./run_behat.sh tests/behat/unasus_boletim.feature
+
+# Relatório de atribuição de notas
+./run_behat.sh tests/behat/unasus_atividades_vs_notas.feature
+
+# Relatório avaliações em atraso
+./run_behat.sh tests/behat/unasus_avaliacoes_em_atraso.feature
+
+# Relatório atividades nota atribuída (síntese de completude)
+./run_behat.sh tests/behat/unasus_atividades_nota_atribuida.feature
+
+# Relatório módulos concluídos
+./run_behat.sh tests/behat/unasus_modulos_concluidos.feature
+
+# Relatório entrega de atividades
+./run_behat.sh tests/behat/unasus_entrega_de_atividades.feature
+
+# Relatório estudante sem atividade postada
+./run_behat.sh tests/behat/unasus_estudante_sem_atividade_postada.feature
+
+# Relatório estudante sem atividade avaliada
+./run_behat.sh tests/behat/unasus_estudante_sem_atividade_avaliada.feature
+
+# Relatório atividades concluídas agrupadas
+./run_behat.sh tests/behat/unasus_atividades_concluidas_agrupadas.feature
 
 # Feature sem dados (sem submissões)
 ./run_behat.sh tests/behat/unasus_sem_dados.feature
@@ -69,20 +96,29 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 # Relatórios TCC
 ./run_behat.sh tests/behat/unasus_tcc.feature
+
+# Relatórios de manager (tutoria e filtros)
+./run_behat.sh tests/behat/unasus_manager_tutoria.feature
+
+# Relatórios de manager (orientação TCC)
+./run_behat.sh tests/behat/unasus_manager_tcc.feature
+
+# Controle de acesso por capability
+./run_behat.sh tests/behat/unasus_permissions.feature
 ```
 
 ---
 
 ### Feature: `tests/behat/unasus.feature`
 
-**Descrição:** Cenários com dados reais de submissão — valida o comportamento dos relatórios quando estudantes realizaram entregas.
+**Descrição:** Background compartilhado — contém apenas a fixture de dados (sem cenários). Todos os cenários foram extraídos para features dedicadas por relatório. O Background permanece aqui como fonte de verdade; cada feature dedicada copia esse Background temporariamente até a etapa de consolidação por helpers/fixtures compostos.
 
 #### Dados de Background
 
 - **15 usuários:** `student1–12`, `teacher1–3`
 - **1 curso:** `Course1` (c1, CAT1, groupmode=1, enablecompletion=1)
 - **Atividades:**
-  - `a1–a7`: assignments com diferentes deadlines (futuro `2147483647`, passado `978307200`, zero `0`)
+  - `a1–a6`: assignments com diferentes deadlines (futuro `2147483647`, passado `978307200`, zero `0`, passado `946684800`)
   - `f1–f2`: forums (prazo futuro e passado)
   - `q1`: quiz; `d1`: database; `l1`: lti
 - **3 grupos de tutoria:**
@@ -95,22 +131,103 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
   - `student1` → `a4` (0 dias após deadline)
   - `student1` → `a5` (10 dias após deadline)
   - `student1` → `a6` (11 dias após deadline)
-  - `student1` → `a7` (11 dias após deadline)
   - `student1` → `f1` (discussão no fórum com prazo futuro)
   - `student2` → `f2` (discussão no fórum com prazo passado)
 
+---
+
+### Feature: `tests/behat/unasus_boletim.feature`
+
+**Descrição:** Cenários do relatório Boletim extraídos da feature principal. O `Background` foi mantido igual temporariamente para preservar comportamento; a deduplicação por fixtures compostas fica para etapa posterior.
+
 #### Cenários principais
 
-| Cenário | Relatório | O que verifica |
-|---------|-----------|----------------|
-| `Correct report generation` | entrega_de_atividades | Geração básica; vê "Test assignment one" |
-| `entrega_de_atividades - todas as legendas de entrega` | entrega_de_atividades | "sem prazo", "10 dias", "11 dias" |
-| `estudante_sem_atividade_postada - lista de atividades nao postadas` | estudante_sem_atividade_postada | Vê "Student" e "Test assignment two" |
-| `estudante_sem_atividade_avaliada - lista de atividades entregues sem nota` | estudante_sem_atividade_avaliada | Vê "Test assignment two" (student2 entregou mas sem nota) |
-| `avaliacoes_em_atraso - sintese de avaliacoes pendentes` | avaliacoes_em_atraso | Vê "Test assignment one" |
-| `atividades_vs_notas - estados de entrega e nota` | atividades_vs_notas | "sem prazo", "no prazo", "não entregue" |
-| `boletim - verificacao de notas` | boletim | student1 com nota 100 em a4; vê "Test assignment four" |
-| `modulos_concluidos - verificacao de completion de atividades` | modulos_concluidos | student1 concluiu a4; vê "Test assignment four" |
+| Cenário | O que verifica |
+|---------|----------------|
+| `boletim - verificacao de notas` | Notas por atividade, média final, legendas e classes CSS |
+| `boletim exporta CSV com dados esperados` | Exportação CSV com notas e média final |
+| `boletim - média ponderada no gradebook` | Média final ponderada conforme gradebook |
+| `boletim - média simples com vazias=zero` | Inclusão de notas vazias no cálculo |
+| `boletim - média ponderada com vazias=zero` | Pesos e notas vazias combinados |
+| `boletim - atividades base 100 com nota final base 10` | Exibição da nota final em escala diferente |
+| `boletim - todas as atividades avaliadas verifica media final` | Média final com todas as atividades avaliadas |
+
+---
+
+### Feature: `tests/behat/unasus_atividades_vs_notas.feature`
+
+**Descrição:** Cenários do relatório de atribuição de notas extraídos da feature principal. O `Background` foi mantido igual temporariamente para preservar comportamento; a deduplicação por fixtures compostas fica para etapa posterior.
+
+#### Cenários principais
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `atividades_vs_notas - estados de entrega e nota` | Estados textuais, notas, legendas e classes CSS |
+| `atividades_vs_notas exporta CSV com dados esperados` | Exportação CSV com estados, notas e atraso |
+| `tutor teacher1 vê apenas estudantes da própria tutoria no relatório de atribuição de notas` | Escopo do tutor sem `view_all` |
+
+---
+
+### Feature: `tests/behat/unasus_avaliacoes_em_atraso.feature`
+
+**Descrição:** Cenários do relatório de avaliações em atraso extraídos da feature principal. Background copiado temporariamente.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `avaliacoes_em_atraso - sintese de avaliacoes pendentes` | Contadores N/total por tutor e por atividade; média geral |
+| `avaliacoes_em_atraso exporta CSV com dados esperados` | Exportação CSV com os mesmos valores |
+
+---
+
+### Feature: `tests/behat/unasus_atividades_nota_atribuida.feature`
+
+**Descrição:** Cenários do relatório de síntese de completude (atividades concluídas) extraídos da feature principal. Background copiado temporariamente.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `atividades_nota_atribuida - sintese de completude por tutor` | Percentuais de conclusão por tutor, atividade e total |
+| `atividades_nota_atribuida exporta CSV com dados esperados` | Exportação CSV com os mesmos percentuais |
+
+---
+
+### Feature: `tests/behat/unasus_modulos_concluidos.feature`
+
+**Descrição:** Cenários do relatório de módulos concluídos extraídos da feature principal. Background copiado temporariamente.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `modulos_concluidos - verificacao de completion de atividades` | Nota final vs gradebook, atividades pendentes por estudante, CSS concluido/nao_concluido |
+
+---
+
+### Feature: `tests/behat/unasus_entrega_de_atividades.feature`
+
+**Descrição:** Cenários do relatório de entrega de atividades extraídos da feature principal. Background copiado temporariamente.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `entrega_de_atividades - todas as legendas de entrega` | "sem prazo", "10 dias", "11 dias"; classes CSS nao_entregue_mas_no_prazo, nao_entregue_fora_do_prazo, no_prazo, pouco_atraso, muito_atraso |
+| `tutor teacher1 vê apenas estudantes da própria tutoria no relatório de entrega de atividades` | Escopo do tutor sem `view_all` |
+
+---
+
+### Feature: `tests/behat/unasus_estudante_sem_atividade_postada.feature`
+
+**Descrição:** Cenários do relatório de estudantes sem atividade postada extraídos da feature principal. Background copiado temporariamente.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `estudante_sem_atividade_postada - cobertura com limites e variacoes de borda` | Presença/ausência de estudantes; atividades pendentes por linha (student1, s2, s9, s10, s11, s12) |
+
+---
+
+### Feature: `tests/behat/unasus_estudante_sem_atividade_avaliada.feature`
+
+**Descrição:** Cenários do relatório de estudantes sem atividade avaliada extraídos da feature principal. Background copiado temporariamente.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `estudante_sem_atividade_avaliada - cobertura com limites e variacoes de borda` | Presença/ausência de estudantes com entregas pendentes de correção; atividades por linha (s1–s8) |
 
 ---
 
@@ -133,6 +250,43 @@ Idêntico ao `unasus.feature` (mesmos 15 usuários, mesmo curso, mesmas atividad
 | `sem_dados - atividades_vs_notas mostra estados sem entrega` | atividades_vs_notas | Vê "não entregue", "sem prazo", "no prazo" |
 | `sem_dados - boletim exibe atividades sem notas` | boletim | Vê "Test assignment one" e "Test assignment two" |
 | `sem_dados - modulos_concluidos sem nenhuma conclusao` | modulos_concluidos | Vê "Test assignment one" e "Student" |
+
+---
+
+### Feature: `tests/behat/unasus_manager_tutoria.feature`
+
+**Descrição:** Cenários do manager com `view_all` nos relatórios de tutoria — visibilidade total, filtros por grupo/módulo e escopo de tutor sem `view_all`.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `manager com view_all visualiza todos os estudantes na tutoria` | Vê todos os 12 estudantes; exibe filtros Cohorts e Grupos de Tutoria |
+| `manager filtra relatório de tutoria por grupo de tutoria` | Filtra por `relationship_group1` — vê s1–s4, não vê s5/s12 |
+| `manager filtra relatório por módulo` (Outline ×2) | Filtra por `courseid:c1`; exibe atividades do curso correto, não do c2 |
+| `manager filtra sínteses de tutoria por grupo de tutoria` (Outline ×2) | Filtra por grupo — vê Teacher t1, não vê Teacher t2 |
+| `tutor sem view_all nao visualiza estudantes de outros grupos na tutoria` | teacher1 não vê "Filtrar Cohorts:"; vê s1–s4, não s5/s12 |
+
+---
+
+### Feature: `tests/behat/unasus_manager_tcc.feature`
+
+**Descrição:** Cenários do manager com `view_all` nos relatórios de orientação TCC — visibilidade total, filtro por grupo de orientação e escopo de orientador sem `view_all`.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `manager com view_all visualiza todos os estudantes na orientação TCC` | Vê todos os 12 estudantes; exibe "Filtrar Grupos de Orientação:", "Resumo", "Capítulo 1" |
+| `manager filtra relatório TCC por grupo de orientação` | Filtra por `relationship_group1` — vê s1–s4, não vê s5/s12 |
+| `orientador sem view_all nao visualiza estudantes de outros grupos no TCC` | teacher1 não vê "Filtrar Cohorts:"; vê s1–s4, não s5/s12 |
+
+---
+
+### Feature: `tests/behat/unasus_permissions.feature`
+
+**Descrição:** Cenários de controle de acesso por capability — valida que estudantes não conseguem acessar diretamente relatórios restritos.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `estudante não acessa diretamente relatório de tutoria` | `student1` não tem acesso direto a `entrega_de_atividades` |
+| `estudante não acessa diretamente relatório TCC` | `student1` não tem acesso direto a `tcc_entrega_atividades` |
 
 ---
 

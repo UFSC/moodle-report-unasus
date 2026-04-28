@@ -1,8 +1,8 @@
-@unasus @report_unasus @javascript @manager @tcc
-Feature: Relatórios UNA-SUS: acesso global com manager (view_all)
-  Para acompanhar tutoria e orientação de forma consolidada
-  Como usuário manager com report/unasus:view_all
-  Preciso visualizar todos os grupos e todos os estudantes
+ @unasus @report_unasus @javascript
+Feature: Relatórios UNA-SUS: controle de acesso por capability
+  Para garantir a segurança dos relatórios
+  Como administrador do sistema
+  Preciso que estudantes não acessem relatórios restritos diretamente
 
 Background:
   Given the following "users" exist:
@@ -162,145 +162,9 @@ Background:
     | student12 | relationship_group3 |
 
   @javascript @entrega_de_atividades
-  Scenario: manager com view_all visualiza todos os estudantes na tutoria
-    And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
-    Then I should see "Filtrar Cohorts:"
-    And I should see "Filtrar Grupos de Tutoria:"
-    And I press "Gerar relatório"
-    And I should see "Student s1"
-    And I should see "Student s2"
-    And I should see "Student s3"
-    And I should see "Student s4"
-    And I should see "Student s5"
-    And I should see "Student s6"
-    And I should see "Student s7"
-    And I should see "Student s8"
-    And I should see "Student s9"
-    And I should see "Student s10"
-    And I should see "Student s11"
-    And I should see "Student s12"
-
-  @javascript @entrega_de_atividades
-  Scenario: manager filtra relatório de tutoria por grupo de tutoria
-    And I log in as "manager1"
-    And I open the unasus report "entrega_de_atividades" directly for course "c1" with params:
-      | name           | value                                      |
-      | modo_exibicao  | tabela                                     |
-      | tutores[0]     | relationshipgroup:relationship_group1     |
-    Then I should see "Student s1"
-    And I should see "Student s2"
-    And I should see "Student s3"
-    And I should see "Student s4"
-    And I should not see "Student s5"
-    And I should not see "Student s12"
-
-  @javascript @modulos_concluidos @atividades_nota_atribuida
-  Scenario Outline: manager filtra relatório por módulo
-    And the following "courses" exist:
-      | fullname | shortname | category | groupmode | enablecompletion |
-      | Course2  | c2        | CAT1     | 1         | 1                |
-    And the following "activities" exist:
-      | activity | course | idnumber | name                 | intro          | grade | assignsubmission_onlinetext_enabled | completionexpected | completion |
-      | assign   | C2     | a2       | Manager assignment 2 | Submit later   | 100   | 1                                   | 978307200          | 1          |
-    And I log in as "manager1"
-    And I open the unasus report "<report>" directly for course "c1" with params:
-      | name          | value       |
-      | modo_exibicao | tabela      |
-      | modulos[0]    | courseid:c1 |
-    Then I should see "Manager assignment"
-    And I should not see "Manager assignment 2"
-
-    Examples:
-      | report                     |
-      | modulos_concluidos         |
-      | atividades_nota_atribuida  |
-
-  @javascript @modulos_concluidos @atividades_nota_atribuida
-  Scenario Outline: manager filtra sínteses de tutoria por grupo de tutoria
-    And I log in as "manager1"
-    And I open the unasus report "<report>" directly for course "c1" with params:
-      | name          | value                                  |
-      | modo_exibicao | tabela                                 |
-      | tutores[0]    | relationshipgroup:relationship_group1 |
-    Then I should see "Teacher t1"
-    And I should not see "Teacher t2"
-
-    Examples:
-      | report                     |
-      | avaliacoes_em_atraso       |
-      | atividades_nota_atribuida  |
-
-  @javascript @tcc_entrega_atividades
-  Scenario: manager com view_all visualiza todos os estudantes na orientação TCC
-    And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
-    Then I should see "Filtrar Grupos de Orientação:"
-    And I press "Gerar relatório"
-    And I should see "Resumo"
-    And I should see "Capítulo 1"
-    And I should see "Student s1"
-    And I should see "Student s2"
-    And I should see "Student s3"
-    And I should see "Student s4"
-    And I should see "Student s5"
-    And I should see "Student s6"
-    And I should see "Student s7"
-    And I should see "Student s8"
-    And I should see "Student s9"
-    And I should see "Student s10"
-    And I should see "Student s11"
-    And I should see "Student s12"
-
-  @javascript @tcc_entrega_atividades
-  Scenario: manager filtra relatório TCC por grupo de orientação
-    And I log in as "manager1"
-    And I open the unasus report "tcc_entrega_atividades" directly for course "c1" with params:
-      | name            | value                                  |
-      | modo_exibicao   | tabela                                 |
-      | orientadores[0] | relationshipgroup:relationship_group1 |
-      | modulos[0]      | courseid:c1                            |
-    Then I should see "Student s1"
-    And I should see "Student s2"
-    And I should see "Student s3"
-    And I should see "Student s4"
-    And I should not see "Student s5"
-    And I should not see "Student s12"
-
-  @javascript @entrega_de_atividades
   Scenario: estudante não acessa diretamente relatório de tutoria
     Then the user "student1" should not have direct access to the unasus report "entrega_de_atividades" in course "c1"
 
   @javascript @tcc_entrega_atividades
   Scenario: estudante não acessa diretamente relatório TCC
     Then the user "student1" should not have direct access to the unasus report "tcc_entrega_atividades" in course "c1"
-
-  @javascript @entrega_de_atividades
-  Scenario: tutor sem view_all nao visualiza estudantes de outros grupos na tutoria
-    And I log in as "teacher1"
-    And I follow "Course1"
-    And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
-    Then I should not see "Filtrar Cohorts:"
-    And I press "Gerar relatório"
-    And I should see "Student s1"
-    And I should see "Student s2"
-    And I should see "Student s3"
-    And I should see "Student s4"
-    And I should not see "Student s5"
-    And I should not see "Student s12"
-
-  @javascript @tcc_entrega_atividades
-  Scenario: orientador sem view_all nao visualiza estudantes de outros grupos no TCC
-    And I log in as "teacher1"
-    And I follow "Course1"
-    And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
-    Then I should not see "Filtrar Cohorts:"
-    And I press "Gerar relatório"
-    And I should see "Student s1"
-    And I should see "Student s2"
-    And I should see "Student s3"
-    And I should see "Student s4"
-    And I should not see "Student s5"
-    And I should not see "Student s12"
