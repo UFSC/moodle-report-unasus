@@ -159,10 +159,11 @@ Background:
     And I follow "Course1"
     And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    Then I should see "Resumo"
-    And I should see "Capítulo 1"
-    And I should see "Capítulo 2"
-    And I should see "Student s1"
+    # CSS class cobre todos os estados: avaliado, revisao, rascunho, nao_aplicado.
+    Then the unasus report table cell at row "Student s1" and column "Resumo" should have css class "avaliado"
+    And the unasus report table cell at row "Student s1" and column "Capítulo 1" should have css class "revisao"
+    And the unasus report table cell at row "Student s1" and column "Capítulo 2" should have css class "rascunho"
+    And the unasus report table cell at row "Student s2" and column "Resumo" should have css class "nao_aplicado"
 
   @javascript @tcc_concluido
   Scenario: tcc_concluido - capítulo avaliado vs não avaliado por estudante
@@ -180,9 +181,11 @@ Background:
     And I follow "Course1"
     And I navigate to "TCC: Atividades concluídas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
-    Then I should see "Student s1"
-    And I should see "Capítulo 1"
-    And I should see "Capítulo 2"
+    # CSS class: dois capítulos concluidos e um nao_concluido para student1; student2 sem dados.
+    Then the unasus report table cell at row "Student s1" and column "Resumo" should have css class "concluido"
+    And the unasus report table cell at row "Student s1" and column "Capítulo 1" should have css class "concluido"
+    And the unasus report table cell at row "Student s1" and column "Capítulo 2" should have css class "nao_concluido"
+    And the unasus report table cell at row "Student s2" and column "Resumo" should have css class "nao_concluido"
 
   @javascript @tcc_consolidado
   Scenario: tcc_consolidado - síntese de progresso por grupo de orientação

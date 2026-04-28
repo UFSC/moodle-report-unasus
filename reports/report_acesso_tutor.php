@@ -4,6 +4,65 @@ defined('MOODLE_INTERNAL') || die;
 
 class report_acesso_tutor extends report_unasus_factory {
 
+    /**
+     * Retorna o intervalo [inicio, fim) normalizado para meia-noite.
+     *
+     * @return DateTime[]
+     */
+    protected function get_interval_boundaries() {
+        $data_inicio = DateTime::createFromFormat('!d/m/Y', $this->data_inicio);
+        $data_fim = DateTime::createFromFormat('!d/m/Y', $this->data_fim);
+
+        $data_fim->add(new DateInterval('P1D'));
+
+        return array($data_inicio, $data_fim);
+    }
+
+    /**
+     * Retorna os dias do intervalo no formato informado.
+     *
+     * @param string $date_format
+     * @return array
+     */
+    protected function get_days_interval($date_format) {
+        list($data_inicio, $data_fim) = $this->get_interval_boundaries();
+
+        $increment = new DateInterval('P1D');
+        $daterange = new DatePeriod($data_inicio, $increment, $data_fim);
+
+        $dias = array();
+        foreach ($daterange as $date) {
+            $dias[] = $date->format($date_format);
+        }
+
+        return $dias;
+    }
+
+    /**
+     * Retorna o intervalo agrupado por mês para o cabeçalho da tabela.
+     *
+     * @param string $date_format_display
+     * @return array
+     */
+    protected function get_days_interval_grouped_by_month($date_format_display) {
+        list($data_inicio, $data_fim) = $this->get_interval_boundaries();
+
+        $increment = new DateInterval('P1D');
+        $daterange = new DatePeriod($data_inicio, $increment, $data_fim);
+
+        $meses = array();
+        foreach ($daterange as $date) {
+            $mes = strftime('%B', $date->format('U'));
+            if (!array_key_exists($mes, $meses)) {
+                $meses[$mes] = array();
+            }
+
+            $meses[$mes][] = $date->format($date_format_display);
+        }
+
+        return $meses;
+    }
+
     protected function initialize() {
         $this->mostrar_filtro_grupo_tutoria = false;
         $this->mostrar_filtro_tutores = true;
@@ -83,7 +142,6 @@ class report_acesso_tutor extends report_unasus_factory {
 
     public function get_dados() {
         global $DB;
-        $diff24Hours = new DateInterval('PT24H');
 
         $relationship_tutoria = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
         $cohort_tutores = local_tutores_grupos_tutoria::get_relationship_cohort_tutores($relationship_tutoria->id);
@@ -108,15 +166,8 @@ class report_acesso_tutor extends report_unasus_factory {
         }
         $dados = $group_array->get_assoc();
 
-        $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
-        $data_inicio->setTime(0,0,0);
-
-        $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
-        $data_fim = $data_fim->add($diff24Hours);
-        $data_fim->setTime(0,0,0);
-
         // Intervalo de dias no formato d/m/Y
-        $dias_meses = report_unasus_get_time_interval($data_inicio, $data_fim, 'P1D', 'd/m/Y');
+        $dias_meses = $this->get_days_interval('d/m/Y');
 
         //para cada resultado da busca ele verifica se esse dado bate no "calendario" criado com o
         //date interval acima
@@ -148,16 +199,7 @@ class report_acesso_tutor extends report_unasus_factory {
     }
 
     public function get_table_header() {
-        $diff24Hours = new DateInterval('PT24H');
-
-        $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
-        $data_inicio_query = $data_inicio->format('d/m/Y');
-
-        $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
-        $data_fim = $data_fim->add($diff24Hours);
-        $data_fim_query = $data_fim->format('d/m/Y');
-
-        return report_unasus_get_time_interval_com_meses($data_inicio_query, $data_fim_query, 'P1D', 'd/m/Y', 'd/m/y');
+        return $this->get_days_interval_grouped_by_month('d/m/y');
     }
 
 }

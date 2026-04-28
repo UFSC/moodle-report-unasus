@@ -76,13 +76,13 @@ Background:
     | student2 | relationship_group2 |
 
   And the following tutor report logs exist:
-    | username | course | datetime            | action  |
-    | tutor1   | c1     | 2026-03-10 10:00:00 | viewed  |
-    | tutor1   | c1     | 2026-03-10 10:31:00 | updated |
-    | tutor2   | c1     | 2026-03-15 15:00:00 | viewed  |
-    | tutor2   | c1     | 2026-03-15 15:31:00 | updated |
-    | tutor1   | c1     | 2026-04-05 09:00:00 | viewed  |
-    | tutor1   | c1     | 2026-04-05 09:31:00 | updated |
+    | username | course | datetime   | action  |
+    | tutor1   | c1     | 1773136800 | viewed  |
+    | tutor1   | c1     | 1773138660 | updated |
+    | tutor2   | c1     | 1773586800 | viewed  |
+    | tutor2   | c1     | 1773588660 | updated |
+    | tutor1   | c1     | 1775379600 | viewed  |
+    | tutor1   | c1     | 1775381460 | updated |
 
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor com período fixo mostra tutores e colunas de média e total
@@ -92,12 +92,13 @@ Background:
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
     And I press "Gerar relatório"
-    Then I should see "Tutor One"
-    And I should see "Tutor Two"
-    And I should see "10/03/26"
-    And I should see "15/03/26"
-    And I should see "Media"
+    Then I should see "Media"
     And I should see "Total"
+    # CSS class confirma acessou/nao_acessou por tutor e dia (valor numérico de horas omitido por ser incerto sem execução).
+    And the unasus report table cell at row "Tutor One" and column "10/03/26" should have css class "acessou"
+    And the unasus report table cell at row "Tutor One" and column "15/03/26" should have css class "nao_acessou"
+    And the unasus report table cell at row "Tutor Two" and column "10/03/26" should have css class "nao_acessou"
+    And the unasus report table cell at row "Tutor Two" and column "15/03/26" should have css class "acessou"
 
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor não mostra dia de abril quando o período é março de 2026

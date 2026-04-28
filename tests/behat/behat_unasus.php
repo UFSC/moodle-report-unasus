@@ -1145,7 +1145,7 @@ EOD;
      * Table columns: username, course, datetime, action
      *   - username: Moodle username
      *   - course: course shortname/fullname/idnumber or numeric id
-     *   - datetime: any strtotime()-compatible value (e.g. 2026-03-10 10:00:00)
+     *   - datetime: Unix timestamp integer (e.g. 1773136800) or any strtotime()-compatible string
      *   - action: log action (e.g. viewed, updated). For "uso_sistema_tutor",
      *             use non-login/non-logout actions.
      *
@@ -1166,9 +1166,14 @@ EOD;
             $courseid = $this->resolve_course_id(trim($row['course']));
             $context = context_course::instance($courseid);
 
-            $timestamp = strtotime(trim($row['datetime']));
-            if ($timestamp === false) {
-                throw new Exception('Invalid datetime value for tutor report logs step: ' . $row['datetime']);
+            $val = trim($row['datetime']);
+            if (is_numeric($val)) {
+                $timestamp = (int) $val;
+            } else {
+                $timestamp = strtotime($val);
+                if ($timestamp === false) {
+                    throw new Exception('Invalid datetime value for tutor report logs step: ' . $row['datetime']);
+                }
             }
 
             $record = new stdClass();
@@ -2137,22 +2142,45 @@ EOD;
      */
     private function find_unasus_report_table() {
         $selectors = array(
-            'table.relatorio-unasus',
             'div.relatorio-unasus.relatorio-wrapper table',
+            'table.relatorio-unasus',
             'table.generaltable_without_stripes',
         );
 
         foreach ($selectors as $selector) {
-            try {
-                return $this->find(
-                    'css',
-                    $selector,
-                    new \Exception('UNA-SUS report table not found: ' . $selector),
-                    false,
-                    2
-                );
-            } catch (\Exception $e) {
-                // Try the next known table shape.
+            $tables = $this->getSession()->getPage()->findAll('css', $selector);
+            if (empty($tables)) {
+                continue;
+            }
+
+            $bestvisible = null;
+            $bestvisiblescore = -1;
+            $bestfallback = null;
+            $bestfallbackscore = -1;
+
+            foreach ($tables as $table) {
+                $rowscore = count($table->findAll('css', 'tr'));
+                $headerscore = count($table->findAll('css', 'thead tr:last-child th, thead tr:last-child td'));
+                $score = $rowscore * 100 + $headerscore;
+
+                if ($score > $bestfallbackscore) {
+                    $bestfallbackscore = $score;
+                    $bestfallback = $table;
+                }
+
+                $isvisible = !method_exists($table, 'isVisible') || $table->isVisible();
+                if ($isvisible && $score > $bestvisiblescore) {
+                    $bestvisiblescore = $score;
+                    $bestvisible = $table;
+                }
+            }
+
+            if ($bestvisible !== null) {
+                return $bestvisible;
+            }
+
+            if ($bestfallback !== null) {
+                return $bestfallback;
             }
         }
 

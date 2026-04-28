@@ -1194,6 +1194,10 @@ Scenario: modulos_concluidos - verificacao de completion de atividades
     And the unasus report table cell at row "Student s12" and column "Course1" should not contain "Test quiz one"
     And the unasus report table cell at row "Student s12" and column "Course1" should not contain "Test database one"
     And the unasus report table cell at row "Student s12" and column "Course1" should not contain "Test lti one"
+    # CSS class confirma estado concluido/nao_concluido de cada estudante.
+    And the unasus report table cell at row "Student s10" and column "Course1" should have css class "concluido"
+    And the unasus report table cell at row "Student s11" and column "Course1" should have css class "nao_concluido"
+    And the unasus report table cell at row "Student s12" and column "Course1" should have css class "nao_concluido"
 
   @javascript @atividades_concluidas_agrupadas
 Scenario: atividades_concluidas_agrupadas - geracao do relatorio por modulo
