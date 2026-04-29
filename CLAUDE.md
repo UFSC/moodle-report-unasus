@@ -128,7 +128,7 @@ For a complete reference of all tests (PHPUnit and Behat), including scenarios, 
 
 Test file: `tests/unasus_datastructures_test.php`
 
-Tests verify (16 tests, 73 assertions):
+Tests verify (17 tests, 75+ assertions):
 - Activity deadline detection (`has_deadline`)
 - Activity flags: `has_submission()`, `has_grouping()`
 - Invalid constructor arguments (InvalidArgumentException)
@@ -138,7 +138,7 @@ Tests verify (16 tests, 73 assertions):
 - Activity pending status: `is_activity_pending()`
 - Future due detection: `is_a_future_due()`
 - Activity submission logic: draft, submitted, new statuses
-- Grade -1 treated as absent (Moodle convention)
+- Grade -1 treated as absent (Moodle convention) — both int and string representations
 - Forum data: `report_unasus_data_forum`
 - Quiz data: `report_unasus_data_quiz`
 - Grouping membership: `is_member_of()`
@@ -218,7 +218,7 @@ Identified during analysis (April 2026). Items marked ✅ have been fixed; remai
 
 ### Recent Changes Context
 
-Recent commits focus on report ordering, activity presentation, test coverage, and documentation:
+Recent commits focus on report ordering, activity presentation, test coverage, documentation, and bug fixes:
 - Activity reordering for synthetic reports
 - Support for hidden Moodle courses in reports
 - Fine-tuning report presentation order
@@ -230,6 +230,7 @@ Recent commits focus on report ordering, activity presentation, test coverage, a
 - Completed README.md: fixed incomplete sentence, added file structure, troubleshooting, and changelog sections
 - Documented performance bottlenecks in CLAUDE.md (see "Known Performance Bottlenecks" above)
 - Performance optimizations (Etapa 1): correlated subquery → explicit LEFT JOINs in `queries.php`; memoized `report_unasus_get_tcc_definition()` and new `report_unasus_get_lti_type_config()` in `locallib.php`; memoized `SistemaTccClient::get_tcc_definition()` in `sistematcc.php`
+- **Bug fix**: Fixed grade rendering in atividades_vs_notas report — grade value -1 (Moodle's "no grade" sentinel) was being rendered as a valid grade when received as string from database. Standardized grade -1 filtering across all activity data classes by casting to int before comparison in `activities_datastructures.php`; added test case `test_report_unasus_data_activity_grade_minus_one_as_string()` to cover string "-1" scenario.
 
 ### Docker Environment
 
