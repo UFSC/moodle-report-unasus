@@ -338,6 +338,17 @@ Mesmos 15 usuários (`student1–12`, `teacher1–3`), mesmo curso `Course1`, me
 
 ---
 
+### Feature: `tests/behat/unasus_csv_borda.feature`
+
+**Descrição:** Cenários de borda para exportação CSV com caracteres especiais — verifica que vírgulas em nomes de estudantes e atividades são corretamente escapadas (RFC 4180, `str_getcsv`).
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `csv_borda - nome de estudante com virgula e exportado como campo entre aspas` | **Borda:** lastname `"da Silva, Jr."` → `str_getcsv` reconhece como campo único; lookup de linha por nome com vírgula funciona |
+| `csv_borda - nome de atividade com virgula no cabecalho do CSV` | **Borda:** atividade `"Atividade, com vírgula"` → cabeçalho contém o nome; lookup por coluna funciona |
+
+---
+
 ## Steps Behat Customizados
 
 Definidos em `tests/behat/behat_unasus.php`:

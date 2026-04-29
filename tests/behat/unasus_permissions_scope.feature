@@ -107,8 +107,6 @@ Background:
   @javascript @escopo_tutor
   Scenario: tutor_scope - tutor ve apenas estudantes do seu grupo
     And I log in as "teacher1"
-    And I follow "Courses"
-    And I follow "Category 1"
     And I follow "Course1"
     And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
@@ -121,8 +119,6 @@ Background:
   @javascript @escopo_tutor
   Scenario: tutor_scope - tutor com grupo sem estudantes nao causa erro
     And I log in as "teacher3"
-    And I follow "Courses"
-    And I follow "Category 1"
     And I follow "Course1"
     And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
