@@ -281,3 +281,22 @@ Scenario: boletim - todas as atividades avaliadas verifica media final
     And the exported unasus csv should have "100.0" at row "Student s1" and column "Test assignment five"
     And the exported unasus csv should have "80.0" at row "Student s1" and column "Test assignment six"
     And the exported unasus csv should have "80.0" at row "Student s1" and column "Média Final"
+
+  @javascript @boletim @config_borda
+  Scenario: config_borda - todos os estudantes com nota identica mostram mesma classificacao CSS
+    # Variância zero: dois estudantes com a mesma nota devem ter idêntica classificação.
+    # Verifica que o boletim não se comporta de forma inesperada quando não há dispersão de notas.
+    And I submit assignment "a4" for user "student2"
+    And I set the submission date of activity "a4" to "0" days after
+    And I set the grade of activity "a4" for user "student1" to "80"
+    And I set the grade of activity "a4" for user "student2" to "80"
+    And I recalculate gradebook final grades for course "c1"
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Boletim" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    # Nota 80 > limiar 60% -> ambos devem ter CSS class "na_media"
+    Then the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "na_media"
+    And the unasus report table cell at row "Student s2" and column "Test assignment four" should have css class "na_media"

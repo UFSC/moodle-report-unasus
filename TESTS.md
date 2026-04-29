@@ -127,6 +127,7 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 | `boletim - média ponderada com vazias=zero` | Pesos e notas vazias combinados |
 | `boletim - atividades base 100 com nota final base 10` | Exibição da nota final em escala diferente |
 | `boletim - todas as atividades avaliadas verifica media final` | Média final com todas as atividades avaliadas |
+| `config_borda - todos os estudantes com nota identica mostram mesma classificacao CSS` | **Borda:** variância zero — student1 e student2 com nota 80 → ambos `na_media` |
 
 ---
 
@@ -141,6 +142,7 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 | `atividades_vs_notas - estados de entrega e nota` | Estados textuais, notas, legendas e classes CSS |
 | `atividades_vs_notas exporta CSV com dados esperados` | Exportação CSV com estados, notas e atraso |
 | `tutor teacher1 vê apenas estudantes da própria tutoria no relatório de atribuição de notas` | Escopo do tutor sem `view_all` |
+| `config_borda - prazo_avaliacao zero classifica nota de 1 dia como atrasada` | **Borda:** `prazo_avaliacao=0` → nota 1 dia após submissão = `nota_atribuida_atraso` (com prazo=1 seria `nota_atribuida`) |
 
 ---
 
@@ -251,6 +253,7 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 |---------|----------------|
 | `síntese agrupada exibe valores por grupo e total` | Contadores por grupo de tutoria e total geral |
 | `tutor sem view_all não visualiza dados de outro grupo na síntese agrupada` | Escopo do tutor sem `view_all` |
+| *(grupo mínimo)* | **Borda:** grupos já têm 1 estudante cada (1/1 100.0%, 0/1 0.0%) — boundary implícito coberto nos dois cenários acima |
 
 ---
 

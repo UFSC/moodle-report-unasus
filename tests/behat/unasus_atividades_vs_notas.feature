@@ -89,6 +89,24 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     # pouco_atraso: student1/a6 submetido 4 dias antes de agora, sem nota -> dentro do prazo maximo (1-5 dias).
     And the unasus report table cell at row "Student s1" and column "Test assignment six" should have css class "pouco_atraso"
 
+  @javascript @atividades_vs_notas @config_borda
+  Scenario: config_borda - prazo_avaliacao zero classifica nota de 1 dia como atrasada
+    # Com prazo=0, o tutor deve avaliar no mesmo dia da submissão.
+    # Uma nota dada 1 dia após a submissão deve ser classificada como nota_atribuida_atraso.
+    # Com prazo=1 (padrão), o mesmo cenário produziria nota_atribuida (no prazo).
+    And the following config values are set as admin:
+      | report_unasus_prazo_avaliacao | 0 |
+    And I set the grade of activity "a4" for user "student1" to "90"
+    And I set the grade date of activity "a4" for user "student1" to "1" days after submission
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    # prazo=0: 1 dia após submissão > 0 → nota_atribuida_atraso
+    Then the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "nota_atribuida_atraso"
+
   @atividades_vs_notas @csv
   Scenario: atividades_vs_notas exporta CSV com dados esperados
     # Reaplica setup deterministico para o cenario de exportacao CSV.
