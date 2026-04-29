@@ -477,13 +477,15 @@ class unasus_datastructures_testcase extends advanced_testcase {
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
 
-        $db_model                 = new stdClass();
-        $db_model->userid         = 1;
-        $db_model->polo           = null;
-        $db_model->grade          = "-1"; // Retorna como string do banco
-        $db_model->grade_created  = null;
-        $db_model->grade_modified = null;
-        $db_model->status         = 'submitted';
+        $db_model                    = new stdClass();
+        $db_model->userid            = 1;
+        $db_model->polo              = null;
+        $db_model->grade             = "-1"; // Retorna como string do banco
+        $db_model->grademax          = 10;
+        $db_model->grade_created     = null;
+        $db_model->grade_modified    = null;
+        $db_model->submission_modified = time();
+        $db_model->status            = 'submitted';
 
         $data = new report_unasus_data_activity($activity, $db_model);
 
