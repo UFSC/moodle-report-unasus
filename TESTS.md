@@ -267,6 +267,8 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 | `tcc_concluido - capítulo avaliado vs não avaliado por estudante` | Distinção entre capítulos avaliados e pendentes |
 | `tcc_consolidado - síntese de progresso por grupo de orientação` | Contadores de progresso por grupo e totais |
 | `tcc_consolidado exporta CSV com dados esperados` | CSV com mesmos dados da tabela |
+| `orientador teacher1 vê apenas estudantes do próprio grupo de orientação` (Outline × 2) | Escopo por grupo de orientação em tcc_entrega_atividades e tcc_concluido |
+| Borda: `tcc_borda - webservice indisponivel exibe relatorio sem capitulos TCC` | WS retorna null → relatório carrega sem erro, sem colunas de capítulo |
 
 ---
 

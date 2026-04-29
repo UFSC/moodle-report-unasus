@@ -1234,6 +1234,18 @@ EOD;
     }
 
     /**
+     * Simulates TCC definition webservice failure by storing JSON null in the mock config key.
+     * json_decode('null') returns PHP null, which triggers the !$object failure path in
+     * report_unasus_lti_tcc_definition(). getZendInstalled() still returns true because the
+     * config key exists (value is 'null', not false), so the code path runs and hits the guard.
+     *
+     * @Given /^the TCC webservice definition endpoint fails$/
+     */
+    public function tcc_webservice_definition_fails() {
+        set_config('behat_tcc_mock_tcc_definition_service', 'null', 'report_unasus');
+    }
+
+    /**
      * Inserts deterministic rows into logstore_standard_log for tutor report tests.
      *
      * Table columns: username, course, datetime, action

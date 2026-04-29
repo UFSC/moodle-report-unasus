@@ -260,3 +260,19 @@ Background:
       | reportnode                   |
       | TCC: Entrega de Atividades   |
       | TCC: Atividades concluídas   |
+
+  @javascript @tcc_borda
+  Scenario: tcc_borda - webservice indisponivel exibe relatorio sem capitulos TCC
+    # Overrides the Background definition mock with JSON null so get_tcc_definition()
+    # returns PHP null, triggering the !$object guard in report_unasus_lti_tcc_definition().
+    # The report must load without fatal errors and show no chapter columns.
+    And the TCC webservice definition endpoint fails
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    Then I should not see "Capítulo 1"
+    And I should not see "Fatal error"
+    And I should not see "Warning"
