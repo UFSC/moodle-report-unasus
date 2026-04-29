@@ -57,9 +57,6 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 ### Como executar
 
 ```bash
-# Background compartilhado (sem cenários — apenas fixture de dados)
-./run_behat.sh tests/behat/unasus.feature
-
 # Relatório Boletim
 ./run_behat.sh tests/behat/unasus_boletim.feature
 
@@ -106,33 +103,6 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 # Controle de acesso por capability
 ./run_behat.sh tests/behat/unasus_permissions.feature
 ```
-
----
-
-### Feature: `tests/behat/unasus.feature`
-
-**Descrição:** Background compartilhado — contém apenas a fixture de dados (sem cenários). Todos os cenários foram extraídos para features dedicadas por relatório. O Background permanece aqui como fonte de verdade; cada feature dedicada copia esse Background temporariamente até a etapa de consolidação por helpers/fixtures compostos.
-
-#### Dados de Background
-
-- **15 usuários:** `student1–12`, `teacher1–3`
-- **1 curso:** `Course1` (c1, CAT1, groupmode=1, enablecompletion=1)
-- **Atividades:**
-  - `a1–a6`: assignments com diferentes deadlines (futuro `2147483647`, passado `978307200`, zero `0`, passado `946684800`)
-  - `f1–f2`: forums (prazo futuro e passado)
-  - `q1`: quiz; `d1`: database; `l1`: lti
-- **3 grupos de tutoria:**
-  - `relationship_group1`: teacher1 + students 1–4
-  - `relationship_group2`: teacher2 + students 5–8
-  - `relationship_group3`: teacher3 + students 9–12
-- **Submissões presentes no Background:**
-  - `student2` → `a2` (Test assignment two)
-  - `student3` → `a3` (Test assignment three)
-  - `student1` → `a4` (0 dias após deadline)
-  - `student1` → `a5` (10 dias após deadline)
-  - `student1` → `a6` (11 dias após deadline)
-  - `student1` → `f1` (discussão no fórum com prazo futuro)
-  - `student2` → `f2` (discussão no fórum com prazo passado)
 
 ---
 
@@ -231,13 +201,73 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 ---
 
+### Feature: `tests/behat/unasus_acesso_tutor.feature`
+
+**Descrição:** Cenários do relatório de acesso diário do tutor (exclusivo de coordenadores). Usa Background próprio com dados determinísticos de março de 2026.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `acesso_tutor com período fixo mostra tutores e estados de acesso no mês` | Classes CSS acessou/nao_acessou por tutor e dia |
+| `acesso_tutor separa acessos antes e depois da virada do dia` | Separação de acessos por dia calendário |
+| `acesso_tutor não mostra dia de abril quando o período é março de 2026` | Colunas limitadas ao intervalo selecionado |
+| `usuário sem view_all não visualiza relatório restrito acesso_tutor` | Menu não exibido para tutor sem capability |
+| `usuário sem view_all não acessa diretamente relatório restrito acesso_tutor` | Acesso direto bloqueado por capability |
+| `acesso_tutor exibe aviso para intervalo de datas inválido` | Validação de formato de data |
+| `acesso_tutor exibe opção de exportar CSV para usuário com view_all` | Botão CSV visível para coordenador |
+| `acesso_tutor exporta CSV com conteúdo esperado` | CSV com acessos, Media e Total corretos |
+
+---
+
+### Feature: `tests/behat/unasus_uso_sistema_tutor.feature`
+
+**Descrição:** Cenários do relatório de horas de uso do sistema pelo tutor (exclusivo de coordenadores). Usa Background próprio com dados determinísticos de março de 2026.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `uso_sistema_tutor com período fixo mostra tutores e colunas de média e total` | Classes CSS acessou/nao_acessou; colunas Media e Total presentes |
+| `uso_sistema_tutor contabiliza faixas de meia hora, média e total` | Contagem em blocos de 30 min; Media e Total exatos |
+| `uso_sistema_tutor separa acessos antes e depois da virada do dia` | Horas separadas por dia calendário |
+| `uso_sistema_tutor não mostra dia de abril quando o período é março de 2026` | Colunas limitadas ao intervalo selecionado |
+| `usuário sem view_all não visualiza relatório restrito uso_sistema_tutor` | Menu não exibido para tutor sem capability |
+| `usuário sem view_all não acessa diretamente relatório restrito uso_sistema_tutor` | Acesso direto bloqueado por capability |
+| `uso_sistema_tutor exibe aviso para formato de data inválido` | Validação de formato de data |
+| `uso_sistema_tutor exibe opção de exportar CSV para usuário com view_all` | Botão CSV visível para coordenador |
+| `uso_sistema_tutor exporta CSV com conteúdo esperado` | CSV com horas, Media e Total corretos |
+| `uso_sistema_tutor exporta CSV com meia hora, média e total exatos` | CSV com valores de 0.5h, média e total precisos |
+
+---
+
+### Feature: `tests/behat/unasus_atividades_concluidas_agrupadas.feature`
+
+**Descrição:** Cenários do relatório de síntese agrupada de atividades concluídas. Usa Background próprio com fixture reduzida.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `síntese agrupada exibe valores por grupo e total` | Contadores por grupo de tutoria e total geral |
+| `tutor sem view_all não visualiza dados de outro grupo na síntese agrupada` | Escopo do tutor sem `view_all` |
+
+---
+
+### Feature: `tests/behat/unasus_tcc.feature`
+
+**Descrição:** Cenários dos relatórios de TCC (orientação). Usa Background próprio com fixture de orientação e webservice TCC mockado.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `tcc_entrega_atividades - exibe capítulos por estudante com estados corretos` | Estados de entrega por capítulo (entregue, pendente, avaliado) |
+| `tcc_concluido - capítulo avaliado vs não avaliado por estudante` | Distinção entre capítulos avaliados e pendentes |
+| `tcc_consolidado - síntese de progresso por grupo de orientação` | Contadores de progresso por grupo e totais |
+| `tcc_consolidado exporta CSV com dados esperados` | CSV com mesmos dados da tabela |
+
+---
+
 ### Feature: `tests/behat/unasus_sem_dados.feature`
 
 **Descrição:** Cenários sem nenhuma submissão — valida o comportamento dos relatórios com dados zero (edge case).
 
 #### Dados de Background
 
-Idêntico ao `unasus.feature` (mesmos 15 usuários, mesmo curso, mesmas atividades, mesmos 3 grupos), **porém sem nenhuma submissão realizada por qualquer estudante**.
+Mesmos 15 usuários (`student1–12`, `teacher1–3`), mesmo curso `Course1`, mesmas atividades (`a1–a6`, `f1–f2`, `q1`, `d1`, `l1`) e mesmos 3 grupos de tutoria dos outros features — **porém sem nenhuma submissão realizada por qualquer estudante**.
 
 #### Cenários principais
 

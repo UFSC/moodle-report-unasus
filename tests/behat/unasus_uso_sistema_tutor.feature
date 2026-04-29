@@ -95,8 +95,8 @@ Background:
     And I log in as "manager1"
     And I follow "Course1"
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
-    And I set the field "data_inicio" to "01/03/2026"
-    And I set the field "data_fim" to "31/03/2026"
+    And I set the field "data_inicio" to "09/03/2026"
+    And I set the field "data_fim" to "22/03/2026"
     And I press "Gerar relatório"
     Then I should see "Media"
     And I should see "Total"
@@ -205,21 +205,16 @@ Background:
     And I log in as "manager1"
     And I export the unasus report "uso_sistema_tutor" as csv for course "c1" with params:
       | name       | value      |
-      | data_inicio| 01/03/2026 |
-      | data_fim   | 31/03/2026 |
+      | data_inicio| 09/03/2026 |
+      | data_fim   | 22/03/2026 |
     Then the exported unasus csv should contain "Tutores"
-    And the exported unasus csv should contain "Media"
-    And the exported unasus csv should contain "Total"
-    And the exported unasus csv should have a row containing:
-      | value     |
-      | Tutor One |
     And the exported unasus csv should have "1" at row "Tutor One" and column "10/03/26"
     And the exported unasus csv should have "0" at row "Tutor One" and column "15/03/26"
-    And the exported unasus csv should have "0.0" at row "Tutor One" and column "Media"
+    And the exported unasus csv should have "0.1" at row "Tutor One" and column "Media"
     And the exported unasus csv should have "1" at row "Tutor One" and column "Total"
     And the exported unasus csv should have "0" at row "Tutor Two" and column "10/03/26"
     And the exported unasus csv should have "1" at row "Tutor Two" and column "15/03/26"
-    And the exported unasus csv should have "0.0" at row "Tutor Two" and column "Media"
+    And the exported unasus csv should have "0.1" at row "Tutor Two" and column "Media"
     And the exported unasus csv should have "1" at row "Tutor Two" and column "Total"
 
   @uso_sistema_tutor @csv

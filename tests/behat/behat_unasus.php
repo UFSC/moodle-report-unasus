@@ -612,6 +612,98 @@ EOD;
     }
 
     /**
+     * Creates a submitted assignment submission for a user directly in the database.
+     * Use this instead of browser-based "Add submission" / "Submit assignment" steps
+     * when activities are created programmatically and the submission UI may not render.
+     *
+     * @Given /^I submit assignment "([^"]*)" for user "([^"]*)"$/
+     * @param string $idnumber  course_modules.idnumber of the assign activity
+     * @param string $username
+     */
+    public function i_submit_assignment_for_user($idnumber, $username) {
+        global $DB;
+
+        $assignid = $DB->get_field_sql(
+            "SELECT instance FROM {course_modules} WHERE idnumber = :idnumber",
+            ['idnumber' => $idnumber], MUST_EXIST
+        );
+        $userid = $DB->get_field('user', 'id', ['username' => $username], MUST_EXIST);
+        $now = time();
+
+        $existing = $DB->get_record('assign_submission', ['assignment' => $assignid, 'userid' => $userid]);
+        if ($existing) {
+            $existing->status       = 'submitted';
+            $existing->timemodified = $now;
+            $DB->update_record('assign_submission', $existing);
+        } else {
+            $sub = new stdClass();
+            $sub->assignment    = $assignid;
+            $sub->userid        = $userid;
+            $sub->timecreated   = $now;
+            $sub->timemodified  = $now;
+            $sub->status        = 'submitted';
+            $sub->groupid       = 0;
+            $sub->attemptnumber = 0;
+            $sub->latest        = 1;
+            $DB->insert_record('assign_submission', $sub);
+        }
+    }
+
+    /**
+     * Creates a forum post (discussion) for a user directly in the database.
+     * Replaces browser-based "I add a new discussion to X forum" when activities
+     * are created programmatically and course page rendering cannot be relied on.
+     *
+     * @Given /^I post to forum "([^"]*)" as user "([^"]*)"$/
+     * @param string $idnumber  course_modules.idnumber of the forum activity
+     * @param string $username
+     */
+    public function i_post_to_forum_as_user($idnumber, $username) {
+        global $DB;
+
+        $forumid = $DB->get_field_sql(
+            "SELECT instance FROM {course_modules} WHERE idnumber = :idnumber",
+            ['idnumber' => $idnumber], MUST_EXIST
+        );
+        $forum  = $DB->get_record('forum', ['id' => $forumid], '*', MUST_EXIST);
+        $userid = $DB->get_field('user', 'id', ['username' => $username], MUST_EXIST);
+        $now    = time();
+
+        $discussion = new stdClass();
+        $discussion->forum      = $forumid;
+        $discussion->course     = $forum->course;
+        $discussion->name       = "Discussion by $username";
+        $discussion->userid     = $userid;
+        $discussion->groupid    = -1;
+        $discussion->assessed   = 0;
+        $discussion->timemodified = $now;
+        $discussion->usermodified = $userid;
+        $discussion->timestart  = 0;
+        $discussion->timeend    = 0;
+
+        $post = new stdClass();
+        $post->userid      = $userid;
+        $post->forum       = $forumid;
+        $post->created     = $now;
+        $post->modified    = $now;
+        $post->mailed      = 0;
+        $post->subject     = "Discussion by $username";
+        $post->message     = "Post content by $username";
+        $post->messageformat = FORMAT_HTML;
+        $post->messagetrust  = 0;
+        $post->attachment    = '';
+        $post->totalscore    = 0;
+        $post->mailnow       = 0;
+
+        $postid = $DB->insert_record('forum_posts', $post);
+
+        $discussion->firstpost = $postid;
+        $discid = $DB->insert_record('forum_discussions', $discussion);
+
+        $DB->set_field('forum_posts', 'discussion', $discid, ['id' => $postid]);
+    }
+
+    /**
      * Sets a grade for a user on an assign activity directly in the database.
      *
      * @Given /^I set the grade of activity "([^"]*)" for user "([^"]*)" to "([^"]*)"$/
@@ -2603,6 +2695,366 @@ EOD;
         }
 
         return false;
+    }
+
+    /**
+     * Sets up the full standard UNA-SUS tutoria fixture without browser interaction:
+     *   - Users: student1–12 (Student s1..s12) + teacher1–3 (Teacher t1..t3)
+     *   - Category CAT1 → Course1 (c1), groupmode=1, enablecompletion=1
+     *   - Config: prazo_maximo_entrega=10, prazo_maximo_avaliacao=5, prazo_avaliacao=1,
+     *             tolerancia_potencial_evasao=1, passing_grade_percentage=60,
+     *             grade_aggregateonlygraded=1
+     *   - Cohorts CHt (teacher) and CHs (student) in CAT1
+     *   - Activities: assigns a1–a6, forums f1–f2, quiz q1, database d1, LTI l1
+     *   - Enrolments: students as 'student', teachers as 'editingteacher'
+     *   - Permission overrides: relationship + cohort capabilities for editingteacher,
+     *                           report/unasus:view_tutoria for editingteacher in c1
+     *   - Role assigns: teacher1–3 as editingteacher in CAT1
+     *   - Cohort membership: teachers → Cohort teacher, students → Cohort student
+     *   - Tutoria environment (relationship1, 3 groups, grupo_tutoria tag, cohorts linked)
+     *   - Tutoria memberships: teacher/students distributed across 3 groups
+     *
+     * Does NOT create assignment submissions or forum posts — those require browser steps.
+     *
+     * @Given /^a standard report_unasus tutoria fixture exists$/
+     */
+    public function a_standard_report_unasus_tutoria_fixture_exists() {
+        global $DB, $CFG;
+
+        $generator = testing_util::get_data_generator();
+
+        // Config values.
+        set_config('enablecompletion', 1);
+        set_config('grade_aggregateonlygraded', 1);
+        set_config('local_tutores_student_roles', 'student');
+        set_config('local_tutores_tutor_roles', 'editingteacher');
+        set_config('local_tutores_orientador_roles', 'editingteacher');
+        set_config('report_unasus_prazo_maximo_entrega', 10);
+        set_config('report_unasus_prazo_maximo_avaliacao', 5);
+        set_config('report_unasus_prazo_avaliacao', 1);
+        set_config('report_unasus_tolerancia_potencial_evasao', 1);
+        set_config('report_unasus_passing_grade_percentage', 60);
+
+        // Category and course.
+        $cat = $generator->create_category(['name' => 'Category 1', 'idnumber' => 'CAT1']);
+        $course = $generator->create_course([
+            'fullname' => 'Course1', 'shortname' => 'c1',
+            'category' => $cat->id, 'groupmode' => 1, 'enablecompletion' => 1,
+        ]);
+
+        // Users: 12 students + 3 teachers.
+        for ($i = 1; $i <= 12; $i++) {
+            $generator->create_user([
+                'username'  => "student$i", 'firstname' => 'Student',
+                'lastname'  => "s$i",       'email' => "student$i@example.com",
+            ]);
+        }
+        foreach ([[1, 't1'], [2, 't2'], [3, 't3']] as list($n, $ln)) {
+            $generator->create_user([
+                'username'  => "teacher$n", 'firstname' => 'Teacher',
+                'lastname'  => $ln,         'email' => "teacher$n@example.com",
+            ]);
+        }
+
+        // Cohorts in CAT1.
+        $catctx = context_coursecat::instance($cat->id);
+        $generator->create_cohort(['name' => 'Cohort teacher', 'idnumber' => 'CHt', 'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort student', 'idnumber' => 'CHs', 'contextid' => $catctx->id]);
+
+        // Activities.
+        $assigns = [
+            ['a1', 'Test assignment one',   'Submit something!', 2147483647],
+            ['a2', 'Test assignment two',   'Submit something!', 978307200],
+            ['a3', 'Test assignment three', 'Submit something!', 0],
+            ['a4', 'Test assignment four',  'Submit something!', 946684800],
+            ['a5', 'Test assignment five',  'Submit something!', 946684800],
+            ['a6', 'Test assignment six',   'Submit something!', 946684800],
+        ];
+        foreach ($assigns as list($idn, $name, $intro, $due)) {
+            $generator->create_module('assign',
+                ['course' => $course->id, 'idnumber' => $idn, 'name' => $name, 'intro' => $intro,
+                 'grade' => 100, 'assignsubmission_onlinetext_enabled' => 1],
+                ['completion' => 1, 'completionexpected' => $due]
+            );
+        }
+        $generator->create_module('forum',
+            ['course' => $course->id, 'idnumber' => 'f1', 'name' => 'Test forum one', 'intro' => 'Forum intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 2147483647]
+        );
+        $generator->create_module('forum',
+            ['course' => $course->id, 'idnumber' => 'f2', 'name' => 'Test forum two', 'intro' => 'Forum intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('quiz',
+            ['course' => $course->id, 'idnumber' => 'q1', 'name' => 'Test quiz one', 'intro' => 'Quiz intro', 'grade' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('data',
+            ['course' => $course->id, 'idnumber' => 'd1', 'name' => 'Test database one', 'intro' => 'DB intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('lti',
+            ['course' => $course->id, 'idnumber' => 'l1', 'name' => 'Test lti one', 'intro' => 'LTI intro'],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+
+        // Enrolments — use the data generator (matches `the following "course enrolments" exist` Gherkin step).
+        $coursectx = context_course::instance($course->id);
+        for ($i = 1; $i <= 12; $i++) {
+            $uid = $DB->get_field('user', 'id', ['username' => "student$i"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, 'student');
+        }
+        foreach ([1, 2, 3] as $n) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, 'editingteacher');
+        }
+
+        // Permission overrides.
+        $editingteacher_roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        foreach (['local/relationship:view', 'local/relationship:manage', 'local/relationship:assign', 'moodle/cohort:view'] as $cap) {
+            role_change_permission($editingteacher_roleid, $catctx, $cap, CAP_ALLOW);
+        }
+        role_change_permission($editingteacher_roleid, $coursectx, 'report/unasus:view_tutoria', CAP_ALLOW);
+
+        // Role assigns: teacher1–3 as editingteacher in CAT1.
+        foreach ([1, 2, 3] as $n) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $generator->role_assign($editingteacher_roleid, $uid, $catctx->id);
+        }
+
+        // Cohort membership (reuses existing step logic).
+        foreach (['teacher1', 'teacher2', 'teacher3'] as $u) {
+            $this->i_add_user_to_cohort_members($u, 'teacher');
+        }
+        for ($i = 1; $i <= 12; $i++) {
+            $this->i_add_user_to_cohort_members("student$i", 'student');
+        }
+
+        // Tutoria environment: relationship1 with 3 groups, grupo_tutoria tag, cohorts linked.
+        $this->a_basic_unasus_tutoria_environment_exists();
+
+        // Tutoria memberships.
+        $memberships = [
+            ['teacher1', 'relationship_group1'],
+            ['student1',  'relationship_group1'], ['student2',  'relationship_group1'],
+            ['student3',  'relationship_group1'], ['student4',  'relationship_group1'],
+            ['teacher2', 'relationship_group2'],
+            ['student5',  'relationship_group2'], ['student6',  'relationship_group2'],
+            ['student7',  'relationship_group2'], ['student8',  'relationship_group2'],
+            ['teacher3', 'relationship_group3'],
+            ['student9',  'relationship_group3'], ['student10', 'relationship_group3'],
+            ['student11', 'relationship_group3'], ['student12', 'relationship_group3'],
+        ];
+        foreach ($memberships as list($user, $group)) {
+            $this->create_relationship_members(['user' => $user, 'group' => $group]);
+        }
+
+        // Rebuild course cache so programmatically-created modules appear on the course page.
+        rebuild_course_cache($course->id);
+    }
+
+    /**
+     * KNOWN LIMITATION — DO NOT USE (kept for future investigation).
+     *
+     * This composite fixture produces DB state that LOOKS correct (is_enrolled() and
+     * has_capability() return true in the CLI process), but scenarios using it fail in
+     * the browser: manager1 cannot reach Course1 (page renders without "Course1" text)
+     * and the "Reports" navigation node is absent. Replacing this composite step with the
+     * literal Gherkin Background (the same `the following ... exist` calls inlined into
+     * the .feature) makes the same scenarios pass — confirmed via a one-line discriminator
+     * test that swapped only `I follow "Course1"` for `I am on the unasus course "c1" page`.
+     *
+     * Tried and failed:
+     *   - $generator->enrol_user() vs $enrol_plugin->enrol_user() directly
+     *   - set_config('defaultenrol'/'status', ..., 'enrol_manual') before/after create_course
+     *   - Forcing $DB->set_field('enrol', 'status', ENROL_INSTANCE_ENABLED, ...)
+     *   - accesslib_clear_all_caches(true) at the end
+     *   - rebuild_course_cache()
+     *   - Diagnostic checks for view_all / moodle/site:viewreports — both return TRUE in CLI
+     *
+     * Use the full Gherkin Background in feature files that need the manager role
+     * (see unasus_manager_tutoria.feature and unasus_manager_tcc.feature for examples).
+     *
+     * Sets up the full standard UNA-SUS manager fixture without browser interaction:
+     *   - Users: student1–12, teacher1–3, manager1
+     *   - Category CAT1 → Course1 (c1)
+     *   - Config: prazo_maximo_entrega=10, prazo_maximo_avaliacao=5, prazo_avaliacao=1,
+     *             tolerancia_potencial_evasao=1 (no grade_aggregateonlygraded / passing_grade)
+     *   - Cohorts CHt/CHs in CAT1
+     *   - Activities: assign a1 ("Manager assignment") + LTI ltcc1 configured as TCC
+     *   - TCC webservice mock: definition with 1 chapter, all 12 students with 2 chapters done
+     *   - Enrolments: students as 'student', teachers as 'editingteacher', manager1 as 'manager'
+     *   - Permission overrides: relationship + cohort for editingteacher,
+     *                           view_tutoria + view_orientacao for editingteacher,
+     *                           view_all for manager in c1
+     *   - Role assigns: teacher1–3 as editingteacher in CAT1
+     *   - Cohort membership and tutoria environment (with grupo_orientacao tag)
+     *   - Tutoria memberships: 3 groups
+     *
+     * @Given /^a standard report_unasus manager fixture exists$/
+     */
+    public function a_standard_report_unasus_manager_fixture_exists() {
+        global $DB, $CFG;
+
+        $generator = testing_util::get_data_generator();
+
+        // Config values.
+        set_config('enablecompletion', 1);
+        set_config('local_tutores_student_roles', 'student');
+        set_config('local_tutores_tutor_roles', 'editingteacher');
+        set_config('local_tutores_orientador_roles', 'editingteacher');
+        set_config('report_unasus_prazo_maximo_entrega', 10);
+        set_config('report_unasus_prazo_maximo_avaliacao', 5);
+        set_config('report_unasus_prazo_avaliacao', 1);
+        set_config('report_unasus_tolerancia_potencial_evasao', 1);
+
+        // Category and course.
+        $cat = $generator->create_category(['name' => 'Category 1', 'idnumber' => 'CAT1']);
+        $course = $generator->create_course([
+            'fullname' => 'Course1', 'shortname' => 'c1',
+            'category' => $cat->id, 'groupmode' => 1, 'enablecompletion' => 1,
+        ]);
+
+        // Users: 12 students + 3 teachers + manager1.
+        for ($i = 1; $i <= 12; $i++) {
+            $generator->create_user([
+                'username'  => "student$i", 'firstname' => 'Student',
+                'lastname'  => "s$i",       'email' => "student$i@example.com",
+            ]);
+        }
+        foreach ([[1, 't1'], [2, 't2'], [3, 't3']] as list($n, $ln)) {
+            $generator->create_user([
+                'username'  => "teacher$n", 'firstname' => 'Teacher',
+                'lastname'  => $ln,         'email' => "teacher$n@example.com",
+            ]);
+        }
+        $generator->create_user([
+            'username' => 'manager1', 'firstname' => 'Manager',
+            'lastname' => 'm1',       'email' => 'manager1@example.com',
+        ]);
+
+        // Cohorts in CAT1.
+        $catctx = context_coursecat::instance($cat->id);
+        $generator->create_cohort(['name' => 'Cohort teacher', 'idnumber' => 'CHt', 'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort student', 'idnumber' => 'CHs', 'contextid' => $catctx->id]);
+
+        // Activities: 1 assign + 1 LTI configured as TCC.
+        $generator->create_module('assign',
+            ['course' => $course->id, 'idnumber' => 'a1', 'name' => 'Manager assignment',
+             'intro' => 'Submit now', 'grade' => 100, 'assignsubmission_onlinetext_enabled' => 1],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('lti',
+            ['course' => $course->id, 'idnumber' => 'ltcc1', 'name' => 'TCC Eixo 1', 'intro' => 'TCC intro'],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $this->lti_configured_as_tcc('ltcc1', '1');
+
+        // TCC webservice mock: definition with 1 chapter.
+        // TableNode constructor only accepts a string in this version of behat/gherkin;
+        // build rows via addRow() instead.
+        $defTable = new TableNode();
+        $defTable->addRow(['id', 'title', 'position']);
+        $defTable->addRow(['1',  'Capítulo 1', '1']);
+        $this->tcc_webservice_returns_definition($defTable);
+
+        // TCC webservice mock: all 12 students with chapters 0 and 1 done.
+        $studentTable = new TableNode();
+        $studentTable->addRow(['username', 'chapter_position', 'state', 'state_date']);
+        for ($i = 1; $i <= 12; $i++) {
+            $studentTable->addRow(["student$i", '0', 'done', '2024-01-01']);
+            $studentTable->addRow(["student$i", '1', 'done', '2024-01-02']);
+        }
+        $this->tcc_webservice_returns_student_data($studentTable);
+
+        // Enrolments — use the data generator (matches `the following "course enrolments" exist` Gherkin step).
+        $coursectx = context_course::instance($course->id);
+        for ($i = 1; $i <= 12; $i++) {
+            $uid = $DB->get_field('user', 'id', ['username' => "student$i"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, 'student');
+        }
+        foreach ([1, 2, 3] as $n) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, 'editingteacher');
+        }
+        $manager1id = $DB->get_field('user', 'id', ['username' => 'manager1'], MUST_EXIST);
+        $generator->enrol_user($manager1id, $course->id, 'manager');
+
+        // Permission overrides.
+        $editingteacher_roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        $manager_roleid        = $DB->get_field('role', 'id', ['shortname' => 'manager'],        MUST_EXIST);
+        foreach (['local/relationship:view', 'local/relationship:manage', 'local/relationship:assign', 'moodle/cohort:view'] as $cap) {
+            role_change_permission($editingteacher_roleid, $catctx, $cap, CAP_ALLOW);
+        }
+        role_change_permission($editingteacher_roleid, $coursectx, 'report/unasus:view_tutoria',    CAP_ALLOW);
+        role_change_permission($editingteacher_roleid, $coursectx, 'report/unasus:view_orientacao', CAP_ALLOW);
+        role_change_permission($manager_roleid,        $coursectx, 'report/unasus:view_all',        CAP_ALLOW);
+
+        // Role assigns: teacher1–3 as editingteacher in CAT1.
+        foreach ([1, 2, 3] as $n) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $generator->role_assign($editingteacher_roleid, $uid, $catctx->id);
+        }
+
+        // Cohort membership.
+        foreach (['teacher1', 'teacher2', 'teacher3'] as $u) {
+            $this->i_add_user_to_cohort_members($u, 'teacher');
+        }
+        for ($i = 1; $i <= 12; $i++) {
+            $this->i_add_user_to_cohort_members("student$i", 'student');
+        }
+
+        // Tutoria environment + grupo_orientacao tag.
+        $this->a_basic_unasus_tutoria_environment_exists();
+        $this->instance_the_tag_at_relationship('grupo_orientacao', 'relationship1');
+
+        // Tutoria memberships.
+        $memberships = [
+            ['teacher1', 'relationship_group1'],
+            ['student1',  'relationship_group1'], ['student2',  'relationship_group1'],
+            ['student3',  'relationship_group1'], ['student4',  'relationship_group1'],
+            ['teacher2', 'relationship_group2'],
+            ['student5',  'relationship_group2'], ['student6',  'relationship_group2'],
+            ['student7',  'relationship_group2'], ['student8',  'relationship_group2'],
+            ['teacher3', 'relationship_group3'],
+            ['student9',  'relationship_group3'], ['student10', 'relationship_group3'],
+            ['student11', 'relationship_group3'], ['student12', 'relationship_group3'],
+        ];
+        foreach ($memberships as list($user, $group)) {
+            $this->create_relationship_members(['user' => $user, 'group' => $group]);
+        }
+
+        // Rebuild course cache so programmatically-created modules appear on the course page.
+        rebuild_course_cache($course->id);
+    }
+
+    /**
+     * Navigates directly to a course page by shortname, bypassing dashboard navigation.
+     * Use this in Background steps instead of "I follow CourseName" when the course
+     * may not appear on the post-login dashboard due to enrol instance cache issues.
+     *
+     * @Given /^I am on the unasus course "(?P<shortname>[^"]*)" page$/
+     */
+    public function i_am_on_the_unasus_course_page($shortname) {
+        global $DB;
+        $courseid = $DB->get_field('course', 'id', ['shortname' => $shortname], MUST_EXIST);
+        $this->getSession()->visit($this->locate_path('/course/view.php?id=' . $courseid));
+    }
+
+    /**
+     * Navigates directly to a module activity page by course module idnumber.
+     * Replaces "I follow ActivityName" when activities are created programmatically
+     * and may not appear as links on the course page due to modinfo cache issues.
+     *
+     * @Given /^I am on the activity page for "(?P<idnumber>[^"]*)"$/
+     */
+    public function i_am_on_the_activity_page_for($idnumber) {
+        global $DB;
+        $cm = $DB->get_record_sql(
+            "SELECT cm.id, m.name AS modname FROM {course_modules} cm JOIN {modules} m ON m.id = cm.module WHERE cm.idnumber = :idn",
+            ['idn' => $idnumber], MUST_EXIST
+        );
+        $this->getSession()->visit($this->locate_path('/mod/' . $cm->modname . '/view.php?id=' . $cm->id));
     }
 
     /**
