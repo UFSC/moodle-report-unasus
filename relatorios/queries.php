@@ -59,12 +59,8 @@ function query_alunos_relationship($cohort_estudantes) {
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-      LEFT JOIN {user_info_data} uid
-             ON (u1.id = uid.userid AND uid.fieldid=(
-                    SELECT id
-                    FROM {user_info_field}
-                    WHERE shortname = 'polo')
-                )
+ LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
+      LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
                 {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
@@ -138,12 +134,8 @@ function query_alunos_relationship_student($cohort_estudantes) {
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-      LEFT JOIN {user_info_data} uid
-             ON (u1.id = uid.userid AND uid.fieldid=(
-                    SELECT id
-                    FROM {user_info_field}
-                    WHERE shortname = 'polo')
-                )
+ LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
+      LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
                 {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";

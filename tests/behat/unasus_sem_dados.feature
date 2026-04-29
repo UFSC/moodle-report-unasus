@@ -230,3 +230,20 @@ Scenario: sem_dados - modulos_concluidos sem nenhuma conclusao
     Then I should see "Test assignment one"
     # Todos os estudantes aparecem sem marca de conclusao
     And I should see "Student"
+
+  @javascript @atividades_concluidas_agrupadas
+Scenario: sem_dados - atividades_concluidas_agrupadas mostra zero conclusoes por grupo
+    And I log in as "admin"
+    And I follow "Courses"
+    And I follow "Category 1"
+    And I follow "Course1"
+    And I navigate to "Sintese: atividades concluidas agrupadas" node in "Reports > UNA-SUS"
+    And I press "Gerar relatório"
+    # Tutores aparecem mesmo sem nenhuma conclusao registrada
+    Then I should see "Teacher"
+    # Cada grupo deve exibir 0/4 0.0% (4 estudantes, nenhuma conclusao)
+    And the unasus report table should have "0/4 0.0%" at row "relationship_group1 - Teacher t1" and column "N° Alunos com atividades concluídas"
+    And the unasus report table should have "0/4 0.0%" at row "relationship_group2 - Teacher t2" and column "N° Alunos com atividades concluídas"
+    And the unasus report table should have "0/4 0.0%" at row "relationship_group3 - Teacher t3" and column "N° Alunos com atividades concluídas"
+    # Total geral: 0 de 12 estudantes
+    And the unasus report table should have "0/12 0.0%" at row "Total alunos com atividade concluida / Total alunos" and column "N° Alunos com atividades concluídas"

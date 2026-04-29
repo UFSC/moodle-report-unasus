@@ -9,7 +9,7 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 **Arquivo:** `tests/unasus_datastructures_test.php`
 **Classe:** `unasus_datastructures_testcase` (extends `advanced_testcase`)
 **Grupo:** `@group report_unasus`
-**Total:** 16 testes, 73 asserções
+**Total:** 22 testes, 79 asserções
 
 ### Como executar
 
@@ -44,6 +44,12 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 | `test_report_unasus_data_forum` | Classe `report_unasus_data_forum` |
 | `test_report_unasus_data_quiz` | Classe `report_unasus_data_quiz` |
 | `test_report_unasus_data_is_member_of` | `is_member_of()` para pertencimento a grouping |
+| `test_is_submission_due_exactly_at_deadline` | **Borda:** entregue exatamente no prazo → NOT due (`<`, não `<=`) |
+| `test_is_submission_due_one_second_after_deadline` | **Borda:** 1 segundo após o prazo → IS due |
+| `test_grade_zero_with_grade_date_is_valid_grade` | **Borda:** nota=0 com data de avaliação → `has_grade()=true` (0 ≠ null ≠ -1) |
+| `test_grade_zero_without_grade_date_is_not_valid_grade` | **Borda:** nota=0 sem data de avaliação → `has_grade()=false` |
+| `test_is_grade_needed_offline_activity_at_deadline_boundary` | **Borda:** atividade offline, deadline==now → nota IS necessária (usa `>`, não `>=`) |
+| `test_is_activity_pending_offline_at_deadline_boundary` | **Borda:** atividade offline, deadline==now → IS pendente (usa `>`, não `>=`) |
 
 ---
 
@@ -280,6 +286,7 @@ Mesmos 15 usuários (`student1–12`, `teacher1–3`), mesmo curso `Course1`, me
 | `sem_dados - atividades_vs_notas mostra estados sem entrega` | atividades_vs_notas | Vê "não entregue", "sem prazo", "no prazo" |
 | `sem_dados - boletim exibe atividades sem notas` | boletim | Vê "Test assignment one" e "Test assignment two" |
 | `sem_dados - modulos_concluidos sem nenhuma conclusao` | modulos_concluidos | Vê "Test assignment one" e "Student" |
+| `sem_dados - atividades_concluidas_agrupadas mostra zero conclusoes por grupo` | atividades_concluidas_agrupadas | **Borda:** 0/4 0.0% por grupo, 0/12 total — relatório funciona sem dados |
 
 ---
 

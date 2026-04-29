@@ -198,16 +198,38 @@ Check `lib.php` functions like `report_unasus_relatorios_validos_tutoria_list()`
 - Respects user permissions and course context
 - Data aggregation in loops in `relatorios/loops.php`
 
+### Known Performance Bottlenecks
+
+Identified during analysis (April 2026). Items marked ✅ have been fixed; remaining items are documented so they are not re-discovered.
+
+| Location | Pattern | Severity | Status |
+|----------|---------|----------|--------|
+| `queries.php:63-67` | Correlated subquery inside JOIN for `user_info_field`/`user_info_data` | HIGH | ✅ Fixed — replaced with explicit `LEFT JOIN {user_info_field} uif` + `LEFT JOIN {user_info_data} uid` in both `query_alunos_relationship()` and `query_alunos_relationship_student()` |
+| `queries.php:72-85` | Redundant `SELECT DISTINCT` outer wrapper; can use inner `GROUP BY` | MEDIUM | Pending |
+| `queries.php:720-810` | Five near-identical query functions duplicated per activity type | MEDIUM | Pending |
+| `loops.php:32-289` | O(n³) nested loops (groups × courses × activities × students) with object construction at innermost level | CRITICAL | Pending |
+| `loops.php:332-337` | Recursive double-pass over full dataset to build `atividades_alunos_grupos` | HIGH | Pending |
+| `locallib.php:316` | One WebService call per LTI activity — no batching | HIGH | ✅ Fixed — `SistemaTccClient::get_tcc_definition()` now memoizes by `url|consumer_key|tcc_definition_id` |
+| `locallib.php:779-809` | N+1 pattern: separate config query per LTI | HIGH | ✅ Fixed — new `report_unasus_get_lti_type_config($typeid)` with `static $cache` eliminates duplicate queries per `typeid` |
+| `locallib.php:895-906` | `report_unasus_get_tcc_definition()` parses string on every call; no memoization | LOW | ✅ Fixed — added `static $cache` keyed by input string |
+| `queries.php:1023` (LtiPortfolioQuery) | Instance recreated per loop iteration in `loops.php:23`; cache is lost each time | MEDIUM | N/A — `new LtiPortfolioQuery()` is already outside the loop; no change needed |
+
+**Existing caches:** Factory singleton (`factory.php`), LtiPortfolioQuery instance-level cache by `grupo_tutoria`, `sistematcc.php` static variable for mock detection, `report_unasus_get_lti_type_config()` static cache by `typeid`, `report_unasus_get_tcc_definition()` static cache by input, `SistemaTccClient::get_tcc_definition()` static cache by `url|key|id`. All are single-request scope only.
+
 ### Recent Changes Context
 
-Recent commits focus on report ordering, activity presentation, and test coverage:
+Recent commits focus on report ordering, activity presentation, test coverage, and documentation:
 - Activity reordering for synthetic reports
 - Support for hidden Moodle courses in reports
 - Fine-tuning report presentation order
-- Expanded unit test suite from 5 to 16 tests (39 → 73 assertions), covering `is_activity_pending`, `is_a_future_due`, `is_member_of`, forum/quiz data classes, grade -1 handling, and invalid constructor detection
+- Expanded unit test suite from 5 to 22 tests (39 → 79 assertions), covering `is_activity_pending`, `is_a_future_due`, `is_member_of`, forum/quiz data classes, grade -1 handling, invalid constructor detection, and 6 boundary/edge-case tests
 - Fixed `run_tests.sh` to discover `*_test.php` files explicitly (avoids PHPUnit 4.8 discovery bug)
 - Suppressed Composer 1 deprecation noise in init output
 - Fixed `phpunit/dbUnit` → `phpunit/dbunit` (lowercase) in root `composer.json`
+- Consolidated Behat scenarios into 17 feature files (61 scenarios) with reusable steps
+- Completed README.md: fixed incomplete sentence, added file structure, troubleshooting, and changelog sections
+- Documented performance bottlenecks in CLAUDE.md (see "Known Performance Bottlenecks" above)
+- Performance optimizations (Etapa 1): correlated subquery → explicit LEFT JOINs in `queries.php`; memoized `report_unasus_get_tcc_definition()` and new `report_unasus_get_lti_type_config()` in `locallib.php`; memoized `SistemaTccClient::get_tcc_definition()` in `sistematcc.php`
 
 ### Docker Environment
 

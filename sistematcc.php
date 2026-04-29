@@ -86,6 +86,12 @@ class report_unasus_SistemaTccClient {
      * @return mixed
      */
     public function get_tcc_definition($tcc_definition_id) {
+        // per-request cache keyed by url+consumer_key+id to avoid duplicate WS calls
+        static $cache = array();
+        $cache_key = $this->url . '|' . $this->consumer_key . '|' . $tcc_definition_id;
+        if (isset($cache[$cache_key])) {
+            return $cache[$cache_key];
+        }
 
         $params = array(
             'consumer_key' => $this->consumer_key,
@@ -95,6 +101,7 @@ class report_unasus_SistemaTccClient {
         $json = $this->post('/tcc_definition_service', $params);
         $object = json_decode($json);
 
+        $cache[$cache_key] = $object;
         return $object;
     }
 
