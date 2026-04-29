@@ -327,6 +327,17 @@ Mesmos 15 usuários (`student1–12`, `teacher1–3`), mesmo curso `Course1`, me
 
 ---
 
+### Feature: `tests/behat/unasus_permissions_scope.feature`
+
+**Descrição:** Cenários de borda sobre escopo de visualização do tutor — isolamento por grupo de tutoria e comportamento com grupo sem estudantes.
+
+| Cenário | O que verifica |
+|---------|----------------|
+| `tutor_scope - tutor ve apenas estudantes do seu grupo` | **Borda:** teacher1 (group1) vê "Student s1", não vê "Student s5" (group2) |
+| `tutor_scope - tutor com grupo sem estudantes nao causa erro` | **Borda:** teacher3 com group3 vazio — relatório carrega sem erro, sem "Student" |
+
+---
+
 ## Steps Behat Customizados
 
 Definidos em `tests/behat/behat_unasus.php`:
