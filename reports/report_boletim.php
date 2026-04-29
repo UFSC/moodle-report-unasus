@@ -28,10 +28,8 @@ class report_boletim extends report_unasus_factory {
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
@@ -40,7 +38,6 @@ class report_boletim extends report_unasus_factory {
 
         $data_header = array('Estudante');
         $first_line = array('');
-        $tutor_name = array();
 
         foreach ($header as $h) {
             if (isset($h[0]->course_name)) {
@@ -50,8 +47,10 @@ class report_boletim extends report_unasus_factory {
             $n = count($h);
             for ($i = 0; $i < $n; $i++) {
                 if (isset($h[$i]->name)) {
-                    $element = $h[$i]->name;
-                    $data_header[] = $element;
+                    $element = trim((string)$h[$i]->name);
+                    if ($element !== '') {
+                        $data_header[] = $element;
+                    }
                 }
                 //Insere o nome do módulo na célula acima da primeira atividade daquele módulo
                 if ($i < $n - 1) {
@@ -60,27 +59,30 @@ class report_boletim extends report_unasus_factory {
                     continue;
             }
         }
-        $data_header[] = 'Média Final';
+        if (!in_array('Média Final', $data_header, true)) {
+            $data_header[] = 'Média Final';
+        }
+
+        // Garante que a primeira linha (nome do curso) tenha o mesmo número de colunas do cabeçalho.
+        $headercount = count($data_header);
+        $firstlinecount = count($first_line);
+        if ($firstlinecount < $headercount) {
+            while (count($first_line) < $headercount) {
+                $first_line[] = '';
+            }
+        } else if ($firstlinecount > $headercount) {
+            $first_line = array_slice($first_line, 0, $headercount);
+        }
 
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
-        $name = array_map("Factory::eliminate_html", array_keys($dados));
-        $count = 0;
-        $n = count($name);
-
-        foreach ($dados as $dat) {
-            if ($count < $n) {
-                file_put_contents('php://output', $name[$count]);
-                fputcsv($fp, $tutor_name);
-            }
-
+        foreach ($dados as $groupname => $dat) {
+            fputcsv($fp, array(report_unasus_factory::eliminate_html($groupname)));
             foreach ($dat as $d) {
-                $output = array_map("Factory::eliminate_html", $d);
+                $output = array_map("report_unasus_factory::eliminate_html", $d);
                 fputcsv($fp, $output);
             }
-
-            $count++;
         }
         fclose($fp);
     }
@@ -147,6 +149,10 @@ class report_boletim extends report_unasus_factory {
 
                         // se for atividade de nota final
                         if ($r->name_activity == 'nota_final_activity') {
+                            // grade_grades.finalgrade está na escala configurada em grade_items.grademax
+                            // do course item (definida pelo administrador no livro de notas).
+                            // Exibe o valor bruto para respeitar a base configurada (ex: 0-10 ou 0-100).
+                            // get_css_class() normaliza internamente para percentual na comparação de corte.
                             $lista_atividades[$r->userid][] = new report_unasus_dado_nota_final_render($tipo, $nota, $grademax);
                         // senão, se for atividade normal
                         } else if (isset($atividade->course_id)) {

@@ -11,7 +11,7 @@ require_once($CFG->dirroot . '/report/unasus/relatorios/loops.php');
 //require_once($CFG->dirroot . '/report/unasus/sistematcc.php');
 
 function report_unasus_get_datetime_from_unixtime($unixtime) {
-    return date_create(date("Y-m-d H:m:s", $unixtime));
+    return date_create(date("Y-m-d H:i:s", $unixtime));
 }
 
 function report_unasus_get_count_estudantes($categoria_turma) {
@@ -539,16 +539,16 @@ SELECT
     cs.name AS section_name,
     cs.sequence,
     FIND_IN_SET(cm.id, cs.sequence) AS module_order
-FROM course_sections cs
-JOIN course c ON cs.course = c.id
-JOIN course_modules cm ON FIND_IN_SET(cm.id, cs.sequence) > 0
-JOIN modules m ON cm.module = m.id
-LEFT JOIN assign a ON cm.instance = a.id AND m.name = 'assign'
-LEFT JOIN forum f ON cm.instance = f.id AND m.name = 'forum'
-LEFT JOIN quiz q ON cm.instance = q.id AND m.name = 'quiz'
-LEFT JOIN data dt ON cm.instance = dt.id AND m.name = 'data'
-LEFT JOIN scorm s ON cm.instance = s.id AND m.name = 'scorm'
-LEFT JOIN lti l ON cm.instance = l.id AND m.name = 'lti'
+FROM {course_sections} cs
+JOIN {course} c ON cs.course = c.id
+JOIN {course_modules} cm ON FIND_IN_SET(cm.id, cs.sequence) > 0
+JOIN {modules} m ON cm.module = m.id
+LEFT JOIN {assign} a ON cm.instance = a.id AND m.name = 'assign'
+LEFT JOIN {forum} f ON cm.instance = f.id AND m.name = 'forum'
+LEFT JOIN {quiz} q ON cm.instance = q.id AND m.name = 'quiz'
+LEFT JOIN {data} dt ON cm.instance = dt.id AND m.name = 'data'
+LEFT JOIN {scorm} s ON cm.instance = s.id AND m.name = 'scorm'
+LEFT JOIN {lti} l ON cm.instance = l.id AND m.name = 'lti'
 WHERE
     c.id IN ({$string_courses})
     AND (cm.completion != 0)
@@ -724,13 +724,23 @@ function report_unasus_query_scorm_courses($courses) {
  * @throws dml_missing_record_exception
  * @throws dml_multiple_records_exception
  */
+function report_unasus_get_lti_type_config($typeid) {
+    global $DB;
+    // per-request cache: static persists across calls within the same PHP process
+    static $cache = array();
+    if (!isset($cache[$typeid])) {
+        $cache[$typeid] = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $typeid));
+    }
+    return $cache[$typeid];
+}
+
 function report_unasus_lti_tcc_definition($lti_id, $course_id) {
     global $DB;
 
     // pega os dados da atividade LIT do TCC
     $lti = $DB->get_record_sql(query_lti_activity(), array('course' => $course_id, 'lti_id' => $lti_id));
     if ($lti) {
-        $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
+        $config = report_unasus_get_lti_type_config($lti->typeid);
         $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
         $consumer_key = empty($config['resourcekey']) ? "" : $config['resourcekey'];
         $base_url = empty($lti->baseurl) ? "" : $lti->baseurl;
@@ -777,7 +787,7 @@ function report_unasus_query_lti_courses($courses) {
                     $course_name = $DB->get_field('course', 'fullname', array('id' => $id_course));
 
                     foreach ($ltis as $lti) {
-                        $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
+                        $config = report_unasus_get_lti_type_config($lti->typeid);
                         $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
                         $consumer_key = empty($config['resourcekey']) ? "" : $config['resourcekey'];
                         $base_url = empty($lti->baseurl) ? "" : $lti->baseurl;
@@ -814,7 +824,7 @@ function report_unasus_query_lti_courses($courses) {
 
             $course_name = $DB->get_field('course', 'fullname', array('id' => $course));
             foreach ($ltis as $lti) {
-                $config = $DB->get_records_sql_menu(query_lti_activities_config(), array('typeid' => $lti->typeid));
+                $config = report_unasus_get_lti_type_config($lti->typeid);
                 $customparameters = report_unasus_get_tcc_definition($config['customparameters']);
                 $consumer_key = empty($config['resourcekey']) ? "" : $config['resourcekey'];
                 $base_url = empty($lti->baseurl) ? "" : $lti->baseurl;
@@ -893,15 +903,22 @@ function report_unasus_query_lti_courses_moodle($courses) {
  * @return array
  */
 function report_unasus_get_tcc_definition($tcc_definition) {
-    $tcc_definition = explode(';', $tcc_definition);
+    static $cache = array();
+    if (isset($cache[$tcc_definition])) {
+        return $cache[$tcc_definition];
+    }
+
+    $parts = explode(';', $tcc_definition);
     $arr = array();
 
-    foreach ($tcc_definition as $value) {
+    foreach ($parts as $value) {
         $config = explode('=', $value);
         if (isset($config[0]) && isset($config[1])) {
             $arr[$config[0]] = $config[1];
         }
     }
+
+    $cache[$tcc_definition] = $arr;
     return $arr;
 }
 

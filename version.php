@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version = 2026041701; // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version = 2026042901; // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires = 2014111006; // Requires this Moodle version (2.8.6)
 $plugin->component = 'report_unasus'; // Full name of the plugin (used for diagnostics)
 $plugin->dependencies = array(

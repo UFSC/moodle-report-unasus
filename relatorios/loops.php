@@ -251,9 +251,11 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                         $result = $lti_query_object->get_report_data($atividade, $grupo->id, $is_orientacao);
 
                         foreach ($result as $l) {
-                            $data = new report_unasus_data_lti_tcc($atividade, $l);
-                            // $group_array_do_grupo->add_exclusive($l->userid, $data);
-                            $group_array_do_grupo->add($l->userid, $data);
+                            if (!isset($l->not_found)) {
+                                $data = new report_unasus_data_lti_tcc($atividade, $l);
+                                // $group_array_do_grupo->add_exclusive($l->userid, $data);
+                                $group_array_do_grupo->add($l->userid, $data);
+                            }
                         }
                         break;
                 }
@@ -525,6 +527,31 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                 // Só consulta o webservice de TCC quando o LTI for de TCC (baseurl preenchido).
                                 if (empty($atividade->baseurl)) {
                                     $array_das_atividades['lti_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos_temp);
+
+                                    if (!empty($query_lti) && is_a($report, 'report_atividades_nota_atribuida')) {
+                                        $params = array(
+                                            'id_activity' => $atividade->id,
+                                            'courseid' => $modulo,
+                                            'courseid2' => $modulo,
+                                            'relationship_id' => $relationship->id,
+                                            'cohort_relationship_id' => $cohort_estudantes->id,
+                                            'grupo' => $grupo->id,
+                                        );
+
+                                        $result = $DB->get_records_sql($query_lti, $params);
+
+                                        foreach ($result as $l) {
+                                            if (!empty($atividade->grouping) &&
+                                                !$report->is_member_of($atividade->grouping, $atividade->course_id, $l->userid)
+                                            ) {
+                                                $data = new report_unasus_data_empty($atividade, $l);
+                                            } else {
+                                                $data = new report_unasus_data_lti($atividade, $l);
+                                            }
+
+                                            $group_array_do_grupo->add($data->userid, $data);
+                                        }
+                                    }
                                     break;
                                 }
 

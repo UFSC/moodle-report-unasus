@@ -45,7 +45,7 @@ O coordenador terá acesso a todos os tutores, orientadores e seus estudantes.
 Tipos de Relatórios
 -------------------
 
-Os seguintes tipos de relatórios foram 
+Os seguintes tipos de relatórios foram desenvolvidos:
 
 * **Listas**: Apresentando lista de atividades por tutor, sendo que a lista varia 
 conforme o relatório.
@@ -100,3 +100,58 @@ realizadas nos cursos e atividades onde serão instalados os relatórios gerenci
 que possam ser apresentados corretamente.
 
 A [Configuração do curso e atividades](https://github.com/UFSC/moodle-report-unasus/wiki/Course-setup) podem ser acessadas neste link.
+
+## Estrutura de Arquivos
+
+| Arquivo / Diretório | Responsabilidade |
+|---------------------|-----------------|
+| `index.php` | Ponto de entrada, verificação de permissões, roteamento |
+| `factory.php` | Singleton que gerencia parâmetros, filtros e estado do relatório |
+| `renderer.php` | Geração de HTML para tabelas, gráficos e filtros |
+| `locallib.php` | Funções principais de consulta ao banco de dados |
+| `datastructures.php` | Modelos de dados: pessoas, estudantes, atividades |
+| `activities_datastructures.php` | Modelos específicos de cada tipo de atividade |
+| `lib.php` | Lista de relatórios válidos e integração com navegação Moodle |
+| `relatorios/queries.php` | Consultas SQL do plugin |
+| `relatorios/loops.php` | Agregação e iteração sobre os dados consultados |
+| `relatorios/relatorios.php` | Geração de tabelas e gráficos por relatório |
+| `sistematcc.php` | Cliente do webservice externo de TCC |
+| `lang/en/report_unasus.php` | Strings de interface (usadas como fallback; strings em português) |
+| `tests/` | Testes PHPUnit e Behat (ver TESTS.md) |
+
+## Solução de Problemas
+
+**Relatório exibe "Sem dados" mesmo com atividades configuradas**
+: Verifique se o "Completion Tracking" está habilitado no curso e se as atividades têm datas de conclusão definidas. Sem `completionexpected`, o plugin não consegue calcular prazos.
+
+**Tutor não visualiza seus estudantes**
+: Confirme que o grupo de tutoria foi criado via `local/relationship` e que o tutor está vinculado como membro do papel correto no grupo. Grupos criados diretamente no Moodle (sem o plugin `local/tutores`) não são reconhecidos.
+
+**Erro ao gerar relatório TCC**
+: O relatório TCC depende de webservice externo. Verifique a configuração de `sistematcc.php` e se o serviço está acessível pela rede do servidor Moodle.
+
+**Relatório de boletim mostra nota diferente do gradebook**
+: O plugin usa a API de notas do Moodle. Certifique-se de que o método de agregação e os pesos estão configurados corretamente no gradebook do curso e que as notas foram recalculadas (`Grades → Regrade`).
+
+**Permissão negada ao acessar relatório**
+: Verifique a atribuição das capabilities na tabela de permissões acima. O papel do usuário no curso deve ter a capability correspondente (`view_all`, `view_tutoria` ou `view_orientacao`).
+
+## Changelog
+
+### 2026-04-29
+- Documentação: README.md completo com estrutura de arquivos, solução de problemas e changelog
+- Testes: Expandidos de 5 para 22 testes PHPUnit (39 → 79 asserções), incluindo 6 testes de borda (limites de deadline, grade=0, is_grade_needed no limite)
+- Testes: 17 feature files Behat cobrindo todos os relatórios (61 cenários)
+- Behat: Cenário de borda para atividades_concluidas_agrupadas com zero conclusões
+- Performance: correlated subquery substituída por LEFT JOIN explícito em `query_alunos_relationship()` e `query_alunos_relationship_student()`
+- Performance: memoização de `report_unasus_get_tcc_definition()` com cache estático
+- Performance: nova função `report_unasus_get_lti_type_config()` elimina N+1 queries de configuração LTI por `typeid`
+- Performance: memoização de `SistemaTccClient::get_tcc_definition()` elimina chamadas WebService duplicadas
+
+### 2026-04-17 (v2026041701)
+- Estabilização dos intervalos de datas do relatório de acesso do tutor
+- Normalização dos limites de dia de uso do tutor
+- Expansão da cobertura Behat com passos reutilizáveis
+
+### Versões anteriores
+Consulte o histórico de commits (`git log --oneline`) para mudanças anteriores.
