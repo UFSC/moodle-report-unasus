@@ -16,12 +16,33 @@
 set -e
 
 # ---------------------------------------------------------------------------
+# Funções auxiliares
+# ---------------------------------------------------------------------------
+log()  { echo -e "\033[0;32m[INFO]\033[0m  $*"; }
+warn() { echo -e "\033[0;33m[WARN]\033[0m  $*"; }
+err()  { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Leitura do arquivo .env para memória
+# ---------------------------------------------------------------------------
+if [ -f ".env" ]; then
+  while read -r line || [[ -n "$line" ]]; do
+    # Ignora comentários e linhas vazias
+    if [[ ! "$line" =~ ^# && -n "$line" ]]; then
+      export "$line"
+    fi
+  done < .env
+else
+  err "Arquivo .env não encontrado."
+  exit 1;
+fi
+
+# ---------------------------------------------------------------------------
 # Configurações
 # ---------------------------------------------------------------------------
-SISTEM_NAME="local-unasuscp"
-DOCKER_VERSION="php56-nginx"
+SISTEM_NAME="local-$CORE_NAME"
 CONTAINER_NAME="moodle-$SISTEM_NAME"
-DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/$DOCKER_VERSION"
+DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/$DOCKER_VERSION"
 MOODLE_LOCAL_SITE="www/$SISTEM_NAME"
 MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
 PHPUNIT_PREFIX="phpu_"
@@ -37,13 +58,6 @@ for arg in "$@"; do
         *)       TEST_FILE="$arg" ;;
     esac
 done
-
-# ---------------------------------------------------------------------------
-# Funções auxiliares
-# ---------------------------------------------------------------------------
-log()  { echo -e "\033[0;32m[INFO]\033[0m  $*"; }
-warn() { echo -e "\033[0;33m[WARN]\033[0m  $*"; }
-err()  { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; exit 1; }
 
 container_is_running() {
     sudo docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null | grep -q "true"

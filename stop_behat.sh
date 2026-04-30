@@ -9,11 +9,29 @@
 
 set -e
 
-DOCKER_VERSION="php56-nginx"
-SISTEM_NAME="local-unasuscp"
+# ---------------------------------------------------------------------------
+# Funções auxiliares
+# ---------------------------------------------------------------------------
+log()  { echo -e "\033[0;32m[INFO]\033[0m  $*"; }
+warn() { echo -e "\033[0;33m[WARN]\033[0m  $*"; }
+err()  { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Leitura do arquivo .env para memória
+# ---------------------------------------------------------------------------
+if [ -f ".env" ]; then
+  set -a
+  source .env
+  set +a
+else
+  err "Arquivo .env não encontrado."
+  exit 1;
+fi
+
+SISTEM_NAME="local-$CORE_NAME"
 CONTAINER_NAME="moodle-$SISTEM_NAME"
-SELENIUM_CONTAINER="selenium-chrome-unasuscp"
-DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/$DOCKER_VERSION"
+SELENIUM_CONTAINER="selenium-chrome-$CORE_NAME"
+DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/$DOCKER_VERSION"
 
 DOWN_FLAG=""
 for arg in "$@"; do
@@ -60,4 +78,3 @@ if [ -n "$DOWN_FLAG" ]; then
 fi
 
 log "Finalizado."
-

@@ -17,22 +17,48 @@
 set -e
 
 # ---------------------------------------------------------------------------
+# Funções auxiliares
+# ---------------------------------------------------------------------------
+log()  { echo -e "\033[0;32m[INFO]\033[0m  $*"; }
+warn() { echo -e "\033[0;33m[WARN]\033[0m  $*"; }
+err()  { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Leitura do arquivo .env para memória
+# ---------------------------------------------------------------------------
+if [ -f "../../../../.env" ]; then
+  set -a
+  source ../../../../.env
+  set +a
+else
+  err "Arquivo ../../../../.env não encontrado."
+  exit 1;
+fi
+
+if [ -f ".env" ]; then
+  set -a
+  source .env
+  set +a
+else
+  err "Arquivo .env não encontrado."
+  exit 1;
+fi
+
+# ---------------------------------------------------------------------------
 # Configurações
 # ---------------------------------------------------------------------------
-URL_NAME="local-unasus-cp.moodle.ufsc.br"
-SISTEM_NAME="local-unasuscp"
-DOCKER_VERSION="php56-nginx"
+SISTEM_NAME="local-$CORE_NAME"
 CONTAINER_NAME="moodle-$SISTEM_NAME"
-SELENIUM_CONTAINER="selenium-chrome-unasuscp"
+SELENIUM_CONTAINER="selenium-chrome-$CORE_NAME"
 SELENIUM_IMAGE="selenium/standalone-chrome:3.141.59"
-DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/$DOCKER_VERSION"
+DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/$DOCKER_VERSION"
 MOODLE_LOCAL_SITE="www/$SISTEM_NAME"
 MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
-DOCKER_NETWORK="moodle-network-php56"
-BEHAT_PREFIX="bht_"
-BEHAT_DATAROOT="/home/moodle/moodledata/behat_$SISTEM_NAME"
+DOCKER_NETWORK="moodle-network-$DOCKER_VERSION"
+#BEHAT_PREFIX="bht_"
+BEHAT_DATAROOT="/home/moodle/moodledata/${BEHAT_PREFIX}$SISTEM_NAME"
 BEHAT_WWWROOT="http://$URL_NAME"
-BEHAT_ENABLE_FILE="/tmp/.behat_${SISTEM_NAME}_enabled"
+BEHAT_ENABLE_FILE="/tmp/.${BEHAT_PREFIX}${SISTEM_NAME}_enabled"
 PLUGIN_COMPONENT="report_unasus"
 PLUGIN_TAG="@report_unasus"
 MOODLE_ENABLE_BEHAT=1
@@ -60,13 +86,6 @@ build_escaped_args() {
     echo "$out"
 }
 
-# ---------------------------------------------------------------------------
-# Funções auxiliares
-# ---------------------------------------------------------------------------
-log()  { echo -e "\033[0;32m[INFO]\033[0m  $*"; }
-warn() { echo -e "\033[0;33m[WARN]\033[0m  $*"; }
-err()  { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; exit 1; }
-
 container_is_running() {
     sudo docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | grep -q "true"
 }
@@ -81,6 +100,8 @@ exec_php_as_moodle_for_init() {
 
 enable_behat_environment() {
     log "Ativando configuração Behat para esta execução..."
+    # Ensure parent directory exists and is owned by moodle user
+    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
     exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && touch '$BEHAT_ENABLE_FILE' && rm -f '$BEHAT_DATAROOT/.behat_enabled'"
 }
 
@@ -251,6 +272,8 @@ BEHAT_CONFIGURED=$(exec_as_moodle "
 if [ "$BEHAT_CONFIGURED" != "yes" ]; then
     warn "Behat não configurado no config.php. Adicionando configurações..."
 
+    # Ensure parent directory exists with correct permissions
+    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
     exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
 
     exec_as_moodle "sed -i \"/require_once.*lib\/setup\.php/i\\

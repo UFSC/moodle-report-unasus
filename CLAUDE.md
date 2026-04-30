@@ -96,6 +96,19 @@ renderer.php (build filters, render initial page)
 
 This plugin uses Moodle's advanced_testcase framework.
 
+**Initial Setup:**
+
+```bash
+# Copy and configure the environment file (required for both PHPUnit and Behat)
+cp .env.template .env
+# Edit .env with your environment settings:
+#   CORE_NAME=unasuscp
+#   DOCKER_VERSION=php56-nginx
+#   URL_NAME=local-unasuscp.moodle.ufsc.br
+```
+
+**PHPUnit (Unit Tests):**
+
 Preferred local command in this repository:
 
 ```bash
@@ -120,9 +133,38 @@ php admin/tool/phpunit/cli/util.php --component=report_unasus --file=tests/unasu
 ```
 
 Notes about `run_tests.sh`:
-- By default, PHPUnit init is reused and only reruns when needed (first run, missing phpunit.xml, or Moodle build marker changed).
-- `--reset` forces full reset (`util.php --drop`) and fresh init.
-- The script discovers tests by `*_test.php` and runs them file-by-file to avoid `No tests executed!` in older PHPUnit discovery behavior.
+- Requires `.env` file in the plugin directory (created from `.env.template`)
+- By default, PHPUnit init is reused and only reruns when needed (first run, missing phpunit.xml, or Moodle build marker changed)
+- `--reset` forces full reset (`util.php --drop`) and fresh init
+- The script discovers tests by `*_test.php` and runs them file-by-file to avoid `No tests executed!` in older PHPUnit discovery behavior
+- Uses `$CORE_NAME` from `.env` to determine container name dynamically
+
+**Behat (Acceptance Tests):**
+
+```bash
+# Run all Behat scenarios for this plugin
+./run_behat.sh
+
+# Run a specific feature file
+./run_behat.sh features/login.feature
+
+# Run a specific scenario by tag
+./run_behat.sh --tags="@critical"
+
+# Stop Behat containers and cleanup
+./stop_behat.sh
+
+# Stop Behat and remove containers entirely
+./stop_behat.sh --down
+```
+
+Notes about `run_behat.sh`:
+- Requires `.env` file in the plugin directory (created from `.env.template`)
+- Also reads `../../../../.env` (root Moodle environment) for base configuration
+- Automatically sets up Behat environment, database, and Selenium container
+- Handles dataroot permissions (`/home/moodle/moodledata`) automatically
+- Uses `$CORE_NAME` from `.env` to determine container names dynamically
+- For detailed scenario documentation and known limitations, see [TESTS.md](TESTS.md)
 
 For a complete reference of all tests (PHPUnit and Behat), including scenarios, background data, and known limitations, see [TESTS.md](TESTS.md).
 
@@ -218,7 +260,9 @@ Identified during analysis (April 2026). Items marked ✅ have been fixed; remai
 
 ### Recent Changes Context
 
-Recent commits focus on report ordering, activity presentation, test coverage, documentation, and bug fixes:
+Recent commits focus on report ordering, activity presentation, test coverage, documentation, bug fixes, and infrastructure improvements:
+
+**Etapa 1 (April 2026) — Performance & Bug Fixes:**
 - Activity reordering for synthetic reports
 - Support for hidden Moodle courses in reports
 - Fine-tuning report presentation order
@@ -229,21 +273,66 @@ Recent commits focus on report ordering, activity presentation, test coverage, d
 - Consolidated Behat scenarios into 17 feature files (61 scenarios) with reusable steps
 - Completed README.md: fixed incomplete sentence, added file structure, troubleshooting, and changelog sections
 - Documented performance bottlenecks in CLAUDE.md (see "Known Performance Bottlenecks" above)
-- Performance optimizations (Etapa 1): correlated subquery → explicit LEFT JOINs in `queries.php`; memoized `report_unasus_get_tcc_definition()` and new `report_unasus_get_lti_type_config()` in `locallib.php`; memoized `SistemaTccClient::get_tcc_definition()` in `sistematcc.php`
+- Performance optimizations: correlated subquery → explicit LEFT JOINs in `queries.php`; memoized `report_unasus_get_tcc_definition()` and new `report_unasus_get_lti_type_config()` in `locallib.php`; memoized `SistemaTccClient::get_tcc_definition()` in `sistematcc.php`
 - **Bug fix**: Fixed grade rendering in atividades_vs_notas report — grade value -1 (Moodle's "no grade" sentinel) was being rendered as a valid grade when received as string from database. Standardized grade -1 filtering across all activity data classes by casting to int before comparison in `activities_datastructures.php`; added test case `test_report_unasus_data_activity_grade_minus_one_as_string()` to cover string "-1" scenario.
 
-### Docker Environment
+**Etapa 2 (April 2026) — Infrastructure & Configuration:**
+- Created `.env.template` with environment variables for flexible multi-environment setup
+- Updated `.gitignore` to exclude `.env` (local configurations)
+- Refactored `run_tests.sh`, `run_behat.sh`, `stop_behat.sh`:
+  - Added helper functions: `log()`, `warn()`, `err()` for consistent logging
+  - Added `.env` file reading with validation and error handling
+  - Replaced hardcoded values with environment variables (`$CORE_NAME`, `$DOCKER_VERSION`, `$USER`)
+  - Made container names, directories, and URLs dynamic based on configuration
+  - Added Behat dataroot permission fixes (ensures `/home/moodle/moodledata` exists and has correct ownership)
+- Scripts now work across different developer environments without modification
 
-This repository (`www/local-unasuscp`) is mounted by the container **`moodle-local-unasuscp`** (defined in `docker-compose.yml`).
+### Docker Environment & Configuration
 
-The `run_tests.sh` script must use:
+#### Configuration Management (New in April 2026)
+
+The scripts `run_tests.sh`, `run_behat.sh`, and `stop_behat.sh` now use environment variables from a `.env` file for flexibility across different environments and developers.
+
+**Setup:**
+1. Create `.env` file from template:
+   ```bash
+   cp .env.template .env
+   ```
+
+2. Edit `.env` with your environment:
+   ```bash
+   CORE_NAME=unasuscp              # System name suffix
+   DOCKER_VERSION=php56-nginx      # Docker image version
+   URL_NAME=local-unasuscp.moodle.ufsc.br
+   ```
+
+**Variables used:**
+- `CORE_NAME` — System identifier (appended to container/site names)
+- `DOCKER_VERSION` — Docker directory version (e.g., `php56-nginx`)
+- `URL_NAME` — Behat test URL
+- `$USER` — Current system user (replaces hardcoded `/home/rsc/`)
+
+**Script updates (Etapa 2 infrastructure):**
+- `run_tests.sh` — Reads `.env`, uses dynamic paths
+- `run_behat.sh` — Reads both `../../../../.env` (root) and `.env` (plugin), handles Behat dataroot permissions
+- `stop_behat.sh` — Reads `.env`, supports dynamic container cleanup
+
+This design allows each developer to have local configurations without modifying scripts.
+
+#### Repository Containers
+
+This repository (`www/local-unasuscp`) is mounted by the container **`moodle-$CORE_NAME`** (derived from `CORE_NAME` in `.env`).
+
+By default with `.env.template`:
 ```bash
 CONTAINER_NAME="moodle-local-unasuscp"
-DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/php56-nginx"
+DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/php56-nginx"
 MOODLE_LOCAL_SITE="www/local-unasuscp"
 ```
 
 There is a second container (`moodle-local-report-unasuscp`) that mounts `www/report-unasuscp` (a git worktree on `master` branch) — do not confuse the two.
+
+#### Composer & Legacy Stack
 
 Composer notes for this legacy stack:
 - Root Moodle `composer.json` should use `phpunit/dbunit` (lowercase).
