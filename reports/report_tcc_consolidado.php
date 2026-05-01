@@ -93,6 +93,33 @@ class report_tcc_consolidado extends report_unasus_factory {
         $lista_atividade = $result_array['lista_atividade'];
         $associativo_atividade = $result_array['associativo_atividade'];
 
+        // Garantir que toda combinação (grupo, atividade TCC LTI) tenha as chaves
+        // agregadas inicializadas — evita totais incorretos quando um grupo não tem
+        // estudantes processados (ex.: filtro de cohort que restringe a outro grupo).
+        foreach ($lista_atividade as $grupo_id => $atividades_grupo) {
+            $alunos_grupo = isset($total_alunos[$grupo_id]) ? $total_alunos[$grupo_id] : 0;
+            foreach ($this->visiveis_atividades_cursos as $atividades_curso) {
+                foreach ($atividades_curso as $atividade) {
+                    if (!is_a($atividade, 'report_unasus_lti_activity_tcc2')) {
+                        continue;
+                    }
+                    $lti_id = $atividade->id;
+                    if (!isset($lista_atividade[$grupo_id][$lti_id]['tcc_completo'])) {
+                        $lista_atividade[$grupo_id][$lti_id]['tcc_completo'] =
+                            new report_unasus_dado_atividades_alunos_render($alunos_grupo, 0);
+                    }
+                    if (!isset($lista_atividade[$grupo_id][$lti_id]['nao_acessado'])) {
+                        $lista_atividade[$grupo_id][$lti_id]['nao_acessado'] =
+                            new report_unasus_dado_atividades_alunos_render($alunos_grupo, 0);
+                    }
+                    if (!isset($lista_atividade[$grupo_id][$lti_id]['avaliados'])) {
+                        $lista_atividade[$grupo_id][$lti_id]['avaliados'] =
+                            new report_unasus_dado_atividades_alunos_render($alunos_grupo, 0);
+                    }
+                }
+            }
+        }
+
         /* Variaveis totais do relatorio */
         $total_nao_acessado = new report_unasus_dado_somatorio_grupo_lti_render();
         $total_tcc_completo = new report_unasus_dado_somatorio_grupo_lti_render();
