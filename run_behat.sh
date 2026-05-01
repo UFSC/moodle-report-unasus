@@ -320,6 +320,19 @@ if [ "$BEHAT_CONFIG_STALE" = "yes" ]; then
     INIT_FLAG="yes"
 fi
 
+# Detectar behat_dataroot desatualizado (prefixo errado, ex: behat_ em vez de bht_)
+BEHAT_DATAROOT_ACTUAL=$(exec_as_moodle "
+    grep -v '^[[:space:]]*//' '$MOODLE_ROOT_IN_CONTAINER/config.php' | \
+    grep 'behat_dataroot' | grep -o \"'[^']*'\" | tr -d \"'\"
+" 2>/dev/null || true)
+
+if [ -n "$BEHAT_DATAROOT_ACTUAL" ] && [ "$BEHAT_DATAROOT_ACTUAL" != "$BEHAT_DATAROOT" ]; then
+    warn "behat_dataroot no config.php ('$BEHAT_DATAROOT_ACTUAL') não corresponde ao esperado ('$BEHAT_DATAROOT'). Corrigindo..."
+    exec_as_moodle "sed -i \"s|behat_dataroot = '$BEHAT_DATAROOT_ACTUAL'|behat_dataroot = '$BEHAT_DATAROOT'|g\" '$MOODLE_ROOT_IN_CONTAINER/config.php'"
+    log "behat_dataroot corrigido para '$BEHAT_DATAROOT'. Forçando reinicialização do Behat..."
+    INIT_FLAG="yes"
+fi
+
 # Detectar behat_wwwroot desatualizado (container name em vez do domínio correto)
 BEHAT_WWWROOT_STALE=$(exec_as_moodle "
     grep -q \"behat_wwwroot.*moodle-$SISTEM_NAME\" '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no

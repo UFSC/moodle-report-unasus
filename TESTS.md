@@ -106,6 +106,12 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 # Relatórios de manager (orientação TCC)
 ./run_behat.sh tests/behat/unasus_manager_tcc.feature
 
+# Filtro de cohort e grupo — relatórios de tutoria (9 relatórios)
+./run_behat.sh tests/behat/unasus_filtro_cohort.feature
+
+# Filtro de cohort e grupo — relatórios TCC (3 relatórios)
+./run_behat.sh tests/behat/unasus_filtro_cohort_tcc.feature
+
 # Controle de acesso por capability
 ./run_behat.sh tests/behat/unasus_permissions.feature
 ```
@@ -318,6 +324,45 @@ Mesmos 15 usuários (`student1–12`, `teacher1–3`), mesmo curso `Course1`, me
 | `manager com view_all visualiza todos os estudantes na orientação TCC` | Vê todos os 12 estudantes; exibe "Filtrar Grupos de Orientação:", "Resumo", "Capítulo 1" |
 | `manager filtra relatório TCC por grupo de orientação` | Filtra por `relationship_group1` — vê s1–s4, não vê s5/s12 |
 | `orientador sem view_all nao visualiza estudantes de outros grupos no TCC` | teacher1 não vê "Filtrar Cohorts:"; vê s1–s4, não s5/s12 |
+
+---
+
+### Feature: `tests/behat/unasus_filtro_cohort.feature`
+
+**Descrição:** Verifica que o filtro de cohort e o filtro de grupo de tutoria restringem corretamente os dados exibidos em todos os 9 relatórios de tutoria com `mostrar_filtro_cohorts = true`. Usa `a standard report_unasus tutoria fixture exists` com manager1 adicionado via Gherkin e dois cohorts individuais: `CHs1` (somente student1, grupo de teacher1) e `CHs6` (somente student6, grupo de teacher2). Students 1–8 submetem a2 (deadline passado, `prazo_avaliacao=0`) para alimentar `avaliacoes_em_atraso` e `estudante_sem_atividade_avaliada`.
+
+#### Dados de Background
+
+- **Fixture base:** `a standard report_unasus tutoria fixture exists` (student1–12, teacher1–3, 3 grupos, a1–a6, f1–f2, q1, d1, l1)
+- **Cohorts extras:** `Cohort s1` (CHs1) → student1; `Cohort s6` (CHs6) → student6
+- **Submissões de a2:** student1–student8 (sem nota, `prazo_avaliacao=0`)
+
+#### Cenários
+
+| Scenario Outline | Relatórios cobertos | O que verifica |
+|-----------------|---------------------|----------------|
+| `filtro de cohort e grupo restringe estudantes exibidos em relatórios de tutoria` | entrega_de_atividades, atividades_vs_notas, boletim, estudante_sem_atividade_postada, estudante_sem_atividade_avaliada, modulos_concluidos | CHs1 → vê s1, não vê s2/s6; CHs6 → vê s6, não vê s5/s1; group1 → vê s1 e s2, não s6; group2 → vê s6 e s5, não s1 |
+| `filtro de grupo restringe tutores exibidos em relatórios de síntese` | avaliacoes_em_atraso, atividades_nota_atribuida, atividades_concluidas_agrupadas | group1 → vê Teacher t1, não t2; group2 → vê Teacher t2, não t1 (filtro de grupo remove a linha do tutor; cohort filter apenas altera contadores, não remove linhas) |
+| `filtro de cohort altera contadores em relatório de síntese avaliacoes_em_atraso` | avaliacoes_em_atraso | CHs1 → célula Teacher t1 / "Test assignment two" contém "1/" (1 avaliação pendente); célula Teacher t2 contém "0/"; CHs6 → invertido |
+
+---
+
+### Feature: `tests/behat/unasus_filtro_cohort_tcc.feature`
+
+**Descrição:** Verifica que o filtro de cohort e o filtro de grupo de orientação restringem corretamente os dados exibidos nos relatórios TCC. Cobre `tcc_entrega_atividades` e `tcc_concluido` (linhas por estudante) via Scenario Outline e `tcc_consolidado` (linhas por grupo de orientação) via cenário dedicado. Usa Background Gherkin completo (como `unasus_manager_tcc.feature`) com dois cohorts individuais: `CHs1` (somente student1) e `CHs6` (somente student6). O webservice TCC mockado retorna dados `done` para todos os 12 estudantes.
+
+#### Dados de Background
+
+- **Usuários:** student1–12, teacher1–3, manager1 (igual ao manager_tcc.feature)
+- **Cohorts extras:** `Cohort s1` (CHs1) → student1; `Cohort s6` (CHs6) → student6
+- **Relationship tag:** `grupo_orientacao` (relatórios TCC usam `orientadores[]` no filtro de grupo)
+
+#### Cenários
+
+| Cenário | Relatórios cobertos | O que verifica |
+|---------|---------------------|----------------|
+| `filtro de cohort e grupo restringe estudantes exibidos em relatórios TCC` (Outline ×2) | tcc_entrega_atividades, tcc_concluido | CHs1 → vê s1, não vê s2/s6; CHs6 → vê s6, não vê s5/s1; orientadores group1 → vê s1 e s2, não s6; group2 → vê s6 e s5, não s1 |
+| `tcc_consolidado exibe valores por grupo e por capítulo, respeitando filtros` | tcc_consolidado | Sem filtro: contagens por grupo (Resumo, Capítulo 1, Atividades Concluídas, Não acessado) e total geral; filtro de grupo remove linhas dos outros grupos; filtro de cohort (CHs1) mantém todas as linhas mas reduz contadores ao único estudante do cohort |
 
 ---
 
