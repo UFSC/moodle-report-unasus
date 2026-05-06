@@ -50,7 +50,7 @@ fi
 SISTEM_NAME="local-$CORE_NAME"
 CONTAINER_NAME="moodle-$SISTEM_NAME"
 SELENIUM_CONTAINER="selenium-chrome-$CORE_NAME"
-SELENIUM_IMAGE="selenium/standalone-chrome:3.141.59"
+SELENIUM_IMAGE="selenium/standalone-chrome:3.141.59-selenium"
 DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/$DOCKER_VERSION"
 MOODLE_LOCAL_SITE="www/$SISTEM_NAME"
 MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
@@ -87,21 +87,21 @@ build_escaped_args() {
 }
 
 container_is_running() {
-    sudo docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | grep -q "true"
+    docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | grep -q "true"
 }
 
 exec_as_moodle() {
-    sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
+    docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
 }
 
 exec_php_as_moodle_for_init() {
-    sudo docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
+    docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
 }
 
 enable_behat_environment() {
     log "Ativando configuração Behat para esta execução..."
     # Ensure parent directory exists and is owned by moodle user
-    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
+    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
     exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && touch '$BEHAT_ENABLE_FILE' && rm -f '$BEHAT_DATAROOT/.behat_enabled'"
 }
 
@@ -153,14 +153,14 @@ passthru($cmd, $exitcode);
 exit($exitcode);
 PHPWRAPPER
 
-    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "set -e
+    docker exec -u 0 "$CONTAINER_NAME" bash -c "set -e
         curl -sS -L -o /tmp/composer22.phar https://github.com/composer/composer/releases/download/2.2.21/composer.phar
         cp /tmp/composer22.phar '$MOODLE_ROOT_IN_CONTAINER/composer-real.phar'
     "
-    sudo docker cp "$TMP_COMPOSER_WRAPPER" "$CONTAINER_NAME:$MOODLE_ROOT_IN_CONTAINER/composer.phar"
+    docker cp "$TMP_COMPOSER_WRAPPER" "$CONTAINER_NAME:$MOODLE_ROOT_IN_CONTAINER/composer.phar"
     rm -f "$TMP_COMPOSER_WRAPPER"
 
-    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "set -e
+    docker exec -u 0 "$CONTAINER_NAME" bash -c "set -e
         chown moodle:moodle '$MOODLE_ROOT_IN_CONTAINER/composer-real.phar'
         chmod 555 '$MOODLE_ROOT_IN_CONTAINER/composer-real.phar'
         chown moodle:moodle '$MOODLE_ROOT_IN_CONTAINER/composer.phar'
@@ -177,7 +177,7 @@ if container_is_running "$CONTAINER_NAME"; then
     log "Container Moodle já está rodando."
 else
     warn "Container não está rodando. Iniciando via docker compose..."
-    (cd "$DOCKER_COMPOSE_DIR" && sudo docker compose up -d --remove-orphans "$CONTAINER_NAME")
+    (cd "$DOCKER_COMPOSE_DIR" && docker compose up -d --remove-orphans "$CONTAINER_NAME")
 
     for i in $(seq 1 12); do
         sleep 5
@@ -189,7 +189,7 @@ else
     done
 
     container_is_running "$CONTAINER_NAME" || \
-        err "Falha ao iniciar '$CONTAINER_NAME'. Verifique: sudo docker compose logs $CONTAINER_NAME"
+        err "Falha ao iniciar '$CONTAINER_NAME'. Verifique: docker compose logs $CONTAINER_NAME"
 fi
 
 # ---------------------------------------------------------------------------
@@ -197,23 +197,34 @@ fi
 # ---------------------------------------------------------------------------
 log "Verificando container Selenium '$SELENIUM_CONTAINER'..."
 
-if ! sudo docker network inspect "$DOCKER_NETWORK" >/dev/null 2>&1; then
+if ! docker network inspect "$DOCKER_NETWORK" >/dev/null 2>&1; then
     warn "Rede Docker '$DOCKER_NETWORK' não encontrada. Criando..."
-    sudo docker network create "$DOCKER_NETWORK" >/dev/null
+    docker network create "$DOCKER_NETWORK" >/dev/null
+fi
+
+# Recria o container Selenium se a imagem configurada não bate com a do existente.
+# Necessário porque Chrome ≥ 76 quebra a compatibilidade com Behat 2.x/Mink
+# (chromedriver responde só em W3C; Mink antigo só lê OSS WebDriver).
+if docker inspect "$SELENIUM_CONTAINER" &>/dev/null; then
+    EXISTING_SELENIUM_IMAGE=$(docker inspect -f '{{.Config.Image}}' "$SELENIUM_CONTAINER" 2>/dev/null || true)
+    if [ -n "$EXISTING_SELENIUM_IMAGE" ] && [ "$EXISTING_SELENIUM_IMAGE" != "$SELENIUM_IMAGE" ]; then
+        warn "Container Selenium usa imagem '$EXISTING_SELENIUM_IMAGE' (esperado '$SELENIUM_IMAGE'). Recriando..."
+        docker rm -f "$SELENIUM_CONTAINER" >/dev/null 2>&1 || true
+    fi
 fi
 
 if container_is_running "$SELENIUM_CONTAINER"; then
     log "Container Selenium já está rodando."
-    sudo docker network connect "$DOCKER_NETWORK" "$SELENIUM_CONTAINER" 2>/dev/null || true
+    docker network connect "$DOCKER_NETWORK" "$SELENIUM_CONTAINER" 2>/dev/null || true
 else
-    if sudo docker inspect "$SELENIUM_CONTAINER" &>/dev/null; then
+    if docker inspect "$SELENIUM_CONTAINER" &>/dev/null; then
         log "Reiniciando container Selenium existente..."
         START_OUTPUT=""
-        if ! START_OUTPUT=$(sudo docker start "$SELENIUM_CONTAINER" 2>&1); then
+        if ! START_OUTPUT=$(docker start "$SELENIUM_CONTAINER" 2>&1); then
             if echo "$START_OUTPUT" | grep -qi "network .* not found"; then
                 warn "Container Selenium preso a rede removida. Recriando container..."
-                sudo docker rm -f "$SELENIUM_CONTAINER" >/dev/null 2>&1 || true
-                sudo docker run -d \
+                docker rm -f "$SELENIUM_CONTAINER" >/dev/null 2>&1 || true
+                docker run -d \
                     --name "$SELENIUM_CONTAINER" \
                     --network "$DOCKER_NETWORK" \
                     --shm-size=2g \
@@ -225,7 +236,7 @@ else
         fi
     else
         log "Iniciando novo container Selenium (imagem: $SELENIUM_IMAGE)..."
-        sudo docker run -d \
+        docker run -d \
             --name "$SELENIUM_CONTAINER" \
             --network "$DOCKER_NETWORK" \
             --shm-size=2g \
@@ -236,7 +247,7 @@ else
     log "Aguardando Selenium inicializar..."
     for i in $(seq 1 12); do
         sleep 5
-        if sudo docker exec "$SELENIUM_CONTAINER" curl -sf http://localhost:4444/wd/hub/status &>/dev/null; then
+        if docker exec "$SELENIUM_CONTAINER" curl -sf http://localhost:4444/wd/hub/status &>/dev/null; then
             log "Selenium pronto após $((i * 5))s."
             break
         fi
@@ -247,12 +258,19 @@ fi
 # Garantir que o Selenium consegue resolver $URL_NAME para o container Moodle.
 # Docker DNS só resolve nomes de container, não o domínio externo usado em behat_wwwroot.
 log "Configurando /etc/hosts do Selenium para resolver '$URL_NAME'..."
-MOODLE_IP=$(sudo docker inspect -f "{{(index .NetworkSettings.Networks \"$DOCKER_NETWORK\").IPAddress}}" "$CONTAINER_NAME" 2>/dev/null)
+MOODLE_IP=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$DOCKER_NETWORK\").IPAddress}}" "$CONTAINER_NAME" 2>/dev/null)
 if [ -z "$MOODLE_IP" ] || [ "$MOODLE_IP" = "<no value>" ]; then
     err "Não foi possível obter IP do container '$CONTAINER_NAME' na rede '$DOCKER_NETWORK'."
 fi
-sudo docker exec -u 0 "$SELENIUM_CONTAINER" bash -c "TMP=/tmp/hosts.\$\$; grep -v '[[:space:]]$URL_NAME$' /etc/hosts > \"\$TMP\" || true; cat \"\$TMP\" > /etc/hosts; rm -f \"\$TMP\"; echo '$MOODLE_IP $URL_NAME' >> /etc/hosts"
+docker exec -u 0 "$SELENIUM_CONTAINER" bash -c "TMP=/tmp/hosts.\$\$; grep -v '[[:space:]]$URL_NAME$' /etc/hosts > \"\$TMP\" || true; cat \"\$TMP\" > /etc/hosts; rm -f \"\$TMP\"; echo '$MOODLE_IP $URL_NAME' >> /etc/hosts"
 log "Selenium resolve '$URL_NAME' -> $MOODLE_IP."
+
+# Garantir que o próprio container Moodle resolva $URL_NAME para si mesmo (127.0.0.1).
+# Sem isto, o behat init e o behat_wwwroot check saem pelo DNS externo e podem
+# bater num servidor remoto que responda pelo mesmo domínio (301 -> https, etc.).
+log "Configurando /etc/hosts do Moodle para resolver '$URL_NAME' -> 127.0.0.1..."
+docker exec -u 0 "$CONTAINER_NAME" bash -c "TMP=/tmp/hosts.\$\$; grep -v '[[:space:]]$URL_NAME$' /etc/hosts > \"\$TMP\" || true; cat \"\$TMP\" > /etc/hosts; rm -f \"\$TMP\"; echo '127.0.0.1 $URL_NAME' >> /etc/hosts"
+log "Moodle resolve '$URL_NAME' -> 127.0.0.1."
 
 # ---------------------------------------------------------------------------
 # 3. Ativar configuração Behat no config.php para esta execução
@@ -273,7 +291,7 @@ if [ "$BEHAT_CONFIGURED" != "yes" ]; then
     warn "Behat não configurado no config.php. Adicionando configurações..."
 
     # Ensure parent directory exists with correct permissions
-    sudo docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
+    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
     exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
 
     exec_as_moodle "sed -i \"/require_once.*lib\/setup\.php/i\\
@@ -415,9 +433,9 @@ log "============================================================"
 
 # Diagnóstico: verificar se a front page do site behat está acessível e com o título correto.
 log "Diagnóstico: verificando front page behat em http://$URL_NAME/ ..."
-DIAG_TITLE=$(sudo docker exec "$SELENIUM_CONTAINER" bash -c "curl -sL --max-time 10 'http://$URL_NAME/' 2>&1 | grep -o '<title>[^<]*</title>'" 2>/dev/null || echo "(curl falhou)")
+DIAG_TITLE=$(docker exec "$SELENIUM_CONTAINER" bash -c "curl -sL --max-time 10 'http://$URL_NAME/' 2>&1 | grep -o '<title>[^<]*</title>'" 2>/dev/null || echo "(curl falhou)")
 log "  Título da página: ${DIAG_TITLE:-(sem título / página em branco)}"
-DIAG_STATUS=$(sudo docker exec "$SELENIUM_CONTAINER" bash -c "curl -so /dev/null -w '%{http_code}' --max-time 10 'http://$URL_NAME/'" 2>/dev/null || echo "???")
+DIAG_STATUS=$(docker exec "$SELENIUM_CONTAINER" bash -c "curl -so /dev/null -w '%{http_code}' --max-time 10 'http://$URL_NAME/'" 2>/dev/null || echo "???")
 log "  HTTP status: $DIAG_STATUS"
 
 BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML' --ansi"

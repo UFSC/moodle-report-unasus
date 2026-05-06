@@ -55,10 +55,14 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 ## Testes de Integração (Behat)
 
-**Driver:** Selenium Chrome Standalone (`selenium/standalone-chrome:3.141.59`)
-**Container:** `moodle-local-unasuscp`
+**Driver:** Selenium Chrome Standalone (`selenium/standalone-chrome:3.141.59-selenium`, Chrome 75)
+**Container Moodle:** `moodle-local-unasuscp`
+**Container Selenium:** `selenium-chrome-unasuscp`
 **URL base:** `http://local-unasus-cp.moodle.ufsc.br`
 **Tags:** `@unasus @report_unasus @javascript`
+**Cobertura confirmada:** 90 cenários, 2528 passos, ~16 min de execução total
+
+> **Pré-requisito de ambiente:** o usuário precisa estar no grupo `docker` (`sudo usermod -aG docker $USER` + nova sessão). Os scripts não usam `sudo`.
 
 ### Como executar
 
@@ -420,3 +424,14 @@ Definidos em `tests/behat/behat_unasus.php`:
 - **potenciais_evasoes:** comentado em `lib.php` — entrada de menu indisponível nesta versão.
 - **acesso_tutor / uso_sistema_tutor:** exclusivos de coordenadores; cobertos em features próprias com cenários de tabela, CSV, permissões e limites de data.
 - **tcc_*:** relatórios de orientação; cobertos com webservice TCC mockado nos cenários Behat.
+
+## Infraestrutura Behat — correções aplicadas (maio/2026)
+
+Para que o Behat rode no stack Moodle 3.0.5 + PHP 5.6 com chromedriver moderno, o `run_behat.sh` aplica três correções de ambiente e existe um patch obrigatório em `vendor/`:
+
+1. **Imagem Selenium pinned em `3.141.59-selenium`** (Chrome 75 + chromedriver 75). O script detecta mismatch contra a imagem do container existente e recria via `docker rm -f` automaticamente.
+2. **`/etc/hosts` no container Moodle** mapeia `$URL_NAME` → `127.0.0.1`. Sem isso, o DNS do container resolve pelo DNS externo da UFSC (192.168.0.1), pega a produção e recebe 301 → HTTPS, quebrando o probe HTTP do Behat.
+3. **`/etc/hosts` no container Selenium** mapeia `$URL_NAME` → IP do container Moodle na rede docker — para o Chrome alcançar o site behat local em vez do externo.
+4. **Patch em `vendor/behat/mink-selenium2-driver/src/Behat/Mink/Driver/Selenium2Driver.php`** força `chromeOptions.w3c=false` quando o browser é chrome. Sem esse patch, chromedriver ≥ 75 negocia dialeto W3C com Selenium e devolve elementos com chave `element-6066-11e4-a52e-4f735466cecf`. O Mink antigo da Behat 2.x só conhece a chave OSS `ELEMENT`, então `find()` retorna vazio e o primeiro `before_scenario` morre com `"is not a behat test site"` mesmo com a página renderizando corretamente.
+
+**Atenção ao composer:** se composer rodar e regenerar `vendor/`, o patch é perdido. Re-aplicar.

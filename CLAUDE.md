@@ -164,6 +164,10 @@ Notes about `run_behat.sh`:
 - Automatically sets up Behat environment, database, and Selenium container
 - Handles dataroot permissions (`/home/moodle/moodledata`) automatically
 - Uses `$CORE_NAME` from `.env` to determine container names dynamically
+- Uses Selenium image `selenium/standalone-chrome:3.141.59-selenium` (Chrome 75); auto-recreates container if image mismatches
+- Adds `/etc/hosts` mappings inside both containers (Moodle and Selenium) so `$URL_NAME` resolves locally instead of via UFSC external DNS
+- **Requires user to be in `docker` group** (no `sudo`); run `sudo usermod -aG docker $USER` and start a new shell if not already
+- **Requires patch in `vendor/behat/mink-selenium2-driver/.../Selenium2Driver.php`** to force OSS WebDriver dialect (see "Etapa 3" in Recent Changes Context below)
 - For detailed scenario documentation and known limitations, see [TESTS.md](TESTS.md)
 
 For a complete reference of all tests (PHPUnit and Behat), including scenarios, background data, and known limitations, see [TESTS.md](TESTS.md).
@@ -286,6 +290,27 @@ Recent commits focus on report ordering, activity presentation, test coverage, d
   - Made container names, directories, and URLs dynamic based on configuration
   - Added Behat dataroot permission fixes (ensures `/home/moodle/moodledata` exists and has correct ownership)
 - Scripts now work across different developer environments without modification
+
+**Etapa 3 (May 2026) — Behat Infrastructure Completion:**
+- **Goal:** Make `./run_behat.sh` actually work end-to-end. Previously failed in `before_scenario` with "The base URL ... is not a behat test site".
+- **Root cause:** Three independent issues stacked, plus one critical vendor incompatibility:
+  1. Moodle container had no `/etc/hosts` entry for `$URL_NAME` — DNS resolved to UFSC production server (192.168.0.1), got HTTP 301 → HTTPS, broke `util.php` HTTP probe.
+  2. `selenium/standalone-chrome:3.141.59` (latest) shipped with Chromium 94 + chromedriver 94 — only speaks W3C WebDriver protocol.
+  3. Even with Chrome 75 image (`3.141.59-selenium`), chromedriver 75 still negotiates W3C dialect with Selenium 3.141 server by default.
+  4. Mink Selenium2Driver bundled with Moodle 3.0.5 (Behat 2.x era) only parses OSS WebDriver responses (key `ELEMENT`); W3C responses use key `element-6066-11e4-a52e-4f735466cecf`, so all `find()` calls return null. First failure surfaces in `lib/tests/behat/behat_hooks.php:301` even though Chrome rendered the correct page.
+- **Fixes applied:**
+  - `run_behat.sh:53` — pinned `SELENIUM_IMAGE="selenium/standalone-chrome:3.141.59-selenium"` (Chrome 75 + chromedriver 75)
+  - `run_behat.sh:200-208` — auto-recreates Selenium container via `docker rm -f` when configured image differs from existing
+  - `run_behat.sh:257-261` — adds `127.0.0.1 $URL_NAME` to Moodle container's `/etc/hosts`, mirroring what was already done for Selenium container
+  - **Patch in `vendor/behat/mink-selenium2-driver/src/Behat/Mink/Driver/Selenium2Driver.php::setDesiredCapabilities()`** — injects `chromeOptions.w3c=false` when browser is `chrome`, forcing chromedriver to respond in OSS dialect. **This is what actually unblocks the entire stack.** Composer rarely runs in this legacy stack, but if it does, vendor/ is regenerated and patch is lost — re-apply.
+  - Removed `sudo` from all `docker` calls in `run_behat.sh`, `run_tests.sh`, `stop_behat.sh` — user must be in `docker` group (`sudo usermod -aG docker $USER` + new shell session).
+- **Confirmed result:** 90 scenarios pass, 2528 steps pass, ~16 min total runtime.
+- **Diagnosis-confusing symptoms** (worth knowing for future debugging):
+  - `curl` from Moodle/Selenium containers returns correct title.
+  - `google-chrome --headless --dump-dom` returns correct title.
+  - Raw WebDriver session via curl returns correct title in JSON.
+  - Only Behat/Mink fails — because it's the only component parsing the JSON element structure.
+  - Confirm dialect by checking `docker logs selenium-chrome-... | grep dialect` (should show `OSS`, not `W3C`) or `POST /wd/hub/session/<sid>/elements` response (should have key `ELEMENT`, not `element-6066-...`).
 
 ### Docker Environment & Configuration
 

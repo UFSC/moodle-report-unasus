@@ -136,7 +136,20 @@ A [Configuração do curso e atividades](https://github.com/UFSC/moodle-report-u
 **Permissão negada ao acessar relatório**
 : Verifique a atribuição das capabilities na tabela de permissões acima. O papel do usuário no curso deve ter a capability correspondente (`view_all`, `view_tutoria` ou `view_orientacao`).
 
+**Behat falha em `before_scenario` com "is not a behat test site"**
+: Causa quase certa: chromedriver ≥ 75 negocia dialeto W3C, o Mink antigo da Behat 2.x só lê OSS. Verificar se o patch em `vendor/behat/mink-selenium2-driver/src/Behat/Mink/Driver/Selenium2Driver.php::setDesiredCapabilities()` está aplicado (deve injetar `chromeOptions.w3c=false`). Se composer regenerou `vendor/`, re-aplicar. Detalhes em [TESTS.md](TESTS.md) → "Infraestrutura Behat".
+
+**`docker: permission denied` ao rodar `./run_behat.sh` ou `./run_tests.sh`**
+: Usuário precisa estar no grupo `docker`: `sudo usermod -aG docker $USER` e abrir nova sessão.
+
 ## Changelog
+
+### 2026-05-06
+- **Infraestrutura Behat finalizada:** 90 cenários Behat rodam com sucesso (2528 passos, ~16min)
+- Imagem Selenium pinada em `selenium/standalone-chrome:3.141.59-selenium` (Chrome 75) com auto-recriação se imagem mudar
+- `/etc/hosts` adicionado no container Moodle para evitar DNS externo (URL_NAME → 127.0.0.1)
+- Patch em `vendor/behat/mink-selenium2-driver/.../Selenium2Driver.php` força `chromeOptions.w3c=false` (necessário para compat com Mink antigo da Behat 2.x)
+- Removido `sudo` das chamadas `docker` em `run_behat.sh`, `run_tests.sh`, `stop_behat.sh` — usuário deve estar no grupo `docker`
 
 ### 2026-04-29
 - Documentação: README.md completo com estrutura de arquivos, solução de problemas e changelog
