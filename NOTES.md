@@ -22,7 +22,9 @@ Identified during analysis (April 2026). Items marked ✅ have been fixed; remai
 
 ## Pending PHPUnit Coverage Gaps
 
-Identified by REVIEW_10136 (May 2026). None of the items below correspond to a bug — the production code paths are validated end-to-end by Behat. They are pure hardening: pinning invariants in fast unit tests so future refactors fail loudly instead of regressing silently. PHPUnit currently covers `tests/unasus_datastructures_test.php` only (data classes).
+Identified by REVIEW_10136 (May 2026). None of the items below correspond to a bug — the production code paths are validated end-to-end by Behat. They are pure hardening: pinning invariants in fast unit tests so future refactors fail loudly instead of regressing silently.
+
+A maior parte dos gaps foi fechada pelo plano de cobertura pré-refatoração (Fases 1–7, May 2026 — ver `docs/refactor-test-coverage-plan.md`). PHPUnit cobre agora 4 arquivos: `unasus_datastructures_test.php`, `unasus_memoization_test.php`, `unasus_factory_helpers_test.php` e `unasus_render_test.php` (~80 testes / ~250 asserções).
 
 | Target | What to assert | Notes |
 |---|---|---|
@@ -32,11 +34,22 @@ Identified by REVIEW_10136 (May 2026). None of the items below correspond to a b
 | `locallib.php` — `report_unasus_get_tcc_definition($input)` | Second call with the same input string returns same parsed object; cache keyed by input | ✅ Coberto em `tests/unasus_memoization_test.php` (Fase 3) |
 | `sistematcc.php` — `SistemaTccClient::get_tcc_definition($id)` | Second call with same `(url, consumer_key, id)` triple returns cached object without invoking `post()` | ✅ Coberto em `tests/unasus_memoization_test.php` (Fase 3) |
 | `sistematcc.php` — `SistemaTccClient::post()` mock plumbing | `behat_tcc_mock_*` config lookup is read at most once per `$config_key` per process (achado #7 da review) | Memoization invariant |
-| `relatorios/queries.php` — `query_database_synthesis_from_users()` / `query_lti_synthesis_from_users()` | Returns every student row of the tutoria group with grade-or-null (vs. INNER-JOIN sibling that filters); ordering stable | Documents the contract created when the names were rebranded from `_completion_` |
-| `reports/report_acesso_tutor.php` — `get_interval_boundaries()` / `get_days_interval()` | Pure date arithmetic edge cases (DST, month boundaries, same-day, cross-year) | Easy targets — no DB or globals |
-| `activities_datastructures.php` — grade `-1` (string `"-1"`) | The cast-to-int filter applied across all activity classes — currently only `report_unasus_data_activity` has the string-form test (`test_report_unasus_data_activity_grade_minus_one_as_string`); the same change in forum, quiz, db, scorm, lti, nota_final remains uncovered | Mechanical: copy the existing test's structure per class |
+| `relatorios/queries.php` — `query_database_synthesis_from_users()` / `query_lti_synthesis_from_users()` | Returns every student row of the tutoria group with grade-or-null (vs. INNER-JOIN sibling that filters); ordering stable | ✅ Coberto via Behat em `tests/behat/unasus_synthesis_queries.feature` (Fase 7) — denominador "1/12" prova LEFT JOIN |
+| `reports/report_acesso_tutor.php` — `get_interval_boundaries()` / `get_days_interval()` | Pure date arithmetic edge cases (DST, month boundaries, same-day, cross-year) | ✅ Coberto em `tests/unasus_factory_helpers_test.php` (Fase 4) |
+| `activities_datastructures.php` — grade `-1` (string `"-1"`) | The cast-to-int filter applied across all activity classes — currently only `report_unasus_data_activity` has the string-form test (`test_report_unasus_data_activity_grade_minus_one_as_string`); the same change in forum, quiz, db, scorm, lti, nota_final remains uncovered | ✅ Coberto em `tests/unasus_datastructures_test.php` (Fase 2) — `_grade_minus_one_string` por subclasse |
 
 The gaps are documented here (rather than in the closed `REVIEW_10136.md`) so they remain discoverable when planning the next hardening pass. Each item is independently picked up — no ordering dependency.
+
+## Excluded from Coverage
+
+Itens deliberadamente fora do escopo de testes automatizados — documentados aqui para evitar redescoberta:
+
+- **SCORM Behat:** excluído por bug de iconv em `mod/scorm` no ambiente Moodle 3.0.5 que impede criar a atividade via fixture. Cobertura PHPUnit das estruturas (`report_unasus_scorm_activity`, `report_unasus_data_scorm`) supre o gap em `tests/unasus_datastructures_test.php`.
+- **`potenciais_evasoes`:** comentado em `lib.php:29`. O arquivo `reports/report_potenciais_evasoes.php` ainda existe mas `report_unasus_factory::set_relatorio()` rejeita a entrada (nenhuma das 3 listas `report_unasus_relatorios_validos_*_list()` o inclui). Tratado como código morto até nova decisão de produto.
+- **`report_unasus_activity_config` family** (`activities_datastructures.php:77-145`): DTOs sem lógica observável — apenas atribuem campos do `db_model`. Pinar via PHPUnit não acrescenta valor de regressão.
+- **`!is_member_of(grouping)` branch em `loops.php`:** descopo da Fase 6 — exigiria fixtures de `groupings` + `grouping groups` (Moodle generators ou steps customizados). Pode ser retomado pós-refatoração se houver regressão nesse caminho.
+- **`recursão is_null($loop)` em `loops.php:332-337`:** coberto indiretamente por `tests/behat/unasus_atividades_nota_atribuida.feature` — qualquer cenário que abre o relatório `atividades_nota_atribuida` ou `atividades_concluidas_agrupadas` exercita a chamada recursiva.
+- **`agrupar_relatorios` switch (4 valores)** e **`modo_exibicao` inválido via URL** (Fase 8 do plano): descopo desta passada — podem ser adicionados caso surjam regressões durante a refatoração.
 
 ## Recent Changes Context
 

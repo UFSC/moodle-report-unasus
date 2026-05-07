@@ -6,10 +6,15 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 ## Testes Unitários (PHPUnit)
 
-**Arquivo:** `tests/unasus_datastructures_test.php`
-**Classe:** `unasus_datastructures_testcase` (extends `advanced_testcase`)
-**Grupo:** `@group report_unasus`
-**Total:** 22 testes, 79 asserções
+**Arquivos:**
+- `tests/unasus_datastructures_test.php` — classe `unasus_datastructures_testcase`
+- `tests/unasus_memoization_test.php` — classe `unasus_memoization_testcase` (Fase 3)
+- `tests/unasus_factory_helpers_test.php` — classe `unasus_factory_helpers_testcase` (Fase 4)
+- `tests/unasus_render_test.php` — classe `unasus_render_testcase` (Fase 5)
+
+Todos extendem `advanced_testcase` no grupo `@group report_unasus`.
+
+**Total:** ~80 testes, ~250 asserções (todos verdes em ~5s combinados).
 
 ### Como executar
 
@@ -19,37 +24,58 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 # Um arquivo específico
 ./run_tests.sh tests/unasus_datastructures_test.php
+./run_tests.sh tests/unasus_memoization_test.php
+./run_tests.sh tests/unasus_factory_helpers_test.php
+./run_tests.sh tests/unasus_render_test.php
 
 # Forçar reset e reinicialização do banco
 ./run_tests.sh --reset
 ```
 
-### Lista de Testes
+### Cobertura por arquivo
+
+#### `tests/unasus_datastructures_test.php` (~50 testes)
+
+Cobre `report_unasus_activity`, `report_unasus_data` e suas subclasses (`activities_datastructures.php`):
+
+- **Base:** `has_deadline`, `has_submission`, `has_grouping`, `has_submitted`, `has_grade`, `is_submission_due` (incluindo dados históricos), `is_grade_needed`, `is_activity_pending`, `is_a_future_due`, `is_member_of`, construtor inválido.
+- **Subclasses de activity (Fase 1):** `assign_activity` (nosubmissions/grade=0), `generic_activity` (inversão `nosubmissions`), `db_activity` (defaults true/true), `scorm_activity` (false/true), `quiz_activity` (switch de nome curto), `lti_activity2` (heredita generic + campos LTI), `lti_activity_tcc2` (carrega `tcc_definition`), `chapter_tcc_activity` (false/false + `__toString` label).
+- **Subclasses de data (Fase 2):** `data_db`, `data_scorm` (completion = grade==grademax), `data_lti` (has_grade simples), `data_lti_tcc` (status como dict por capítulo), `data_nota_final`, `data_empty` (todos predicados overridden = false).
+- **Sentinela `"-1"` (Fase 2):** parse para `null` em `data_db`, `data_scorm`, `data_lti`, `data_quiz`, `data_forum`, `data_nota_final` (além do já existente em `data_activity`).
+- **Bordas:** `submission_date == deadline` (false), `submission_date == deadline + 1s` (true), `grade=0 + grade_date` (válida), `deadline > now` vs `deadline >= now` para atividade offline.
+
+#### `tests/unasus_memoization_test.php` (5 testes — Fase 3)
 
 | Método | O que verifica |
 |--------|----------------|
-| `test_report_unasus_activity` | `has_deadline()` com e sem prazo |
-| `test_report_unasus_data_submission` | `is_submission_due()` para atividades sem prazo, com e sem entrega |
-| `test_report_unasus_data_grade` | `is_grade_needed()` e `grade_due_days()` |
-| `test_report_unasus_data_activity_status` | Estados de entrega: draft, submitted, new |
-| `test_report_unasus_data_activity_offline` | Envios offline (atividades sem submissão digital) |
-| `test_report_unasus_activity_invalid_constructor` | Lança `InvalidArgumentException` com argumentos inválidos |
-| `test_report_unasus_activity_flags` | `has_submission()` e `has_grouping()` |
-| `test_report_unasus_data_has_submitted_and_grade` | `has_submitted()` e `has_grade()` na classe base |
-| `test_report_unasus_data_submission_historical` | `is_submission_due()` com dados históricos |
-| `test_report_unasus_data_is_activity_pending` | `is_activity_pending()` em diferentes estados |
-| `test_report_unasus_data_is_a_future_due` | `is_a_future_due()` para prazos futuros |
-| `test_report_unasus_data_activity_grade_minus_one` | Nota -1 tratada como ausente (convenção Moodle) |
-| `test_report_unasus_data_activity_status_new` | Status "new" para atividades sem interação |
-| `test_report_unasus_data_forum` | Classe `report_unasus_data_forum` |
-| `test_report_unasus_data_quiz` | Classe `report_unasus_data_quiz` |
-| `test_report_unasus_data_is_member_of` | `is_member_of()` para pertencimento a grouping |
-| `test_is_submission_due_exactly_at_deadline` | **Borda:** entregue exatamente no prazo → NOT due (`<`, não `<=`) |
-| `test_is_submission_due_one_second_after_deadline` | **Borda:** 1 segundo após o prazo → IS due |
-| `test_grade_zero_with_grade_date_is_valid_grade` | **Borda:** nota=0 com data de avaliação → `has_grade()=true` (0 ≠ null ≠ -1) |
-| `test_grade_zero_without_grade_date_is_not_valid_grade` | **Borda:** nota=0 sem data de avaliação → `has_grade()=false` |
-| `test_is_grade_needed_offline_activity_at_deadline_boundary` | **Borda:** atividade offline, deadline==now → nota IS necessária (usa `>`, não `>=`) |
-| `test_is_activity_pending_offline_at_deadline_boundary` | **Borda:** atividade offline, deadline==now → IS pendente (usa `>`, não `>=`) |
+| `test_get_tcc_definition_memoizes_by_input_string` | Idempotência de `report_unasus_get_tcc_definition()` na mesma entrada |
+| `test_get_tcc_definition_distinct_inputs_distinct_results` | Inputs distintos não colidem na cache |
+| `test_get_tcc_definition_handles_malformed_input` | Pares sem `=` são silenciosamente ignorados |
+| `test_sistema_tcc_client_caches_get_tcc_definition` | `SistemaTccClient::get_tcc_definition()` cacheia por `url|key|id` (verificado mutando `set_mock_responses` entre chamadas) |
+| `test_sistema_tcc_client_distinct_keys_distinct_calls` | Clients com url/consumer_key diferentes não compartilham cache |
+
+#### `tests/unasus_factory_helpers_test.php` (10 testes — Fase 4)
+
+| Método | O que verifica |
+|--------|----------------|
+| `test_date_interval_normal_range_valid` / `_inverse_range_invalid` / `_invalid_format_returns_false` / `_empty_returns_false` / `_same_day_valid` | `report_unasus_date_interval_is_valid` em todos os casos críticos |
+| `test_interval_boundaries_adds_one_day_to_data_fim` | `report_acesso_tutor::get_interval_boundaries()` adiciona +1 dia em `data_fim` (limite aberto do `DatePeriod`) e normaliza para meia-noite |
+| `test_interval_boundaries_dst_transition` | Atravessa transição DST (Brasil 2018) — `P1D` é civil, calendar-aware |
+| `test_interval_boundaries_cross_year` | Intervalo que cruza ano novo |
+| `test_get_days_interval_same_day` / `_full_range` | Expansão de `get_days_interval()` para 1 dia / 5 dias |
+
+#### `tests/unasus_render_test.php` (~43 testes — Fase 5)
+
+Cobre 8 classes render de `datastructures.php` — transições puras `estado → __toString` e `estado → get_css_class`, com bordas em `prazo_maximo_avaliacao`, `prazo_maximo_entrega` e `passing_grade_percentage`:
+
+- `atividades_vs_notas_render` — 8 estados + bordas pouco/muito atraso
+- `boletim_render` / `nota_final_render` — 3 estados cada + bordas acima/abaixo da média
+- `entrega_de_atividades_render` — 6 estados + bordas pouco/muito atraso
+- `tcc_entrega_atividades_render` — 4 estados + render `Hoje` vs N dias
+- `tcc_concluido_render` — 2 estados
+- `historico_atribuicao_notas_render` — 5 estados
+- `modulos_concluidos_render` — 3 estados via `get_state()`
+- `potenciais_evasoes_render` — transições internas via `add_atividade_nao_realizada`
 
 ---
 
@@ -60,7 +86,9 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 **Container Selenium:** `selenium-chrome-unasuscp`
 **URL base:** `http://local-unasus-cp.moodle.ufsc.br`
 **Tags:** `@unasus @report_unasus @javascript`
-**Cobertura confirmada:** 90 cenários, 2528 passos, ~16 min de execução total
+**Cobertura confirmada:** 92 cenários, ~2540 passos, ~16 min de execução total. Inclui:
+- `unasus_branches_loops.feature` (Fase 6) — pin do comportamento "membro de tutoria sem matrícula" em `relatorios/loops.php`.
+- `unasus_synthesis_queries.feature` (Fase 7) — pin do contrato LEFT JOIN em `query_database_synthesis_from_users` (denominador 1/12 prova que estudantes sem registro permanecem no total).
 
 > **Pré-requisito de ambiente:** o usuário precisa estar no grupo `docker` (`sudo usermod -aG docker $USER` + nova sessão). Os scripts não usam `sudo`.
 
@@ -118,6 +146,12 @@ Este arquivo descreve os testes automatizados do plugin `report_unasus`.
 
 # Controle de acesso por capability
 ./run_behat.sh tests/behat/unasus_permissions.feature
+
+# Pin de branches em loops.php (membro de tutoria sem matrícula)
+./run_behat.sh tests/behat/unasus_branches_loops.feature
+
+# Pin do contrato LEFT JOIN das synthesis queries
+./run_behat.sh tests/behat/unasus_synthesis_queries.feature
 ```
 
 ---
