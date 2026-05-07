@@ -97,9 +97,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $query_atividades   = query_atividades_from_users($cohort_estudantes);
         $query_quiz         = query_quiz_from_users($cohort_estudantes);
         $query_forum        = query_postagens_forum_from_users($cohort_estudantes);
-        $query_database     = query_database_completion_from_users($cohort_estudantes);
+        $query_database     = query_database_synthesis_from_users($cohort_estudantes);
         $query_scorm        = query_scorm_from_users($cohort_estudantes);
-        $query_lti          = query_lti_completion_from_users($cohort_estudantes);
+        $query_lti          = query_lti_synthesis_from_users($cohort_estudantes);
 
         $result_array = loop_atividades_e_foruns_sintese2(
             $query_atividades,

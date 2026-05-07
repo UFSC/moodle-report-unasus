@@ -59,7 +59,7 @@ function query_alunos_relationship($cohort_estudantes) {
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
- LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
+      LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
       LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
                 {$query_cohort_estudantes}
                 {$query_cohort}
@@ -134,7 +134,7 @@ function query_alunos_relationship_student($cohort_estudantes) {
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
- LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
+      LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
       LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
                 {$query_cohort_estudantes}
                 {$query_cohort}
@@ -664,7 +664,20 @@ function query_database_adjusted_from_users($cohort_estudantes) {
     ";
 }
 
-function query_database_completion_from_users($cohort_estudantes) {
+/**
+ * Variant of {@see query_database_adjusted_from_users()} that returns every student
+ * of the tutoria group regardless of grade existence (LEFT JOIN on grade_items / grade_grades).
+ * The "adjusted" sibling INNER JOINs grade_items, so it filters out students with no grade row.
+ *
+ * Used by the "atividades_nota_atribuida" synthesis report, where the caller cross-references
+ * each row against {course_modules_completion} on its own — i.e. completion is checked outside
+ * this query, not inside it. The name reflects the consumer flow ("synthesis"), not any join
+ * to a completion table.
+ *
+ * @param mixed $cohort_estudantes
+ * @return string
+ */
+function query_database_synthesis_from_users($cohort_estudantes) {
 
     $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();
@@ -793,7 +806,19 @@ function query_lti_from_users ($cohort_estudantes) {
     ";
 }
 
-function query_lti_completion_from_users ($cohort_estudantes) {
+/**
+ * Variant of {@see query_lti_from_users()} that returns every student of the tutoria
+ * group regardless of grade existence (LEFT JOIN on grade_items / grade_grades).
+ * The non-suffixed sibling INNER JOINs grade_items, filtering out students with no grade row.
+ *
+ * Used by the "atividades_nota_atribuida" synthesis report, where completion is verified
+ * via a separate lookup against {course_modules_completion} after this query runs — i.e.
+ * the name reflects the consumer flow ("synthesis"), not any join to a completion table.
+ *
+ * @param mixed $cohort_estudantes
+ * @return string
+ */
+function query_lti_synthesis_from_users($cohort_estudantes) {
 
     $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
     $is_student = query_is_student();

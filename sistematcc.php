@@ -150,9 +150,15 @@ class report_unasus_SistemaTccClient {
         // Return config-table mock response (cross-process mocking for Behat browser tests).
         // The Behat context stores mock JSON in mdl_config_plugins via set_config() so that
         // the web server PHP process can read it when rendering the report page.
+        // Cache lookups per-process keyed by config_key so reports calling post() many times
+        // in the same request (e.g. one LTI per student) don't repeat the DB read.
         if (function_exists('get_config')) {
+            static $config_mock_cache = array();
             $config_key = 'behat_tcc_mock_' . ltrim($path, '/');
-            $mock = get_config('report_unasus', $config_key);
+            if (!array_key_exists($config_key, $config_mock_cache)) {
+                $config_mock_cache[$config_key] = get_config('report_unasus', $config_key);
+            }
+            $mock = $config_mock_cache[$config_key];
             if ($mock !== false) {
                 return $mock;
             }
