@@ -528,7 +528,7 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                 if (empty($atividade->baseurl)) {
                                     $array_das_atividades['lti_' . $atividade->id] = new report_unasus_dado_atividades_nota_atribuida($total_alunos_temp);
 
-                                    if (!empty($query_lti) && is_a($report, 'report_atividades_nota_atribuida')) {
+                                    if (!empty($query_lti) && $report->needs_lti_synthesis_fetch()) {
                                         $params = array(
                                             'id_activity' => $atividade->id,
                                             'courseid' => $modulo,

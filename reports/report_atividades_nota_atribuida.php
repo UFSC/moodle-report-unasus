@@ -22,6 +22,10 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         echo $renderer->build_page();
     }
 
+    public function needs_lti_synthesis_fetch() {
+        return true;
+    }
+
     public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
         echo $renderer->page_avaliacoes_em_atraso($this);
