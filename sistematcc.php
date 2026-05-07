@@ -29,14 +29,24 @@ class report_unasus_SistemaTccClient {
     private $ZendInstalled;
 
     /**
-     * Static mock responses for Behat tests.
+     * Static mock responses for same-process tests (PHPUnit).
      * When non-null, HTTP calls are bypassed and these values are returned instead.
      * Keys are endpoint paths (e.g. '/tcc_definition_service', '/reportingservice_tcc').
-     * Set to null to restore normal production behaviour.
+     * Mutate via {@see self::set_mock_responses()} — do not access directly.
      *
      * @var array|null
      */
-    public static $mock_responses = null;
+    private static $mock_responses = null;
+
+    /**
+     * Test-only setter for {@see self::$mock_responses}.
+     * Pass null to restore normal production behaviour.
+     *
+     * @param array|null $responses Map of endpoint path => mocked response body.
+     */
+    public static function set_mock_responses($responses) {
+        self::$mock_responses = $responses;
+    }
 
     public function getZendInstalled() {
         // When static mock mode is active (same-process, e.g. PHPUnit), pretend

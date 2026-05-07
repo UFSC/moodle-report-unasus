@@ -25,7 +25,6 @@ if [ -f ".env" ]; then
   set +a
 else
   err "Arquivo .env não encontrado."
-  exit 1;
 fi
 
 SISTEM_NAME="local-$CORE_NAME"

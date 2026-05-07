@@ -52,7 +52,7 @@ class report_acesso_tutor extends report_unasus_factory {
 
         $meses = array();
         foreach ($daterange as $date) {
-            $mes = strftime('%B', $date->format('U'));
+            $mes = strftime('%B', (int) $date->format('U'));
             if (!array_key_exists($mes, $meses)) {
                 $meses[$mes] = array();
             }

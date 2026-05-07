@@ -32,7 +32,6 @@ if [ -f "../../../../.env" ]; then
   set +a
 else
   err "Arquivo ../../../../.env não encontrado."
-  exit 1;
 fi
 
 if [ -f ".env" ]; then
@@ -41,7 +40,6 @@ if [ -f ".env" ]; then
   set +a
 else
   err "Arquivo .env não encontrado."
-  exit 1;
 fi
 
 # ---------------------------------------------------------------------------

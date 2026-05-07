@@ -34,7 +34,6 @@ if [ -f ".env" ]; then
   done < .env
 else
   err "Arquivo .env não encontrado."
-  exit 1;
 fi
 
 # ---------------------------------------------------------------------------

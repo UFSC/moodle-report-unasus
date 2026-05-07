@@ -3081,7 +3081,7 @@ EOD;
         unset_config('behat_tcc_mock_reportingservice_tcc', 'report_unasus');
         // Also clear static mock in case it was set directly (e.g. in same-process unit tests)
         if (class_exists('report_unasus_SistemaTccClient')) {
-            report_unasus_SistemaTccClient::$mock_responses = null;
+            report_unasus_SistemaTccClient::set_mock_responses(null);
         }
     }
 }

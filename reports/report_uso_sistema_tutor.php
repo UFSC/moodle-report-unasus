@@ -102,8 +102,8 @@ class report_uso_sistema_tutor extends report_unasus_factory {
 
         //Converte a string data pra um DateTime e depois pra Unixtime
         $data_inicio = date_create_from_format('d/m/Y', $this->data_inicio);
-        $data_inicio->setTime(0,0,0);
-        $data_inicio_unix = strtotime($data_inicio->format('Y-m-d'));
+        $data_inicio->setTime(0, 0, 0);
+        $data_inicio_unix = $data_inicio->getTimestamp();
 
         $data_fim = date_create_from_format('d/m/Y', $this->data_fim);
         $data_fim = $data_fim->add($diff24Hours);
