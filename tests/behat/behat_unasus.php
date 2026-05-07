@@ -2645,6 +2645,37 @@ EOD;
     }
 
     /**
+     * Removes a user's enrolment from a course. Used by branch-coverage
+     * scenarios that need a tutoria member without a corresponding course
+     * enrolment, exercising the `!$r->enrol` path in relatorios/loops.php.
+     *
+     * @Given /^I unenrol user "([^"]*)" from course "([^"]*)"$/
+     */
+    public function i_unenrol_user_from_course($username, $courseidentifier) {
+        global $DB;
+
+        $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
+        $courseid = $DB->get_field('course', 'id', array('shortname' => $courseidentifier), MUST_EXIST);
+
+        // Itera por todas as instâncias de enrol no curso e remove o usuário em cada uma
+        // — cobre tanto manual quanto plugins de enrol que possam ter matriculado o aluno.
+        $instances = enrol_get_instances($courseid, false);
+        foreach ($instances as $instance) {
+            $plugin = enrol_get_plugin($instance->enrol);
+            if ($plugin === null) {
+                continue;
+            }
+            $userenrolment = $DB->get_record('user_enrolments', array(
+                'enrolid' => $instance->id,
+                'userid'  => $userid,
+            ));
+            if ($userenrolment) {
+                $plugin->unenrol_user($instance, $userid);
+            }
+        }
+    }
+
+    /**
      * Resets TCC mock responses after each scenario tagged @tcc so that
      * mock state does not leak into subsequent scenarios.
      *
