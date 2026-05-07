@@ -20,6 +20,24 @@ Identified during analysis (April 2026). Items marked ✅ have been fixed; remai
 
 **Existing caches:** Factory singleton (`factory.php`), LtiPortfolioQuery instance-level cache by `grupo_tutoria`, `sistematcc.php` static variable for mock detection, `report_unasus_get_lti_type_config()` static cache by `typeid`, `report_unasus_get_tcc_definition()` static cache by input, `SistemaTccClient::get_tcc_definition()` static cache by `url|key|id`. All are single-request scope only.
 
+## Pending PHPUnit Coverage Gaps
+
+Identified by REVIEW_10136 (May 2026). None of the items below correspond to a bug — the production code paths are validated end-to-end by Behat. They are pure hardening: pinning invariants in fast unit tests so future refactors fail loudly instead of regressing silently. PHPUnit currently covers `tests/unasus_datastructures_test.php` only (data classes).
+
+| Target | What to assert | Notes |
+|---|---|---|
+| `datastructures.php:790-807` — `report_unasus_person::user_activity_completion()` | Lookup by `coursemoduleid` returns the right row when populated; returns falsy when missing | Requires DB fixture. Verifies the JOIN→`get_field` migration that landed with the `coursemoduleid` work |
+| `report_atividades_nota_atribuida::get_completion_states_by_user()` / `is_activity_complete_for_user()` | Sentinel completion states (`COMPLETION_COMPLETE`, `COMPLETION_INCOMPLETE`) drive the boolean correctly; the IN-list filter from the blocker fix returns only requested cmids | Gates the entire synthesis report; today only covered indirectly via Behat |
+| `locallib.php` — `report_unasus_get_lti_type_config($typeid)` | Second call with the same `$typeid` does **not** issue another DB query (assert via `$DB` mock or call counter) | Memoization invariant |
+| `locallib.php` — `report_unasus_get_tcc_definition($input)` | Second call with the same input string returns same parsed object; cache keyed by input | Memoization invariant |
+| `sistematcc.php` — `SistemaTccClient::get_tcc_definition($id)` | Second call with same `(url, consumer_key, id)` triple returns cached object without invoking `post()` | Memoization invariant |
+| `sistematcc.php` — `SistemaTccClient::post()` mock plumbing | `behat_tcc_mock_*` config lookup is read at most once per `$config_key` per process (achado #7 da review) | Memoization invariant |
+| `relatorios/queries.php` — `query_database_synthesis_from_users()` / `query_lti_synthesis_from_users()` | Returns every student row of the tutoria group with grade-or-null (vs. INNER-JOIN sibling that filters); ordering stable | Documents the contract created when the names were rebranded from `_completion_` |
+| `reports/report_acesso_tutor.php` — `get_interval_boundaries()` / `get_days_interval()` | Pure date arithmetic edge cases (DST, month boundaries, same-day, cross-year) | Easy targets — no DB or globals |
+| `activities_datastructures.php` — grade `-1` (string `"-1"`) | The cast-to-int filter applied across all activity classes — currently only `report_unasus_data_activity` has the string-form test (`test_report_unasus_data_activity_grade_minus_one_as_string`); the same change in forum, quiz, db, scorm, lti, nota_final remains uncovered | Mechanical: copy the existing test's structure per class |
+
+The gaps are documented here (rather than in the closed `REVIEW_10136.md`) so they remain discoverable when planning the next hardening pass. Each item is independently picked up — no ordering dependency.
+
 ## Recent Changes Context
 
 Recent commits focus on report ordering, activity presentation, test coverage, documentation, bug fixes, and infrastructure improvements:
