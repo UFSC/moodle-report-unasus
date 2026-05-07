@@ -2649,6 +2649,13 @@ EOD;
      * scenarios that need a tutoria member without a corresponding course
      * enrolment, exercising the `!$r->enrol` path in relatorios/loops.php.
      *
+     * Faz DELETE direto em mdl_user_enrolments para evitar disparar o evento
+     * `\core\event\user_enrolment_deleted` — observers de plugins locais
+     * (local_redmine, local_register_autoenrol, etc.) podem ter side effects
+     * em cache/static que sobrevivem ao reset do Behat e contaminam features
+     * subsequentes. O DELETE direto é suficiente para a query de loops.php
+     * que verifica $r->enrol via LEFT JOIN.
+     *
      * @Given /^I unenrol user "([^"]*)" from course "([^"]*)"$/
      */
     public function i_unenrol_user_from_course($username, $courseidentifier) {
@@ -2657,22 +2664,10 @@ EOD;
         $userid = $DB->get_field('user', 'id', array('username' => $username), MUST_EXIST);
         $courseid = $DB->get_field('course', 'id', array('shortname' => $courseidentifier), MUST_EXIST);
 
-        // Itera por todas as instâncias de enrol no curso e remove o usuário em cada uma
-        // — cobre tanto manual quanto plugins de enrol que possam ter matriculado o aluno.
-        $instances = enrol_get_instances($courseid, false);
-        foreach ($instances as $instance) {
-            $plugin = enrol_get_plugin($instance->enrol);
-            if ($plugin === null) {
-                continue;
-            }
-            $userenrolment = $DB->get_record('user_enrolments', array(
-                'enrolid' => $instance->id,
-                'userid'  => $userid,
-            ));
-            if ($userenrolment) {
-                $plugin->unenrol_user($instance, $userid);
-            }
-        }
+        $sql = "DELETE FROM {user_enrolments}
+                 WHERE userid = :userid
+                   AND enrolid IN (SELECT id FROM {enrol} WHERE courseid = :courseid)";
+        $DB->execute($sql, array('userid' => $userid, 'courseid' => $courseid));
     }
 
     /**
