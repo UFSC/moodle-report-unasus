@@ -633,7 +633,9 @@ function query_database_adjusted_from_users($cohort_estudantes) {
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
-                   dr.timemodified AS submission_date,
+                   (SELECT MAX(dr.timemodified)
+                      FROM {data_records} dr
+                     WHERE dr.dataid = d.id AND dr.userid = u.id) AS submission_date,
                    gg.timemodified AS grade_date,
                    'db_activity' as name_activity,
                    u.is_student
@@ -657,10 +659,7 @@ function query_database_adjusted_from_users($cohort_estudantes) {
                     gi.itemmodule = 'data'  AND gg.itemid = gi.id)
               JOIN {data} d
                 ON gi.iteminstance = d.id
-         LEFT JOIN {data_records} dr
-                ON (d.id = dr.dataid AND u.id = dr.userid)
              WHERE d.id = :id_activity
-          GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -678,7 +677,9 @@ function query_database_completion_from_users($cohort_estudantes) {
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
-                   dr.timemodified AS submission_date,
+                   (SELECT MAX(dr.timemodified)
+                      FROM {data_records} dr
+                     WHERE dr.dataid = d.id AND dr.userid = u.id) AS submission_date,
                    gg.timemodified AS grade_date,
                    'db_activity' as name_activity,
                    u.is_student
@@ -702,9 +703,6 @@ function query_database_completion_from_users($cohort_estudantes) {
                     gi.itemmodule = 'data' AND gi.iteminstance = d.id)
          LEFT JOIN {grade_grades} gg
                 ON (gg.userid = u.id AND gg.itemid = gi.id)
-         LEFT JOIN {data_records} dr
-                ON (d.id = dr.dataid AND u.id = dr.userid)
-          GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -748,7 +746,6 @@ function query_scorm_from_users ($cohort_estudantes) {
               JOIN {scorm} s
                 ON gi.iteminstance = s.id
              WHERE s.id = :id_activity
-          GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -792,7 +789,6 @@ function query_lti_from_users ($cohort_estudantes) {
               JOIN {lti} l
                 ON gi.iteminstance = l.id
              WHERE l.id = :id_activity
-          GROUP BY userid
           ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";
 }
@@ -834,7 +830,6 @@ function query_lti_completion_from_users ($cohort_estudantes) {
                     gi.itemmodule = 'lti' AND gi.iteminstance = l.id)
          LEFT JOIN {grade_grades} gg
                 ON (gg.userid = u3.id AND gg.itemid = gi.id)
-          GROUP BY userid
           ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";
 }
@@ -938,17 +933,15 @@ function query_quiz_from_users($cohort_estudantes) {
                       ON (std.userid = u2.id)
                       ORDER BY firstname
                    ) u
-         LEFT JOIN (
-                        SELECT qa.*
-                          FROM (
-                                SELECT *
-                                  FROM {quiz_attempts}
-                                 WHERE (quiz=:assignmentid AND timefinish != 0)
-                              ORDER BY attempt DESC
-                                ) qa
-                      GROUP BY qa.userid, qa.quiz
-                   ) qa
-                ON (qa.userid = u.id)
+         LEFT JOIN {quiz_attempts} qa
+                ON (qa.userid = u.id
+                    AND qa.quiz = :assignmentid
+                    AND qa.timefinish != 0
+                    AND qa.attempt = (SELECT MAX(attempt)
+                                        FROM {quiz_attempts}
+                                       WHERE userid = qa.userid
+                                         AND quiz = qa.quiz
+                                         AND timefinish != 0))
          LEFT JOIN {quiz_grades} qg
                 ON (u.id = qg.userid AND qg.quiz=qa.quiz)
          LEFT JOIN {quiz} q
@@ -996,7 +989,6 @@ function query_grades_lti($cohort_estudantes) {
                     gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
               JOIN {lti} l
                 ON gi.iteminstance = l.id
-          GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }

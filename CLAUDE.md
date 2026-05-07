@@ -370,3 +370,36 @@ Composer notes for this legacy stack:
 - Language strings: `lang/en/report_unasus.php` (translations for UI)
 - Version: Tracked in `version.php` with timestamp format YYYYMMDDXX
 - Requires Moodle 2.8.6+ and specific local plugin versions
+
+## Behat validation policy
+
+**Rule**: any change to a report (`/reports/report_*.php`) or to a function/file that impacts a report must be validated by Behat before the task is marked complete. PHPUnit only covers data classes; SQL queries, role-scoping, table render, CSV export, TCC integration and capability scoping rely on Behat for regression protection.
+
+**Procedure** (blocking — wait for exit code before declaring done):
+
+1. **Smoke set first** (always, on any change touching a report):
+   ```bash
+   ./run_behat.sh tests/behat/unasus_sem_dados.feature
+   ./run_behat.sh tests/behat/unasus_permissions.feature
+   ```
+2. If smoke passes, run features per the file→feature mapping below.
+3. **On failure**: stop immediately, report the failing scenario and the error excerpt, wait for instruction. Do not attempt fixes by initiative, do not move on.
+
+**File → features mapping**:
+
+| Changed file | Features to run (in addition to smoke) |
+|---|---|
+| `reports/report_X.php` | `tests/behat/unasus_X.feature` |
+| `relatorios/queries.php` | full suite (`./run_behat.sh`) |
+| `relatorios/loops.php` | full suite except `acesso_tutor`/`uso_sistema_tutor` (those don't go through loops) |
+| `datastructures.php` | full suite |
+| `activities_datastructures.php` | full suite except `acesso_tutor`/`uso_sistema_tutor` |
+| `factory.php` | full suite |
+| `renderer.php` | full suite |
+| `locallib.php` | full suite |
+| `sistematcc.php` | TCC features only (`unasus_tcc.feature`, `unasus_filtro_cohort_tcc.feature`, `unasus_manager_tcc.feature`) |
+| `lib.php`, `version.php`, `settings.php` | smoke set only |
+| Test/infra (`run_*.sh`, `tests/behat/behat_unasus.php`, `.env*`) | nothing |
+| Disposable scripts (e.g. one-off benchmark/migration files) | nothing |
+
+For "full suite" prefer running `./run_behat.sh` without filters (default tag `@report_unasus`) — cheaper than enqueueing 17 features individually.

@@ -39,7 +39,7 @@ Background:
     And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment two"
     And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test forum one"
     And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test database one"
-    And the unasus report table should have "1/4 25.0%" at row "Teacher t1" and column "Test lti one"
+    And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test lti one"
     And the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Total"
 
     And the unasus report table should have "2/4 50.0%" at row "Teacher t2" and column "Test assignment one"
@@ -56,7 +56,7 @@ Background:
     And the unasus report table should have "4/12 33.3%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment one"
     And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment two"
     And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test database one"
-    And the unasus report table should have "2/12 16.7%" at row "Total alunos com atividade concluida / Total alunos" and column "Test lti one"
+    And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test lti one"
     And the unasus report table should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Total"
 
   @atividades_nota_atribuida @csv
@@ -78,7 +78,7 @@ Background:
     And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment two"
     And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test forum one"
     And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test database one"
-    And the exported unasus csv should have "1/4 25.0%" at row "Teacher t1" and column "Test lti one"
+    And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Test lti one"
     And the exported unasus csv should have "2/4 50.0%" at row "Teacher t1" and column "Total"
 
     And the exported unasus csv should have "2/4 50.0%" at row "Teacher t2" and column "Test assignment one"
@@ -95,5 +95,5 @@ Background:
     And the exported unasus csv should have "4/12 33.3%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment one"
     And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test assignment two"
     And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test database one"
-    And the exported unasus csv should have "2/12 16.7%" at row "Total alunos com atividade concluida / Total alunos" and column "Test lti one"
+    And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Test lti one"
     And the exported unasus csv should have "3/12 25.0%" at row "Total alunos com atividade concluida / Total alunos" and column "Total"

@@ -2806,7 +2806,8 @@ EOD;
             ['completion' => 1, 'completionexpected' => 978307200]
         );
         $generator->create_module('lti',
-            ['course' => $course->id, 'idnumber' => 'l1', 'name' => 'Test lti one', 'intro' => 'LTI intro'],
+            ['course' => $course->id, 'idnumber' => 'l1', 'name' => 'Test lti one', 'intro' => 'LTI intro',
+             'instructorchoiceacceptgrades' => 1, 'grade' => 100],
             ['completion' => 1, 'completionexpected' => 978307200]
         );
 

@@ -125,7 +125,7 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         // Total do grupo (tutor ou polo)
         $atividades_alunos_grupos = $atividades_alunos->somatorio_grupos;
 
-        $completionstates = $this->get_completion_states_by_user();
+        $completionstates = $this->get_completion_states_by_user($associativo_atividade);
 
         // passa pelos dados de cada atividade, de cada aluno e agrupado (polo ou tutor)
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
@@ -263,13 +263,47 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
     /**
      * Returns course module completion states indexed by user and course module.
      *
+     * Filtra por (coursemoduleid, userid) derivados do próprio relatório para
+     * evitar carregar a tabela course_modules_completion inteira em memória.
+     *
+     * @param array $associativo_atividade [$grupo_id][$aluno_id] => array<report_unasus_data>
      * @return array
      */
-    private function get_completion_states_by_user() {
+    private function get_completion_states_by_user(array $associativo_atividade) {
         global $DB;
 
         $states = array();
-        $records = $DB->get_records('course_modules_completion', null, '', 'id,userid,coursemoduleid,completionstate');
+        $coursemoduleids = array();
+        $userids = array();
+
+        foreach ($associativo_atividade as $array_dados) {
+            foreach ($array_dados as $aluno_id => $aluno_activities) {
+                $userids[(int) $aluno_id] = true;
+                foreach ($aluno_activities as $atividade) {
+                    if (!empty($atividade->source_activity->coursemoduleid)) {
+                        $coursemoduleids[(int) $atividade->source_activity->coursemoduleid] = true;
+                    }
+                }
+            }
+        }
+
+        if (empty($coursemoduleids) || empty($userids)) {
+            return $states;
+        }
+
+        list($cmsql, $cmparams) = $DB->get_in_or_equal(array_keys($coursemoduleids), SQL_PARAMS_NAMED, 'cm');
+        list($usersql, $userparams) = $DB->get_in_or_equal(array_keys($userids), SQL_PARAMS_NAMED, 'u');
+
+        $select = "coursemoduleid {$cmsql} AND userid {$usersql}";
+        $params = array_merge($cmparams, $userparams);
+
+        $records = $DB->get_records_select(
+            'course_modules_completion',
+            $select,
+            $params,
+            '',
+            'id,userid,coursemoduleid,completionstate'
+        );
 
         foreach ($records as $record) {
             if (!isset($states[$record->userid])) {
