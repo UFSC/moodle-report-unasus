@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Read(//home/rsc/workspace/docker/php56-nginx/config/**)"
     ]
   }
 }

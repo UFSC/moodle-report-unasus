@@ -28,7 +28,43 @@ class report_unasus_SistemaTccClient {
 
     private $ZendInstalled;
 
+    /**
+     * Static mock responses for same-process tests (PHPUnit).
+     * When non-null, HTTP calls are bypassed and these values are returned instead.
+     * Keys are endpoint paths (e.g. '/tcc_definition_service', '/reportingservice_tcc').
+     * Mutate via {@see self::set_mock_responses()} — do not access directly.
+     *
+     * @var array|null
+     */
+    private static $mock_responses = null;
+
+    /**
+     * Test-only setter for {@see self::$mock_responses}.
+     * Pass null to restore normal production behaviour.
+     *
+     * @param array|null $responses Map of endpoint path => mocked response body.
+     */
+    public static function set_mock_responses($responses) {
+        self::$mock_responses = $responses;
+    }
+
     public function getZendInstalled() {
+        // When static mock mode is active (same-process, e.g. PHPUnit), pretend
+        // Zend is installed so the call flow reaches post().
+        if (self::$mock_responses !== null) {
+            return true;
+        }
+        // Also check the config-table mock (cross-process: Behat browser tests).
+        // Cache result in a static variable to avoid repeated DB calls on each invocation.
+        if (function_exists('get_config')) {
+            static $is_mock_active = null;
+            if ($is_mock_active === null) {
+                $is_mock_active = get_config('report_unasus', 'behat_tcc_mock_tcc_definition_service') !== false;
+            }
+            if ($is_mock_active) {
+                return true;
+            }
+        }
         return $this->ZendInstalled;
     }
 
@@ -60,6 +96,12 @@ class report_unasus_SistemaTccClient {
      * @return mixed
      */
     public function get_tcc_definition($tcc_definition_id) {
+        // per-request cache keyed by url+consumer_key+id to avoid duplicate WS calls
+        static $cache = array();
+        $cache_key = $this->url . '|' . $this->consumer_key . '|' . $tcc_definition_id;
+        if (isset($cache[$cache_key])) {
+            return $cache[$cache_key];
+        }
 
         $params = array(
             'consumer_key' => $this->consumer_key,
@@ -69,6 +111,7 @@ class report_unasus_SistemaTccClient {
         $json = $this->post('/tcc_definition_service', $params);
         $object = json_decode($json);
 
+        $cache[$cache_key] = $object;
         return $object;
     }
 
@@ -110,6 +153,27 @@ class report_unasus_SistemaTccClient {
      * @return bool|string
      */
     private function post($path, $param) {
+        // Return static mock response (same-process mocking, e.g. PHPUnit).
+        if (self::$mock_responses !== null) {
+            return isset(self::$mock_responses[$path]) ? self::$mock_responses[$path] : false;
+        }
+        // Return config-table mock response (cross-process mocking for Behat browser tests).
+        // The Behat context stores mock JSON in mdl_config_plugins via set_config() so that
+        // the web server PHP process can read it when rendering the report page.
+        // Cache lookups per-process keyed by config_key so reports calling post() many times
+        // in the same request (e.g. one LTI per student) don't repeat the DB read.
+        if (function_exists('get_config')) {
+            static $config_mock_cache = array();
+            $config_key = 'behat_tcc_mock_' . ltrim($path, '/');
+            if (!array_key_exists($config_key, $config_mock_cache)) {
+                $config_mock_cache[$config_key] = get_config('report_unasus', $config_key);
+            }
+            $mock = $config_mock_cache[$config_key];
+            if ($mock !== false) {
+                return $mock;
+            }
+        }
+
         /*
          * Solução  para enviar via post array do php
          * http://php.net/manual/pt_BR/function.http-build-query.php

@@ -344,6 +344,19 @@ class report_unasus_factory {
         return isset($this->agrupamentos_membros[$grouping_id][$course_id][$user_id]);
     }
 
+    /**
+     * Hook used by relatorios/loops.php to decide whether the LTI branch of
+     * loop_atividades_e_foruns_sintese2() should issue the synthesis-style
+     * fetch (every student row, grade nullable). Defaults to false; reports
+     * that consume {@see query_lti_synthesis_from_users()} downstream
+     * override this to return true.
+     *
+     * @return bool
+     */
+    public function needs_lti_synthesis_fetch() {
+        return false;
+    }
+
     static function eliminate_html ($data){
         return strip_tags($data);
     }

@@ -473,6 +473,27 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $this->assertFalse($data->has_grade());
     }
 
+    public function test_report_unasus_data_activity_grade_minus_one_as_string() {
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+
+        $db_model                    = new stdClass();
+        $db_model->userid            = 1;
+        $db_model->polo              = null;
+        $db_model->grade             = "-1"; // Retorna como string do banco
+        $db_model->grademax          = 10;
+        $db_model->grade_created     = null;
+        $db_model->grade_modified    = null;
+        $db_model->submission_modified = time();
+        $db_model->status            = 'submitted';
+
+        $data = new report_unasus_data_activity($activity, $db_model);
+
+        // Grade "-1" (string) também deve ser tratado como ausência de nota
+        $this->assertFalse($data->has_grade());
+        $this->assertNull($data->grade);
+    }
+
     public function test_report_unasus_data_activity_status_new() {
         /** @var report_unasus_activity $activity */
         $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
@@ -585,5 +606,106 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         // Agrupamento não encontrado na estrutura
         $this->assertFalse($data->is_member_of(array()));
+    }
+
+    // -----------------------------------------------------------------------
+    // Testes de borda — limites de datas
+    // -----------------------------------------------------------------------
+
+    public function test_is_submission_due_exactly_at_deadline() {
+        // Limite inferior: entrega exatamente no prazo (deadline == submission_date).
+        // A comparação interna é deadline < submission_date, portanto igualdade → false.
+        $deadline = mktime(12, 0, 0, 6, 15, 2024);
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        $activity->deadline = $deadline;
+
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+        $data->submission_date = $deadline;
+
+        $this->assertFalse($data->is_submission_due());
+    }
+
+    public function test_is_submission_due_one_second_after_deadline() {
+        // Um segundo após o prazo já é considerado atraso.
+        $deadline = mktime(12, 0, 0, 6, 15, 2024);
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        $activity->deadline = $deadline;
+
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+        $data->submission_date = $deadline + 1;
+
+        $this->assertTrue($data->is_submission_due());
+    }
+
+    // -----------------------------------------------------------------------
+    // Testes de borda — nota zero é diferente de nota ausente
+    // -----------------------------------------------------------------------
+
+    public function test_grade_zero_with_grade_date_is_valid_grade() {
+        // Nota 0 com data de avaliação é uma nota válida (diferente de null e de -1).
+        $now = time();
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        $data->grade      = 0;
+        $data->grade_date = $now;
+
+        $this->assertTrue($data->has_grade());
+    }
+
+    public function test_grade_zero_without_grade_date_is_not_valid_grade() {
+        // Nota 0 sem data de avaliação não é considerada nota válida pelo relatório.
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        $data->grade      = 0;
+        $data->grade_date = null;
+
+        $this->assertFalse($data->has_grade());
+    }
+
+    // -----------------------------------------------------------------------
+    // Testes de borda — atividade offline exatamente no prazo (> vs >=)
+    // -----------------------------------------------------------------------
+
+    public function test_is_grade_needed_offline_activity_at_deadline_boundary() {
+        // Para atividade offline, a isenção de nota usa deadline > now (estritamente maior).
+        // Quando deadline == now, a isenção não se aplica → nota IS necessária.
+        $now = time();
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
+        $activity->deadline = $now;
+
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        $this->assertTrue($data->is_grade_needed());
+    }
+
+    public function test_is_activity_pending_offline_at_deadline_boundary() {
+        // Para atividade offline, a isenção de pendência usa deadline > now (estritamente maior).
+        // Quando deadline == now, a isenção não se aplica → atividade IS pendente.
+        $now = time();
+
+        /** @var report_unasus_activity $activity */
+        $activity = $this->getMockForAbstractClass('report_unasus_activity', array(false, true));
+        $activity->deadline = $now;
+
+        /** @var report_unasus_data $data */
+        $data = $this->getMockForAbstractClass('report_unasus_data', array(&$activity));
+
+        $this->assertTrue($data->is_activity_pending());
     }
 }

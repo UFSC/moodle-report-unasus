@@ -16,12 +16,32 @@
 set -e
 
 # ---------------------------------------------------------------------------
+# Funções auxiliares
+# ---------------------------------------------------------------------------
+log()  { echo -e "\033[0;32m[INFO]\033[0m  $*"; }
+warn() { echo -e "\033[0;33m[WARN]\033[0m  $*"; }
+err()  { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Leitura do arquivo .env para memória
+# ---------------------------------------------------------------------------
+if [ -f ".env" ]; then
+  while read -r line || [[ -n "$line" ]]; do
+    # Ignora comentários e linhas vazias
+    if [[ ! "$line" =~ ^# && -n "$line" ]]; then
+      export "$line"
+    fi
+  done < .env
+else
+  err "Arquivo .env não encontrado."
+fi
+
+# ---------------------------------------------------------------------------
 # Configurações
 # ---------------------------------------------------------------------------
-SISTEM_NAME="local-unasuscp"
-DOCKER_VERSION="php56-nginx"
+SISTEM_NAME="local-$CORE_NAME"
 CONTAINER_NAME="moodle-$SISTEM_NAME"
-DOCKER_COMPOSE_DIR="/home/rsc/workspace/docker/$DOCKER_VERSION"
+DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/$DOCKER_VERSION"
 MOODLE_LOCAL_SITE="www/$SISTEM_NAME"
 MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
 PHPUNIT_PREFIX="phpu_"
@@ -38,23 +58,16 @@ for arg in "$@"; do
     esac
 done
 
-# ---------------------------------------------------------------------------
-# Funções auxiliares
-# ---------------------------------------------------------------------------
-log()  { echo -e "\033[0;32m[INFO]\033[0m  $*"; }
-warn() { echo -e "\033[0;33m[WARN]\033[0m  $*"; }
-err()  { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; exit 1; }
-
 container_is_running() {
-    sudo docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null | grep -q "true"
+    docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null | grep -q "true"
 }
 
 exec_as_root() {
-    sudo docker exec -e XDEBUG_MODE=off "$CONTAINER_NAME" bash -c "$1"
+    docker exec -e XDEBUG_MODE=off "$CONTAINER_NAME" bash -c "$1"
 }
 
 exec_as_moodle() {
-    sudo docker exec -e XDEBUG_MODE=off -u moodle "$CONTAINER_NAME" bash -c "$1"
+    docker exec -e XDEBUG_MODE=off -u moodle "$CONTAINER_NAME" bash -c "$1"
 }
 
 get_moodle_build() {
@@ -82,7 +95,7 @@ if container_is_running; then
     log "Container já está rodando."
 else
     warn "Container não está rodando. Iniciando via docker compose..."
-    (cd "$DOCKER_COMPOSE_DIR" && sudo docker compose up -d --remove-orphans "$CONTAINER_NAME")
+    (cd "$DOCKER_COMPOSE_DIR" && docker compose up -d --remove-orphans "$CONTAINER_NAME")
 
     log "Aguardando container inicializar..."
     for i in $(seq 1 12); do
@@ -95,7 +108,7 @@ else
     done
 
     if ! container_is_running; then
-        err "Falha ao iniciar o container '$CONTAINER_NAME'. Verifique: sudo docker compose logs $CONTAINER_NAME"
+        err "Falha ao iniciar o container '$CONTAINER_NAME'. Verifique: docker compose logs $CONTAINER_NAME"
     fi
 fi
 

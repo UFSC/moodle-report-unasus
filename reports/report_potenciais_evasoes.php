@@ -29,18 +29,16 @@ class report_potenciais_evasoes extends report_unasus_factory {
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
 
         $fp = fopen('php://output', 'w');
 
-        $tutor_name = array('');
         $n = count($header);
+        $data_header = array();
 
         for ($i = 0; $i < $n; $i++) {
             $data_header[] = strip_tags($header[$i]);
@@ -48,20 +46,12 @@ class report_potenciais_evasoes extends report_unasus_factory {
 
         fputcsv($fp, $data_header);
 
-        $name = array_map("Factory::eliminate_html", array_keys($dados));
-        $count = 0;
-        $n = count($name);
-
-        foreach ($dados as $dat) {
-            if ($count < $n) {
-                file_put_contents('php://output', $name[$count]);
-                fputcsv($fp, $tutor_name);
-            }
+        foreach ($dados as $groupname => $dat) {
+            fputcsv($fp, array(report_unasus_factory::eliminate_html($groupname)));
             foreach ($dat as $d) {
-                $output = array_map("Factory::eliminate_html", $d);
+                $output = array_map("report_unasus_factory::eliminate_html", $d);
                 fputcsv($fp, $output);
             }
-            $count++;
         }
         fclose($fp);
     }

@@ -731,7 +731,7 @@ class report_unasus_data_activity extends report_unasus_data {
         $grade = isset($db_model->grade) ? $db_model->grade : null;
         // O Moodle usa -1 para indicar que a atividade não possui escala de nota.
         // Nesses casos, a nota é tratada como ausente para fins de relatório.
-        if (!is_null($grade) && $grade !== -1) {
+        if (!is_null($grade) && (int) $grade !== -1) {
             $this->grade = (float) $grade;
         }
         $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
@@ -783,7 +783,7 @@ class report_unasus_data_forum extends report_unasus_data {
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
         $grade = isset($db_model->grade) ? $db_model->grade : null;
-        if (!is_null($grade) && $grade != -1) {
+        if (!is_null($grade) && (int) $grade != -1) {
             $this->grade = (float) $grade;
         }
         $this->submission_date = isset($db_model->submission_date) ? $db_model->submission_date : null;
@@ -821,7 +821,7 @@ class report_unasus_data_quiz extends report_unasus_data {
         $this->userid = $db_model->userid;
         $this->polo = $db_model->polo;
         $grade = isset($db_model->grade) ? $db_model->grade : null;
-        if (!is_null($grade) && $grade != -1) {
+        if (!is_null($grade) && (int) $grade != -1) {
             $this->grade = (float) $grade;
         }
         $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
@@ -844,7 +844,7 @@ class report_unasus_data_db extends report_unasus_data {
         $this->userid = $db_model->userid;
         $this->databaseid = isset($db_model->databaseid) ? $db_model->databaseid : null;
         $grade = isset($db_model->grade) ? $db_model->grade : null;
-        if (!is_null($grade) && $grade != -1) {
+        if (!is_null($grade) && (int) $grade != -1) {
             $this->grade = (float) $grade;
         }
         $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
@@ -867,7 +867,7 @@ class report_unasus_data_scorm extends report_unasus_data {
         $this->userid = $db_model->userid;
         $this->scormid = $db_model->scormid;
         $grade = isset($db_model->grade) ? $db_model->grade : null;
-        if (!is_null($grade) && $grade != -1) {
+        if (!is_null($grade) && (int) $grade != -1) {
             $this->grade = (float) $grade;
         }
         $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
@@ -902,7 +902,7 @@ class report_unasus_data_lti extends report_unasus_data {
         $this->userid = $db_model->userid;
         $this->lti_id = isset($db_model->lti_id) ? $db_model->lti_id : null;
         $grade = isset($db_model->grade) ? $db_model->grade : null;
-        if (!is_null($grade) && $grade != -1) {
+        if (!is_null($grade) && (int) $grade != -1) {
             $this->grade = (float) $grade;
         }
         $this->grademax = isset($db_model->grademax) ? $db_model->grademax : null;
@@ -1011,7 +1011,7 @@ class report_unasus_data_nota_final extends report_unasus_data {
         $this->grademax = $db_model->grademax;
         // FIXME: esse dado não define o cohort, precisa definir.
 
-        if (!is_null($db_model->grade) && $db_model->grade != -1) {
+        if (!is_null($db_model->grade) && (int) $db_model->grade != -1) {
             $this->grade = (float) $db_model->grade;
         }
     }

@@ -41,30 +41,34 @@ class report_tcc_consolidado extends report_unasus_factory {
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
 
         $fp = fopen('php://output', 'w');
 
-        $data_header = array('Orientadores');
-        $data_header[1] = 'Resumo';
-        $first_line = array();
+        $data_header = array('Orientadores', 'Resumo');
+        $first_line = array('');
 
         foreach ($header as $h) {
-
             if (isset($h[1]->course_name)) {
                 $course_name = $h[1]->course_name;
                 $first_line[] = $course_name;
             }
+            $n = count($h);
             foreach ($h as $index => $item) {
                 if (isset($item->name)) {
-                    $element = $item->name;
-                    $data_header[] = $element;
+                    $colname = report_unasus_factory::eliminate_html($item->name);
+                    if (!in_array($colname, $data_header, true)) {
+                        $data_header[] = $colname;
+                    }
+                }
+
+                // Mantém alinhamento da linha superior (curso) com colunas do módulo.
+                if ($index < $n - 1) {
+                    $first_line[] = '';
                 }
             }
         }
@@ -73,7 +77,7 @@ class report_tcc_consolidado extends report_unasus_factory {
         fputcsv($fp, $data_header);
 
         foreach ($dados as $d) {
-            $output = array_map("Factory::eliminate_html", $d);
+            $output = array_map("report_unasus_factory::eliminate_html", $d);
             fputcsv($fp, $output);
         }
         fclose($fp);
@@ -88,6 +92,33 @@ class report_tcc_consolidado extends report_unasus_factory {
 
         $lista_atividade = $result_array['lista_atividade'];
         $associativo_atividade = $result_array['associativo_atividade'];
+
+        // Garantir que toda combinação (grupo, atividade TCC LTI) tenha as chaves
+        // agregadas inicializadas — evita totais incorretos quando um grupo não tem
+        // estudantes processados (ex.: filtro de cohort que restringe a outro grupo).
+        foreach ($lista_atividade as $grupo_id => $atividades_grupo) {
+            $alunos_grupo = isset($total_alunos[$grupo_id]) ? $total_alunos[$grupo_id] : 0;
+            foreach ($this->visiveis_atividades_cursos as $atividades_curso) {
+                foreach ($atividades_curso as $atividade) {
+                    if (!is_a($atividade, 'report_unasus_lti_activity_tcc2')) {
+                        continue;
+                    }
+                    $lti_id = $atividade->id;
+                    if (!isset($lista_atividade[$grupo_id][$lti_id]['tcc_completo'])) {
+                        $lista_atividade[$grupo_id][$lti_id]['tcc_completo'] =
+                            new report_unasus_dado_atividades_alunos_render($alunos_grupo, 0);
+                    }
+                    if (!isset($lista_atividade[$grupo_id][$lti_id]['nao_acessado'])) {
+                        $lista_atividade[$grupo_id][$lti_id]['nao_acessado'] =
+                            new report_unasus_dado_atividades_alunos_render($alunos_grupo, 0);
+                    }
+                    if (!isset($lista_atividade[$grupo_id][$lti_id]['avaliados'])) {
+                        $lista_atividade[$grupo_id][$lti_id]['avaliados'] =
+                            new report_unasus_dado_atividades_alunos_render($alunos_grupo, 0);
+                    }
+                }
+            }
+        }
 
         /* Variaveis totais do relatorio */
         $total_nao_acessado = new report_unasus_dado_somatorio_grupo_lti_render();

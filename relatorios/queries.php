@@ -59,12 +59,8 @@ function query_alunos_relationship($cohort_estudantes) {
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-      LEFT JOIN {user_info_data} uid
-             ON (u1.id = uid.userid AND uid.fieldid=(
-                    SELECT id
-                    FROM {user_info_field}
-                    WHERE shortname = 'polo')
-                )
+      LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
+      LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
                 {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
@@ -138,12 +134,8 @@ function query_alunos_relationship_student($cohort_estudantes) {
              ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
-      LEFT JOIN {user_info_data} uid
-             ON (u1.id = uid.userid AND uid.fieldid=(
-                    SELECT id
-                    FROM {user_info_field}
-                    WHERE shortname = 'polo')
-                )
+      LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
+      LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
                 {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
@@ -641,7 +633,9 @@ function query_database_adjusted_from_users($cohort_estudantes) {
                    gg.finalgrade AS grade,
                    gi.grademax,
                    gi.itemname,
-                   dr.timemodified AS submission_date,
+                   (SELECT MAX(dr.timemodified)
+                      FROM {data_records} dr
+                     WHERE dr.dataid = d.id AND dr.userid = u.id) AS submission_date,
                    gg.timemodified AS grade_date,
                    'db_activity' as name_activity,
                    u.is_student
@@ -665,10 +659,63 @@ function query_database_adjusted_from_users($cohort_estudantes) {
                     gi.itemmodule = 'data'  AND gg.itemid = gi.id)
               JOIN {data} d
                 ON gi.iteminstance = d.id
-         LEFT JOIN {data_records} dr
-                ON (d.id = dr.dataid AND u.id = dr.userid)
              WHERE d.id = :id_activity
-          GROUP BY userid
+          ORDER BY grupo_id, u.firstname, u.lastname
+    ";
+}
+
+/**
+ * Variant of {@see query_database_adjusted_from_users()} that returns every student
+ * of the tutoria group regardless of grade existence (LEFT JOIN on grade_items / grade_grades).
+ * The "adjusted" sibling INNER JOINs grade_items, so it filters out students with no grade row.
+ *
+ * Used by the "atividades_nota_atribuida" synthesis report, where the caller cross-references
+ * each row against {course_modules_completion} on its own — i.e. completion is checked outside
+ * this query, not inside it. The name reflects the consumer flow ("synthesis"), not any join
+ * to a completion table.
+ *
+ * @param mixed $cohort_estudantes
+ * @return string
+ */
+function query_database_synthesis_from_users($cohort_estudantes) {
+
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $is_student = query_is_student();
+
+    return "SELECT u.id AS userid,
+                   u.polo,
+                   u.cohort,
+                   gg.itemid,
+                   d.id AS databaseid,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   (SELECT MAX(dr.timemodified)
+                      FROM {data_records} dr
+                     WHERE dr.dataid = d.id AND dr.userid = u.id) AS submission_date,
+                   gg.timemodified AS grade_date,
+                   'db_activity' as name_activity,
+                   u.is_student
+              FROM (
+                    {$alunos_grupo_tutoria}
+                        JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
+                     ) u
+              JOIN {data} d
+                ON d.id = :id_activity
+         LEFT JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'data' AND gi.iteminstance = d.id)
+         LEFT JOIN {grade_grades} gg
+                ON (gg.userid = u.id AND gg.itemid = gi.id)
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -712,7 +759,6 @@ function query_scorm_from_users ($cohort_estudantes) {
               JOIN {scorm} s
                 ON gi.iteminstance = s.id
              WHERE s.id = :id_activity
-          GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -756,7 +802,59 @@ function query_lti_from_users ($cohort_estudantes) {
               JOIN {lti} l
                 ON gi.iteminstance = l.id
              WHERE l.id = :id_activity
-          GROUP BY userid
+          ORDER BY u3.grupo_id, u3.firstname, u3.lastname
+    ";
+}
+
+/**
+ * Variant of {@see query_lti_from_users()} that returns every student of the tutoria
+ * group regardless of grade existence (LEFT JOIN on grade_items / grade_grades).
+ * The non-suffixed sibling INNER JOINs grade_items, filtering out students with no grade row.
+ *
+ * Used by the "atividades_nota_atribuida" synthesis report, where completion is verified
+ * via a separate lookup against {course_modules_completion} after this query runs — i.e.
+ * the name reflects the consumer flow ("synthesis"), not any join to a completion table.
+ *
+ * @param mixed $cohort_estudantes
+ * @return string
+ */
+function query_lti_synthesis_from_users($cohort_estudantes) {
+
+    $alunos_grupo_tutoria = query_alunos_relationship_student($cohort_estudantes);
+    $is_student = query_is_student();
+
+    return "SELECT u3.id AS userid,
+                   u3.polo,
+                   u3.cohort,
+                   gg.itemid,
+                   l.id AS lti_id,
+                   gg.finalgrade AS grade,
+                   gi.grademax,
+                   gi.itemname,
+                   gg.timemodified AS submission_date,
+                   'lti_activity' as name_activity,
+                   u3.is_student
+              FROM (
+
+                    {$alunos_grupo_tutoria}
+                      JOIN (
+                              SELECT
+                                    userid, SUM(id = 5) > 0 AS is_student
+                              FROM (
+                                      {$is_student}
+                                    ) st
+                              GROUP BY userid
+                        ) std
+                        ON (std.userid = u2.id)
+                        ORDER BY firstname
+                   ) u3
+              JOIN {lti} l
+                ON l.id = :id_activity
+         LEFT JOIN {grade_items} gi
+                ON (gi.courseid=:courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'lti' AND gi.iteminstance = l.id)
+         LEFT JOIN {grade_grades} gg
+                ON (gg.userid = u3.id AND gg.itemid = gi.id)
           ORDER BY u3.grupo_id, u3.firstname, u3.lastname
     ";
 }
@@ -860,17 +958,15 @@ function query_quiz_from_users($cohort_estudantes) {
                       ON (std.userid = u2.id)
                       ORDER BY firstname
                    ) u
-         LEFT JOIN (
-                        SELECT qa.*
-                          FROM (
-                                SELECT *
-                                  FROM {quiz_attempts}
-                                 WHERE (quiz=:assignmentid AND timefinish != 0)
-                              ORDER BY attempt DESC
-                                ) qa
-                      GROUP BY qa.userid, qa.quiz
-                   ) qa
-                ON (qa.userid = u.id)
+         LEFT JOIN {quiz_attempts} qa
+                ON (qa.userid = u.id
+                    AND qa.quiz = :assignmentid
+                    AND qa.timefinish != 0
+                    AND qa.attempt = (SELECT MAX(attempt)
+                                        FROM {quiz_attempts}
+                                       WHERE userid = qa.userid
+                                         AND quiz = qa.quiz
+                                         AND timefinish != 0))
          LEFT JOIN {quiz_grades} qg
                 ON (u.id = qg.userid AND qg.quiz=qa.quiz)
          LEFT JOIN {quiz} q
@@ -918,7 +1014,6 @@ function query_grades_lti($cohort_estudantes) {
                     gi.itemmodule = 'lti'  AND gg.itemid = gi.id)
               JOIN {lti} l
                 ON gi.iteminstance = l.id
-          GROUP BY userid
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -1202,6 +1297,8 @@ class LtiPortfolioQuery {
             $model->coursemoduleid = $atividade->coursemoduleid;
 
             $model->grade_tcc = $r->tcc->grade;
+            $model->status = array();
+            $model->state_date = array();
 
             // Processando capítulos encontrados
             foreach ($chapters as $chapter) {

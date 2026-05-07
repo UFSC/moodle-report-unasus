@@ -22,26 +22,49 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         echo $renderer->build_page();
     }
 
+    public function needs_lti_synthesis_fetch() {
+        return true;
+    }
+
     public function render_report_table($renderer) {
         $this->mostrar_barra_filtragem = false;
         echo $renderer->page_avaliacoes_em_atraso($this);
     }
 
     public function render_report_csv($name_report) {
-
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=relatorio ' . $name_report . '.csv');
-        readfile('php://output');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="relatorio_' . $name_report . '.csv"');
 
         $dados = $this->get_dados();
         $header = $this->get_table_header();
+        $headertotalalunos = get_string('column_aluno_atividade_concluida', 'report_unasus');
 
         $fp = fopen('php://output', 'w');
 
         $data_header = array('Tutores');
         $first_line = array('');
 
-        foreach ($header as $h) {
+        foreach ($header as $headername => $h) {
+            // Mantém o cabeçalho de 2 níveis igual à tabela HTML:
+            // linha 1 = grupo ("N° Alunos com atividades concluídas"),
+            // linha 2 = coluna ("Total").
+            if ($headername === $headertotalalunos) {
+                $first_line[] = $headername;
+                $n = count($h);
+                for ($i = 0; $i < $n; $i++) {
+                    $item = $h[$i];
+                    if (is_object($item) && isset($item->name)) {
+                        $data_header[] = $item->name;
+                    } else {
+                        $data_header[] = (string) $item;
+                    }
+                    if ($i < $n - 1) {
+                        $first_line[] = '';
+                    }
+                }
+                continue;
+            }
+
             if (isset($h[0]->course_name)) {
                 $course_name = $h[0]->course_name;
                 $first_line[] = $course_name;
@@ -57,19 +80,14 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
                     $first_line[] = '';
                 } else
                     continue;
-
-                if ($i == $n - 2) {
-                    $data_header[] = 'Atividades Concluídas';
-                }
             }
         }
-        $data_header[] = 'N° Alunos com atividades concluídas';
 
         fputcsv($fp, $first_line);
         fputcsv($fp, $data_header);
 
         foreach ($dados as $d) {
-            $output = array_map("Factory::eliminate_html", $d);
+            $output = array_map("report_unasus_factory::eliminate_html", $d);
             fputcsv($fp, $output);
         }
         fclose($fp);
@@ -83,9 +101,9 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $query_atividades   = query_atividades_from_users($cohort_estudantes);
         $query_quiz         = query_quiz_from_users($cohort_estudantes);
         $query_forum        = query_postagens_forum_from_users($cohort_estudantes);
-        $query_database     = query_database_adjusted_from_users($cohort_estudantes);
+        $query_database     = query_database_synthesis_from_users($cohort_estudantes);
         $query_scorm        = query_scorm_from_users($cohort_estudantes);
-        $query_lti          = query_lti_from_users($cohort_estudantes);
+        $query_lti          = query_lti_synthesis_from_users($cohort_estudantes);
 
         $result_array = loop_atividades_e_foruns_sintese2(
             $query_atividades,
@@ -111,42 +129,21 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         // Total do grupo (tutor ou polo)
         $atividades_alunos_grupos = $atividades_alunos->somatorio_grupos;
 
+        $completionstates = $this->get_completion_states_by_user($associativo_atividade);
+
         // passa pelos dados de cada atividade, de cada aluno e agrupado (polo ou tutor)
         foreach ($associativo_atividade as $grupo_id => $array_dados) {
 
             // passa pelos alunos do grupo
             foreach ($array_dados as $aluno_id => $aluno_activities) {
-                $courseid = '';
-                $progress = null;
 
                 // passa por todas as atividades de cada aluno
                 foreach ($aluno_activities as $atividade) {
-                    if (isset($atividade) &&
-                        $courseid != $atividade->source_activity->course_id) {
-
-                        $courseid = $atividade->source_activity->course_id;
-
-                        $course_instance = get_course($courseid);
-                        $info = new completion_info($course_instance);
-                        $uid = 'u.id=' . $aluno_id;
-                        $progress = $info->get_progress_all($uid);
-
-                    }
-
-                    //Se não houver dados para o aluno, ele não faz aquele módulo
-                    if ( isset($progress) &&
-                        isset($progress[$aluno_id]) ) {
-
-                        // passa por todas as atividades configuradas daquele módulo
-                            $pendente = true;
-                            $has_progress = isset($progress[$aluno_id]->progress[$atividade->source_activity->coursemoduleid]);
-                            if ( $has_progress ) {
-                                $pendente = $progress[$aluno_id]->progress[$atividade->source_activity->coursemoduleid]->completionstate == COMPLETION_INCOMPLETE;
-                            }
-                    } else {
-                        // se não achou a completude, então pega a regra geral, se a nota foi dada quando precisar de nota
-                        $pendente = ($atividade->has_grade() && $atividade->is_grade_needed());
-                    }
+                    $pendente = !$this->is_activity_complete_for_user(
+                        $completionstates,
+                        $aluno_id,
+                        $atividade->source_activity->coursemoduleid
+                    );
 
                     if (!$pendente) {
 
@@ -265,6 +262,82 @@ class report_atividades_nota_atribuida extends report_unasus_factory {
         $dados[] = $data_total;
 
         return $dados;
+    }
+
+    /**
+     * Returns course module completion states indexed by user and course module.
+     *
+     * Filtra por (coursemoduleid, userid) derivados do próprio relatório para
+     * evitar carregar a tabela course_modules_completion inteira em memória.
+     *
+     * @param array $associativo_atividade [$grupo_id][$aluno_id] => array<report_unasus_data>
+     * @return array
+     */
+    private function get_completion_states_by_user(array $associativo_atividade) {
+        global $DB;
+
+        $states = array();
+        $coursemoduleids = array();
+        $userids = array();
+
+        foreach ($associativo_atividade as $array_dados) {
+            foreach ($array_dados as $aluno_id => $aluno_activities) {
+                $userids[(int) $aluno_id] = true;
+                foreach ($aluno_activities as $atividade) {
+                    if (!empty($atividade->source_activity->coursemoduleid)) {
+                        $coursemoduleids[(int) $atividade->source_activity->coursemoduleid] = true;
+                    }
+                }
+            }
+        }
+
+        if (empty($coursemoduleids) || empty($userids)) {
+            return $states;
+        }
+
+        list($cmsql, $cmparams) = $DB->get_in_or_equal(array_keys($coursemoduleids), SQL_PARAMS_NAMED, 'cm');
+        list($usersql, $userparams) = $DB->get_in_or_equal(array_keys($userids), SQL_PARAMS_NAMED, 'u');
+
+        $select = "coursemoduleid {$cmsql} AND userid {$usersql}";
+        $params = array_merge($cmparams, $userparams);
+
+        $records = $DB->get_records_select(
+            'course_modules_completion',
+            $select,
+            $params,
+            '',
+            'id,userid,coursemoduleid,completionstate'
+        );
+
+        foreach ($records as $record) {
+            if (!isset($states[$record->userid])) {
+                $states[$record->userid] = array();
+            }
+            $states[$record->userid][$record->coursemoduleid] = (int) $record->completionstate;
+        }
+
+        return $states;
+    }
+
+    /**
+     * Checks whether a user completed a course module.
+     *
+     * @param array $completionstates
+     * @param int $userid
+     * @param int $coursemoduleid
+     * @return bool
+     */
+    private function is_activity_complete_for_user(array $completionstates, $userid, $coursemoduleid) {
+        if (!isset($completionstates[$userid][$coursemoduleid])) {
+            return false;
+        }
+
+        $state = $completionstates[$userid][$coursemoduleid];
+        return in_array($state, array(
+            COMPLETION_COMPLETE,
+            COMPLETION_COMPLETE_PASS,
+            COMPLETION_COMPLETE_FAIL,
+        ), true);
     }
 
     public function get_table_header() {
