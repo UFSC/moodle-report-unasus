@@ -708,4 +708,683 @@ class unasus_datastructures_testcase extends advanced_testcase {
 
         $this->assertTrue($data->is_activity_pending());
     }
+
+    // -----------------------------------------------------------------------
+    // Construtores das subclasses de report_unasus_activity (Fase 1)
+    // -----------------------------------------------------------------------
+
+    private function build_assign_db_model($overrides = array()) {
+        $defaults = array(
+            'assign_id' => 1,
+            'assign_name' => 'Tarefa Teste',
+            'nosubmissions' => 0,
+            'grade' => 100,
+            'completionexpected' => 1700000000,
+            'course_id' => 10,
+            'course_name' => 'Curso Teste',
+            'module_id' => 1,
+            'module_name' => 'assign',
+            'grouping_id' => 0,
+            'coursemoduleid' => 99,
+        );
+        return (object) array_merge($defaults, $overrides);
+    }
+
+    private function build_generic_db_model($overrides = array()) {
+        $defaults = array(
+            'activity_id' => 2,
+            'activity_name' => 'Atividade Generica',
+            'activity_nosubmissions' => 0,
+            'activity_grade' => 10,
+            'completionexpected' => 1700000000,
+            'course_id' => 10,
+            'course_name' => 'Curso Teste',
+            'module_id' => 7,
+            'module_name' => 'lti',
+            'grouping_id' => 0,
+            'coursemoduleid' => 77,
+        );
+        return (object) array_merge($defaults, $overrides);
+    }
+
+    private function build_db_activity_db_model($overrides = array()) {
+        $defaults = array(
+            'database_id' => 3,
+            'database_name' => 'BD Teste',
+            'completionexpected' => 1700000000,
+            'course_id' => 10,
+            'course_name' => 'Curso Teste',
+            'module_id' => 4,
+            'module_name' => 'data',
+            'grouping_id' => 0,
+            'coursemoduleid' => 50,
+        );
+        return (object) array_merge($defaults, $overrides);
+    }
+
+    private function build_scorm_db_model($overrides = array()) {
+        $defaults = array(
+            'scorm_id' => 4,
+            'scorm_name' => 'SCORM Teste',
+            'completionexpected' => 1700000000,
+            'course_id' => 10,
+            'course_name' => 'Curso Teste',
+            'module_id' => 5,
+            'module_name' => 'scorm',
+            'grouping_id' => 0,
+            'coursemoduleid' => 60,
+        );
+        return (object) array_merge($defaults, $overrides);
+    }
+
+    private function build_quiz_db_model($overrides = array()) {
+        $defaults = array(
+            'quiz_id' => 5,
+            'quiz_name' => 'Quiz Teste',
+            'grade' => 10,
+            'completionexpected' => 1700000000,
+            'course_id' => 10,
+            'course_name' => 'Curso Teste',
+            'module_id' => 6,
+            'module_name' => 'quiz',
+            'grouping_id' => 0,
+            'coursemoduleid' => 70,
+        );
+        return (object) array_merge($defaults, $overrides);
+    }
+
+    public function test_report_unasus_assign_activity_constructor() {
+        $db = $this->build_assign_db_model();
+        $a = new report_unasus_assign_activity($db);
+
+        $this->assertEquals(1, $a->id);
+        $this->assertEquals('Tarefa Teste', $a->name);
+        $this->assertEquals(1700000000, $a->deadline);
+        $this->assertEquals(10, $a->course_id);
+        $this->assertEquals('assign', $a->module_name);
+        $this->assertEquals(99, $a->coursemoduleid);
+        // nosubmissions == 0 → has_submission true
+        $this->assertTrue($a->has_submission());
+        // grade == 100 → has_grade true
+        $this->assertTrue((bool) $a->has_grade);
+    }
+
+    public function test_assign_activity_grade_zero_disables_grade() {
+        // grade == 0 (sem escala de avaliação) desativa has_grade
+        $db = $this->build_assign_db_model(array('grade' => 0));
+        $a = new report_unasus_assign_activity($db);
+        $this->assertFalse((bool) $a->has_grade);
+
+        // nosubmissions == 1 → has_submission false
+        $db_offline = $this->build_assign_db_model(array('nosubmissions' => 1));
+        $a_offline = new report_unasus_assign_activity($db_offline);
+        $this->assertFalse($a_offline->has_submission());
+    }
+
+    public function test_report_unasus_generic_activity_constructor() {
+        $db = $this->build_generic_db_model();
+        $a = new report_unasus_generic_activity($db);
+
+        $this->assertEquals(2, $a->id);
+        $this->assertEquals('Atividade Generica', $a->name);
+        $this->assertEquals('lti', $a->module_name);
+        $this->assertEquals(77, $a->coursemoduleid);
+        $this->assertTrue($a->has_submission());
+        $this->assertTrue((bool) $a->has_grade);
+    }
+
+    public function test_generic_activity_inverts_nosubmissions_flag() {
+        // activity_nosubmissions == 1 → has_submission false (negação)
+        $db = $this->build_generic_db_model(array('activity_nosubmissions' => 1));
+        $a = new report_unasus_generic_activity($db);
+        $this->assertFalse($a->has_submission());
+
+        // activity_grade == 0 → has_grade false
+        $db_no_grade = $this->build_generic_db_model(array('activity_grade' => 0));
+        $a_no_grade = new report_unasus_generic_activity($db_no_grade);
+        $this->assertFalse((bool) $a_no_grade->has_grade);
+    }
+
+    public function test_report_unasus_db_activity_defaults_true_true() {
+        // db_activity sempre constrói com (has_submission=true, has_grade=true)
+        $db = $this->build_db_activity_db_model();
+        $a = new report_unasus_db_activity($db);
+
+        $this->assertEquals(3, $a->id);
+        $this->assertEquals('BD Teste', $a->name);
+        $this->assertTrue($a->has_submission());
+        $this->assertTrue((bool) $a->has_grade);
+    }
+
+    public function test_report_unasus_scorm_activity_no_submission() {
+        // scorm_activity sempre constrói com (has_submission=false, has_grade=true)
+        $db = $this->build_scorm_db_model();
+        $a = new report_unasus_scorm_activity($db);
+
+        $this->assertEquals(4, $a->id);
+        $this->assertEquals('SCORM Teste', $a->name);
+        $this->assertFalse($a->has_submission());
+    }
+
+    public function test_scorm_activity_has_grade_true() {
+        $db = $this->build_scorm_db_model();
+        $a = new report_unasus_scorm_activity($db);
+        $this->assertTrue((bool) $a->has_grade);
+    }
+
+    public function test_report_unasus_quiz_activity_constructor() {
+        $db = $this->build_quiz_db_model();
+        $a = new report_unasus_quiz_activity($db);
+
+        $this->assertEquals(5, $a->id);
+        $this->assertEquals('Quiz Teste', $a->name);
+        $this->assertEquals('quiz', $a->module_name);
+        // quiz sempre tem has_submission=true
+        $this->assertTrue($a->has_submission());
+        // grade == 10 → has_grade true
+        $this->assertTrue((bool) $a->has_grade);
+    }
+
+    public function test_quiz_activity_grade_zero_no_grade() {
+        // quiz com grade == 0 desativa has_grade mas mantém has_submission
+        $db = $this->build_quiz_db_model(array('grade' => 0));
+        $a = new report_unasus_quiz_activity($db);
+        $this->assertFalse((bool) $a->has_grade);
+        $this->assertTrue($a->has_submission());
+    }
+
+    public function test_quiz_activity_short_name_switch() {
+        // O __toString abrevia nomes específicos para caber no cabeçalho
+        $cases = array(
+            'Questões Avaliativas - Enfermeiros' => 'Q.Enf.',
+            'Questões Avaliativas - Médicos'     => 'Q.Méd.',
+            'Questões Avaliativas - Dentistas'   => 'Q.Dent.',
+        );
+        foreach ($cases as $name => $expected_abbrev) {
+            $db = $this->build_quiz_db_model(array('quiz_name' => $name));
+            $a = new report_unasus_quiz_activity($db);
+            $rendered = (string) $a;
+            $this->assertContains($expected_abbrev, $rendered,
+                "Nome '$name' deveria ser abreviado para '$expected_abbrev'");
+        }
+
+        // Nome arbitrário cai no default → usa formatted_name (truncado)
+        $db_default = $this->build_quiz_db_model(array('quiz_name' => 'Quiz Generico'));
+        $a_default = new report_unasus_quiz_activity($db_default);
+        $rendered_default = (string) $a_default;
+        $this->assertContains('Quiz Generico', $rendered_default);
+    }
+
+    public function test_lti_activity2_inherits_generic() {
+        // lti_activity2 estende generic_activity e adiciona campos LTI-específicos
+        $db = $this->build_generic_db_model(array(
+            'position'          => 2,
+            'baseurl'           => 'https://example.org/lti',
+            'consumer_key'      => 'key123',
+            'custom_parameters' => 'param=value',
+        ));
+        $a = new report_unasus_lti_activity2($db);
+
+        // Herda comportamento do construtor generic
+        $this->assertEquals(2, $a->id);
+        $this->assertEquals('Atividade Generica', $a->name);
+        $this->assertTrue($a->has_submission());
+
+        // Campos próprios da LTI
+        $this->assertEquals(2, $a->position);
+        $this->assertEquals('https://example.org/lti', $a->baseurl);
+        $this->assertEquals('key123', $a->consumer_key);
+        $this->assertEquals('param=value', $a->custom_parameters);
+
+        // Quando os campos LTI estão ausentes, devem ser null (isset guard no construtor)
+        $db_minimal = $this->build_generic_db_model();
+        $a_minimal = new report_unasus_lti_activity2($db_minimal);
+        $this->assertNull($a_minimal->position);
+        $this->assertNull($a_minimal->baseurl);
+        $this->assertNull($a_minimal->consumer_key);
+        $this->assertNull($a_minimal->custom_parameters);
+    }
+
+    public function test_lti_activity_tcc2_carries_tcc_definition() {
+        // lti_activity_tcc2 estende lti_activity2 e carrega a definição de TCC
+        $db = $this->build_generic_db_model(array(
+            'position' => 1,
+            'baseurl'  => 'https://tcc.example.org',
+        ));
+        $tcc_def = (object) array(
+            'id'       => 99,
+            'chapters' => array('intro', 'metodologia'),
+        );
+        $a = new report_unasus_lti_activity_tcc2($db, $tcc_def);
+
+        // Herda toda a hierarquia
+        $this->assertTrue($a instanceof report_unasus_lti_activity2);
+        $this->assertTrue($a instanceof report_unasus_generic_activity);
+        $this->assertEquals(1, $a->position);
+        $this->assertEquals('https://tcc.example.org', $a->baseurl);
+
+        // Carrega tcc_definition sem alterações
+        $this->assertSame($tcc_def, $a->tcc_definition);
+    }
+
+    public function test_chapter_tcc_activity_no_submission_no_grade() {
+        // chapter_tcc_activity é sempre construído com (false, false)
+        $db = (object) array(
+            'id'         => 7,
+            'title'      => 'Capítulo Teste',
+            'position'   => 1,
+            'created_at' => 1700000000,
+            'updated_at' => 1700000000,
+        );
+        $source = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        $a = new report_unasus_chapter_tcc_activity($db, $source);
+
+        $this->assertEquals(7, $a->id);
+        $this->assertEquals('Capítulo Teste', $a->name);
+        $this->assertEquals(1, $a->position);
+        $this->assertSame($source, $a->source_activity);
+
+        $this->assertFalse($a->has_submission());
+        $this->assertFalse((bool) $a->has_grade);
+    }
+
+    public function test_chapter_tcc_activity_toString_label() {
+        $db = (object) array(
+            'id'         => 8,
+            'title'      => 'Capítulo Pequeno',
+            'position'   => 2,
+            'created_at' => 0,
+            'updated_at' => 0,
+        );
+        $source = $this->getMockForAbstractClass('report_unasus_activity', array(true, true));
+        $a = new report_unasus_chapter_tcc_activity($db, $source);
+
+        $rendered = (string) $a;
+        $this->assertContains('Capítulo Pequeno', $rendered);
+        $this->assertContains('c_body', $rendered);
+    }
+
+    // -----------------------------------------------------------------------
+    // Subclasses de report_unasus_data (Fase 2)
+    // Cada subclasse precisa converter a sentinela "-1" do Moodle (int e string)
+    // para null em $grade — gap REVIEW_10136.
+    // -----------------------------------------------------------------------
+
+    private function build_activity_mock($has_submission = true, $has_grade = true) {
+        return $this->getMockForAbstractClass('report_unasus_activity',
+            array($has_submission, $has_grade));
+    }
+
+    // ----- report_unasus_data_db -----
+
+    public function test_report_unasus_data_db() {
+        $now = time();
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'databaseid'      => 22,
+            'grade'           => 8.0,
+            'grademax'        => 10,
+            'itemname'        => 'Item',
+            'submission_date' => $now,
+            'grade_date'      => $now,
+        );
+        $data = new report_unasus_data_db($activity, $db_model);
+
+        $this->assertEquals(1, $data->userid);
+        $this->assertEquals(22, $data->databaseid);
+        $this->assertEquals(8.0, $data->grade);
+        $this->assertEquals(10, $data->grademax);
+        $this->assertTrue($data->has_submitted());
+        $this->assertTrue($data->has_grade());
+    }
+
+    public function test_data_db_grade_minus_one_string() {
+        // Sentinela do Moodle "-1" (string) — deve ser tratada como ausência de nota
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'databaseid'      => 22,
+            'grade'           => "-1",
+            'grademax'        => 10,
+            'itemname'        => null,
+            'submission_date' => time(),
+            'grade_date'      => time(),
+        );
+        $data = new report_unasus_data_db($activity, $db_model);
+
+        $this->assertNull($data->grade);
+        $this->assertFalse($data->has_grade());
+    }
+
+    // ----- report_unasus_data_scorm -----
+
+    public function test_report_unasus_data_scorm_completion() {
+        // SCORM considera entregue só quando grade == grademax (atividade concluída)
+        $now = time();
+        $activity = $this->build_activity_mock(false, true);
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'scormid'         => 33,
+            'grade'           => 10.0,
+            'grademax'        => 10.0,
+            'itemname'        => 'SCORM',
+            'submission_date' => $now,
+        );
+        $data = new report_unasus_data_scorm($activity, $db_model);
+
+        $this->assertEquals(33, $data->scormid);
+        $this->assertEquals(10.0, $data->grade);
+        // SCORM has_grade depende apenas de grade não nula
+        $this->assertTrue($data->has_grade());
+        // Concluída: grade == grademax
+        $this->assertTrue($data->has_submitted());
+    }
+
+    public function test_data_scorm_partial_grade_no_completion() {
+        // Nota parcial (grade < grademax) → não considerada entregue
+        $now = time();
+        $activity = $this->build_activity_mock(false, true);
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'scormid'         => 33,
+            'grade'           => 5.0,
+            'grademax'        => 10.0,
+            'itemname'        => null,
+            'submission_date' => $now,
+        );
+        $data = new report_unasus_data_scorm($activity, $db_model);
+
+        $this->assertTrue($data->has_grade());
+        // grade != grademax → não concluída
+        $this->assertFalse($data->has_submitted());
+    }
+
+    public function test_data_scorm_grade_minus_one_string() {
+        $activity = $this->build_activity_mock(false, true);
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'scormid'         => 33,
+            'grade'           => "-1",
+            'grademax'        => 10.0,
+            'itemname'        => null,
+            'submission_date' => time(),
+        );
+        $data = new report_unasus_data_scorm($activity, $db_model);
+
+        $this->assertNull($data->grade);
+        $this->assertFalse($data->has_grade());
+    }
+
+    // ----- report_unasus_data_lti -----
+
+    public function test_report_unasus_data_lti() {
+        $now = time();
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'lti_id'          => 44,
+            'grade'           => 7.0,
+            'grademax'        => 10,
+            'itemname'        => 'LTI',
+            'submission_date' => $now,
+        );
+        $data = new report_unasus_data_lti($activity, $db_model);
+
+        $this->assertEquals(44, $data->lti_id);
+        $this->assertEquals(7.0, $data->grade);
+        // LTI has_grade depende apenas de grade não nula
+        $this->assertTrue($data->has_grade());
+        // LTI has_submitted: grade não nula OU submission_date não nula
+        $this->assertTrue($data->has_submitted());
+        // grade_date é populado a partir de submission_date
+        $this->assertEquals($now, $data->grade_date);
+    }
+
+    public function test_data_lti_grade_minus_one_string() {
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'lti_id'          => 44,
+            'grade'           => "-1",
+            'grademax'        => 10,
+            'itemname'        => null,
+            'submission_date' => time(),
+        );
+        $data = new report_unasus_data_lti($activity, $db_model);
+
+        $this->assertNull($data->grade);
+        $this->assertFalse($data->has_grade());
+    }
+
+    // ----- report_unasus_data_quiz / data_forum: gap "-1" string -----
+
+    public function test_data_quiz_grade_minus_one_string() {
+        $now = time();
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'grade'           => "-1",
+            'grademax'        => 10,
+            'submission_date' => $now,
+            'grade_date'      => $now,
+        );
+        $data = new report_unasus_data_quiz($activity, $db_model);
+
+        $this->assertNull($data->grade);
+        $this->assertFalse($data->has_grade());
+    }
+
+    public function test_data_forum_grade_minus_one_string() {
+        $now = time();
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'polo'            => null,
+            'grade'           => "-1",
+            'grademax'        => 10,
+            'submission_date' => $now,
+            'timemodified'    => $now,
+        );
+        $data = new report_unasus_data_forum($activity, $db_model);
+
+        $this->assertNull($data->grade);
+        $this->assertFalse($data->has_grade());
+    }
+
+    // ----- report_unasus_data_lti_tcc -----
+
+    public function test_data_lti_tcc_has_submitted_with_chapters() {
+        // status como string ('review' ou 'draft') + submission_date → has_submitted true
+        $now = time();
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'cohort'          => null,
+            'polo'            => null,
+            'lti_id'          => 55,
+            'coursemoduleid'  => 555,
+            'grade'           => 6.0,
+            'grademax'        => 10,
+            'itemname'        => null,
+            'submission_date' => $now,
+            'status'          => 'review',
+            'state_date'      => $now,
+            'grade_tcc'       => 6.0,
+        );
+        $data = new report_unasus_data_lti_tcc($activity, $db_model);
+
+        $this->assertEquals(555, $data->coursemoduleid);
+        $this->assertEquals('review', $data->status);
+        $this->assertTrue($data->has_submitted());
+
+        // status fora de submitted_status → has_submitted false (mesmo com submission_date)
+        $db_model_done = clone $db_model;
+        $db_model_done->status = 'done';
+        $data_done = new report_unasus_data_lti_tcc($activity, $db_model_done);
+        $this->assertFalse($data_done->has_submitted());
+
+        // Sem submission_date → has_submitted false
+        $db_model_no_sub = clone $db_model;
+        $db_model_no_sub->submission_date = null;
+        $data_no_sub = new report_unasus_data_lti_tcc($activity, $db_model_no_sub);
+        $this->assertFalse($data_no_sub->has_submitted());
+    }
+
+    public function test_data_lti_tcc_has_evaluated_chapters_only_when_done() {
+        // has_submitted_chapters / has_evaluated_chapters operam sobre status como
+        // dicionário [chapter => state]; populado pela camada de queries
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 1,
+            'cohort'          => null,
+            'polo'            => null,
+            'lti_id'          => 55,
+            'coursemoduleid'  => 555,
+            'grade'           => null,
+            'grademax'        => 10,
+            'itemname'        => null,
+            'submission_date' => null,
+            'status'          => 'review',
+            'state_date'      => 0,
+            'grade_tcc'       => null,
+        );
+        $data = new report_unasus_data_lti_tcc($activity, $db_model);
+
+        // Sobrescreve status como dicionário de capítulos (uso real após populate)
+        $data->status = array(
+            'intro'       => 'review',
+            'metodologia' => 'done',
+            'conclusao'   => 'draft',
+        );
+
+        // submitted_status = ['review', 'draft']
+        $this->assertTrue($data->has_submitted_chapters('intro'));
+        $this->assertTrue($data->has_submitted_chapters('conclusao'));
+        $this->assertFalse($data->has_submitted_chapters('metodologia'));
+
+        // evaluated_status = ['done']
+        $this->assertFalse($data->has_evaluated_chapters('intro'));
+        $this->assertTrue($data->has_evaluated_chapters('metodologia'));
+        $this->assertFalse($data->has_evaluated_chapters('conclusao'));
+    }
+
+    public function test_data_lti_tcc_constructor_carries_tcc_fields() {
+        // Pinning dos campos TCC populados pelo construtor
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid'          => 9,
+            'cohort'          => 100,
+            'polo'            => 'POLO_A',
+            'lti_id'          => 55,
+            'coursemoduleid'  => 555,
+            'grade'           => 8.5,
+            'grademax'        => 10,
+            'itemname'        => 'LTI TCC',
+            'submission_date' => 1700000000,
+            'status'          => 'draft',
+            'state_date'      => 1700000100,
+            'grade_tcc'       => 8.5,
+        );
+        $data = new report_unasus_data_lti_tcc($activity, $db_model);
+
+        $this->assertEquals(9, $data->userid);
+        $this->assertEquals(100, $data->cohort);
+        $this->assertEquals('POLO_A', $data->polo);
+        $this->assertEquals(1700000100, $data->state_date);
+        $this->assertEquals(8.5, $data->grade_tcc);
+        $this->assertEquals(10, $data->grademax);
+    }
+
+    // ----- report_unasus_data_nota_final -----
+
+    public function test_report_unasus_data_nota_final() {
+        $db_model = (object) array(
+            'userid'   => 1,
+            'polo'     => 'POLO_X',
+            'grademax' => 10,
+            'grade'    => 7.5,
+        );
+        $data = new report_unasus_data_nota_final($db_model);
+
+        $this->assertEquals(1, $data->userid);
+        $this->assertEquals('POLO_X', $data->polo);
+        $this->assertEquals(10, $data->grademax);
+        $this->assertEquals(7.5, $data->grade);
+        $this->assertTrue($data->has_grade());
+    }
+
+    public function test_data_nota_final_grade_minus_one_string() {
+        $db_model = (object) array(
+            'userid'   => 1,
+            'polo'     => null,
+            'grademax' => 10,
+            'grade'    => "-1",
+        );
+        $data = new report_unasus_data_nota_final($db_model);
+
+        $this->assertNull($data->grade);
+        $this->assertFalse($data->has_grade());
+    }
+
+    public function test_data_nota_final_null_grade() {
+        $db_model = (object) array(
+            'userid'   => 1,
+            'polo'     => null,
+            'grademax' => 10,
+            'grade'    => null,
+        );
+        $data = new report_unasus_data_nota_final($db_model);
+
+        $this->assertNull($data->grade);
+        $this->assertFalse($data->has_grade());
+    }
+
+    // ----- report_unasus_data_empty -----
+
+    public function test_data_empty_all_predicates_false() {
+        // data_empty representa estudantes fora do agrupamento da atividade —
+        // os predicados overridden retornam false para suprimir alertas/cores.
+        // is_activity_pending não é overridden e usa a lógica da classe base.
+        $activity = $this->build_activity_mock();
+
+        $db_model = (object) array(
+            'userid' => 42,
+            'cohort' => 100,
+            'polo'   => 'POLO_X',
+        );
+        $data = new report_unasus_data_empty($activity, $db_model);
+
+        $this->assertEquals(42, $data->userid);
+        $this->assertEquals(100, $data->cohort);
+        $this->assertEquals('POLO_X', $data->polo);
+
+        $this->assertFalse($data->has_submitted());
+        $this->assertFalse($data->has_grade());
+        $this->assertFalse($data->is_grade_needed());
+        $this->assertFalse($data->is_submission_due());
+        $this->assertFalse($data->is_a_future_due());
+        $this->assertFalse($data->submission_due_days());
+        $this->assertFalse($data->grade_due_days());
+    }
 }
