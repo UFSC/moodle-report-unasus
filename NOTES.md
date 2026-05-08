@@ -51,6 +51,13 @@ Itens deliberadamente fora do escopo de testes automatizados — documentados aq
 - **`recursão is_null($loop)` em `loops.php:332-337`:** coberto indiretamente por `tests/behat/unasus_atividades_nota_atribuida.feature` — qualquer cenário que abre o relatório `atividades_nota_atribuida` ou `atividades_concluidas_agrupadas` exercita a chamada recursiva.
 - **`agrupar_relatorios` switch (4 valores)** e **`modo_exibicao` inválido via URL** (Fase 8 do plano): descopo desta passada — podem ser adicionados caso surjam regressões durante a refatoração.
 
+## Follow-up TODOs (pré-refatoração — code review da branch `refactor/test-coverage-pre-refactor`)
+
+Pendências identificadas no review que não bloqueiam o merge mas devem ser tratadas em passada futura:
+
+- **`test_interval_boundaries_dst_transition` é fraco** (`tests/unasus_factory_helpers_test.php`): roda no timezone do servidor PHPUnit (provavelmente UTC ou America/Sao_Paulo). Em UTC não há DST, então o teste passa por `P1D` ser civil — não testa o que o nome promete. Ação: forçar timezone explicitamente no `setUp` (`date_default_timezone_set('America/Sao_Paulo')`) ou renomear para deixar claro que é apenas sanity check de calendário.
+- **`docs/refactor-test-coverage-plan.md` ficará stale após a refatoração** (271 linhas servindo agora, ruído depois). Ação: remover ou arquivar quando a refatoração estrutural de `loops.php` / `queries.php` for concluída e validada.
+
 ## Recent Changes Context
 
 Recent commits focus on report ordering, activity presentation, test coverage, documentation, bug fixes, and infrastructure improvements:
