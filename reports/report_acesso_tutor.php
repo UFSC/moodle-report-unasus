@@ -144,12 +144,13 @@ class report_acesso_tutor extends report_unasus_factory {
         global $DB;
 
         $relationship_tutoria = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
-        $cohort_tutores = local_tutores_grupos_tutoria::get_relationship_cohort_tutores($relationship_tutoria->id);
+        // Plural: suporta múltiplos cohorts no papel tutor.
+        $cohorts_tutores = local_tutores_grupos_tutoria::get_relationship_cohorts_tutores($relationship_tutoria->id);
 
-        // Consulta
-        $query = query_acesso_tutor($this->tutores_selecionados);
+        // Consulta — passa array de cohorts; o filtro IN é embutido pela query.
+        $query = query_acesso_tutor($cohorts_tutores);
 
-        $params = array('relationship_id' => $relationship_tutoria->id, 'relationship_cohort_id' => $cohort_tutores->id);
+        $params = array('relationship_id' => $relationship_tutoria->id);
         $result = $DB->get_recordset_sql($query, $params);
 
         //Para cada linha da query ele cria um ['pessoa']=>['data_entrada1','data_entrada2]

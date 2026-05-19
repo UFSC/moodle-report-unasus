@@ -61,6 +61,12 @@ class report_tcc_entrega_atividades extends report_unasus_factory {
                 foreach ($aluno as $atividade) {
                     $atraso = null;
 
+                    // O header deste relatório só inclui colunas de TCC LTIs (Resumo + capítulos);
+                    // ignorar atividades não-TCC evita células fantasma sem cabeçalho.
+                    if (!is_a($atividade->source_activity, 'report_unasus_lti_activity_tcc2')) {
+                        continue;
+                    }
+
                     if (is_a($atividade, 'report_unasus_data_empty')) {
                         $lista_atividades[] = new report_unasus_dado_nao_aplicado_render();
                         continue;

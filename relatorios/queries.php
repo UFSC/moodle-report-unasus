@@ -26,10 +26,19 @@ function query_alunos_relationship($cohort_estudantes) {
     $report = report_unasus_factory::singleton();
     $query_polo = ' ';
 
-    $query_cohort_estudantes = " JOIN {relationship_cohorts} rlc
-                       ON (rlc.id = rm.relationshipcohortid) ";
-    if (!is_null($cohort_estudantes) && !is_null($cohort_estudantes->cohortid)) {
-        $query_cohort_estudantes = "{$query_cohort_estudantes} AND (rlc.cohortid = {$cohort_estudantes->cohortid}) ";
+    // $cohort_estudantes pode ser:
+    //  - array indexado pelo id de relationship_cohorts (caminho novo: múltiplos cohorts por papel)
+    //  - stdClass único (caminho legado: um cohort por papel)
+    //  - null (sem filtro de cohort)
+    $cohort_relationship_filter = "";
+    if (!empty($cohort_estudantes)) {
+        if (is_array($cohort_estudantes)) {
+            $cohort_relationship_ids = array_keys($cohort_estudantes);
+        } else {
+            $cohort_relationship_ids = array($cohort_estudantes->id);
+        }
+        $cohort_relationship_filter = " AND rm.relationshipcohortid "
+            . report_unasus_int_array_to_IN_OR_EQUAL($cohort_relationship_ids);
     }
 
 
@@ -56,12 +65,13 @@ function query_alunos_relationship($cohort_estudantes) {
                 rlc.cohortid AS cohort
            FROM {user} u1
            JOIN {relationship_members} rm
-             ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
+             ON (rm.userid=u1.id {$cohort_relationship_filter})
+           JOIN {relationship_cohorts} rlc
+             ON (rlc.id = rm.relationshipcohortid)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
       LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
       LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
-                {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
 
@@ -101,10 +111,16 @@ function query_alunos_relationship_student($cohort_estudantes) {
     $report = report_unasus_factory::singleton();
     $query_polo = ' ';
 
-    $query_cohort_estudantes = " JOIN {relationship_cohorts} rlc
-                       ON (rlc.id = rm.relationshipcohortid) ";
-    if (!is_null($cohort_estudantes) && !is_null($cohort_estudantes->cohortid)) {
-        $query_cohort_estudantes = "{$query_cohort_estudantes} AND (rlc.cohortid = {$cohort_estudantes->cohortid}) ";
+    // Veja docstring/comentário em query_alunos_relationship() — mesmo contrato.
+    $cohort_relationship_filter = "";
+    if (!empty($cohort_estudantes)) {
+        if (is_array($cohort_estudantes)) {
+            $cohort_relationship_ids = array_keys($cohort_estudantes);
+        } else {
+            $cohort_relationship_ids = array($cohort_estudantes->id);
+        }
+        $cohort_relationship_filter = " AND rm.relationshipcohortid "
+            . report_unasus_int_array_to_IN_OR_EQUAL($cohort_relationship_ids);
     }
 
 
@@ -131,12 +147,13 @@ function query_alunos_relationship_student($cohort_estudantes) {
                 rlc.cohortid AS cohort
            FROM {user} u1
            JOIN {relationship_members} rm
-             ON (rm.userid=u1.id AND rm.relationshipcohortid=:cohort_relationship_id)
+             ON (rm.userid=u1.id {$cohort_relationship_filter})
+           JOIN {relationship_cohorts} rlc
+             ON (rlc.id = rm.relationshipcohortid)
            JOIN {relationship_groups} rg
              ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
       LEFT JOIN {user_info_field} uif ON uif.shortname = 'polo'
       LEFT JOIN {user_info_data} uid ON u1.id = uid.userid AND uid.fieldid = uif.id
-                {$query_cohort_estudantes}
                 {$query_cohort}
           WHERE rg.id=:grupo {$query_polo}";
 
@@ -301,7 +318,7 @@ function query_postagens_forum_from_users($cohort_estudantes) {
  *
  * @return string
  */
-function query_acesso_tutor_old() {
+function query_acesso_tutor_old($cohorts_tutores = null) {
     /** @var $factory report_unasus_factory */
     $factory = report_unasus_factory::singleton();
 
@@ -311,13 +328,24 @@ function query_acesso_tutor_old() {
         $filtro_tutor = "WHERE u.id IN ({$tutores}) ";
     }
 
+    // Plural: suporta múltiplos cohorts no papel tutor.
+    $cohort_filter = "";
+    if (!empty($cohorts_tutores)) {
+        if (is_array($cohorts_tutores)) {
+            $ids = array_keys($cohorts_tutores);
+        } else {
+            $ids = array($cohorts_tutores->id);
+        }
+        $cohort_filter = " AND rm.relationshipcohortid " . report_unasus_int_array_to_IN_OR_EQUAL($ids);
+    }
+
     return "SELECT year(from_unixtime(l.time)) as calendar_year,
                    month(from_unixtime(l.time)) as calendar_month,
                    day(from_unixtime(l.time)) as calendar_day,
                    u.id AS userid
               FROM {user} u
               JOIN {relationship_members} rm
-                ON (rm.userid=u.id AND rm.relationshipcohortid=:relationship_cohort_id)
+                ON (rm.userid=u.id {$cohort_filter})
               JOIN {relationship_groups} rg
                 ON (rg.id=rm.relationshipgroupid AND rg.relationshipid=:relationship_id)
          LEFT JOIN {log} l
@@ -331,7 +359,7 @@ function query_acesso_tutor_old() {
  *
  * @return string
  */
-function query_acesso_tutor() {
+function query_acesso_tutor($cohorts_tutores = null) {
     /** @var $factory report_unasus_factory */
     $factory = report_unasus_factory::singleton();
 
@@ -342,13 +370,24 @@ function query_acesso_tutor() {
     }
     $contexto_turma = $factory->get_contexto_turma_ufsc();
 
+    // Plural: suporta múltiplos cohorts no papel tutor.
+    $cohort_filter = "";
+    if (!empty($cohorts_tutores)) {
+        if (is_array($cohorts_tutores)) {
+            $ids = array_keys($cohorts_tutores);
+        } else {
+            $ids = array($cohorts_tutores->id);
+        }
+        $cohort_filter = " AND rm.relationshipcohortid " . report_unasus_int_array_to_IN_OR_EQUAL($ids);
+    }
+
     return "SELECT year(from_unixtime(l.timecreated)) as calendar_year,
                    month(from_unixtime(l.timecreated)) as calendar_month,
                    day(from_unixtime(l.timecreated)) as calendar_day,
                    u.id AS userid
               FROM {user} u
               JOIN {relationship_members} rm
-                ON (rm.userid=u.id AND rm.relationshipcohortid=:relationship_cohort_id)
+                ON (rm.userid=u.id {$cohort_filter})
               JOIN {relationship_groups} rg
                 ON (rg.id=rm.relationshipgroupid AND rg.relationshipid=:relationship_id)
          LEFT JOIN {logstore_standard_log} l
@@ -1073,13 +1112,13 @@ class LtiPortfolioQuery {
         $report = report_unasus_factory::singleton();
 
         $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
-        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+        // Plural: suporta múltiplos cohorts no papel estudante.
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
 
         /* Query alunos */
         $query_alunos = query_alunos_relationship($cohort_estudantes);
         $params = array(
                 'tipo_aluno' => GRUPO_TUTORIA_TIPO_ESTUDANTE,
-                'cohort_relationship_id' => $cohort_estudantes->id,
                 'relationship_id' => $relationship->id,
                 'grupo' => $grupo_tutoria
         );
@@ -1111,13 +1150,13 @@ class LtiPortfolioQuery {
 //        $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
 //        $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
         $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($report->get_categoria_turma_ufsc());
-        $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
+        // Plural: suporta múltiplos cohorts no papel estudante.
+        $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohorts_estudantes($relationship->id);
 
         /* Query alunos */
         $query_alunos = query_alunos_relationship($cohort_estudantes);
 
         $params = array(
-                'cohort_relationship_id' => $cohort_estudantes->id,
                 'relationship_id' => $relationship->id,
                 'grupo' => $grupo_orientacao
         );
@@ -1269,6 +1308,20 @@ class LtiPortfolioQuery {
             return array();
         }
 
+        // Conjunto de posições definidas no TCC. O header desta atividade gera 1 coluna
+        // por entrada em chapter_definitions (mais o Resumo na posição 0). Posições retornadas
+        // pelo webservice que não estejam nesse conjunto produziriam células sem cabeçalho
+        // (coluna fantasma) — filtramos elas aqui.
+        $defined_positions = array();
+        if (isset($atividade->tcc_definition->chapter_definitions)) {
+            foreach ($atividade->tcc_definition->chapter_definitions as $cd) {
+                $chapter_def = isset($cd->chapter_definition) ? $cd->chapter_definition : $cd;
+                if (isset($chapter_def->position)) {
+                    $defined_positions[(int) $chapter_def->position] = true;
+                }
+            }
+        }
+
         $output = array();
         $status_chapters = array();
         $state_date_chapters = array();
@@ -1300,7 +1353,7 @@ class LtiPortfolioQuery {
             $model->status = array();
             $model->state_date = array();
 
-            // Processando capítulos encontrados
+            // Processando capítulos encontrados — restritos às posições definidas.
             foreach ($chapters as $chapter) {
 
                 $found = true;
@@ -1309,7 +1362,12 @@ class LtiPortfolioQuery {
                     $chapter = $chapter->chapter;
                 }
 
-                $position = $chapter->position;
+                $position = (int) $chapter->position;
+
+                // Se a posição não estiver no chapter_definitions, ignora — evita coluna fantasma.
+                if (!empty($defined_positions) && !isset($defined_positions[$position])) {
+                    continue;
+                }
 
                 $status_chapters[$userid][$position] = $chapter->state;
 

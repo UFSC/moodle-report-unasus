@@ -17,7 +17,9 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
         : local_tutores_grupos_tutoria::get_grupos_tutoria_new($categoria_turma_ufsc, $report->tutores_selecionados);
 
     $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma_ufsc);
-    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    // Plural: suporta múltiplos cohorts no papel estudante. O filtro `IN (...)`
+    // é embutido pelas funções em queries.php a partir das chaves do array.
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
 
 // Estrutura auxiliar de consulta ao LTI do Portfólio
     $lti_query_object = new LtiPortfolioQuery();
@@ -53,7 +55,6 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                                         'assignmentid' => $atividade->id,
                                         'assignmentid2' => $atividade->id,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id);
                                     $result = $DB->get_records_sql($query_atividades, $params);
 
@@ -91,7 +92,6 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                                         'courseid' => $courseid,
                                         'courseid2' => $courseid,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id,
                                         'forumid' => $atividade->id);
 
@@ -134,7 +134,6 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                                         'courseid2' => $courseid,
 //'enrol_courseid' => $courseid,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id,
                                         'forumid' => $atividade->id);
 
@@ -176,7 +175,6 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                                         'id_activity' => $atividade->id,
 //'enrol_courseid' => $courseid,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id
                                     );
 
@@ -214,7 +212,6 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                                         'courseid2' => $courseid,
                                         'id_activity' => $atividade->id,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id
                                     );
 
@@ -270,7 +267,6 @@ function loop_atividades_e_foruns_de_um_modulo2($query_atividades, $query_forum,
                     'courseid2' => $courseid,
                     'enrol_courseid' => $courseid,
                     'relationship_id' => $relationship->id,
-                    'cohort_relationship_id' => $cohort_estudantes->id,
                     'grupo' => $grupo->id);
 
                 $result = $DB->get_records_sql($query_nota_final, $params);
@@ -319,7 +315,8 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
     $categoria_turma_ufsc = $report->get_categoria_turma_ufsc();
 
     $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma_ufsc);
-    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    // Plural: suporta múltiplos cohorts no papel estudante.
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
 
     // Recupera dados auxiliares
     $grupos = ($is_orientacao)
@@ -380,7 +377,6 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                         'assignmentid' => $atividade->id,
                                         'assignmentid2' => $atividade->id,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id);
 
                                     $result = $DB->get_records_sql($query_atividades, $params);
@@ -408,7 +404,6 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                         'courseid' => $modulo,
                                         'courseid2' => $modulo,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id,
                                         'forumid' => $atividade->id);
 
@@ -440,7 +435,6 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                         'courseid' => $modulo,
                                         'courseid2' => $modulo,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id);
                                     $result = $DB->get_records_sql($query_quiz, $params);
 
@@ -469,7 +463,6 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                         'courseid' => $modulo,
                                         'courseid2' => $modulo,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id
                                     );
                                     $result = $DB->get_records_sql($query_database, $params);
@@ -501,7 +494,6 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                         'courseid' => $modulo,
                                         'courseid2' => $modulo,
                                         'relationship_id' => $relationship->id,
-                                        'cohort_relationship_id' => $cohort_estudantes->id,
                                         'grupo' => $grupo->id,
                                     );
 
@@ -534,7 +526,6 @@ function loop_atividades_e_foruns_sintese2($query_atividades, $query_forum, $que
                                             'courseid' => $modulo,
                                             'courseid2' => $modulo,
                                             'relationship_id' => $relationship->id,
-                                            'cohort_relationship_id' => $cohort_estudantes->id,
                                             'grupo' => $grupo->id,
                                         );
 

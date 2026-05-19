@@ -18,19 +18,21 @@ function report_unasus_get_count_estudantes($categoria_turma) {
     global $DB;
 
     $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
-    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    // Plural: suporta múltiplos cohorts no papel estudante.
+    $cohorts_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
+    $cohort_in = report_unasus_int_array_to_IN_OR_EQUAL(array_keys($cohorts_estudantes));
 
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
                 FROM {relationship_groups} rg
            LEFT JOIN {relationship_members} rm
                   ON (rg.relationshipid=:relationship_id
                  AND rg.id=rm.relationshipgroupid
-                 AND rm.relationshipcohortid=:cohort_id)
+                 AND rm.relationshipcohortid {$cohort_in})
           INNER JOIN {user} u
                   ON (u.id=rm.userid)
             GROUP BY rg.id
             ORDER BY rg.id";
-    $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
+    $params = array('relationship_id' => $relationship->id);
 
     $result = $DB->get_records_sql_menu($query, $params);
 
@@ -45,19 +47,21 @@ function report_unasus_get_count_estudantes_orientacao($categoria_turma) {
     global $DB;
 
     $relationship = local_tutores_grupo_orientacao::get_relationship_orientacao($categoria_turma);
-    $cohort_estudantes = local_tutores_grupo_orientacao::get_relationship_cohort_estudantes($relationship->id);
+    // Plural: suporta múltiplos cohorts no papel estudante.
+    $cohorts_estudantes = local_tutores_grupo_orientacao::get_relationship_cohorts_estudantes($relationship->id);
+    $cohort_in = report_unasus_int_array_to_IN_OR_EQUAL(array_keys($cohorts_estudantes));
 
     $query = "SELECT rg.id AS grupo_id, COUNT(DISTINCT rm.userid)
                 FROM {relationship_groups} rg
            LEFT JOIN {relationship_members} rm
                   ON (rg.relationshipid=:relationship_id
                  AND rg.id=rm.relationshipgroupid
-                 AND rm.relationshipcohortid=:cohort_id)
+                 AND rm.relationshipcohortid {$cohort_in})
           INNER JOIN {user} u
                   ON (u.id=rm.userid)
             GROUP BY rg.id
             ORDER BY rg.id";
-    $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
+    $params = array('relationship_id' => $relationship->id);
 
     $result = $DB->get_records_sql_menu($query, $params);
 
@@ -115,7 +119,9 @@ function report_unasus_get_polos($categoria_turma) {
             $academico = Middleware::singleton();
 
             $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($categoria_turma);
-            $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+            // Plural: suporta múltiplos cohorts no papel estudante.
+            $cohorts_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
+            $cohort_in = report_unasus_int_array_to_IN_OR_EQUAL(array_keys($cohorts_estudantes));
 
             $sql = "
           SELECT DISTINCT(ua.polo), ua.nomepolo
@@ -123,13 +129,13 @@ function report_unasus_get_polos($categoria_turma) {
             JOIN {user} u
               ON (u.username=ua.username)
             JOIN {relationship_members} rm
-              ON (rm.userid=u.id AND rm.relationshipcohortid=:cohort_id)
+              ON (rm.userid=u.id AND rm.relationshipcohortid {$cohort_in})
             JOIN {relationship_groups} rg
               ON (rg.relationshipid=:relationship_id AND rg.id=rm.relationshipgroupid)
            WHERE nomepolo != ''
         ORDER BY nomepolo";
 
-            $params = array('relationship_id' => $relationship->id, 'cohort_id' => $cohort_estudantes->id);
+            $params = array('relationship_id' => $relationship->id);
             $polos = $academico->get_records_sql_menu($sql, $params);
         } catch (Exception $e) {
             $polos = null;
@@ -1399,7 +1405,8 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
     global $DB;
 
     $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($report->get_categoria_turma_ufsc());
-    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+    // Plural: suporta múltiplos cohorts no papel estudante.
+    $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
 
     switch ($nome_atividade) {
         case 'report_unasus_generic_activity' :
@@ -1411,7 +1418,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'relationship_id' => $relationship->id,
-                        'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id);
                     $query = query_atividades_from_users($cohort_estudantes);
                     break;
@@ -1420,7 +1426,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                         'courseid' => $courseid,
                         'courseid2' => $courseid,
                         'relationship_id' => $relationship->id,
-                        'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
                     $query = query_postagens_forum_from_users($cohort_estudantes);
@@ -1432,7 +1437,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                         'assignmentid' => $atividade->id,
                         'assignmentid2' => $atividade->id,
                         'relationship_id' => $relationship->id,
-                        'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id,
                         'forumid' => $atividade->id);
                     $query = query_quiz_from_users($cohort_estudantes);
@@ -1443,7 +1447,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                         'courseid' => $courseid,
                         'courseid2' => $courseid,
                         'relationship_id' => $relationship->id,
-                        'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id,
                         'coursemoduleid' => $atividade->coursemoduleid
                     );
@@ -1455,7 +1458,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                         'courseid' => $courseid,
                         'courseid2' => $courseid,
                         'relationship_id' => $relationship->id,
-                        'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id,
                     );
                     $query = query_scorm_from_users($cohort_estudantes);
@@ -1466,7 +1468,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                         'courseid' => $courseid,
                         'courseid2' => $courseid,
                         'relationship_id' => $relationship->id,
-                        'cohort_relationship_id' => $cohort_estudantes->id,
                         'grupo' => $grupo->id,
                     );
                     $query = query_lti_from_users($cohort_estudantes);
@@ -1479,7 +1480,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                 'courseid' => $courseid,
                 'courseid2' => $courseid,
                 'relationship_id' => $relationship->id,
-                'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
             );
             $query = query_lti_from_users($cohort_estudantes);
@@ -1490,7 +1490,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                 'courseid' => $courseid,
                 'courseid2' => $courseid,
                 'relationship_id' => $relationship->id,
-                'cohort_relationship_id' => $cohort_estudantes->id,
                 'grupo' => $grupo->id,
             );
             $query = query_grades_lti($cohort_estudantes);
@@ -1501,7 +1500,6 @@ function report_unasus_get_atividades2($nome_atividade, $atividade, $courseid, $
                     'courseid' => $courseid,
                     'courseid2' => $courseid,
                     'relationship_id' => $relationship->id,
-                    'cohort_relationship_id' => $cohort_estudantes->id,
                     'grupo' => $grupo->id);
                 $query = query_nota_final($cohort_estudantes);
                 break;

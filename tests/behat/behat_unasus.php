@@ -242,13 +242,22 @@ EOD;
 
         foreach ($sql_result as $id) {
 
-            $sql_roleid = "SELECT COUNT(1)
-                           FROM {relationship_cohorts} rc
-                           WHERE rc.roleid = :roleid";
+            // Idempotência por triplo (relationshipid, roleid, cohortid): permite múltiplos
+            // cohorts no mesmo papel dentro do mesmo relationship, sem duplicar uma combinação
+            // já existente. O guard antigo (apenas roleid global) bloqueava o cenário multi-cohort.
+            $sql_exists = "SELECT COUNT(1)
+                             FROM {relationship_cohorts} rc
+                            WHERE rc.relationshipid = :relationshipid
+                              AND rc.roleid = :roleid
+                              AND rc.cohortid = :cohortid";
 
-            $roleid = $DB->get_field_sql($sql_roleid, array('roleid' => $id->roleid));
+            $exists = $DB->get_field_sql($sql_exists, array(
+                'relationshipid' => $relationshipId,
+                'roleid' => $id->roleid,
+                'cohortid' => $id->cohortid,
+            ));
 
-            if ($roleid == 0) {
+            if ($exists == 0) {
                 $record = new stdClass();
                 $record->relationshipid = $relationshipId;
                 $record->roleid = $id->roleid;
@@ -1925,6 +1934,61 @@ EOD;
     }
 
     /**
+     * Asserts the data row found by first-column label has the same number of
+     * cells (th/td) as the last header row. Detecta coluna fantasma — células
+     * de dado sem cabeçalho correspondente (ou cabeçalho sem dado).
+     *
+     * @Then /^the unasus report row "([^"]*)" should have the same number of cells as the header$/
+     */
+    public function the_unasus_report_row_should_match_header_cell_count($rowlabel) {
+        $table = $this->find_unasus_report_table();
+
+        $headerrows = $table->findAll('css', 'thead tr');
+        if (empty($headerrows)) {
+            $allrows = $table->findAll('css', 'tr');
+            if (count($allrows) < 2) {
+                throw new \Exception('UNA-SUS report table header not found.');
+            }
+            $headerrow = $allrows[1];
+            $tbodyrows = array_slice($allrows, 2);
+        } else {
+            $headerrow = end($headerrows);
+            $tbodyrows = $table->findAll('css', 'tbody tr');
+        }
+
+        $headercells = $this->get_direct_table_cells($headerrow);
+        if (empty($headercells)) {
+            throw new \Exception('UNA-SUS report table header cells not found.');
+        }
+        $expectedcount = count($headercells);
+
+        $normalizedrowlabel = $this->normalize_unasus_csv_cell($rowlabel);
+        foreach ($tbodyrows as $row) {
+            $cells = $this->get_direct_table_cells($row);
+            if (empty($cells)) {
+                continue;
+            }
+            $firstcelltext = $this->normalize_unasus_csv_cell($cells[0]->getText());
+            $matches = ($firstcelltext === $normalizedrowlabel);
+            if (!$matches && $firstcelltext !== '' && $normalizedrowlabel !== '') {
+                $matches = (strpos($firstcelltext, $normalizedrowlabel) !== false
+                    || strpos($normalizedrowlabel, $firstcelltext) !== false);
+            }
+            if ($matches) {
+                $actualcount = count($cells);
+                if ($actualcount !== $expectedcount) {
+                    throw new \Exception(sprintf(
+                        'Coluna fantasma detectada: linha "%s" tem %d células, mas o header tem %d colunas.',
+                        $rowlabel, $actualcount, $expectedcount));
+                }
+                return;
+            }
+        }
+
+        throw new \Exception('UNA-SUS report table row not found: ' . $rowlabel);
+    }
+
+    /**
      * Asserts a student row does not exist in the UNA-SUS report table.
      *
      * @Then /^the unasus report should not have row "([^"]*)"$/
@@ -2612,6 +2676,334 @@ EOD;
         }
 
         // Rebuild course cache so programmatically-created modules appear on the course page.
+        rebuild_course_cache($course->id);
+    }
+
+    /**
+     * Multi-cohort fixture: três cohorts de estudante no MESMO relationship, cada um
+     * vinculado a um grupo de tutoria diferente. Exercita o suporte de local_relationship
+     * a múltiplos cohorts no mesmo papel.
+     *
+     * Layout:
+     *   - Course `c1` em CAT1, atividades a1..a6 + f1/f2/q1/d1/l1 (idêntico à fixture padrão).
+     *   - Cohorts: Cohort teacher (CHt), Cohort student1 (CHs1), Cohort student2 (CHs2), Cohort student3 (CHs3).
+     *   - Users: 12 estudantes (student1..12) + 3 tutores (teacher1..3).
+     *   - Distribuição:
+     *       student1..4 → CHs1 → relationship_group1 (sob teacher1)
+     *       student5..8 → CHs2 → relationship_group2 (sob teacher2)
+     *       student9..12 → CHs3 → relationship_group3 (sob teacher3)
+     *
+     * @Given /^a unasus multi-cohort estudante environment exists$/
+     */
+    public function a_unasus_multi_cohort_estudante_environment_exists() {
+        global $DB, $CFG;
+
+        $generator = testing_util::get_data_generator();
+
+        // Config values.
+        set_config('enablecompletion', 1);
+        set_config('grade_aggregateonlygraded', 1);
+        set_config('local_tutores_student_roles', 'student');
+        set_config('local_tutores_tutor_roles', 'editingteacher');
+        set_config('local_tutores_orientador_roles', 'editingteacher');
+        set_config('report_unasus_prazo_maximo_entrega', 10);
+        set_config('report_unasus_prazo_maximo_avaliacao', 5);
+        set_config('report_unasus_prazo_avaliacao', 1);
+        set_config('report_unasus_tolerancia_potencial_evasao', 1);
+        set_config('report_unasus_passing_grade_percentage', 60);
+
+        // Category and course.
+        $cat = $generator->create_category(['name' => 'Category 1', 'idnumber' => 'CAT1']);
+        $course = $generator->create_course([
+            'fullname' => 'Course1', 'shortname' => 'c1',
+            'category' => $cat->id, 'groupmode' => 1, 'enablecompletion' => 1,
+        ]);
+
+        // Users: 12 students + 3 teachers.
+        for ($i = 1; $i <= 12; $i++) {
+            $generator->create_user([
+                'username'  => "student$i", 'firstname' => 'Student',
+                'lastname'  => "s$i",       'email' => "student$i@example.com",
+            ]);
+        }
+        foreach ([[1, 't1'], [2, 't2'], [3, 't3']] as list($n, $ln)) {
+            $generator->create_user([
+                'username'  => "teacher$n", 'firstname' => 'Teacher',
+                'lastname'  => $ln,         'email' => "teacher$n@example.com",
+            ]);
+        }
+
+        // Cohorts in CAT1 — 1 tutor + 3 student cohorts (chave do cenário multi-cohort).
+        $catctx = context_coursecat::instance($cat->id);
+        $generator->create_cohort(['name' => 'Cohort teacher',  'idnumber' => 'CHt',  'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort student1', 'idnumber' => 'CHs1', 'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort student2', 'idnumber' => 'CHs2', 'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort student3', 'idnumber' => 'CHs3', 'contextid' => $catctx->id]);
+
+        // Activities (mesma config da fixture padrão).
+        $assigns = [
+            ['a1', 'Test assignment one',   'Submit something!', 2147483647],
+            ['a2', 'Test assignment two',   'Submit something!', 978307200],
+            ['a3', 'Test assignment three', 'Submit something!', 0],
+            ['a4', 'Test assignment four',  'Submit something!', 946684800],
+            ['a5', 'Test assignment five',  'Submit something!', 946684800],
+            ['a6', 'Test assignment six',   'Submit something!', 946684800],
+        ];
+        foreach ($assigns as list($idn, $name, $intro, $due)) {
+            $generator->create_module('assign',
+                ['course' => $course->id, 'idnumber' => $idn, 'name' => $name, 'intro' => $intro,
+                 'grade' => 100, 'assignsubmission_onlinetext_enabled' => 1],
+                ['completion' => 1, 'completionexpected' => $due]
+            );
+        }
+        $generator->create_module('forum',
+            ['course' => $course->id, 'idnumber' => 'f1', 'name' => 'Test forum one', 'intro' => 'Forum intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 2147483647]
+        );
+        $generator->create_module('forum',
+            ['course' => $course->id, 'idnumber' => 'f2', 'name' => 'Test forum two', 'intro' => 'Forum intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('quiz',
+            ['course' => $course->id, 'idnumber' => 'q1', 'name' => 'Test quiz one', 'intro' => 'Quiz intro', 'grade' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('data',
+            ['course' => $course->id, 'idnumber' => 'd1', 'name' => 'Test database one', 'intro' => 'DB intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('lti',
+            ['course' => $course->id, 'idnumber' => 'l1', 'name' => 'Test lti one', 'intro' => 'LTI intro',
+             'instructorchoiceacceptgrades' => 1, 'grade' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+
+        // Enrolments.
+        $coursectx = context_course::instance($course->id);
+        for ($i = 1; $i <= 12; $i++) {
+            $uid = $DB->get_field('user', 'id', ['username' => "student$i"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, 'student');
+        }
+        foreach ([1, 2, 3] as $n) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, 'editingteacher');
+        }
+
+        // Permission overrides.
+        $editingteacher_roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        foreach (['local/relationship:view', 'local/relationship:manage', 'local/relationship:assign', 'moodle/cohort:view'] as $cap) {
+            role_change_permission($editingteacher_roleid, $catctx, $cap, CAP_ALLOW);
+        }
+        role_change_permission($editingteacher_roleid, $coursectx, 'report/unasus:view_tutoria', CAP_ALLOW);
+
+        // Role assigns: teacher1–3 as editingteacher in CAT1.
+        foreach ([1, 2, 3] as $n) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $generator->role_assign($editingteacher_roleid, $uid, $catctx->id);
+        }
+
+        // Cohort membership — tutores no cohort de tutor único; estudantes distribuídos
+        // 4-4-4 nos três cohorts de estudante.
+        foreach (['teacher1', 'teacher2', 'teacher3'] as $u) {
+            $this->i_add_user_to_cohort_members($u, 'teacher');
+        }
+        for ($i = 1; $i <= 4; $i++) {
+            $this->i_add_user_to_cohort_members("student$i", 'student1');
+        }
+        for ($i = 5; $i <= 8; $i++) {
+            $this->i_add_user_to_cohort_members("student$i", 'student2');
+        }
+        for ($i = 9; $i <= 12; $i++) {
+            $this->i_add_user_to_cohort_members("student$i", 'student3');
+        }
+
+        // Tutoria environment — após o ajuste do guard em add_created_cohorts_at_relationship,
+        // este passo cria 1 entrada `relationship_cohorts` por (papel, cohort): 1 tutor + 3 estudante.
+        $this->a_basic_unasus_tutoria_environment_exists();
+
+        // Memberships: cada tutor + 4 estudantes do cohort correspondente vão ao grupo correspondente.
+        $memberships = [
+            ['teacher1', 'relationship_group1'],
+            ['student1', 'relationship_group1'], ['student2', 'relationship_group1'],
+            ['student3', 'relationship_group1'], ['student4', 'relationship_group1'],
+            ['teacher2', 'relationship_group2'],
+            ['student5', 'relationship_group2'], ['student6', 'relationship_group2'],
+            ['student7', 'relationship_group2'], ['student8', 'relationship_group2'],
+            ['teacher3', 'relationship_group3'],
+            ['student9', 'relationship_group3'], ['student10', 'relationship_group3'],
+            ['student11', 'relationship_group3'], ['student12', 'relationship_group3'],
+        ];
+        foreach ($memberships as list($user, $group)) {
+            $this->create_relationship_members(['user' => $user, 'group' => $group]);
+        }
+
+        rebuild_course_cache($course->id);
+    }
+
+    /**
+     * Multi-cohort fixture variando o papel TUTOR: três cohorts de tutor (cada um com
+     * um role shortname distinto — editingteacher/teacher/editingteacher) compondo o
+     * mesmo relacionamento. Cada tutor lidera um grupo de tutoria diferente; estudantes
+     * permanecem em um único cohort. Exercita o suporte multi-cohort + multi-role.
+     *
+     * Layout:
+     *   - Course `c1` em CAT1, atividades a1..a6 + f1/f2/q1/d1/l1.
+     *   - Cohorts: Cohort student (CHs), Cohort teacher1 (CHt1), Cohort teacher2 (CHt2), Cohort teacher3 (CHt3).
+     *   - Config: local_tutores_tutor_roles=editingteacher,teacher (habilita 2 shortnames).
+     *   - Users:
+     *       teacher1 (editingteacher) em CHt1 → relationship_group1
+     *       teacher2 (teacher)        em CHt2 → relationship_group2
+     *       teacher3 (editingteacher) em CHt3 → relationship_group3
+     *       student1..4 em CHs → relationship_group1
+     *       student5..8 em CHs → relationship_group2
+     *       student9..12 em CHs → relationship_group3
+     *
+     * @Given /^a unasus multi-cohort tutor environment exists$/
+     */
+    public function a_unasus_multi_cohort_tutor_environment_exists() {
+        global $DB, $CFG;
+
+        $generator = testing_util::get_data_generator();
+
+        // Config values — chave: 2 shortnames de tutor (cobre o multi-role).
+        set_config('enablecompletion', 1);
+        set_config('grade_aggregateonlygraded', 1);
+        set_config('local_tutores_student_roles', 'student');
+        set_config('local_tutores_tutor_roles', 'editingteacher,teacher');
+        set_config('local_tutores_orientador_roles', 'editingteacher');
+        set_config('report_unasus_prazo_maximo_entrega', 10);
+        set_config('report_unasus_prazo_maximo_avaliacao', 5);
+        set_config('report_unasus_prazo_avaliacao', 1);
+        set_config('report_unasus_tolerancia_potencial_evasao', 1);
+        set_config('report_unasus_passing_grade_percentage', 60);
+
+        // Category and course.
+        $cat = $generator->create_category(['name' => 'Category 1', 'idnumber' => 'CAT1']);
+        $course = $generator->create_course([
+            'fullname' => 'Course1', 'shortname' => 'c1',
+            'category' => $cat->id, 'groupmode' => 1, 'enablecompletion' => 1,
+        ]);
+
+        // Users: 12 students + 3 teachers.
+        for ($i = 1; $i <= 12; $i++) {
+            $generator->create_user([
+                'username'  => "student$i", 'firstname' => 'Student',
+                'lastname'  => "s$i",       'email' => "student$i@example.com",
+            ]);
+        }
+        foreach ([[1, 't1'], [2, 't2'], [3, 't3']] as list($n, $ln)) {
+            $generator->create_user([
+                'username'  => "teacher$n", 'firstname' => 'Teacher',
+                'lastname'  => $ln,         'email' => "teacher$n@example.com",
+            ]);
+        }
+
+        // Cohorts in CAT1 — 1 student + 3 tutor cohorts (chave do cenário multi-cohort tutor).
+        $catctx = context_coursecat::instance($cat->id);
+        $generator->create_cohort(['name' => 'Cohort student',  'idnumber' => 'CHs',  'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort teacher1', 'idnumber' => 'CHt1', 'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort teacher2', 'idnumber' => 'CHt2', 'contextid' => $catctx->id]);
+        $generator->create_cohort(['name' => 'Cohort teacher3', 'idnumber' => 'CHt3', 'contextid' => $catctx->id]);
+
+        // Activities.
+        $assigns = [
+            ['a1', 'Test assignment one',   'Submit something!', 2147483647],
+            ['a2', 'Test assignment two',   'Submit something!', 978307200],
+            ['a3', 'Test assignment three', 'Submit something!', 0],
+            ['a4', 'Test assignment four',  'Submit something!', 946684800],
+            ['a5', 'Test assignment five',  'Submit something!', 946684800],
+            ['a6', 'Test assignment six',   'Submit something!', 946684800],
+        ];
+        foreach ($assigns as list($idn, $name, $intro, $due)) {
+            $generator->create_module('assign',
+                ['course' => $course->id, 'idnumber' => $idn, 'name' => $name, 'intro' => $intro,
+                 'grade' => 100, 'assignsubmission_onlinetext_enabled' => 1],
+                ['completion' => 1, 'completionexpected' => $due]
+            );
+        }
+        $generator->create_module('forum',
+            ['course' => $course->id, 'idnumber' => 'f1', 'name' => 'Test forum one', 'intro' => 'Forum intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 2147483647]
+        );
+        $generator->create_module('forum',
+            ['course' => $course->id, 'idnumber' => 'f2', 'name' => 'Test forum two', 'intro' => 'Forum intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('quiz',
+            ['course' => $course->id, 'idnumber' => 'q1', 'name' => 'Test quiz one', 'intro' => 'Quiz intro', 'grade' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('data',
+            ['course' => $course->id, 'idnumber' => 'd1', 'name' => 'Test database one', 'intro' => 'DB intro', 'scale' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+        $generator->create_module('lti',
+            ['course' => $course->id, 'idnumber' => 'l1', 'name' => 'Test lti one', 'intro' => 'LTI intro',
+             'instructorchoiceacceptgrades' => 1, 'grade' => 100],
+            ['completion' => 1, 'completionexpected' => 978307200]
+        );
+
+        // Enrolments — teacher2 com role 'teacher' (não-editing), demais como 'editingteacher'.
+        // Importante: o role_assignments gerado por enrol_user é o que `add_created_cohorts_at_relationship`
+        // lê para deduzir o roleid de cada relationship_cohorts.
+        $coursectx = context_course::instance($course->id);
+        for ($i = 1; $i <= 12; $i++) {
+            $uid = $DB->get_field('user', 'id', ['username' => "student$i"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, 'student');
+        }
+        $tutor_role_mapping = [1 => 'editingteacher', 2 => 'teacher', 3 => 'editingteacher'];
+        foreach ($tutor_role_mapping as $n => $role) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $generator->enrol_user($uid, $course->id, $role);
+        }
+
+        // Permission overrides — concede capabilities a ambos os papéis de tutor.
+        $editingteacher_roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        $teacher_roleid = $DB->get_field('role', 'id', ['shortname' => 'teacher'], MUST_EXIST);
+        foreach (['local/relationship:view', 'local/relationship:manage', 'local/relationship:assign', 'moodle/cohort:view'] as $cap) {
+            role_change_permission($editingteacher_roleid, $catctx, $cap, CAP_ALLOW);
+            role_change_permission($teacher_roleid, $catctx, $cap, CAP_ALLOW);
+        }
+        role_change_permission($editingteacher_roleid, $coursectx, 'report/unasus:view_tutoria', CAP_ALLOW);
+        role_change_permission($teacher_roleid, $coursectx, 'report/unasus:view_tutoria', CAP_ALLOW);
+
+        // Role assigns na categoria — necessário para que `add_created_cohorts_at_relationship`
+        // capte (roleid, cohortid) pelo role_assignments dos membros do cohort.
+        foreach ($tutor_role_mapping as $n => $role) {
+            $uid = $DB->get_field('user', 'id', ['username' => "teacher$n"], MUST_EXIST);
+            $roleid = $DB->get_field('role', 'id', ['shortname' => $role], MUST_EXIST);
+            $generator->role_assign($roleid, $uid, $catctx->id);
+        }
+
+        // Cohort membership — estudantes no único cohort estudante; tutores cada um em
+        // seu próprio cohort de tutor.
+        for ($i = 1; $i <= 12; $i++) {
+            $this->i_add_user_to_cohort_members("student$i", 'student');
+        }
+        $this->i_add_user_to_cohort_members('teacher1', 'teacher1');
+        $this->i_add_user_to_cohort_members('teacher2', 'teacher2');
+        $this->i_add_user_to_cohort_members('teacher3', 'teacher3');
+
+        // Tutoria environment — `add_created_cohorts_at_relationship` (corrigido para idempotência
+        // por triplo) cria 1 linha relationship_cohorts por (papel, cohort): 1 estudante + 3 tutor.
+        $this->a_basic_unasus_tutoria_environment_exists();
+
+        // Memberships: cada tutor + 4 estudantes correspondentes vão ao grupo correspondente.
+        $memberships = [
+            ['teacher1', 'relationship_group1'],
+            ['student1', 'relationship_group1'], ['student2', 'relationship_group1'],
+            ['student3', 'relationship_group1'], ['student4', 'relationship_group1'],
+            ['teacher2', 'relationship_group2'],
+            ['student5', 'relationship_group2'], ['student6', 'relationship_group2'],
+            ['student7', 'relationship_group2'], ['student8', 'relationship_group2'],
+            ['teacher3', 'relationship_group3'],
+            ['student9', 'relationship_group3'], ['student10', 'relationship_group3'],
+            ['student11', 'relationship_group3'], ['student12', 'relationship_group3'],
+        ];
+        foreach ($memberships as list($user, $group)) {
+            $this->create_relationship_members(['user' => $user, 'group' => $group]);
+        }
+
         rebuild_course_cache($course->id);
     }
 

@@ -41,7 +41,7 @@ class report_estudante_sem_atividade_postada extends report_unasus_factory {
         }
 
         $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
-        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
 
         $query_alunos_grupo_tutoria = query_atividades_from_users($cohort_estudantes);
         $query_quiz                 = query_quiz_from_users($cohort_estudantes);

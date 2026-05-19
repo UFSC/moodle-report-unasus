@@ -74,7 +74,7 @@ class report_avaliacoes_em_atraso extends report_unasus_factory {
 
     public function get_dados() {
         $relationship = local_tutores_grupos_tutoria::get_relationship_tutoria($this->get_categoria_turma_ufsc());
-        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohort_estudantes($relationship->id);
+        $cohort_estudantes = local_tutores_grupos_tutoria::get_relationship_cohorts_estudantes($relationship->id);
 
         // Consulta
         $query_atividades   = query_atividades_from_users($cohort_estudantes);
