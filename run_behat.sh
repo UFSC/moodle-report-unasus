@@ -101,6 +101,19 @@ enable_behat_environment() {
     # Ensure parent directory exists and is owned by moodle user
     docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
     exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && touch '$BEHAT_ENABLE_FILE' && rm -f '$BEHAT_DATAROOT/.behat_enabled'"
+
+    # Garantir que o diretório de faildump exista e seja gravável. O hook
+    # behat_hooks::before_suite() aborta a suíte INTEIRA com "non-writable
+    # directory" se $CFG->behat_faildump_path apontar para um dir inexistente.
+    # Extração espelha a do behat_dataroot (sem backreferences, à prova de aspas).
+    local faildump
+    faildump=$(exec_as_moodle "grep -v '^[[:space:]]*//' '$MOODLE_ROOT_IN_CONTAINER/config.php' | grep 'behat_faildump_path' | grep -o \"'[^']*'\" | tr -d \"'\" | head -1" 2>/dev/null || true)
+    if [ -n "$faildump" ]; then
+        log "Garantindo diretório de faildump: $faildump"
+        exec_as_moodle "mkdir -p '$faildump'"
+    else
+        warn "Não foi possível extrair behat_faildump_path do config.php; pulando criação do diretório de faildump."
+    fi
 }
 
 disable_behat_environment() {
@@ -119,7 +132,12 @@ ensure_behat_test_mode_enabled() {
 }
 
 cleanup() {
+    # Captura o código de saída em vigor ANTES de qualquer comando de limpeza,
+    # senão o status do último comando do trap mascararia uma falha do behat
+    # (ex.: o rm -f de disable_behat_environment retorna 0).
+    local rc=$?
     disable_behat_environment
+    exit "$rc"
 }
 
 trap cleanup EXIT
