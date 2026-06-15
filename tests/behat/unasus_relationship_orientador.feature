@@ -163,9 +163,7 @@ Background:
       | student9 | 0                | done   | 2024-01-01 |
       | student9 | 1                | review | 2024-01-20 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Sob singular wrapper de orientador, only students do primeiro advisor cohort apareceriam.
@@ -188,9 +186,7 @@ Background:
       | student9 | 0                | done  | 2024-01-01 |
       | student9 | 1                | done  | 2024-01-10 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Atividades concluídas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Cada estudante representativo de seu advisor cohort tem Resumo + Capítulo 1 concluídos.
@@ -217,9 +213,7 @@ Background:
       | student5 | 2                | done   | 2024-01-15 |
       | student5 | 3                | done   | 2024-01-20 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Asserção principal: número de células no body row deve casar com o header.
@@ -239,9 +233,7 @@ Background:
       | student9 | 0                | done  | 2024-01-01 |
       | student9 | 1                | done  | 2024-01-10 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: TCCs Consolidados" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # tcc_consolidado é um relatório de síntese — verificamos que as colunas existem e

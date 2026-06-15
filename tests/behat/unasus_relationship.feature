@@ -16,9 +16,7 @@ Feature: Relacionamento com múltiplos cohorts por papel
     And I submit assignment "a2" for user "student5"
     And I submit assignment "a3" for user "student9"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     When I press "Gerar relatório"
     Then the unasus report should have row "Student s1"
@@ -48,9 +46,7 @@ Feature: Relacionamento com múltiplos cohorts por papel
     And I set the grade of activity "a3" for user "student9" to "60"
     And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     When I press "Gerar relatório"
     Then the unasus report table should have "80.0" at row "Student s1" and column "Test assignment one"
@@ -77,9 +73,7 @@ Feature: Relacionamento com múltiplos cohorts por papel
     And I set the grade of activity "a3" for user "student9" to "60"
     And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     When I press "Gerar relatório"
     # Estudantes de cada grupo (sob tutor de cohort diferente) presentes.
