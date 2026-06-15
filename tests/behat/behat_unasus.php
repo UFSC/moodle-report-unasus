@@ -1,11 +1,12 @@
 <?php
 
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
+require_once(__DIR__ . '/../../../../lib/tests/behat/behat_navigation.php');
 
 use Behat\Gherkin\Node\TableNode as TableNode,
     Behat\Behat\Exception\PendingException as PendingException;
 
-class behat_unasus extends behat_base
+class behat_unasus extends behat_navigation
 {
     protected $relationshipcount = 0;
     protected $relationship_groupscount = 0;
@@ -186,9 +187,10 @@ EOD;
 
         $record = new stdClass();
         $record->userid = $adminid;
+        $record->tagcollid = core_tag_collection::get_default();
         $record->name = $tag;
         $record->rawname = $tag;
-        $record->tagtype = 'default';
+        $record->isstandard = 0;
         $record->description = null;
         $record->descriptionformat = 0;
         $record->flag = 0;
@@ -205,7 +207,7 @@ EOD;
 
         $record2 = new stdClass();
         $record2->tagid = $id->tagid;
-        $record2->component = null;
+        $record2->component = 'relationship';
         $record2->itemtype = 'relationship';
         $record2->itemid = $id->relationshipid;
         $record2->contextid = null;
@@ -215,6 +217,23 @@ EOD;
         $record2->timemodified = time();
 
         $DB->insert_record('tag_instance', $record2);
+    }
+
+    /**
+     * Navigates to a node inside a named navigation tree section.
+     * Polyfill for Moodle 3.8+ (Boost theme): the step "I navigate to X node in Y"
+     * was removed from core behat_navigation, and the legacy navigation block tree
+     * is no longer rendered. The report nodes added by
+     * report_unasus_extend_navigation_course() live under the course administration
+     * menu ("Reports > UNA-SUS > ..."), so we delegate to the same admin-menu
+     * navigation used by the core "in current page administration" step.
+     *
+     * @Given /^I navigate to "(?P<nodetext_string>(?:[^"]|\\")*)" node in "(?P<parentnodes_string>(?:[^"]|\\")*)"$/
+     */
+    public function i_navigate_to_node_in($nodetext, $parentnodes) {
+        $nodelist = array_map('trim', explode('>', $parentnodes));
+        $nodelist[] = trim($nodetext);
+        $this->select_from_administration_menu($nodelist);
     }
 
     /**

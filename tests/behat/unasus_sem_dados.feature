@@ -143,9 +143,7 @@ Background:
   @javascript @entrega_de_atividades
 Scenario: sem_dados - entrega_de_atividades mostra atividades sem submissao
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Atividade a3 sem deadline -> sem prazo
@@ -158,9 +156,7 @@ Scenario: sem_dados - entrega_de_atividades mostra atividades sem submissao
   @javascript @estudante_sem_atividade_postada
 Scenario: sem_dados - estudante_sem_atividade_postada lista todos os estudantes
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Todos os estudantes sem submissao devem aparecer na lista
@@ -171,9 +167,7 @@ Scenario: sem_dados - estudante_sem_atividade_postada lista todos os estudantes
   @javascript @estudante_sem_atividade_avaliada
 Scenario: sem_dados - estudante_sem_atividade_avaliada nao lista ninguem
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Lista: atividades não avaliadas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Nenhum estudante entregou -> nao ha nada para avaliar -> nenhum aluno listado
@@ -182,9 +176,7 @@ Scenario: sem_dados - estudante_sem_atividade_avaliada nao lista ninguem
   @javascript @avaliacoes_em_atraso
 Scenario: sem_dados - avaliacoes_em_atraso sem pendencias de avaliacao
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Síntese: avaliações em atraso" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Nenhuma submissao -> nenhuma avaliacao pendente -> tutores aparecem com zero pendencias
@@ -194,9 +186,7 @@ Scenario: sem_dados - avaliacoes_em_atraso sem pendencias de avaliacao
   @javascript @atividades_vs_notas
 Scenario: sem_dados - atividades_vs_notas mostra estados sem entrega
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Atividades com prazo passado e sem entrega -> nao entregue
@@ -209,9 +199,7 @@ Scenario: sem_dados - atividades_vs_notas mostra estados sem entrega
   @javascript @boletim
 Scenario: sem_dados - boletim exibe atividades sem notas
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Atividades devem aparecer no cabecalho mesmo sem notas atribuidas
@@ -221,9 +209,7 @@ Scenario: sem_dados - boletim exibe atividades sem notas
   @javascript @modulos_concluidos
 Scenario: sem_dados - modulos_concluidos sem nenhuma conclusao
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Lista: Conclusão" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Atividades aparecem no cabecalho mesmo sem conclusoes
@@ -234,9 +220,7 @@ Scenario: sem_dados - modulos_concluidos sem nenhuma conclusao
   @javascript @atividades_concluidas_agrupadas
 Scenario: sem_dados - atividades_concluidas_agrupadas mostra zero conclusoes por grupo
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Sintese: atividades concluidas agrupadas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Tutores aparecem mesmo sem nenhuma conclusao registrada

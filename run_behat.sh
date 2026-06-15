@@ -123,6 +123,17 @@ exec_as_moodle() {
     docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
 }
 
+resolve_behat_yml() {
+    # Localiza o behat.yml real gerado pelo init.php do Moodle. O caminho NÃO é
+    # reconstruível a partir do prefixo: o behat_dataroot vem do config.php (no padrão
+    # UFSC é computado em runtime a partir de getenv('MOODLEUFSC_BEHAT_PREFIX'), logo não
+    # é um literal extraível por grep) e o arquivo pode ficar em behat/ OU em
+    # behatrun/behat/ conforme a versão do Moodle / parallel-run. Por isso procuramos o
+    # arquivo de fato, escopado a este site. Se houver mais de um (layout antigo
+    # remanescente, parallel-run), o mais recente (ls -t) vence. Vazio se não existe.
+    exec_as_moodle "find /home/moodle/moodledata -path '*${SISTEM_NAME}*/behat/behat.yml' -exec ls -t {} + 2>/dev/null | head -1" 2>/dev/null || true
+}
+
 exec_php_as_moodle_for_init() {
     docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
 }
@@ -429,10 +440,24 @@ if [ "$BEHAT_WWWROOT_STALE" = "yes" ]; then
     INIT_FLAG="yes"
 fi
 
+# Detectar ambiente Behat inicializado para outra versão/build do Moodle.
+# util.php --enable emite "initialised for a different version" / "Reinstall Behat"
+# quando o build mudou (ex.: upgrade do Moodle ou outro plugin rodou o init antes).
+# Sem isto, a execução aborta pedindo `php init.php`; aqui forçamos o init sozinhos.
+# (Só faz sentido quando o ambiente já existe; a primeira inicialização é tratada
+# pelo branch "[ -z BEHAT_YML ]" logo abaixo.)
+if [ -z "$INIT_FLAG" ] && [ -n "$(resolve_behat_yml)" ]; then
+    BEHAT_VERSION_PROBE=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true")
+    if echo "$BEHAT_VERSION_PROBE" | grep -qiE 'different version|Reinstall Behat'; then
+        warn "Ambiente Behat inicializado para outra versão do Moodle. Forçando reinicialização..."
+        INIT_FLAG="yes"
+    fi
+fi
+
 # ---------------------------------------------------------------------------
 # 4. Inicializar (ou reinicializar) o ambiente Behat
 # ---------------------------------------------------------------------------
-BEHAT_YML="$BEHAT_DATAROOT/behat/behat.yml"
+BEHAT_YML=$(resolve_behat_yml)
 
 # Nº de workers para o qual o ambiente está instalado. O Moodle grava esse valor em
 # parallel_environment_enabled.txt dentro do behat dir de cada worker; ausente = sequencial.
@@ -494,7 +519,7 @@ elif [ -n "$INIT_FLAG" ]; then
 
     log "Behat reinicializado."
 
-elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
+elif [ -z "$BEHAT_YML" ]; then
     log "Inicializando ambiente Behat pela primeira vez (pode demorar alguns minutos)..."
 
     # Garante permissão de escrita no dirroot para o container criar behat.yml
@@ -507,6 +532,12 @@ elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
 else
     log "Ambiente Behat já inicializado."
 fi
+
+# O caminho real do behat.yml só é conhecido com certeza após o init/reinit, que pode
+# tê-lo criado ou movido para outro dataroot/layout. Re-resolve incondicionalmente.
+BEHAT_YML=$(resolve_behat_yml)
+[ -n "$BEHAT_YML" ] || err "Não foi possível localizar o behat.yml após a inicialização do ambiente Behat."
+log "Usando config Behat: $BEHAT_YML"
 
 # ---------------------------------------------------------------------------
 # 5. Habilitar explicitamente o modo de testes antes da execução
@@ -536,7 +567,8 @@ if [ -n "$PARALLEL_RUNS" ]; then
     log "Modo paralelo: $PARALLEL_RUNS workers"
     BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M admin/tool/behat/cli/run.php"
 else
-    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML' --ansi"
+    # Sem --ansi: não suportado pela versão do Behat desta branch (ver 359f75a).
+    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML'"
 fi
 
 if [ -n "$FEATURE_FILE" ]; then
