@@ -21,9 +21,7 @@ Background:
     And I unenrol user "student12" from course "c1"
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
 

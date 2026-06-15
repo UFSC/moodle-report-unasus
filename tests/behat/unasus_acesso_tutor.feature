@@ -93,7 +93,7 @@ Background:
   @javascript @acesso_tutor
   Scenario: acesso_tutor com período fixo mostra tutores e estados de acesso no mês
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (acessos)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
@@ -122,7 +122,7 @@ Background:
       | tutor1   | c1     | 1774224060 | viewed  |
       | tutor1   | c1     | 1774224240 | updated |
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (acessos)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "22/03/2026"
     And I set the field "data_fim" to "23/03/2026"
@@ -139,7 +139,7 @@ Background:
   @javascript @acesso_tutor
   Scenario: acesso_tutor não mostra dia de abril quando o período é março de 2026
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (acessos)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
@@ -151,7 +151,7 @@ Background:
   @javascript @acesso_tutor
   Scenario: usuário sem view_all não visualiza relatório restrito acesso_tutor
     And I log in as "tutor1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     Then I should not see "Uso do sistema pelo tutor (acessos)"
 
   @javascript @acesso_tutor
@@ -161,7 +161,7 @@ Background:
   @javascript @acesso_tutor
   Scenario: acesso_tutor exibe aviso para intervalo de datas inválido
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (acessos)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "31/03/2026"
     And I set the field "data_fim" to "01/03/2026"
@@ -171,7 +171,7 @@ Background:
   @javascript @acesso_tutor
   Scenario: acesso_tutor exibe opção de exportar CSV para usuário com view_all
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (acessos)" node in "Reports > UNA-SUS"
     Then I should see "Exportar para CSV"
 

@@ -26,9 +26,7 @@ Scenario: boletim - verificacao de notas
     And I set the grade of activity "a1" for user "student2" to "40"
     And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # student1 tem notas 100 (a4) e 80 (a5) -> media final deve ser 90.0
@@ -80,9 +78,7 @@ Scenario: boletim - média ponderada no gradebook
     And I recalculate gradebook final grades for course "c1"
     And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "95.0"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     And the unasus report table should have "100.0" at row "Student s1" and column "Test assignment four"
@@ -120,9 +116,7 @@ Scenario: boletim - média simples com vazias=zero
     And I recalculate gradebook final grades for course "c1"
     And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be lower than "90.0"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then the unasus report table should have "100.0" at row "Student s1" and column "Test assignment four"
@@ -160,9 +154,7 @@ Scenario: boletim - média ponderada com vazias=zero
     And I recalculate gradebook final grades for course "c1"
     And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be lower than "95.0"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     And the unasus report table should have "100.0" at row "Student s1" and column "Test assignment four"
@@ -202,9 +194,7 @@ Scenario: boletim - atividades base 100 com nota final base 10
     And I recalculate gradebook final grades for course "c1"
     And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "70.0"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then the unasus report table should have "80.0" at row "Student s1" and column "Test assignment four"
@@ -244,9 +234,7 @@ Scenario: boletim - todas as atividades avaliadas verifica media final
     And I recalculate gradebook final grades for course "c1"
     And the Moodle gradebook final grade percentage for user "student1" in course "c1" should be "80.0"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     And the unasus report table should have "90.0" at row "Student s1" and column "Test assignment four"
@@ -292,9 +280,7 @@ Scenario: boletim - todas as atividades avaliadas verifica media final
     And I set the grade of activity "a4" for user "student2" to "80"
     And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Boletim" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Nota 80 > limiar 60% -> ambos devem ter CSS class "na_media"

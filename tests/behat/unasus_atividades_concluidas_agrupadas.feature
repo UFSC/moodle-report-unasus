@@ -89,7 +89,7 @@ Background:
   @javascript @atividades_concluidas_agrupadas
   Scenario: síntese agrupada exibe valores por grupo e total
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Sintese: atividades concluidas agrupadas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then I should see "N° Alunos com atividades concluídas"
@@ -114,7 +114,7 @@ Background:
   @javascript @atividades_concluidas_agrupadas
   Scenario: tutor sem view_all não visualiza dados de outro grupo na síntese agrupada
     And I log in as "tutor1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Sintese: atividades concluidas agrupadas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then I should see "Tutor One"

@@ -93,7 +93,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor com período fixo mostra tutores e colunas de média e total
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "09/03/2026"
     And I set the field "data_fim" to "22/03/2026"
@@ -125,7 +125,7 @@ Background:
       | tutor2   | c1     | 1774180800 | login   |
       | tutor2   | c1     | 1774182000 | logout  |
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "09/03/2026"
     And I set the field "data_fim" to "22/03/2026"
@@ -151,7 +151,7 @@ Background:
       | tutor1   | c1     | 1774224060 | viewed  |
       | tutor1   | c1     | 1774224240 | updated |
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "22/03/2026"
     And I set the field "data_fim" to "23/03/2026"
@@ -164,7 +164,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor não mostra dia de abril quando o período é março de 2026
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
@@ -176,7 +176,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: usuário sem view_all não visualiza relatório restrito uso_sistema_tutor
     And I log in as "tutor1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     Then I should not see "Uso do sistema pelo tutor (horas)"
 
   @javascript @uso_sistema_tutor
@@ -186,7 +186,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe aviso para formato de data inválido
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
     And I set the field "data_inicio" to "2026-03-01"
     And I set the field "data_fim" to "31/03/2026"
@@ -196,7 +196,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe opção de exportar CSV para usuário com view_all
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
     Then I should see "Exportar para CSV"
 

@@ -154,9 +154,7 @@ Background:
       | student2 | 1                | null   |            |
       | student2 | 2                | null   |            |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # CSS class cobre todos os estados: avaliado, revisao, rascunho, nao_aplicado.
@@ -176,9 +174,7 @@ Background:
       | student2 | 1                | null  |            |
       | student2 | 2                | null  |            |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Atividades concluídas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # CSS class: dois capítulos concluidos e um nao_concluido para student1; student2 sem dados.
@@ -204,9 +200,7 @@ Background:
       | student4 | 1                | null  |            |
       | student4 | 2                | null  |            |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: TCCs Consolidados" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then I should see "Resumo"
@@ -247,7 +241,7 @@ Background:
       | student5 | 0                | done  | 2024-01-01 |
       | student9 | 0                | done  | 2024-01-01 |
     And I log in as "teacher1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "<reportnode>" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then I should see "Student s1"
@@ -268,9 +262,7 @@ Background:
     # The report must load without fatal errors and show no chapter columns.
     And the TCC webservice definition endpoint fails
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     Then I should not see "Capítulo 1"

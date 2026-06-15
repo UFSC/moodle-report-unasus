@@ -164,7 +164,7 @@ Background:
   @javascript @tcc_entrega_atividades
   Scenario: manager com view_all visualiza todos os estudantes na orientação TCC
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
     Then I should see "Filtrar Grupos de Orientação:"
     And I press "Gerar relatório"
@@ -201,7 +201,7 @@ Background:
   @javascript @tcc_entrega_atividades
   Scenario: orientador sem view_all nao visualiza estudantes de outros grupos no TCC
     And I log in as "teacher1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
     Then I should not see "Filtrar Cohorts:"
     And I press "Gerar relatório"

@@ -57,9 +57,7 @@ Scenario: estudante_sem_atividade_avaliada - cobertura com limites e variacoes d
     And I set the grade of activity "a5" for user "student8" to "79"
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Lista: atividades não avaliadas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
 

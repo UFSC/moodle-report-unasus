@@ -29,9 +29,7 @@ Background:
     And I mark activity "a1" as complete for user "student6"
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Síntese: atividades concluídas" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
 
