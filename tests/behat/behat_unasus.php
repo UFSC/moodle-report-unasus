@@ -228,6 +228,14 @@ EOD;
      * menu ("Reports > UNA-SUS > ..."), so we delegate to the same admin-menu
      * navigation used by the core "in current page administration" step.
      *
+     * IMPORTANT — do NOT replace this polyfill (nor rewrite the feature files to the
+     * core "in current page administration" step). The "X node in Y" syntax is the
+     * common denominator across this plugin's version cascade: on MOODLE_30_STABLE the
+     * step is provided natively by core, so the feature files use it verbatim with no
+     * polyfill. Core "in current page administration" does not exist on Moodle 3.0, so
+     * switching to it would break the 3.0 branch. Keeping this polyfill lets the SAME
+     * feature files run unchanged on 3.0 (native) and 3.8+ (this re-implementation).
+     *
      * @Given /^I navigate to "(?P<nodetext_string>(?:[^"]|\\")*)" node in "(?P<parentnodes_string>(?:[^"]|\\")*)"$/
      */
     public function i_navigate_to_node_in($nodetext, $parentnodes) {
