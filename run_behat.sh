@@ -402,10 +402,16 @@ fi
 # pelo branch "[ -z BEHAT_YML ]" logo abaixo.)
 # Este --enable também JÁ habilita o modo de testes no caminho de estado estável
 # (sem init/reinit); marcamos BEHAT_ENABLE_DONE para não repeti-lo na seção 5.
+# IMPORTANTE: capturamos o exit code real (sem "|| true"). Só marcamos
+# BEHAT_ENABLE_DONE quando o --enable de fato teve sucesso; se ele falhar por
+# qualquer motivo (incl. mismatch de versão, que retorna != 0), BEHAT_ENABLE_DONE
+# fica vazio e a seção 5 re-habilita por segurança — evitando rodar a suíte contra
+# um site não habilitado. A saída é capturada de qualquer forma para o grep abaixo.
 BEHAT_ENABLE_DONE=""
 if [ -z "$INIT_FLAG" ] && [ -n "$(resolve_behat_yml)" ]; then
-    BEHAT_VERSION_PROBE=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true")
-    BEHAT_ENABLE_DONE="yes"
+    if BEHAT_VERSION_PROBE=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1"); then
+        BEHAT_ENABLE_DONE="yes"
+    fi
     if echo "$BEHAT_VERSION_PROBE" | grep -qiE 'different version|Reinstall Behat'; then
         warn "Ambiente Behat inicializado para outra versão do Moodle. Forçando reinicialização..."
         INIT_FLAG="yes"
