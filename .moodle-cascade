@@ -11,4 +11,4 @@
 remotes = origin stream
 
 # main_branch: alias que segue a base da cadeia ativa (MOODLE_30_STABLE).
-main_branch = master
+main_branch = main
