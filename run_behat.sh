@@ -400,8 +400,12 @@ fi
 # Sem isto, a execução aborta pedindo `php init.php`; aqui forçamos o init sozinhos.
 # (Só faz sentido quando o ambiente já existe; a primeira inicialização é tratada
 # pelo branch "[ -z BEHAT_YML ]" logo abaixo.)
+# Este --enable também JÁ habilita o modo de testes no caminho de estado estável
+# (sem init/reinit); marcamos BEHAT_ENABLE_DONE para não repeti-lo na seção 5.
+BEHAT_ENABLE_DONE=""
 if [ -z "$INIT_FLAG" ] && [ -n "$(resolve_behat_yml)" ]; then
     BEHAT_VERSION_PROBE=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true")
+    BEHAT_ENABLE_DONE="yes"
     if echo "$BEHAT_VERSION_PROBE" | grep -qiE 'different version|Reinstall Behat'; then
         warn "Ambiente Behat inicializado para outra versão do Moodle. Forçando reinicialização..."
         INIT_FLAG="yes"
@@ -472,7 +476,12 @@ log "Usando config Behat: $BEHAT_YML"
 # ---------------------------------------------------------------------------
 # 5. Habilitar explicitamente o modo de testes antes da execução
 # ---------------------------------------------------------------------------
-ensure_behat_test_mode_enabled
+# Evita um segundo util.php --enable: o probe da seção 3 já habilitou o modo de
+# testes no caminho de estado estável. Só re-habilitamos se houve init/reinit (que
+# pode ter recriado o site) ou se o probe não rodou (ex.: primeira inicialização).
+if [ -n "$INIT_FLAG" ] || [ -z "$BEHAT_ENABLE_DONE" ]; then
+    ensure_behat_test_mode_enabled
+fi
 
 # ---------------------------------------------------------------------------
 # 5. Executar os testes
