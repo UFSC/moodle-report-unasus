@@ -164,7 +164,7 @@ Background:
   @javascript @entrega_de_atividades
   Scenario: manager com view_all visualiza todos os estudantes na tutoria
     And I log in as "manager1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
     Then I should see "Filtrar Cohorts:"
     And I should see "Filtrar Grupos de Tutoria:"
@@ -235,7 +235,7 @@ Background:
   @javascript @entrega_de_atividades
   Scenario: tutor sem view_all nao visualiza estudantes de outros grupos na tutoria
     And I log in as "teacher1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
     Then I should not see "Filtrar Cohorts:"
     And I press "Gerar relatório"

@@ -56,9 +56,7 @@ Scenario: modulos_concluidos - verificacao de completion de atividades
     And I mark activity "l1" as complete for user "student12"
     And I recalculate gradebook final grades for course "c1"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Lista: Conclusão" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # Linha student10: curso concluido, deve mostrar a media final e nenhuma atividade pendente.

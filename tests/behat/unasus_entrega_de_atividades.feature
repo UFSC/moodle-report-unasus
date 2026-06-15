@@ -21,9 +21,7 @@ Background:
   @javascript @entrega_de_atividades
 Scenario: entrega_de_atividades - todas as legendas de entrega
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Acompanhamento: entrega de atividades" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
     # a3 deadline=0: estudantes que nao entregaram aparecem como "sem prazo" na coluna.
