@@ -320,7 +320,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         $ultimo_alvo = 0;
         $ultima_atividade_modulo[] = $ultimo_alvo;
         foreach ($header as $activities) {
-            $ultimo_alvo += count($activities);
+            $ultimo_alvo += is_array($activities) ? count($activities) : 1;
             $ultima_atividade_modulo[] = $ultimo_alvo;
         }
 

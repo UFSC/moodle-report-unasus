@@ -51,9 +51,7 @@ Scenario: estudante_sem_atividade_postada - cobertura com limites e variacoes de
     And I mark quiz "q1" as completed for user "student12"
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
+    And I am on "Course1" course homepage
     And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
     And I press "Gerar relatório"
 
