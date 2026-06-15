@@ -93,14 +93,23 @@ exec_as_moodle() {
 }
 
 resolve_behat_yml() {
-    # Localiza o behat.yml real gerado pelo init.php do Moodle. O caminho NÃO é
-    # reconstruível a partir do prefixo: o behat_dataroot vem do config.php (no padrão
-    # UFSC é computado em runtime a partir de getenv('MOODLEUFSC_BEHAT_PREFIX'), logo não
-    # é um literal extraível por grep) e o arquivo pode ficar em behat/ OU em
-    # behatrun/behat/ conforme a versão do Moodle / parallel-run. Por isso procuramos o
-    # arquivo de fato, escopado a este site. Se houver mais de um (layout antigo
-    # remanescente, parallel-run), o mais recente (ls -t) vence. Vazio se não existe.
-    exec_as_moodle "find /home/moodle/moodledata -path '*${SISTEM_NAME}*/behat/behat.yml' -exec ls -t {} + 2>/dev/null | head -1" 2>/dev/null || true
+    # Localiza o behat.yml real gerado pelo init.php do Moodle. O behat_dataroot é
+    # determinístico: o bloco de correção (ver "behat_dataroot desatualizado" abaixo)
+    # garante que o config.php use exatamente $BEHAT_DATAROOT. Só o subdiretório varia
+    # por versão/layout: behatrun/behat/ (3.8 / parallel-run) ou behat/ (run único,
+    # estilo MOODLE_30_STABLE). Testamos os caminhos exatos, do mais específico (3.8)
+    # para o mais geral, para que um behat/behat.yml obsoleto de run único não vença o
+    # do 3.8. Escopado ao dataroot deste site — sem glob de substring (que casaria
+    # sites vizinhos como local-unasus30) nem ls -t (que escolheria um shard arbitrário).
+    # Vazio se nenhum existir.
+    local sub yml
+    for sub in behatrun/behat behat; do
+        yml="$BEHAT_DATAROOT/$sub/behat.yml"
+        if exec_as_moodle "test -f '$yml'" 2>/dev/null; then
+            echo "$yml"
+            return 0
+        fi
+    done
 }
 
 exec_php_as_moodle_for_init() {
