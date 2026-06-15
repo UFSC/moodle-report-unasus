@@ -1,0 +1,14 @@
+# .moodle-cascade — configuração POR-PROJETO do `moodle-cascade`.
+#
+# A cadeia de versões (KNOWN) NÃO mora aqui — é a cadeia-padrão do command
+# (MOODLE_30_STABLE -> MOODLE_38_STABLE -> MOODLE_401_STABLE). Este projeto usa
+# exatamente essa cadeia (sem MOODLE_31_STABLE), então não há chain_extra.
+#
+# Formato: chave = valor. Linhas em branco e iniciadas por # são ignoradas.
+
+# remotes (OBRIGATÓRIO): mirrors para onde TODO passo do cascade empurra.
+# Aqui o mesmo repositório UFSC é exposto por dois remotes (HTTPS + SSH).
+remotes = origin stream
+
+# main_branch: alias que segue a base da cadeia ativa (MOODLE_30_STABLE).
+main_branch = master
