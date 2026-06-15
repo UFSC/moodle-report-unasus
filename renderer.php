@@ -662,7 +662,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::tag('td', '', array('class' => 'relatorio-unasus blank'));
 
             foreach ($header_method as $module_name => $activities) {
-                $output .= html_writer::tag('th', $module_name, array('class' => 'relatorio-unasus modulo_header cell c1', 'colspan' => count($activities)));
+                $output .= html_writer::tag('th', $module_name, array('class' => 'relatorio-unasus modulo_header cell c1', 'colspan' => is_array($activities) ? count($activities) : 1));
             }
 
             $output .= html_writer::end_tag('tr');
@@ -672,7 +672,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             foreach ($header_method as $module_name => $activities) {
                 $count_ = 1;
-                foreach ($activities as $activity) {
+                foreach ((is_array($activities) ? $activities : array($activities)) as $activity) {
                     if (! is_object($activity)){
                         $class = (is_numeric($activity[0]) AND !is_string($activity)) ? '' : 'relatorio-unasus rotate cell c_body';//' . $count_;
                     } else {
