@@ -49,6 +49,10 @@ SISTEM_NAME="local-$CORE_NAME"
 CONTAINER_NAME="moodle-$SISTEM_NAME"
 SELENIUM_CONTAINER="selenium-chrome-$CORE_NAME"
 SELENIUM_IMAGE="selenium/standalone-chrome:3.141.59-selenium"
+# Porta do HOST publicada para o Selenium (lado esquerdo do -p). A porta interna do
+# container é sempre 4444. Parametrizável via SELENIUM_PORT no .env para permitir rodar
+# vários ambientes em paralelo sem conflito na 4444. Default: 4444.
+SELENIUM_HOST_PORT="${SELENIUM_PORT:-4444}"
 DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/$DOCKER_VERSION"
 MOODLE_LOCAL_SITE="www/$SISTEM_NAME"
 MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
@@ -244,7 +248,7 @@ else
                     --name "$SELENIUM_CONTAINER" \
                     --network "$DOCKER_NETWORK" \
                     --shm-size=2g \
-                    -p 4444:4444 \
+                    -p ${SELENIUM_HOST_PORT}:4444 \
                     "$SELENIUM_IMAGE"
             else
                 err "Falha ao iniciar '$SELENIUM_CONTAINER': $START_OUTPUT"
@@ -256,7 +260,7 @@ else
             --name "$SELENIUM_CONTAINER" \
             --network "$DOCKER_NETWORK" \
             --shm-size=2g \
-            -p 4444:4444 \
+            -p ${SELENIUM_HOST_PORT}:4444 \
             "$SELENIUM_IMAGE"
     fi
 
