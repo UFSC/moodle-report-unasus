@@ -1254,6 +1254,20 @@ class LtiPortfolioQuery {
             return; // grupo sem membros cadastrados
         }
 
+        // Conjunto de posições definidas no TCC. O header gera 1 coluna por entrada em
+        // chapter_definitions (mais o Resumo, tratado à parte). Posições retornadas pelo
+        // webservice fora desse conjunto produziriam células de dados sem cabeçalho
+        // (coluna fantasma) — filtramos elas aqui, igual a get_report_data().
+        $defined_positions = array();
+        if (isset($atividade->tcc_definition->chapter_definitions)) {
+            foreach ($atividade->tcc_definition->chapter_definitions as $cd) {
+                $chapter_def = isset($cd->chapter_definition) ? $cd->chapter_definition : $cd;
+                if (isset($chapter_def->position)) {
+                    $defined_positions[(int) $chapter_def->position] = true;
+                }
+            }
+        }
+
         foreach ($result as $r) {
 
             $chapters = $r->tcc->chapters;
@@ -1266,7 +1280,13 @@ class LtiPortfolioQuery {
                 }
 
                 // Inicializar
-                $position = $chapter->position;
+                $position = (int) $chapter->position;
+
+                // Se a posição não estiver no chapter_definitions, ignora — evita coluna fantasma.
+                if (!empty($defined_positions) && !isset($defined_positions[$position])) {
+                    continue;
+                }
+
                 if (!array_key_exists($position, $count_alunos)) {
                     $count_alunos[$position] = 0;
                 }
