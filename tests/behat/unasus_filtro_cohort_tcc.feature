@@ -223,7 +223,7 @@ Scenario Outline: filtro de cohort e grupo restringe estudantes exibidos em rela
 #     → Resumo=4, Cap1=4, tcc_completo=4, nao_acessado=0
 #   group3 (s9–s12): s9=done/done, s10=done/done, s11=done/done, s12=null/null
 #     → Resumo=3, Cap1=3, tcc_completo=3, nao_acessado=1
-# Nota: denominador = 12 (mock retorna todos os 12 alunos independente do grupo).
+# Nota: denominador = 4 (estudantes do grupo, contados no banco — não depende do mock).
 # Filtro de grupo: remove linhas dos outros grupos da tabela.
 # Filtro de cohort: mantém todas as linhas mas altera os contadores
 #   (CHs1 = só student1 → group1 mostra 1/ em Resumo e Cap1).
@@ -232,11 +232,11 @@ Scenario: tcc_consolidado exibe valores por grupo e por capítulo, respeitando f
   Given I log in as "manager1"
 
   # Sem filtro: todos os grupos e total visíveis, com contagens por capítulo e por tipo.
-  # Denominador = 12 (mock retorna todos os 12 estudantes independente do grupo).
+  # Denominador = 4 (estudantes matriculados no grupo, contados no banco).
   # group1: Resumo=3 (s4 null), Cap1=2 (s3 review, s4 null), AtivConc=2 (s3/s4 incompletos), NaoAcess=1 (s4 null).
   # group2: Resumo=4, Cap1=4, AtivConc=4, NaoAcess=0 (todos done).
   # group3: Resumo=3 (s12 null), Cap1=3 (s12 null), AtivConc=3, NaoAcess=1 (s12 null).
-  # Total: Resumo=3+4+3=10, Cap1=2+4+3=9, AtivConc=2+4+3=9, NaoAcess=1+0+1=2. Denominador total=36.
+  # Total: Resumo=3+4+3=10, Cap1=2+4+3=9, AtivConc=2+4+3=9, NaoAcess=1+0+1=2. Denominador total=12.
   When I open the unasus report "tcc_consolidado" directly for course "c1" with params:
     | name          | value  |
     | modo_exibicao | tabela |
@@ -310,7 +310,7 @@ Scenario: tcc_consolidado exibe valores por grupo e por capítulo, respeitando f
   # student1 tem abstract=done e cap1=done: group1 Resumo=1, Cap1=1, AtivConc=1, NaoAcess=0.
   # Groups 2 e 3 com 0 estudantes do cohort CHs1: colunas Resumo e Cap1 aparecem com 0/,
   # mas 'Atividades Concluídas' e 'Não acessado' podem não aparecer para esses grupos.
-  # Total: Resumo=1/36, Cap1=1/36; AtivConc e NaoAcess acumulam apenas group1.
+  # Total: Resumo=1/12, Cap1=1/12; AtivConc e NaoAcess acumulam apenas group1.
   When I open the unasus report "tcc_consolidado" directly for course "c1" with params:
     | name          | value       |
     | modo_exibicao | tabela      |

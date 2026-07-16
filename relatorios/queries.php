@@ -1168,6 +1168,39 @@ class LtiPortfolioQuery {
 
 
     /**
+     * Id da tcc_definition da atividade, ou null se indisponível.
+     *
+     * A definition já foi carregada do webservice para montar as colunas do relatório
+     * ({@see report_unasus_lti_tcc_definition()}), e o objeto carrega o próprio id. Usá-la aqui
+     * garante que o filtro da consulta e o cabeçalho falem da mesma definition.
+     *
+     * @param report_unasus_lti_activity2 $atividade
+     * @return int|null
+     */
+    private function tcc_definition_id(&$atividade) {
+        if (empty($atividade->tcc_definition->id) || !is_numeric($atividade->tcc_definition->id)) {
+            return null;
+        }
+        return (int) $atividade->tcc_definition->id;
+    }
+
+    /**
+     * Chave de cache das respostas do webservice.
+     *
+     * Depende da atividade, e não só do grupo: com o filtro de tcc_definition a resposta passa a ser
+     * específica da atividade, e um curso pode ter mais de um LTI de TCC compartilhando esta mesma
+     * instância.
+     *
+     * @param int $grupo
+     * @param report_unasus_lti_activity2 $atividade
+     * @return string
+     */
+    private function report_cache_key($grupo, &$atividade) {
+        $atividade_id = isset($atividade->id) ? $atividade->id : '';
+        return $grupo . '|' . $atividade_id;
+    }
+
+    /**
      * Realiza a consulta ao webservice do sistema de TCCs para obter os dados dos alunos que participam de um grupo de tutoria
      * @param int $grupo_tutoria código do grupo de tutoria
      * @param report_unasus_lti_activity2 $atividade
@@ -1175,9 +1208,11 @@ class LtiPortfolioQuery {
      */
     private function &query_report_data_by_grupo_tutoria($grupo_tutoria, &$atividade) {
 
+        $cache_key = $this->report_cache_key($grupo_tutoria, $atividade);
+
         // Se a consulta já foi executada, não é necessário refazê-la
-        if (isset($this->report_estudantes_grupo_tutoria[$grupo_tutoria])) {
-            return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
+        if (isset($this->report_estudantes_grupo_tutoria[$cache_key])) {
+            return $this->report_estudantes_grupo_tutoria[$cache_key];
         }
 
         $user_ids = array();
@@ -1192,10 +1227,12 @@ class LtiPortfolioQuery {
         $base_url = empty($atividade->baseurl) ? "" : $atividade->baseurl;
 
         $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
-        $this->report_estudantes_grupo_tutoria[$grupo_tutoria] =
-            $client->getZendInstalled() ? $client->get_report_data_tcc($user_ids) : null;
+        $this->report_estudantes_grupo_tutoria[$cache_key] =
+            $client->getZendInstalled()
+                ? $client->get_report_data_tcc($user_ids, $this->tcc_definition_id($atividade))
+                : null;
 
-        return $this->report_estudantes_grupo_tutoria[$grupo_tutoria];
+        return $this->report_estudantes_grupo_tutoria[$cache_key];
     }
 
     /**
@@ -1207,9 +1244,11 @@ class LtiPortfolioQuery {
      */
     private function &query_report_data_by_grupo_orientacao($grupo_orientacao, &$atividade) {
 
+        $cache_key = $this->report_cache_key($grupo_orientacao, $atividade);
+
         // Se a consulta já foi executada, não é necessário refazê-la
-        if (isset($this->report_estudantes_grupo_orientacao[$grupo_orientacao])) {
-            return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
+        if (isset($this->report_estudantes_grupo_orientacao[$cache_key])) {
+            return $this->report_estudantes_grupo_orientacao[$cache_key];
         }
 
         $user_ids = array();
@@ -1221,9 +1260,10 @@ class LtiPortfolioQuery {
 
         // WS Client
         $client = new report_unasus_SistemaTccClient($atividade->baseurl, $atividade->consumer_key);
-        $this->report_estudantes_grupo_orientacao[$grupo_orientacao] = $client->get_report_data_tcc($user_ids);
+        $this->report_estudantes_grupo_orientacao[$cache_key] =
+            $client->get_report_data_tcc($user_ids, $this->tcc_definition_id($atividade));
 
-        return $this->report_estudantes_grupo_orientacao[$grupo_orientacao];
+        return $this->report_estudantes_grupo_orientacao[$cache_key];
     }
 
     /**
@@ -1247,8 +1287,14 @@ class LtiPortfolioQuery {
 
         $count_alunos = array();
 
-        //Preencher total de alunos por grupo de tutoria
-        $total_alunos[$grupo] = count($result);
+        // O total de alunos do grupo vem do banco (report_unasus_get_count_estudantes*) e não da
+        // resposta do webservice: um aluno pode ter TCC em mais de uma tcc_definition, e alunos sem
+        // TCC nenhum também contam para o denominador. Só garantimos a chave — vários pontos do
+        // relatório usam isset($total_alunos[$grupo]) para decidir se montam as células do grupo, e
+        // a contagem do banco não devolve linha para grupo sem estudantes.
+        if (!isset($total_alunos[$grupo])) {
+            $total_alunos[$grupo] = 0;
+        }
 
         if (empty($result)) {
             return; // grupo sem membros cadastrados
@@ -1328,16 +1374,20 @@ class LtiPortfolioQuery {
             return array();
         }
 
-        // Conjunto de posições definidas no TCC. O header desta atividade gera 1 coluna
+        // Conjunto de posições e de ids definidos no TCC. O header desta atividade gera 1 coluna
         // por entrada em chapter_definitions (mais o Resumo na posição 0). Posições retornadas
         // pelo webservice que não estejam nesse conjunto produziriam células sem cabeçalho
         // (coluna fantasma) — filtramos elas aqui.
         $defined_positions = array();
+        $defined_chapter_ids = array();
         if (isset($atividade->tcc_definition->chapter_definitions)) {
             foreach ($atividade->tcc_definition->chapter_definitions as $cd) {
                 $chapter_def = isset($cd->chapter_definition) ? $cd->chapter_definition : $cd;
                 if (isset($chapter_def->position)) {
                     $defined_positions[(int) $chapter_def->position] = true;
+                }
+                if (isset($chapter_def->id)) {
+                    $defined_chapter_ids[(int) $chapter_def->id] = true;
                 }
             }
         }
@@ -1384,6 +1434,15 @@ class LtiPortfolioQuery {
 
                 $position = (int) $chapter->position;
 
+                // Um TCC pode trazer capítulo cuja chapter_definition é de outra tcc_definition.
+                // Nesse caso a posição pode coincidir com uma posição válida daqui e o estado do
+                // intruso sobrescreveria o do capítulo legítimo. O id é o que os distingue.
+                // Webservices que não devolvem chapter_definition_id caem no filtro por posição.
+                if (isset($chapter->chapter_definition_id) && !empty($defined_chapter_ids)
+                    && !isset($defined_chapter_ids[(int) $chapter->chapter_definition_id])) {
+                    continue;
+                }
+
                 // Se a posição não estiver no chapter_definitions, ignora — evita coluna fantasma.
                 if (!empty($defined_positions) && !isset($defined_positions[$position])) {
                     continue;
@@ -1394,16 +1453,13 @@ class LtiPortfolioQuery {
                 $state_date_chapters[$userid][$position] = ($chapter->state_date == null) ? 'null' : $chapter->state_date;
             }
 
-            foreach ($status_chapters as $status) {
-                $model->status = $status;
-            }
+            // Índice direto: $status_chapters/$state_date_chapters acumulam todos os usuários já
+            // processados, e percorrê-los pegaria o último inserido — que não é o usuário corrente
+            // quando um aluno aparece mais de uma vez na resposta.
+            $model->status = isset($status_chapters[$userid]) ? $status_chapters[$userid] : array();
+            $model->state_date = isset($state_date_chapters[$userid]) ? $state_date_chapters[$userid] : array();
 
             array_unshift($model->status, $status_abstract);
-
-            foreach ($state_date_chapters as $state_date) {
-                $model->state_date = $state_date;
-            }
-
             array_unshift($model->state_date, $state_date_abstract);
 
             $output[$userid] = $model;

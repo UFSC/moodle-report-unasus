@@ -132,12 +132,26 @@ class report_unasus_SistemaTccClient {
         return $object;
     }
 
-    public function get_report_data_tcc($user_ids) {
+    /**
+     * Dados de TCC dos alunos informados.
+     *
+     * @param array[int] $user_ids
+     * @param int|null $tcc_definition_id Restringe a resposta a uma tcc_definition. O webservice
+     *        trata 0/vazio/não-numérico como "sem filtro" (comportamento legado), então só enviamos
+     *        o parâmetro quando há um id real — enviar 0 devolveria todos os TCCs do aluno em
+     *        silêncio. Webservices anteriores ao filtro ignoram o parâmetro e respondem sem filtrar.
+     * @return mixed
+     */
+    public function get_report_data_tcc($user_ids, $tcc_definition_id = null) {
 
         $params = array(
             'consumer_key' => $this->consumer_key,
             'user_ids' => $user_ids
         );
+
+        if (!empty($tcc_definition_id) && is_numeric($tcc_definition_id)) {
+            $params['tcc_definition_id'] = (int) $tcc_definition_id;
+        }
 
         $json = $this->post('/reportingservice_tcc', $params);
         $object = json_decode($json);
