@@ -104,7 +104,14 @@ enable_behat_environment() {
     log "Ativando configuração Behat para esta execução..."
     # Ensure parent directory exists and is owned by moodle user
     docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
-    exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && touch '$BEHAT_ENABLE_FILE' && rm -f '$BEHAT_DATAROOT/.behat_enabled'"
+
+    # O behat_dataroot é volume montado do host: criado por lá, fica com o uid do host, que não é o
+    # do usuário moodle do container. Sem escrita para o moodle, o util.php --enable aborta com
+    # "behat_dataroot ... must point to an existing writable directory" antes de rodar cenário algum.
+    # O chown precisa ser como root: feito como moodle, falha em silêncio.
+    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
+
+    exec_as_moodle "touch '$BEHAT_ENABLE_FILE' && rm -f '$BEHAT_DATAROOT/.behat_enabled'"
 
     # Garantir que o diretório de faildump exista e seja gravável. O hook
     # behat_hooks::before_suite() aborta a suíte INTEIRA com "non-writable
@@ -310,9 +317,7 @@ BEHAT_CONFIGURED=$(exec_as_moodle "
 if [ "$BEHAT_CONFIGURED" != "yes" ]; then
     warn "Behat não configurado no config.php. Adicionando configurações..."
 
-    # Ensure parent directory exists with correct permissions
-    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
-    exec_as_moodle "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
+    # Diretórios e ownership já garantidos por enable_behat_environment().
 
     exec_as_moodle "sed -i \"/require_once.*lib\/setup\.php/i\\
 \\\$CFG->behat_wwwroot  = '$BEHAT_WWWROOT';\\
