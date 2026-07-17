@@ -8,6 +8,17 @@
 #   ./run_behat.sh --tags=@unasus                   # Filtra por tag
 #   ./run_behat.sh --name="boletim exporta CSV com dados esperados"  # Filtra por nome do cenário
 #   ./run_behat.sh --init                           # Força reinicialização do ambiente Behat
+#   ./run_behat.sh --parallel=4                     # Executa em 4 workers paralelos
+#   ./run_behat.sh --parallel                       # Idem, usando BEHAT_PARALLEL do .env
+#
+# Execução paralela:
+#   O Moodle instala um site por worker (/behatrunN, com dataroot e prefixo próprios) e
+#   distribui as features entre eles. A primeira execução com um novo N reinstala os sites,
+#   o que é demorado; depois disso o ambiente é reaproveitado.
+#
+#   O balanceamento usa BEHAT_FEATURE_TIMING_FILE (definido no config.php): o Behat cronometra
+#   cada feature e, nas execuções seguintes, aloca a mais cara ao worker mais leve. Sem esse
+#   arquivo a divisão é por quantidade de features, ignorando o custo de cada uma.
 #
 # Pré-requisitos:
 #   - Container moodle-local-unasuscp em execução (ou inicia automaticamente)
@@ -69,15 +80,31 @@ MOODLE_ENABLE_BEHAT=1
 INIT_FLAG=""
 FEATURE_FILE=""
 TAGS_ARG=""
+PARALLEL_RUNS=""
 BEHAT_EXTRA_ARGS=()
 for arg in "$@"; do
     case "$arg" in
         --init)       INIT_FLAG="yes" ;;
         --tags=*)     TAGS_ARG="$arg" ;;
+        --parallel=*) PARALLEL_RUNS="${arg#*=}" ;;
+        --parallel)   PARALLEL_RUNS="${BEHAT_PARALLEL:-4}" ;;
         -*)           BEHAT_EXTRA_ARGS+=("$arg") ;;
         *)            FEATURE_FILE="$arg" ;;
     esac
 done
+
+# Sem --parallel explícito, o .env decide. Ausente, mantém o modo sequencial.
+if [ -z "$PARALLEL_RUNS" ] && [ -n "${BEHAT_PARALLEL:-}" ]; then
+    PARALLEL_RUNS="$BEHAT_PARALLEL"
+fi
+
+if [ -n "$PARALLEL_RUNS" ]; then
+    if ! [[ "$PARALLEL_RUNS" =~ ^[0-9]+$ ]] || [ "$PARALLEL_RUNS" -lt 1 ]; then
+        echo "ERRO: --parallel espera um inteiro >= 1 (recebido: '$PARALLEL_RUNS')" >&2
+        exit 1
+    fi
+    [ "$PARALLEL_RUNS" -eq 1 ] && PARALLEL_RUNS=""   # 1 worker é o próprio modo sequencial
+fi
 
 build_escaped_args() {
     local out=""
@@ -109,7 +136,15 @@ enable_behat_environment() {
     # do usuário moodle do container. Sem escrita para o moodle, o util.php --enable aborta com
     # "behat_dataroot ... must point to an existing writable directory" antes de rodar cenário algum.
     # O chown precisa ser como root: feito como moodle, falha em silêncio.
-    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p '$BEHAT_DATAROOT' && chown -R moodle:moodle '$BEHAT_DATAROOT'"
+    # Na execução paralela cada worker usa "$BEHAT_DATAROOT<N>", que precisa do mesmo tratamento.
+    local dataroots="'$BEHAT_DATAROOT'"
+    if [ -n "$PARALLEL_RUNS" ]; then
+        local i
+        for i in $(seq 1 "$PARALLEL_RUNS"); do
+            dataroots="$dataroots '${BEHAT_DATAROOT}${i}'"
+        done
+    fi
+    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p $dataroots && chown -R moodle:moodle $dataroots"
 
     exec_as_moodle "touch '$BEHAT_ENABLE_FILE' && rm -f '$BEHAT_DATAROOT/.behat_enabled'"
 
@@ -138,6 +173,12 @@ disable_behat_environment() {
 }
 
 ensure_behat_test_mode_enabled() {
+    # No modo paralelo o util.php --enable (sem --parallel) enxergaria o ambiente como
+    # sequencial e abortaria com "initialised for a different version". O init.php --parallel
+    # já deixa os sites habilitados, e o run.php cuida do resto — então aqui não há o que fazer.
+    if [ -n "$PARALLEL_RUNS" ]; then
+        return
+    fi
     log "Garantindo que o modo de testes do Behat esteja habilitado..."
     exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1"
 }
@@ -393,7 +434,31 @@ fi
 # ---------------------------------------------------------------------------
 BEHAT_YML="$BEHAT_DATAROOT/behat/behat.yml"
 
-if [ -n "$INIT_FLAG" ]; then
+# Nº de workers para o qual o ambiente está instalado. O Moodle grava esse valor em
+# parallel_environment_enabled.txt dentro do behat dir de cada worker; ausente = sequencial.
+current_parallel_runs() {
+    exec_as_moodle "cat '${BEHAT_DATAROOT}1/behat/parallel_environment_enabled.txt' 2>/dev/null" 2>/dev/null | tr -d '[:space:]' || true
+}
+
+if [ -n "$PARALLEL_RUNS" ]; then
+    INSTALLED_RUNS="$(current_parallel_runs)"
+    if [ "$INSTALLED_RUNS" != "$PARALLEL_RUNS" ] || [ -n "$INIT_FLAG" ]; then
+        # O dirroot precisa ser gravável: o run.php cria os symlinks behatrun1..N nele.
+        chmod a+w "$DOCKER_COMPOSE_DIR/$MOODLE_LOCAL_SITE" 2>/dev/null || true
+
+        if [ -n "$INSTALLED_RUNS" ]; then
+            log "Ambiente instalado para $INSTALLED_RUNS worker(s); reinstalando para $PARALLEL_RUNS..."
+        else
+            log "Instalando ambiente Behat paralelo com $PARALLEL_RUNS workers (demorado: um site por worker)..."
+        fi
+        ensure_legacy_composer_for_behat_init
+        exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' --parallel=$PARALLEL_RUNS 2>&1"
+        log "Ambiente paralelo pronto ($PARALLEL_RUNS workers)."
+    else
+        log "Ambiente Behat paralelo já inicializado ($PARALLEL_RUNS workers)."
+    fi
+
+elif [ -n "$INIT_FLAG" ]; then
     log "Reinicializando ambiente Behat (--init)..."
     ensure_legacy_composer_for_behat_init
 
@@ -463,8 +528,16 @@ log "  Título da página: ${DIAG_TITLE:-(sem título / página em branco)}"
 DIAG_STATUS=$(docker exec "$SELENIUM_CONTAINER" bash -c "curl -so /dev/null -w '%{http_code}' --max-time 10 'http://$URL_NAME/'" 2>/dev/null || echo "???")
 log "  HTTP status: $DIAG_STATUS"
 
-BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML' --ansi"
 EXTRA_ARGS_ESCAPED="$(build_escaped_args "${BEHAT_EXTRA_ARGS[@]}")"
+
+if [ -n "$PARALLEL_RUNS" ]; then
+    # O run.php orquestra um processo behat por worker, cada um com seu behat.yml.
+    # Diferente do behat, ele não aceita a feature como argumento posicional: exige --feature=.
+    log "Modo paralelo: $PARALLEL_RUNS workers"
+    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M admin/tool/behat/cli/run.php"
+else
+    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML' --ansi"
+fi
 
 if [ -n "$FEATURE_FILE" ]; then
     if [[ "$FEATURE_FILE" == /* ]]; then
@@ -474,7 +547,11 @@ if [ -n "$FEATURE_FILE" ]; then
     fi
     log "Feature: $FEATURE_PATH"
     echo ""
-    exec_as_moodle "$BEHAT_CMD $(printf "%q" "$FEATURE_PATH")$EXTRA_ARGS_ESCAPED"
+    if [ -n "$PARALLEL_RUNS" ]; then
+        exec_as_moodle "$BEHAT_CMD --feature=$(printf "%q" "$FEATURE_PATH")$EXTRA_ARGS_ESCAPED"
+    else
+        exec_as_moodle "$BEHAT_CMD $(printf "%q" "$FEATURE_PATH")$EXTRA_ARGS_ESCAPED"
+    fi
 
 elif [ -n "$TAGS_ARG" ]; then
     log "Tags: $TAGS_ARG"
