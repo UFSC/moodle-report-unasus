@@ -320,7 +320,9 @@ class report_unasus_renderer extends plugin_renderer_base {
         $ultimo_alvo = 0;
         $ultima_atividade_modulo[] = $ultimo_alvo;
         foreach ($header as $activities) {
-            $ultimo_alvo += count($activities);
+            // Mesmo caso do build_report(): ha' relatorio cujo cabecalho e' string,
+            // e count() sobre string e' TypeError no PHP 8.
+            $ultimo_alvo += is_countable($activities) ? count($activities) : 1;
             $ultima_atividade_modulo[] = $ultimo_alvo;
         }
 
@@ -648,7 +650,10 @@ class report_unasus_renderer extends plugin_renderer_base {
         $ultimo_alvo = 0;
         $ultima_atividade_modulo[] = $ultimo_alvo;
         foreach ($header_method as $module_name => $activities) {
-            $ultimo_alvo += count($activities);
+            // Nem todo relatorio devolve o cabecalho como array de atividades: o
+            // modulos_concluidos devolve strings, e count() sobre string e' TypeError
+            // no PHP 8. O proprio codigo abaixo ja' trata as duas formas com is_array().
+            $ultimo_alvo += is_countable($activities) ? count($activities) : 1;
             $ultima_atividade_modulo[] = $ultimo_alvo;
         }
         if (isset($header_keys[0]) && is_array($header_method[$header_keys[0]])) {

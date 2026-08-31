@@ -20,6 +20,15 @@ abstract class report_unasus_activity {
     public $course_name;
     public $grouping;
 
+    /**
+     * Configuracao da atividade, preenchida de fora pelos relatorios
+     * (ver report_estudante_sem_atividade_postada). Declarada aqui porque criar
+     * propriedade dinamica e' deprecated desde o PHP 8.2.
+     *
+     * @var mixed
+     */
+    public $config;
+
     public function __construct($has_submission, $has_grade) {
         // Valida os tipos na construção para evitar comportamento inesperado
         // em verificações como "if ($atividade->has_grade)" ao longo dos relatórios.
@@ -122,6 +131,13 @@ abstract class report_unasus_activity_config {
 
 class report_unasus_assign_activity_report_config {
 
+    public $id;
+    public $name;
+    public $course_id;
+    public $course_name;
+    public $module_id;
+    public $module_name;
+
     public function __construct($db_model) {
 
         $this->id = $db_model->assign_id;
@@ -134,6 +150,13 @@ class report_unasus_assign_activity_report_config {
 }
 class report_unasus_generic_activity_report_config {
 
+    public $id;
+    public $name;
+    public $course_id;
+    public $course_name;
+    public $module_id;
+    public $module_name;
+
     public function __construct($db_model) {
 
         $this->id = $db_model->activity_id;
@@ -145,6 +168,10 @@ class report_unasus_generic_activity_report_config {
     }
 }
 class report_unasus_generic_activity extends report_unasus_activity {
+
+    public $module_id;
+    public $module_name;
+    public $coursemoduleid;
 
     public function __construct($db_model) {
 
@@ -176,6 +203,10 @@ class report_unasus_generic_activity extends report_unasus_activity {
 
 class report_unasus_assign_activity extends report_unasus_activity {
 
+    public $module_id;
+    public $module_name;
+    public $coursemoduleid;
+
     public function __construct($db_model) {
 
         $has_submission = !$db_model->nosubmissions;
@@ -204,6 +235,13 @@ class report_unasus_assign_activity extends report_unasus_activity {
 
 class report_unasus_forum_activity_report_config {
 
+    public $id;
+    public $name;
+    public $course_id;
+    public $course_name;
+    public $module_id;
+    public $module_name;
+
     public function __construct($db_model) {
 
         $this->id = $db_model->forum_id;
@@ -216,6 +254,10 @@ class report_unasus_forum_activity_report_config {
 }
 
 class report_unasus_forum_activity extends report_unasus_activity {
+
+    public $module_id;
+    public $module_name;
+    public $coursemoduleid;
 
     public function __construct($db_model) {
         parent::__construct(true, true);
@@ -241,6 +283,13 @@ class report_unasus_forum_activity extends report_unasus_activity {
 
 class report_unasus_quiz_activity_report_config {
 
+    public $id;
+    public $name;
+    public $course_id;
+    public $course_name;
+    public $module_id;
+    public $module_name;
+
     public function __construct($db_model) {
 
         $this->id = $db_model->quiz_id;
@@ -253,6 +302,10 @@ class report_unasus_quiz_activity_report_config {
 }
 
 class report_unasus_quiz_activity extends report_unasus_activity {
+
+    public $module_id;
+    public $module_name;
+    public $coursemoduleid;
 
     public function __construct($db_model) {
 
@@ -297,6 +350,13 @@ class report_unasus_quiz_activity extends report_unasus_activity {
 
 class report_unasus_db_activity_report_config {
 
+    public $id;
+    public $name;
+    public $course_id;
+    public $course_name;
+    public $module_id;
+    public $module_name;
+
     public function __construct($db_model) {
 
         $this->id = $db_model->database_id;
@@ -309,6 +369,10 @@ class report_unasus_db_activity_report_config {
 }
 
 class report_unasus_db_activity extends report_unasus_activity {
+
+    public $module_id;
+    public $module_name;
+    public $coursemoduleid;
 
     public function __construct($db_model) {
 
@@ -334,6 +398,13 @@ class report_unasus_db_activity extends report_unasus_activity {
 
 class report_unasus_scorm_activity_report_config {
 
+    public $id;
+    public $name;
+    public $course_id;
+    public $course_name;
+    public $module_id;
+    public $module_name;
+
     public function __construct($db_model) {
 
         $this->id = $db_model->scorm_id;
@@ -346,6 +417,10 @@ class report_unasus_scorm_activity_report_config {
 }
 
 class report_unasus_scorm_activity extends report_unasus_activity {
+
+    public $module_id;
+    public $module_name;
+    public $coursemoduleid;
 
     public function __construct($db_model) {
 
@@ -370,6 +445,13 @@ class report_unasus_scorm_activity extends report_unasus_activity {
 }
 
 class report_unasus_lti_activity_report_config {
+
+    public $id;
+    public $name;
+    public $course_id;
+    public $course_name;
+    public $module_id;
+    public $module_name;
 
     public function __construct($db_model) {
 
@@ -719,6 +801,8 @@ abstract class report_unasus_data {
 
 class report_unasus_data_activity extends report_unasus_data {
 
+    public $grademax;
+
     public $status;
 
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
@@ -777,6 +861,8 @@ class report_unasus_data_activity extends report_unasus_data {
 
 class report_unasus_data_forum extends report_unasus_data {
 
+    public $grademax;
+
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
 
@@ -814,6 +900,8 @@ class report_unasus_data_forum extends report_unasus_data {
 }
 
 class report_unasus_data_quiz extends report_unasus_data {
+
+    public $grademax;
 
     public function __construct(report_unasus_activity &$source_activity, $db_model) {
         parent::__construct($source_activity);
@@ -999,6 +1087,8 @@ class report_unasus_total_atividades_concluidas {
 }
 
 class report_unasus_data_nota_final extends report_unasus_data {
+
+    public $grademax;
 
     public $userid;
     public $polo;

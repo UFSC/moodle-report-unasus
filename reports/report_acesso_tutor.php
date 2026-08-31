@@ -52,7 +52,9 @@ class report_acesso_tutor extends report_unasus_factory {
 
         $meses = array();
         foreach ($daterange as $date) {
-            $mes = strftime('%B', (int) $date->format('U'));
+            // strftime() foi deprecada no PHP 8.1; ver comentario em
+            // report_unasus_get_meses_intervalo(), no locallib.php.
+            $mes = core_date::strftime('%B', (int) $date->format('U'));
             if (!array_key_exists($mes, $meses)) {
                 $meses[$mes] = array();
             }

@@ -224,6 +224,9 @@ class report_unasus_dado_atividades_vs_notas_render extends report_unasus_data_r
 
 class report_unasus_dado_tcc_concluido_render extends report_unasus_data_render {
 
+    public $chapter;
+    public $tipo;
+
     const ATIVIDADE_NAO_CONCLUIDA = 0;
     const ATIVIDADE_CONCLUIDA = 1;
 
@@ -258,6 +261,9 @@ class report_unasus_dado_tcc_concluido_render extends report_unasus_data_render 
 }
 
 class report_unasus_dado_tcc_entrega_atividades_render extends report_unasus_data_render {
+
+    public $chapter;
+    public $tipo;
 
     const ATIVIDADE_RASCUNHO = 1;
     const ATIVIDADE_REVISAO = 2;
@@ -582,8 +588,6 @@ class report_unasus_dado_historico_atribuicao_notas_render extends report_unasus
 
 }
 
-class report_unasus_dado_atividades_nota_atribuida extends report_unasus_dado_atividades_alunos_render {}
-
 /**
  * Classe para relatorio sintese de atividades concluidas,
  * N° de alunos de concluiram as atividades
@@ -633,6 +637,11 @@ class report_unasus_dado_atividades_alunos_render extends report_unasus_data_ren
 //    }
 
 }
+
+// Declarada DEPOIS da classe-pai de proposito: o PHP falha ao compilar
+// "extends" de uma classe ainda nao definida neste arquivo, e o relatorio de
+// boletim morria com Class "report_unasus_dado_atividades_alunos_render" not found.
+class report_unasus_dado_atividades_nota_atribuida extends report_unasus_dado_atividades_alunos_render {}
 
 /**
  * Class dado_somatorio_grupo
@@ -956,6 +965,9 @@ class report_unasus_dado_uso_sistema_tutor_render extends report_unasus_data_ren
 }
 
 class report_unasus_dado_modulos_concluidos_render extends report_unasus_data_render {
+
+    public $atividade;
+    public $estado;
 
     const MODULO_NAO_CONCLUIDO = 0;
     const MODULO_CONCLUIDO = 1;

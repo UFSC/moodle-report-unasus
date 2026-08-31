@@ -32,6 +32,8 @@ define('TCC-Turma-B', 258);
 
 class report_unasus_factory {
 
+    public $agrupamentos_membros;
+
     // Atributos globais
 
     /** @var int|mixed $curso_moodle Código do curso Moodle em que este relatório foi acessado */

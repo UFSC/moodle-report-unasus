@@ -1295,7 +1295,9 @@ function report_unasus_get_time_interval_com_meses($data_inicio, $data_fim, $tem
 
     $meses = array();
     foreach ($daterange as $date) {
-        $mes = strftime("%B", $date->format('U'));
+        // strftime() foi deprecada no PHP 8.1; core_date::strftime() e' o substituto
+        // que o Moodle oferece, com a mesma semantica de %B e respeitando o idioma.
+        $mes = core_date::strftime('%B', (int) $date->format('U'));
         if (!array_key_exists($mes, $meses)) {
             $meses[$mes] = null;
         }
@@ -1351,6 +1353,13 @@ function report_unasus_date_interval_is_valid($data_inicio, $data_fim) {
  * @return bool
  */
 function report_unasus_date_is_valid($str) {
+    // optional_param() devolve null quando o filtro de data nao foi preenchido, e a
+    // partir do PHP 8.1 passar null a substr_count() e' deprecated — no modo DEVELOPER
+    // isso vira excecao e derruba o relatorio. Data ausente nao e' data valida.
+    if (!is_string($str) || $str === '') {
+        return false;
+    }
+
     if (substr_count($str, '/') == 2) {
         list($d, $m, $y) = explode('/', $str);
         return checkdate($m, $d, sprintf('%04u', $y));
