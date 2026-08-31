@@ -630,7 +630,8 @@ function query_atividades_from_users($cohort_estudantes) {
                     ((sub.id IS NOT NULL AND gr.attemptnumber=sub.attemptnumber) OR (sub.id IS NULL))
                    )
          LEFT JOIN {grade_items} gi
-                ON (gi.courseid= :courseid AND gi.iteminstance = gr.assignment)
+                ON (gi.courseid= :courseid AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'assign' AND gi.iteminstance = gr.assignment)
           ORDER BY grupo_id, u.firstname, u.lastname
     ";
 }
@@ -1011,7 +1012,8 @@ function query_quiz_from_users($cohort_estudantes) {
          LEFT JOIN {quiz} q
                 ON (q.course=:courseid AND q.id =:assignmentid2 AND qa.quiz = q.id AND qg.quiz = q.id)
          LEFT JOIN {grade_items} gi
-                ON (gi.courseid= q.course AND gi.iteminstance = qa.quiz)
+                ON (gi.courseid= q.course AND gi.itemtype = 'mod' AND
+                    gi.itemmodule = 'quiz' AND gi.iteminstance = qa.quiz)
           ORDER BY grupo_id, u.firstname, u.lastname
      ";
 }
