@@ -16,7 +16,7 @@ require_once($CFG->dirroot . '/report/unasus/reports/report_acesso_tutor.php');
  *
  * @group report_unasus
  */
-class unasus_factory_helpers_testcase extends advanced_testcase {
+class unasus_factory_helpers_test extends advanced_testcase {
 
     // -----------------------------------------------------------------------
     // report_unasus_date_interval_is_valid (locallib.php)

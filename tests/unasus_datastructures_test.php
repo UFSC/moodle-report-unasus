@@ -10,7 +10,7 @@ require_once($CFG->dirroot . '/report/unasus/activities_datastructures.php');
  * Test Datastructures
  * @group report_unasus
  */
-class unasus_datastructures_testcase extends advanced_testcase {
+class unasus_datastructures_test extends advanced_testcase {
 
     public function test_report_unasus_activity() {
         $now = time();
@@ -41,13 +41,13 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $this->assertEquals(false, $data->is_submission_due());
 
         // Atividades entregues, estão sempre em dia
-        $activity->submission_date = $now;
+        $data->submission_date = $now;
         $this->assertEquals(false, $data->is_submission_due());
 
-        $activity->submission_date = 0;
+        $data->submission_date = 0;
         $this->assertEquals(false, $data->is_submission_due());
 
-        $activity->submission_date = $year_ago;
+        $data->submission_date = $year_ago;
         $this->assertEquals(false, $data->is_submission_due());
 
         //
@@ -904,7 +904,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
             $db = $this->build_quiz_db_model(array('quiz_name' => $name));
             $a = new report_unasus_quiz_activity($db);
             $rendered = (string) $a;
-            $this->assertContains($expected_abbrev, $rendered,
+            $this->assertStringContainsString($expected_abbrev, $rendered,
                 "Nome '$name' deveria ser abreviado para '$expected_abbrev'");
         }
 
@@ -912,7 +912,7 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $db_default = $this->build_quiz_db_model(array('quiz_name' => 'Quiz Generico'));
         $a_default = new report_unasus_quiz_activity($db_default);
         $rendered_default = (string) $a_default;
-        $this->assertContains('Quiz Generico', $rendered_default);
+        $this->assertStringContainsString('Quiz Generico', $rendered_default);
     }
 
     public function test_lti_activity2_inherits_generic() {
@@ -1000,8 +1000,8 @@ class unasus_datastructures_testcase extends advanced_testcase {
         $a = new report_unasus_chapter_tcc_activity($db, $source);
 
         $rendered = (string) $a;
-        $this->assertContains('Capítulo Pequeno', $rendered);
-        $this->assertContains('c_body', $rendered);
+        $this->assertStringContainsString('Capítulo Pequeno', $rendered);
+        $this->assertStringContainsString('c_body', $rendered);
     }
 
     // -----------------------------------------------------------------------

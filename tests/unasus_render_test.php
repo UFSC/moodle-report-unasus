@@ -17,9 +17,9 @@ require_once($CFG->dirroot . '/report/unasus/locallib.php');
  *
  * @group report_unasus
  */
-class unasus_render_testcase extends advanced_testcase {
+class unasus_render_test extends advanced_testcase {
 
-    protected function setUp() {
+    protected function setUp(): void {
         $this->resetAfterTest(true);
     }
 
@@ -60,7 +60,7 @@ class unasus_render_testcase extends advanced_testcase {
 
         $this->assertEquals('nota_atribuida', $r->get_css_class());
         // format_grade aplica format_float($v, 1) — usa locale; verificamos só o conteúdo numérico
-        $this->assertContains('8', (string) $r);
+        $this->assertStringContainsString('8', (string) $r);
     }
 
     public function test_atividades_vs_notas_no_prazo_entrega() {
@@ -82,7 +82,7 @@ class unasus_render_testcase extends advanced_testcase {
             report_unasus_dado_atividades_vs_notas_render::ATIVIDADE_AVALIADA_COM_ATRASO, 1, 7.0);
 
         $this->assertEquals('nota_atribuida_atraso', $r->get_css_class());
-        $this->assertContains('7', (string) $r);
+        $this->assertStringContainsString('7', (string) $r);
     }
 
     public function test_atividades_vs_notas_entregue_nao_avaliada() {
@@ -116,7 +116,7 @@ class unasus_render_testcase extends advanced_testcase {
 
         // 8/10 = 80% >= 60% → na_media
         $this->assertEquals('na_media', $r->get_css_class());
-        $this->assertContains('8', (string) $r);
+        $this->assertStringContainsString('8', (string) $r);
     }
 
     public function test_boletim_render_com_nota_abaixo_media() {
@@ -126,7 +126,7 @@ class unasus_render_testcase extends advanced_testcase {
 
         // 5/10 = 50% < 60% → abaixo_media_nota
         $this->assertEquals('abaixo_media_nota', $r->get_css_class());
-        $this->assertContains('5', (string) $r);
+        $this->assertStringContainsString('5', (string) $r);
     }
 
     public function test_boletim_render_sem_nota() {
@@ -153,7 +153,7 @@ class unasus_render_testcase extends advanced_testcase {
             report_unasus_dado_nota_final_render::ATIVIDADE_COM_NOTA, 7.0, 10);
 
         $this->assertEquals('na_media', $r->get_css_class());
-        $this->assertContains('7', (string) $r);
+        $this->assertStringContainsString('7', (string) $r);
     }
 
     public function test_nota_final_render_com_nota_abaixo_media() {
@@ -244,22 +244,22 @@ class unasus_render_testcase extends advanced_testcase {
     public function test_tcc_entrega_rascunho_hoje() {
         $r = new report_unasus_dado_tcc_entrega_atividades_render(
             report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_RASCUNHO, 'cap1', 0);
-        $this->assertContains('Hoje', (string) $r);
+        $this->assertStringContainsString('Hoje', (string) $r);
         $this->assertEquals('rascunho', $r->get_css_class());
     }
 
     public function test_tcc_entrega_rascunho_n_dias() {
         $r = new report_unasus_dado_tcc_entrega_atividades_render(
             report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_RASCUNHO, 'cap1', 5);
-        $this->assertContains('5', (string) $r);
-        $this->assertContains('dias', (string) $r);
+        $this->assertStringContainsString('5', (string) $r);
+        $this->assertStringContainsString('dias', (string) $r);
     }
 
     public function test_tcc_entrega_revisao() {
         $r = new report_unasus_dado_tcc_entrega_atividades_render(
             report_unasus_dado_tcc_entrega_atividades_render::ATIVIDADE_REVISAO, 'cap1', 1);
-        $this->assertContains('1', (string) $r);
-        $this->assertContains(' dia', (string) $r);
+        $this->assertStringContainsString('1', (string) $r);
+        $this->assertStringContainsString(' dia', (string) $r);
         $this->assertEquals('revisao', $r->get_css_class());
     }
 
@@ -343,13 +343,13 @@ class unasus_render_testcase extends advanced_testcase {
         $r = new report_unasus_dado_modulos_concluidos_render(5, 'A', 1);
         $this->assertEquals(1, $r->get_state());
         $this->assertEquals('concluido', $r->get_css_class());
-        $this->assertContains('A', (string) $r);
+        $this->assertStringContainsString('A', (string) $r);
     }
 
     public function test_modulos_concluidos_concluido_sem_nota() {
         // final_grade '-' → "Sem Nota"
         $r = new report_unasus_dado_modulos_concluidos_render(5, '-', 1);
-        $this->assertContains('Sem Nota', (string) $r);
+        $this->assertStringContainsString('Sem Nota', (string) $r);
     }
 
     public function test_modulos_concluidos_nao_concluido() {
@@ -359,7 +359,7 @@ class unasus_render_testcase extends advanced_testcase {
 
         $this->assertEquals(0, $r->get_state());
         $this->assertEquals('nao_concluido', $r->get_css_class());
-        $this->assertContains('atividade_x', (string) $r);
+        $this->assertStringContainsString('atividade_x', (string) $r);
     }
 
     public function test_modulos_concluidos_nao_aplicado() {

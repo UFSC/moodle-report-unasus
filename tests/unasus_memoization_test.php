@@ -19,9 +19,9 @@ require_once($CFG->dirroot . '/report/unasus/sistematcc.php');
  *
  * @group report_unasus
  */
-class unasus_memoization_testcase extends advanced_testcase {
+class unasus_memoization_test extends advanced_testcase {
 
-    protected function tearDown() {
+    protected function tearDown(): void {
         // Restaura o estado normal do client (sem mock) para não afetar outros testes
         // que rodem no mesmo processo PHP.
         report_unasus_SistemaTccClient::set_mock_responses(null);
