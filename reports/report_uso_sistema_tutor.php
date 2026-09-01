@@ -174,7 +174,9 @@ class report_uso_sistema_tutor extends report_unasus_factory {
         $data_fim = $data_fim->add($diff24Hours);
         $data_fim_query = $data_fim->format('d/m/Y');
 
-        $double_header = report_unasus_get_time_interval_com_meses($data_inicio_query, $data_fim_query, 'P1D', 'd/m/Y', 'd/m/y');
+        // Dia/mes, como no grafico: o ano se repetia em todas as colunas e o mes ja' esta'
+        // no cabecalho de cima, que agrupa as datas.
+        $double_header = report_unasus_get_time_interval_com_meses($data_inicio_query, $data_fim_query, 'P1D', 'd/m/Y', 'd/m');
         $double_header[''] = array('Media');
         $double_header[' '] = array('Total');
         return $double_header;

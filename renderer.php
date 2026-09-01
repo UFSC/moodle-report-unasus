@@ -710,7 +710,15 @@ class report_unasus_renderer extends plugin_renderer_base {
                     }
 
                     $count_++;
-                    $output .= html_writer::tag('th', $activity, array('class' => "relatorio-unasus ".$class));
+
+                    // Cabecalho de texto puro (as datas do uso_sistema_tutor, por exemplo)
+                    // vai dentro de um span: o giro do rotulo e' aplicado a um elemento, e
+                    // um no de texto solto ficaria na horizontal.
+                    $conteudo = is_object($activity)
+                        ? $activity
+                        : html_writer::span($activity, 'rotate-rotulo');
+
+                    $output .= html_writer::tag('th', $conteudo, array('class' => "relatorio-unasus ".$class));
                 }
             }
 

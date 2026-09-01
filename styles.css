@@ -341,7 +341,8 @@ legend {
 }
 
 .relatorio-unasus .rotate label,
-.relatorio-unasus .rotate a {
+.relatorio-unasus .rotate a,
+.relatorio-unasus .rotate .rotate-rotulo {
   display: inline-block;
   writing-mode: vertical-rl;
   transform: rotate(180deg); /* le-se de baixo para cima */
@@ -956,4 +957,28 @@ table.relatorio-unasus.mapa-calor {
   border-radius: 3px;
   white-space: nowrap;
   pointer-events: none;
+}
+
+/*//////////////// Uso e acesso do tutor: uma coluna por dia ////////////////*/
+/* Como cada coluna e' um unico dia, a celula pode ser mais estreita que a padrao.
+   A ultima coluna (Total) acumula o periodo inteiro e por isso recebe mais espaco. */
+
+/* A largura vem do colgroup, nao da celula: a tabela usa table-layout:fixed. */
+.relatorio-unasus.uso_sistema_tutor col.col-atividade,
+.relatorio-unasus.acesso_tutor col.col-atividade {
+  /* O maior valor possivel num dia e' 24,0 -- quatro caracteres. Com 40px isso cabia com
+     folga zero, o que quebraria a qualquer mudanca de fonte ou zoom. */
+  width: 46px;
+}
+
+/* A ultima coluna e' o Total, que acumula o periodo inteiro. */
+.relatorio-unasus.uso_sistema_tutor col.col-atividade:last-child,
+.relatorio-unasus.acesso_tutor col.col-atividade:last-child {
+  width: 62px;
+}
+
+.relatorio-unasus.uso_sistema_tutor td.c_body,
+.relatorio-unasus.acesso_tutor td.c_body {
+  padding-left: 2px !important;
+  padding-right: 2px !important;
 }

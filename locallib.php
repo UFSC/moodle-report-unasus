@@ -1288,7 +1288,8 @@ function report_unasus_get_time_interval_com_meses($data_inicio, $data_fim, $tem
     foreach ($daterange as $date) {
         // strftime() foi deprecada no PHP 8.1; core_date::strftime() e' o substituto
         // que o Moodle oferece, com a mesma semantica de %B e respeitando o idioma.
-        $mes = core_date::strftime('%B', (int) $date->format('U'));
+        // Mes e ano: so' o mes deixava ambiguo qualquer periodo que cruzasse a virada.
+        $mes = core_date::strftime('%B %Y', (int) $date->format('U'));
         if (!array_key_exists($mes, $meses)) {
             $meses[$mes] = null;
         }
