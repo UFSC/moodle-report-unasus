@@ -349,7 +349,8 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
             //alunos vao sendo populado na tabela
-            $cel_tutor = new html_table_cell($tutor);
+            // Mesmo motivo do ramo acima: quem fica preso na lateral e' o span interno.
+            $cel_tutor = new html_table_cell(html_writer::span($tutor, 'tutor-rotulo'));
             $cel_tutor->attributes = array('class' => 'relatorio-unasus tutor');
             $cel_tutor->colspan = $ultimo_alvo + 1; // expande a célula com nome dos tutores
 
@@ -471,7 +472,8 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             //celula com o nome do tutor, a cada iteração um tutor e seus respectivos
             //alunos vao sendo populado na tabela
-            $cel_tutor = new html_table_cell($tutor);
+            // Mesmo motivo do ramo acima: quem fica preso na lateral e' o span interno.
+            $cel_tutor = new html_table_cell(html_writer::span($tutor, 'tutor-rotulo'));
             $cel_tutor->attributes = array('class' => 'relatorio-unasus tutor');
             $cel_tutor->colspan = $header_size + 1; // expande a célula com nome dos tutores
             $row_tutor = new html_table_row();
@@ -733,7 +735,11 @@ class report_unasus_renderer extends plugin_renderer_base {
             foreach ($dados_method as $tutor => $alunos) {
 
                 $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r0'));
-                $output .= html_writer::tag('td', $tutor, array('class' => 'relatorio-unasus tutor', 'colspan' => $ultimo_alvo + 1));
+                // O rotulo vai dentro de um span porque a celula tem colspan e ja' nasce
+                // tao larga quanto a area rolavel: sticky nela nao segura nada. Quem fica
+                // preso na lateral e' o span, dentro dela.
+                $output .= html_writer::tag('td', html_writer::span($tutor, 'tutor-rotulo'),
+                    array('class' => 'relatorio-unasus tutor', 'colspan' => $ultimo_alvo + 1));
                 $output .= html_writer::end_tag('tr');
 
                 $count = 0;
