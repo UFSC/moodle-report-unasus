@@ -1230,9 +1230,7 @@ class LtiPortfolioQuery {
 
         $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
         $this->report_estudantes_grupo_tutoria[$cache_key] =
-            $client->getZendInstalled()
-                ? $client->get_report_data_tcc($user_ids, $this->tcc_definition_id($atividade))
-                : null;
+            $client->get_report_data_tcc($user_ids, $this->tcc_definition_id($atividade));
 
         return $this->report_estudantes_grupo_tutoria[$cache_key];
     }

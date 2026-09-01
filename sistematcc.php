@@ -4,13 +4,7 @@ global $CFG; // Garante acesso às configurações do Moodle
 
 defined('MOODLE_INTERNAL') || die;
 
-$zendpath = $CFG->libdir . '/zend/Zend/Loader/Autoloader.php';
-
-// Carrega o zend framework
-if (file_exists($zendpath)) {
-    require_once($zendpath);
-    Zend_Loader_Autoloader::getInstance(); // No ZF1, usa-se getInstance() em vez de autoload()
-}
+require_once($CFG->libdir . '/filelib.php'); // classe curl do core
 
 /**
  * Classe para realizar requisições para o webservice do Sistema de TCC
@@ -23,10 +17,6 @@ class report_unasus_SistemaTccClient {
     /** @var string $consumer_key */
     private $consumer_key;
 
-    /** @var \Zend_Http_Client $client */
-    private $client;
-
-    private $ZendInstalled;
 
     /**
      * Static mock responses for same-process tests (PHPUnit).
@@ -48,34 +38,11 @@ class report_unasus_SistemaTccClient {
         self::$mock_responses = $responses;
     }
 
-    public function getZendInstalled() {
-        // When static mock mode is active (same-process, e.g. PHPUnit), pretend
-        // Zend is installed so the call flow reaches post().
-        if (self::$mock_responses !== null) {
-            return true;
-        }
-        // Also check the config-table mock (cross-process: Behat browser tests).
-        // Cache result in a static variable to avoid repeated DB calls on each invocation.
-        if (function_exists('get_config')) {
-            static $is_mock_active = null;
-            if ($is_mock_active === null) {
-                $is_mock_active = get_config('report_unasus', 'behat_tcc_mock_tcc_definition_service') !== false;
-            }
-            if ($is_mock_active) {
-                return true;
-            }
-        }
-        return $this->ZendInstalled;
-    }
-
     /**
      * @param string $external_url Endereço do sistema de TCC
      * @param string $consumer_key Consumer Key utilizado pela aplicação para realizar a autenticação
      */
     function __construct($external_url, $consumer_key) {
-        global $CFG; // Garante acesso às configurações do Moodle
-        $zendpath = $CFG->libdir . '/zend/Zend/Loader/Autoloader.php';
-        $this->ZendInstalled = file_exists($zendpath);
         $new_url = "";
         if (!empty($external_url)) {
             // Faz o parse na URL para poder montá-la corretamente em seguida
@@ -88,7 +55,6 @@ class report_unasus_SistemaTccClient {
         }
         $this->url = $new_url;
         $this->consumer_key = $consumer_key;
-        $this->client = $this->ZendInstalled ? new Zend_Http_Client($this->url) : null;
     }
 
     /**
@@ -188,22 +154,50 @@ class report_unasus_SistemaTccClient {
             }
         }
 
-        /*
-         * Solução  para enviar via post array do php
-         * http://php.net/manual/pt_BR/function.http-build-query.php
-         */
-        $new_param = preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($param, null, '&'));
-
-        $this->client->setUri("{$this->url}{$path}");
-        $this->client->setRawData($new_param);
-
-        try {
-            $response = $this->client->request('POST');
-        } catch (Zend_Http_Client_Adapter_Exception $exception) {
+        // Sem URL nao ha' o que chamar. Antes isso seguia adiante e falhava adiante,
+        // sem sinal nenhum; o baseurl vazio na atividade LTI e' uma causa comum.
+        if (empty($this->url)) {
+            debugging('report_unasus: URL do Sistema de TCC vazia (baseurl da atividade LTI nao configurado).',
+                DEBUG_DEVELOPER);
             return false;
         }
 
-        return $response->isSuccessful() ? $response->getBody() : false;
+        /*
+         * Solução  para enviar via post array do php
+         * http://php.net/manual/pt_BR/function.http-build-query.php
+         *
+         * O corpo continua sendo montado a mao, e nao entregue como array ao curl, porque o
+         * webservice espera os indices no formato `user_ids[]` e nao `user_ids[0]`. Entregar o
+         * array ao curl do core mudaria o que vai na rede.
+         */
+        $new_param = preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($param, '', '&'));
+
+        $curl = new curl();
+        $curl->setHeader('Content-Type: application/x-www-form-urlencoded');
+        $curl->setopt(array(
+            'CURLOPT_TIMEOUT' => 30,
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+        ));
+
+        $response = $curl->post("{$this->url}{$path}", $new_param);
+
+        // Falha de transporte (DNS, recusa de conexao, timeout, bloqueio do curlsecurity).
+        if ($curl->get_errno()) {
+            debugging("report_unasus: falha ao chamar {$path} no Sistema de TCC: " . $curl->error,
+                DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $info = $curl->get_info();
+        $httpcode = isset($info['http_code']) ? (int) $info['http_code'] : 0;
+
+        if ($httpcode < 200 || $httpcode >= 300) {
+            debugging("report_unasus: Sistema de TCC respondeu HTTP {$httpcode} em {$path}.",
+                DEBUG_DEVELOPER);
+            return false;
+        }
+
+        return $response;
     }
 
 }

@@ -753,11 +753,8 @@ function report_unasus_lti_tcc_definition($lti_id, $course_id) {
 
         // WS Client
         $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
-        $object = null;
-        if ($client->getZendInstalled()) {
-            $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
-            $object = $client->get_tcc_definition($tcc_definition);
-        }
+        $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
+        $object = $client->get_tcc_definition($tcc_definition);
     }
     if (!$object) {
         // Ocorreu alguma falha
@@ -800,11 +797,8 @@ function report_unasus_query_lti_courses($courses) {
 
                         // WS Client
                         $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
-                        $object = null;
-                        if ($client->getZendInstalled()) {
-                            $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
-                            $object = $client->get_tcc_definition($tcc_definition);
-                        }
+                        $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
+                        $object = $client->get_tcc_definition($tcc_definition);
 
                         if (!$object) {
                             // Ocorreu alguma falha
@@ -837,11 +831,8 @@ function report_unasus_query_lti_courses($courses) {
 
                 // WS Client
                 $client = new report_unasus_SistemaTccClient($base_url, $consumer_key);
-                $object = null;
-                if ($client->getZendInstalled()) {
-                    $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
-                    $object = $client->get_tcc_definition($tcc_definition);
-                }
+                $tcc_definition = empty($customparameters['tcc_definition']) ? "" : $customparameters['tcc_definition'];
+                $object = $client->get_tcc_definition($tcc_definition);
 
                 if (!$object) {
                     // Ocorreu alguma falha
