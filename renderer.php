@@ -262,26 +262,37 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output .= html_writer::end_tag('div');
 
-        // Radio para selecao do modo de busca, tabela e/ou gráficos
-        $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'tabela', 'id' => 'radio_tabela', 'checked' => true));
-        $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/table.png\">Tabela de Dados", 'radio_tabela', true, array('class' => 'relatorio-unasus radio'));
+        // Radio para selecao do modo de busca, tabela e/ou gráficos.
+        // Cada par input+label vai dentro de um span: sem ele a linha pode quebrar entre o
+        // botao e o seu rotulo, deixando um circulo solto no fim da linha.
+        $opcao = function ($value, $id, $icone, $rotulo, $checked = false) use ($CFG) {
+            $attrs = array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => $value, 'id' => $id);
+            if ($checked) {
+                $attrs['checked'] = true;
+            }
+            return html_writer::tag('span',
+                html_writer::empty_tag('input', $attrs) .
+                html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/{$icone}\">{$rotulo}",
+                    $id, true, array('class' => 'relatorio-unasus radio')),
+                array('class' => 'relatorio-unasus opcao-exibicao'));
+        };
+
+        $output .= $opcao('tabela', 'radio_tabela', 'table.png', 'Tabela de Dados', true);
 
         if ($report->mostrar_botoes_grafico) {
-            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_valores', 'id' => 'radio_valores'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/chart.png\">Gráfico de Valores", 'radio_valores', true, array('class' => 'relatorio-unasus radio'));
-            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_porcentagens', 'id' => 'radio_porcentagem'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/pct.png\">Gráfico de Porcentagem", 'radio_porcentagem', true, array('class' => 'relatorio-unasus radio'));
+            $output .= $opcao('grafico_valores', 'radio_valores', 'chart.png', 'Gráfico de Valores');
+            $output .= $opcao('grafico_porcentagens', 'radio_porcentagem', 'pct.png', 'Gráfico de Porcentagem');
+            // Barras lado a lado: as empilhadas mostram a composição de cada grupo, estas
+            // permitem comparar o mesmo estado entre grupos.
+            $output .= $opcao('grafico_agrupado', 'radio_agrupado', 'chart_pp.png', 'Gráfico Comparativo');
         }
 
         if ($report->mostrar_botoes_dot_chart) {
-            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'grafico_pontos', 'id' => 'radio_dot'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/dot.png\">Gráfico de Horas", 'radio_dot', true, array('class' => 'relatorio-unasus radio'));
+            $output .= $opcao('grafico_pontos', 'radio_dot', 'dot.png', 'Gráfico de Horas');
         }
 
-        if($report->mostrar_botao_exportar_csv){
-            // Exportar para CSV
-            $output .= html_writer::empty_tag('input', array('type' => 'radio', 'name' => 'modo_exibicao', 'value' => 'export_csv', 'id' => 'radio_csv'));
-            $output .= html_writer::label("<img src=\"{$CFG->wwwroot}/report/unasus/img/csv_icon.png\">Exportar para CSV", 'radio_csv', true, array('class' => 'relatorio-unasus radio'));
+        if ($report->mostrar_botao_exportar_csv) {
+            $output .= $opcao('export_csv', 'radio_csv', 'csv_icon.png', 'Exportar para CSV');
         }
 
         $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
@@ -780,7 +791,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @global type $PAGE
      * @return String
      */
-    public function build_graph($report, $porcentagem = false) {
+    public function build_graph($report, $porcentagem = false, $empilhado = true) {
         raise_memory_limit(MEMORY_EXTRA);
 
         $output = $this->default_header();
@@ -805,15 +816,16 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $this->apply_role_scope($report);
 
-        $output .= $this->grafico_barras_empilhadas(
-            $dados_method, $legend, get_string($this->report_name, 'report_unasus'), $porcentagem);
+        $output .= $this->grafico_barras(
+            $dados_method, $legend, get_string($this->report_name, 'report_unasus'),
+            $porcentagem, $empilhado);
         $output .= $this->default_footer();
 
         return $output;
     }
 
     /**
-     * Monta o gráfico de barras empilhadas com a API de gráficos do core.
+     * Monta o gráfico de barras com a API de gráficos do core.
      *
      * Substituiu o Highcharts 2.2.5 (2012), que vinha empacotado junto de um jQuery 1.7.1. Aquele
      * jQuery se registrava como o módulo AMD `jquery` e deslocava o do core, quebrando o
@@ -823,9 +835,11 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @param array $legend array de classe CSS => descrição, na mesma ordem dos valores
      * @param string $titulo título do gráfico
      * @param bool $porcentagem se true, normaliza cada barra para 100%
+     * @param bool $empilhado empilhadas mostram a composição de cada grupo; lado a lado
+     *        permitem comparar o mesmo estado entre grupos
      * @return string HTML do gráfico
      */
-    protected function grafico_barras_empilhadas($dados, $legend, $titulo, $porcentagem = false) {
+    protected function grafico_barras($dados, $legend, $titulo, $porcentagem = false, $empilhado = true) {
         $classes = array_keys($legend);
         $descricoes = array_values($legend);
 
@@ -849,7 +863,7 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $chart = new \core\chart_bar();
         $chart->set_horizontal(true);
-        $chart->set_stacked(true);
+        $chart->set_stacked($empilhado);
         $chart->set_title($titulo);
         $chart->set_labels($rotulos);
 

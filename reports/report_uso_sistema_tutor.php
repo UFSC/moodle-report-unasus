@@ -38,7 +38,7 @@ class report_uso_sistema_tutor extends report_unasus_factory {
         $this->mostrar_aviso_intervalo_tempo = true;
     }
 
-    public function render_report_graph($renderer, $porcentagem) {
+    public function render_report_graph($renderer, $porcentagem, $empilhado = true) {
         if ($this->datas_validas()) {
             $this->mostrar_barra_filtragem = false;
             echo $renderer->build_dot_graph($this);

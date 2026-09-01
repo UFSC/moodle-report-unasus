@@ -26,9 +26,9 @@ class report_entrega_de_atividades extends report_unasus_factory {
         echo $renderer->build_report($this);
     }
 
-    public function render_report_graph($renderer, $porcentagem) {
+    public function render_report_graph($renderer, $porcentagem, $empilhado = true) {
         $this->mostrar_barra_filtragem = false;
-        echo $renderer->build_graph($this, $porcentagem);
+        echo $renderer->build_graph($this, $porcentagem, $empilhado);
     }
 
     public function get_dados_grafico() {

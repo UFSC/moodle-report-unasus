@@ -94,7 +94,7 @@ A user holding both `view_tutoria` and `view_orientacao` (without `view_all`) ge
 
 ### Report parameter flow
 
-User submits filters via `index.php` → factory parses GET/POST → renderer reads from factory → on submit, `modo_exibicao` is one of `tabela`, `grafico_valores`, `grafico_porcentagens`, `grafico_pontos`, `export_csv`.
+User submits filters via `index.php` → factory parses GET/POST → renderer reads from factory → on submit, `modo_exibicao` is one of `tabela`, `grafico_valores`, `grafico_porcentagens`, `grafico_agrupado`, `grafico_pontos`, `export_csv`.
 
 ### Database access
 

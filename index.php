@@ -107,9 +107,13 @@ switch ($modo_exibicao) {
         break;
     case 'grafico_valores':
     case 'grafico_porcentagens':
+    case 'grafico_agrupado':
     case 'grafico_pontos':
         $porcentagem = ($modo_exibicao === 'grafico_porcentagens');
-        $report->render_report_graph($renderer, $porcentagem);
+        // Empilhado mostra a composicao de cada grupo; agrupado poe as barras lado a
+        // lado, que e' o que permite comparar o mesmo estado entre grupos.
+        $empilhado = ($modo_exibicao !== 'grafico_agrupado');
+        $report->render_report_graph($renderer, $porcentagem, $empilhado);
         break;
     case 'export_csv':
         $report->render_report_csv($name_report);

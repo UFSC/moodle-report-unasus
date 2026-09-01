@@ -44,6 +44,13 @@ select {
   margin-right: 3%;
 }
 
+/* Mantem o botao e o seu rotulo na mesma linha quando as opcoes quebram. */
+.relatorio-unasus.opcao-exibicao {
+  display: inline-block;
+  white-space: nowrap;
+  margin-right: 1.5em;
+}
+
 .relatorio-unasus.fieldset .radio
 img {
   height: 16px;

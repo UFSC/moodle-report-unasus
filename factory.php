@@ -286,7 +286,7 @@ class report_unasus_factory {
      * @param string $modo_exibicao tipo de relatorio a ser exibido
      */
     public function set_modo_exibicao($modo_exibicao) {
-        $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_pontos', 'export_csv');
+        $options = array(null, 'grafico_valores', 'tabela', 'grafico_porcentagens', 'grafico_agrupado', 'grafico_pontos', 'export_csv');
         if (in_array($modo_exibicao, $options)) {
             $this->modo_exibicao = $modo_exibicao;
         } else {
