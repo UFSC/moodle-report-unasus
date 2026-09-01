@@ -937,14 +937,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function build_dot_graph($report) {
-        global $PAGE;
-
         $output = $this->default_header();
-
-        $PAGE->requires->js(new moodle_url("/report/unasus/graph/raphael-min.js"));
-        $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.raphael-min.js"));
-        $PAGE->requires->js(new moodle_url("/report/unasus/graph/g.dotufsc.js"));
-
         $output .= $this->build_filter();
 
         // verifica se o gráfico foi implementado
@@ -956,10 +949,8 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $dados_method = $report->get_dados_grafico();
 
-        // Se algum tutor logou ele gera o gráfico
         if (report_unasus_dot_chart_com_tutores_com_acesso($dados_method)) {
-            $PAGE->requires->js_init_call('M.report_unasus.init_dot_graph', array($dados_method));
-            $output .= '<div id="container" class="relatorio-unasus container relatorio-wrapper"></div>';
+            $output .= $this->mapa_de_calor($dados_method);
         } else {
             // Se nenhum tutor logou ele informa um erro em vez de gerar um gráfico vazio
             $output .= $this->build_warning('Nenhum tutor logou no moodle no intervalo de tempo selecionado');
@@ -968,6 +959,210 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->default_footer();
 
         return $output;
+    }
+
+    /**
+     * Mapa de calor de uso do sistema: uma linha por tutor, uma coluna por dia.
+     *
+     * Substitui o dot chart do g.raphael, que desenhava um circulo por cruzamento com o
+     * tamanho e a cor proporcionais as horas. O raphael-min.js empacotado dependia da
+     * biblioteca `eve`, que nunca veio junto, entao o grafico quebrava ao carregar desde
+     * sempre. Aqui o mesmo desenho sai em HTML e CSS, sem biblioteca nenhuma.
+     *
+     * A escala e' de matiz unica (mais escuro = mais horas): variacao de luminosidade e'
+     * legivel em qualquer tipo de daltonismo. E o numero fica na celula, para a cor nao ser
+     * o unico canal -- ver a diretiva em CLAUDE.md.
+     *
+     * @param array $dados array de tutor => (dia => horas)
+     * @return string HTML do mapa de calor
+     */
+    protected function mapa_de_calor($dados) {
+        $maximo = 0;
+        foreach ($dados as $dias) {
+            foreach ($dias as $horas) {
+                $maximo = max($maximo, (float) $horas);
+            }
+        }
+        if ($maximo <= 0) {
+            $maximo = 1;
+        }
+
+        $output = html_writer::start_tag('div', array('class' => 'relatorio-unasus relatorio-wrapper mapa-calor-wrapper'));
+        $output .= html_writer::start_tag('table', array('class' => 'relatorio-unasus mapa-calor'));
+
+        $primeiro = reset($dados);
+        $colunas = array_keys($primeiro);
+
+        // Agrupa as colunas por ano e marca em que indice o ano vira, para desenhar a quebra.
+        $grupos = array();
+        $viradas = array();
+        foreach ($colunas as $indice => $dia) {
+            $ano = self::ano_de($dia);
+            $ultimo = count($grupos) - 1;
+
+            if ($ultimo < 0 || $grupos[$ultimo]['ano'] !== $ano) {
+                $grupos[] = array('ano' => $ano, 'colunas' => 1);
+                if ($indice > 0) {
+                    $viradas[$indice] = true;
+                }
+            } else {
+                $grupos[$ultimo]['colunas']++;
+            }
+        }
+
+        $output .= html_writer::start_tag('thead');
+
+        // Linha dos anos: cada ano cobre os seus dias. Só aparece quando ha' mais de um,
+        // senao repetiria uma informacao que o filtro ja' deixou claro.
+        if (count($grupos) > 1) {
+            $output .= html_writer::start_tag('tr');
+            $output .= html_writer::tag('th', '', array('class' => 'mapa-calor-tutor mapa-calor-canto mapa-calor-fim-grupo'));
+            $ultimo = count($grupos) - 1;
+            foreach ($grupos as $indice => $grupo) {
+                $fim = ($indice < $ultimo) ? ' mapa-calor-fim-grupo' : '';
+                $output .= html_writer::tag('th', $grupo['ano'], array(
+                    'class' => 'mapa-calor-ano' . $fim, 'colspan' => $grupo['colunas'],
+                    'scope' => 'colgroup'));
+            }
+            $output .= html_writer::end_tag('tr');
+        }
+
+        $output .= html_writer::start_tag('tr');
+        $output .= html_writer::tag('th', '', array('class' => 'mapa-calor-tutor mapa-calor-fim-grupo'));
+        foreach ($colunas as $indice => $dia) {
+            // O rotulo vai num span: girar a propria celula deixaria o texto encostado
+            // numa das bordas em vez de centralizado sobre a coluna.
+            //
+            // E mostra so' dia/mes: o ano se repete em todas as colunas sem informar nada,
+            // e deixava o rotulo quase o dobro do comprimento. A data inteira continua no
+            // title de cada ponto.
+            // A ultima coluna antes da virada de ano perde a borda direita: sob border-collapse
+            // ela disputaria a mesma aresta com a borda do separador, e a cor mais clara
+            // venceria, deixando os dois lados do canal com espessuras diferentes.
+            $fim = isset($viradas[$indice + 1]) ? ' mapa-calor-fim-grupo' : '';
+            $output .= html_writer::tag('th',
+                html_writer::span(self::dia_curto($dia), 'mapa-calor-dia-rotulo'),
+                array('class' => 'mapa-calor-dia' . $fim, 'title' => $dia));
+        }
+        $output .= html_writer::end_tag('tr');
+        $output .= html_writer::end_tag('thead');
+
+        $output .= html_writer::start_tag('tbody');
+        foreach ($dados as $tutor => $dias) {
+            $output .= html_writer::start_tag('tr');
+            $output .= html_writer::tag('th', $tutor,
+                array('class' => 'mapa-calor-tutor mapa-calor-fim-grupo', 'scope' => 'row'));
+
+            $indice = 0;
+            foreach ($dias as $dia => $horas) {
+                $fim = isset($viradas[$indice + 1]) ? ' mapa-calor-fim-grupo' : '';
+                $indice++;
+
+                $horas = (float) $horas;
+                $rotulo = format_float($horas, 1) . 'h';
+
+                // O balao do hover e' o mesmo para celula com e sem valor, e vem do CSS.
+                // Mostra so' as horas: a data ja' esta' na coluna, logo acima do ponto.
+                // O atributo title fica de fora: somado ao balao, o navegador mostrava dois
+                // tooltips na mesma celula.
+                $balao = $rotulo;
+
+                if ($horas <= 0) {
+                    // Ausencia nao vira circulo: o vazio comunica melhor que um ponto minimo,
+                    // e e' assim que o grafico original se comportava.
+                    $output .= html_writer::tag('td', html_writer::span($rotulo, 'sr-only'),
+                        array('class' => 'mapa-calor-celula' . $fim, 'data-valor' => $balao));
+                    continue;
+                }
+
+                $proporcao = $horas / $maximo;
+                $tamanho = round(8 + ($proporcao * 22));
+
+                $circulo = html_writer::tag('span', '', array(
+                    'class' => 'mapa-calor-circulo',
+                    'style' => "width: {$tamanho}px; height: {$tamanho}px; "
+                        . 'background-color: ' . self::cor_da_escala($proporcao) . ';',
+                    'aria-hidden' => 'true'));
+
+                // O valor aparece no hover; para leitor de tela vai sempre, no sr-only.
+                $output .= html_writer::tag('td',
+                    $circulo . html_writer::span($rotulo, 'sr-only'),
+                    array('class' => 'mapa-calor-celula mapa-calor-tem-valor' . $fim,
+                          'data-valor' => $balao));
+            }
+            $output .= html_writer::end_tag('tr');
+        }
+        $output .= html_writer::end_tag('tbody');
+        $output .= html_writer::end_tag('table');
+        $output .= html_writer::end_tag('div');
+
+        return $output;
+    }
+
+    /**
+     * Ano de uma data do mapa de calor.
+     *
+     * @param string $dia data no formato d/m/Y
+     * @return string o ano, ou a entrada inalterada se nao vier nesse formato
+     */
+    protected static function ano_de($dia) {
+        if (preg_match('#^\d{2}/\d{2}/(\d{4})$#', $dia, $partes)) {
+            return $partes[1];
+        }
+
+        return $dia;
+    }
+
+    /**
+     * Rotulo curto de uma data do mapa de calor: dia/mes, sem o ano.
+     *
+     * @param string $dia data no formato d/m/Y
+     * @return string dia/mes, ou a entrada inalterada se nao vier nesse formato
+     */
+    protected static function dia_curto($dia) {
+        if (preg_match('#^(\d{2}/\d{2})/\d{4}$#', $dia, $partes)) {
+            return $partes[1];
+        }
+
+        return $dia;
+    }
+
+    /**
+     * Cor de um ponto do mapa de calor, numa escala sequencial segura para daltonismo.
+     *
+     * Usa a viridis, perceptualmente uniforme e legivel nos tres tipos de deficiencia de
+     * visao de cores. O grafico original ia de ocre a amarelo-esverdeado -- mesma sensacao
+     * de "escuro para claro", mas apoiada num gradiente que confunde vermelho e verde.
+     *
+     * A cor nunca carrega o valor sozinha: o diametro do circulo varia junto, e o numero
+     * esta no hover e no leitor de tela.
+     *
+     * @param float $proporcao 0 a 1
+     * @return string cor em hexadecimal
+     */
+    protected static function cor_da_escala($proporcao) {
+        $paradas = array(
+            array(0x44, 0x01, 0x54),
+            array(0x41, 0x44, 0x87),
+            array(0x2a, 0x78, 0x8e),
+            array(0x22, 0xa8, 0x84),
+            array(0x7a, 0xd1, 0x51),
+            array(0xfd, 0xe7, 0x25),
+        );
+
+        $proporcao = max(0, min(1, (float) $proporcao));
+        $posicao = $proporcao * (count($paradas) - 1);
+        $i = (int) floor($posicao);
+        $j = min($i + 1, count($paradas) - 1);
+        $t = $posicao - $i;
+
+        $cor = '#';
+        foreach (array(0, 1, 2) as $canal) {
+            $valor = (int) round($paradas[$i][$canal] + ($paradas[$j][$canal] - $paradas[$i][$canal]) * $t);
+            $cor .= str_pad(dechex($valor), 2, '0', STR_PAD_LEFT);
+        }
+
+        return $cor;
     }
 
     /**

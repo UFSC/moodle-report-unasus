@@ -19,12 +19,6 @@ class report_uso_sistema_tutor extends report_unasus_factory {
     }
 
     public function render_report_default($renderer) {
-        global $CFG;
-
-        if (!$CFG->enablestats) {
-            throw new moodle_exception('statistics_not_enabled_error', 'report_unasus');
-        }
-
         echo $renderer->build_page();
     }
 
@@ -42,7 +36,12 @@ class report_uso_sistema_tutor extends report_unasus_factory {
         if ($this->datas_validas()) {
             $this->mostrar_barra_filtragem = false;
             echo $renderer->build_dot_graph($this);
+            return;
         }
+
+        // Sem intervalo valido nao ha' o que desenhar: mostra so' o filtro, com o aviso.
+        // Antes o build_page() rodava sempre, inclusive depois do grafico ja' emitido, e a
+        // pagina saia renderizada duas vezes -- dois #region-main e o layout quebrado.
         $this->mostrar_barra_filtragem = false;
         $this->mostrar_aviso_intervalo_tempo = true;
         echo $renderer->build_page();

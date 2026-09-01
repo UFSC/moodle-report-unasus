@@ -80,12 +80,6 @@ class report_acesso_tutor extends report_unasus_factory {
     }
 
     public function render_report_default($renderer) {
-        global $CFG;
-
-        if (!$CFG->enablestats) {
-            throw new moodle_exception('statistics_not_enabled_error', 'report_unasus');
-        }
-
         echo $renderer->build_page();
     }
 

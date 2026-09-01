@@ -793,3 +793,167 @@ $azul: blue;
 $azulescuro: #004E95;
 */
 
+
+/*//////////////// Mapa de calor do uso do sistema ////////////////*/
+/* Reproduz o dot chart original: circulos soltos sobre fundo claro, com uma linha de eixo
+   a esquerda, sem grade de tabela. Tamanho e cor codificam o mesmo valor -- canal
+   redundante, entao a cor nunca decide sozinha. O numero aparece no hover e vai sempre
+   para o leitor de tela. Escala viridis, segura para daltonismo (ver CLAUDE.md). */
+
+.relatorio-unasus.mapa-calor-wrapper {
+  padding: 12px 4px;
+  background-color: #FAFAFA;
+}
+
+.relatorio-unasus.mapa-calor {
+  border-collapse: collapse;
+  border: none;
+  background: none;
+  width: -moz-min-content;
+  width: min-content;
+}
+
+.relatorio-unasus.mapa-calor tr,
+.relatorio-unasus.mapa-calor th,
+.relatorio-unasus.mapa-calor td {
+  border: none !important;
+  background: none;
+}
+
+/* Grade fraca: guia o olho na coluna e na linha sem competir com os pontos.
+   Repostas depois da regra acima, senao o !important dela as apagaria. */
+table.relatorio-unasus.mapa-calor {
+  border: 1px solid #DCDCDC !important;
+}
+
+.relatorio-unasus.mapa-calor td.mapa-calor-celula {
+  border-right: 1px solid #DCDCDC !important;
+  border-bottom: 1px solid #DCDCDC !important;
+}
+
+.relatorio-unasus.mapa-calor tbody tr:last-child td.mapa-calor-celula {
+  border-bottom: none !important;
+}
+
+.relatorio-unasus.mapa-calor td.mapa-calor-celula:last-child {
+  border-right: none !important;
+}
+
+/* Linha do ano: agrupa os dias e evita repetir o ano em cada coluna. */
+.relatorio-unasus.mapa-calor thead th.mapa-calor-ano {
+  text-align: center !important;
+  padding: 5px 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #444444;
+  border-bottom: 1px solid #DCDCDC !important;
+}
+
+/* A virada de ano e o eixo dos nomes usam a mesma linha, sem espacamento: a ultima
+   coluna de cada bloco desenha a borda direita. */
+/* Nomear thead/tbody e' necessario: a regra da grade (`thead th.mapa-calor-dia`) tem
+   especificidade maior e vencia na linha das datas, deixando a virada de ano com a cor
+   clara da grade so' naquela linha. */
+.relatorio-unasus.mapa-calor thead th.mapa-calor-dia.mapa-calor-fim-grupo,
+.relatorio-unasus.mapa-calor thead th.mapa-calor-ano.mapa-calor-fim-grupo,
+.relatorio-unasus.mapa-calor thead th.mapa-calor-tutor.mapa-calor-fim-grupo,
+.relatorio-unasus.mapa-calor tbody th.mapa-calor-tutor.mapa-calor-fim-grupo,
+.relatorio-unasus.mapa-calor tbody td.mapa-calor-celula.mapa-calor-fim-grupo {
+  border-right: 1px solid #999999 !important;
+}
+
+/* Fecha o cabecalho: separa os titulos dos dados e as colunas de data entre si. */
+.relatorio-unasus.mapa-calor thead th {
+  border-bottom: 1px solid #DCDCDC !important;
+}
+
+.relatorio-unasus.mapa-calor thead th.mapa-calor-dia {
+  border-right: 1px solid #DCDCDC !important;
+}
+
+.relatorio-unasus.mapa-calor thead th.mapa-calor-dia:last-child {
+  border-right: none !important;
+}
+
+/* O eixo dos nomes e' o mesmo canal usado na virada de ano: os dois limites do bloco
+   de datas ficam com o mesmo tratamento. A borda vem da regra de fim-grupo, acima. */
+
+/* Separa tambem os nomes entre si, na mesma grade fraca das celulas. */
+.relatorio-unasus.mapa-calor tbody th.mapa-calor-tutor {
+  border-bottom: 1px solid #DCDCDC !important;
+}
+
+.relatorio-unasus.mapa-calor tbody tr:last-child th.mapa-calor-tutor {
+  border-bottom: none !important;
+}
+
+.relatorio-unasus.mapa-calor th.mapa-calor-tutor {
+  min-width: 190px;
+  max-width: 190px;
+  text-align: right;
+  padding: 2px 10px 2px 4px;
+  font-weight: normal;
+  font-size: 12px;
+  color: #333333;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.relatorio-unasus.mapa-calor th.mapa-calor-dia {
+  padding: 8px 0 8px 0;
+  vertical-align: bottom;
+  /* Centraliza o rotulo sobre a coluna; quem gira e' o span de dentro.
+     Precisa de !important: o tema alinha th a esquerda com peso maior. */
+  text-align: center !important;
+}
+
+.relatorio-unasus.mapa-calor .mapa-calor-dia-rotulo {
+  display: inline-block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 12px;
+  font-weight: normal;
+  color: #555555;
+  letter-spacing: 0.02em;
+  white-space: pre;
+}
+
+.relatorio-unasus.mapa-calor td.mapa-calor-celula {
+  position: relative;
+  min-width: 54px;
+  width: 54px;
+  height: 48px;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.relatorio-unasus.mapa-calor .mapa-calor-circulo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+/* Realce e balao com o valor, no hover -- como no grafico original. */
+.relatorio-unasus.mapa-calor .mapa-calor-tem-valor:hover .mapa-calor-circulo {
+  box-shadow: 0 0 0 2px #000000;
+}
+
+.relatorio-unasus.mapa-calor .mapa-calor-celula:hover::after {
+  content: attr(data-valor);
+  position: absolute;
+  left: 60%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  background-color: #000000;
+  color: #FFFFFF;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+}
