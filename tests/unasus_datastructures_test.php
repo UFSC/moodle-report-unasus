@@ -1000,8 +1000,64 @@ class unasus_datastructures_test extends advanced_testcase {
         $a = new report_unasus_chapter_tcc_activity($db, $source);
 
         $rendered = (string) $a;
-        $this->assertStringContainsString('Capítulo Pequeno', $rendered);
+        // 'Capítulo Pequeno' tem 16 caracteres, entao wrap_name() quebra no espaco.
+        $this->assertStringContainsString("Capítulo\nPequeno", $rendered);
         $this->assertStringContainsString('c_body', $rendered);
+    }
+
+    /**
+     * O rotulo do cabecalho e' escrito na vertical, em ate duas linhas de 15
+     * caracteres. wrap_name() decide onde quebrar e o que descartar.
+     *
+     * @dataProvider wrap_name_provider
+     */
+    public function test_wrap_name($name, $expected, $message) {
+        $this->assertSame($expected, report_unasus_activity::wrap_name($name), $message);
+    }
+
+    public function wrap_name_provider() {
+        return array(
+            'nome curto cabe em uma linha' => array(
+                'Avisos',
+                'Avisos',
+                'Nome menor que o limite nao deve ganhar quebra nem reticencias',
+            ),
+            'quebra no espaco, sem partir palavra' => array(
+                'Texto de capítulo de TCC',
+                "Texto de\ncapítulo de TCC",
+                'A quebra deve cair no espaco, e nao no 15o caractere',
+            ),
+            'linha exatamente no limite' => array(
+                'Sobre o Módulo',
+                'Sobre o Módulo',
+                'Nome de exatamente 14 caracteres cabe inteiro em uma linha',
+            ),
+            'descarta o que passa de duas linhas' => array(
+                'TCC — LOCAL ✓ (use esta no Moodle local)',
+                "TCC — LOCAL ✓\n(use esta no…",
+                'O excedente e' . "'" . ' descartado e sinalizado com reticencias',
+            ),
+            'palavra unica maior que a linha e cortada no limite' => array(
+                'Superlongapalavraunicasemespacoalgum',
+                "Superlongapalav\nraunicasemespac…",
+                'Palavra que sozinha estoura a linha e cortada, para nao esticar a coluna',
+            ),
+            'palavra longa cabe em duas linhas' => array(
+                'Contextualizacaoprofissional',
+                "Contextualizaca\noprofissional",
+                'Cortada no limite, o resto segue na segunda linha, sem reticencias',
+            ),
+            'corte respeita caractere multibyte' => array(
+                'Avaliação socioeconômicaepidemiológica',
+                "Avaliação\nsocioeconômicae…",
+                'O corte usa core_text, entao nao parte um caractere acentuado ao meio',
+            ),
+            'espacos repetidos nao viram linha vazia' => array(
+                '  Texto   de   TCC  ',
+                'Texto de TCC',
+                'Espacos extras sao normalizados antes da quebra',
+            ),
+        );
     }
 
     // -----------------------------------------------------------------------

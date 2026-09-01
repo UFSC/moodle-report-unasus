@@ -319,31 +319,35 @@ legend {
   font-size: 12px !important;
 }
 
-.relatorio-unasus .rotate {
-  -webkit-transform: rotate(-90deg) !important;
-  -moz-transform: rotate(-90deg) !important;
-  -ms-transform: rotate(-90deg) !important;
-  -o-transform: rotate(-90deg) !important;
-  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3) !important;
-  width: 43px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
+/* Rotulo vertical do cabecalho.
+   Em vez de girar a propria celula com transform (o que nao altera o espaco
+   reservado no layout e obrigava a compensar com margens negativas), gira-se
+   apenas o conteudo com writing-mode. Assim a largura da coluna passa a ser a
+   altura de uma linha de texto e a altura da celula acompanha o comprimento do
+   rotulo, sem quebra de linha nem texto espremido. */
+.relatorio-unasus th.rotate {
+  vertical-align: bottom;
+  text-align: center;
+  padding: 4px 2px !important;
   font-size: 12px !important;
-  padding: 0px;
-  line-height: 15px !important;
+  line-height: 1.2 !important;
 }
 
-.relatorio-unasus .rotate label{
-  margin: -17px !important;
+.relatorio-unasus .rotate label,
+.relatorio-unasus .rotate a {
+  display: inline-block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg); /* le-se de baixo para cima */
+  margin: 0 !important;
   padding: 0 !important;
-  line-height: 15px !important;
+  line-height: 1.2 !important;
   font-size: 12px !important;
-}
-
-.relatorio-unasus .rotate a
-{
-  margin: -17px !important;
-  padding: 0 !important;
-  word-wrap: break-word !important;
-  text-align: start;
+  /* `pre` preserva a quebra em duas linhas que o PHP monta em wrap_name(), sem
+     precisar injetar <br> no texto, e ao mesmo tempo impede quebras automaticas
+     alem dessas duas -- com `pre-line` o rotulo se repartia em varias linhas e
+     transbordava a celula. */
+  white-space: pre;
+  text-align: left;
 }
 
 /*.relatorio-unasus th.rotate label,*/
@@ -363,9 +367,9 @@ legend {
 
 .relatorio-unasus th.estudante_header
 {
-  max-width: 249px !important;
-  min-width: 249px !important;
-  /*width: 249px !important;*/
+  max-width: 250px !important;
+  min-width: 250px !important;
+  /*width: 250px !important;*/
   height: 50px !important;
   padding-bottom: 20px;
   padding-top: 20px;
@@ -395,7 +399,7 @@ legend {
 .boletim .c_body,
 .atividades_vs_notas .c1,
 .atividades_vs_notas .c_body {
-  max-width: 43px !important;
+  max-width: 50px !important;
   min-width: 50px !important;
   padding: 8px !important;
   margin: 0 !important;
@@ -536,21 +540,86 @@ legend {
 
 .relatorio-unasus .uso_sistema_tutor .rotate,
 .relatorio-unasus .acesso_tutor .rotate {
-    width: 30px !important; /* Deixa as colunas com o nome dos módulos sempre do mesmo tamanho */
+    min-width: 30px !important;
+    max-width: 30px !important;
     font-size: 12px !important;
-    padding: 0px;
+    padding: 4px 2px !important;
 }
 
 /*//////////////// Trava da tabela ////////////////*/
-.relatorio-unasus thead,
-.relatorio-unasus tbody {
-  display: block !important;
+/* O cabecalho fica preso no topo com position:sticky. A versao anterior usava
+   display:block em thead/tbody, o que quebrava a tabela em duas caixas
+   independentes: as colunas do cabecalho e as do corpo eram dimensionadas
+   separadamente e deixavam de coincidir. Com as secoes de volta ao fluxo normal
+   da tabela, o navegador alinha as colunas sozinho. */
+.relatorio-wrapper {
+  max-height: 70vh;
 }
 
-.relatorio-unasus tbody {
-  height: 500px;
-  overflow: auto;
-  margin-right: -15px;
+.relatorio-unasus thead th {
+  position: sticky;
+  top: 0; /* padrao para os relatorios de cabecalho de uma linha so' */
+  z-index: 2;
+  /* Fundo opaco: sem ele o conteudo rolando por baixo apareceria atraves do
+     cabecalho preso no topo. */
+  background-color: #FFFFFF;
+}
+
+.relatorio-unasus thead tr.r0 th {
+  top: 0;
+}
+
+.relatorio-unasus thead tr.r1 th {
+  top: 34px; /* altura da linha de modulos (thead tr.r0) */
+}
+
+.relatorio-unasus thead tr.r0 th,
+.relatorio-unasus thead tr.r0 td {
+  height: 34px !important;
+}
+
+/* O nome do modulo nao quebra em duas linhas: a altura da linha r0 e' o
+   deslocamento usado pelo sticky da linha r1. */
+.relatorio-unasus th.modulo_header {
+  white-space: nowrap;
+}
+
+/* Todas as celulas medem largura incluindo padding e borda, para que as
+   larguras fixadas no cabecalho e no corpo batam exatamente. */
+.relatorio-unasus th,
+.relatorio-unasus td {
+  box-sizing: border-box;
+}
+
+/* Largura das colunas vem do colgroup emitido pelo renderer, e nao do conteudo:
+   assim a linha do grupo/tutor (celula unica com colspan e texto longo) deixa de
+   esticar as colunas de atividade. */
+table.relatorio-unasus.divisao-por-modulos {
+  table-layout: fixed;
+  /* min-content sob table-layout:fixed e' exatamente a soma das larguras do
+     colgroup. Com os 98% herdados de .generaltable_without_stripes (ou mesmo com
+     width:auto, que ainda considera o texto longo da linha do grupo) a sobra era
+     distribuida entre as colunas e anulava as larguras declaradas. */
+  width: -moz-min-content !important;
+  width: min-content !important;
+}
+
+.relatorio-unasus col.col-estudante {
+  width: 250px;
+}
+
+.relatorio-unasus col.col-atividade {
+  width: 50px;
+}
+
+.relatorio-unasus.tcc_consolidado col.col-atividade {
+  width: 90px;
+}
+
+/* Com largura fixa o nome do grupo/tutor precisa poder quebrar em mais de uma linha. */
+.relatorio-unasus td.tutor {
+  white-space: normal;
+  word-wrap: break-word;
 }
 
 .relatorio-unasus.fieldset {
@@ -638,12 +707,13 @@ legend {
   color: #FFFFFF;
 }
 
+/* Mesmo azul das demais bordas (#004E95). Antes eram dois blocos duplicados
+   usando a palavra-chave `blue`, mais clara: sob border-collapse a borda da
+   linha vence a da celula quando a espessura empata, entao esse azul claro
+   aparecia em algumas arestas e nao em outras. */
 .relatorio-unasus .r0 {
-  border-top: 1px solid blue !important;
-}
-
-.relatorio-unasus .r0 {
-  border-bottom: 1px solid blue !important;
+  border-top: 1px solid #004E95 !important;
+  border-bottom: 1px solid #004E95 !important;
 }
 
 .relatorio-unasus .r1 {

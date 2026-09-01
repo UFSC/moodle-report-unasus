@@ -178,8 +178,7 @@ class report_unasus_factory {
         $report = optional_param('relatorio', null, PARAM_ALPHANUMEXT);
 
         if (! in_array($report, report_unasus_relatorios_validos_list())){
-            print_error('unknow_report', 'report_unasus');
-            return false;
+            throw new moodle_exception('unknow_report', 'report_unasus');
         }
 
         // O nome da classe segue uma convenção de nomenclatura direta:
@@ -216,7 +215,7 @@ class report_unasus_factory {
         } else {
             // ATENÇÃO: Encerra o processamento se o relatório não for reconhecido,
             // impedindo acesso indevido a dados de outros relatórios.
-            print_error('unknow_report', 'report_unasus');
+            throw new moodle_exception('unknow_report', 'report_unasus');
         }
     }
 
@@ -293,7 +292,7 @@ class report_unasus_factory {
         } else {
             // ATENÇÃO: Encerra o processamento se o modo de exibição não for reconhecido,
             // evitando renderização de páginas com estados inválidos.
-            print_error('unknow_report', 'report_unasus');
+            throw new moodle_exception('unknow_report', 'report_unasus');
         }
     }
 

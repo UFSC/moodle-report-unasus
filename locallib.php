@@ -356,7 +356,7 @@ function report_unasus_get_atividades_cursos_ordem($courses, $mostrar_nota_final
 
     $atividades_all = $group_array->get_assoc();
     if (empty($atividades_all)) {
-        print_error('no_valid_activity_found_error', 'report_unasus');
+        throw new moodle_exception('no_valid_activity_found_error', 'report_unasus');
     }
 
     $atividades_ret = array();

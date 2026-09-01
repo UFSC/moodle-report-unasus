@@ -662,6 +662,20 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus relatorio-wrapper'));
             $output .= html_writer::start_tag('table', array('class' => "relatorio-unasus ".$class));
+
+            // A tabela usa table-layout:fixed, entao as larguras vem do colgroup e nao do
+            // conteudo. Sem isso a linha do grupo/tutor (uma unica celula com colspan e um
+            // texto longo) estica as colunas de atividade, que deveriam ser estreitas.
+            // As larguras em si ficam no styles.css, por classe.
+            $output .= html_writer::start_tag('colgroup');
+            $output .= html_writer::empty_tag('col', array('class' => 'col-estudante'));
+            foreach ($header_method as $module_name => $activities) {
+                foreach ($activities as $activity) {
+                    $output .= html_writer::empty_tag('col', array('class' => 'col-atividade'));
+                }
+            }
+            $output .= html_writer::end_tag('colgroup');
+
             $output .= html_writer::start_tag('thead');
             $output .= html_writer::start_tag('tr', array('class' => 'relatorio-unasus r0'));
             $output .= html_writer::tag('td', '', array('class' => 'relatorio-unasus blank'));

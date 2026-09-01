@@ -9,7 +9,10 @@ defined('MOODLE_INTERNAL') || die;
  */
 abstract class report_unasus_activity {
 
-    const MAX_NAME_LENGTH = 22;
+    // O rotulo do cabecalho e' escrito na vertical, entao "largura" da coluna e'
+    // o numero de linhas e "altura" e' o comprimento de cada linha.
+    const MAX_NAME_LINE_LENGTH = 15;
+    const MAX_NAME_LINES = 2;
 
     public $id;
     public $name;
@@ -71,13 +74,67 @@ abstract class report_unasus_activity {
      * @return string Contendo o nome da atividade devidamente formatado
      */
     protected function formatted_name() {
-        // O nome é truncado para caber no cabeçalho da tabela sem quebrar o layout.
-        // MAX_NAME_LENGTH é definido como constante para facilitar ajuste centralizado.
-        $initial_name = substr($this->name, 0, self::MAX_NAME_LENGTH);
-        $final_name = '';
+        return self::wrap_name($this->name);
+    }
 
+    /**
+     * Quebra o nome da atividade em ate MAX_NAME_LINES linhas de no maximo
+     * MAX_NAME_LINE_LENGTH caracteres cada.
+     *
+     * A quebra acontece no espaco sempre que possivel, para nao partir palavras.
+     * A excecao e' a palavra que sozinha ja' estoura a linha: essa e' cortada no
+     * limite e continua na linha seguinte, porque deixa-la inteira esticaria a
+     * coluna e desalinharia o cabecalho. O que nao couber nas linhas disponiveis
+     * e' descartado e sinalizado com reticencias.
+     *
+     * A contagem usa core_text para nao quebrar em caractere multibyte: substr()
+     * cortava "capitulo" no meio do "i" acentuado.
+     *
+     * @param string $name Nome cru da atividade
+     * @return string Nome com as linhas separadas por \n
+     */
+    public static function wrap_name($name) {
+        $words = preg_split('/\s+/u', trim($name), -1, PREG_SPLIT_NO_EMPTY);
 
-        return $initial_name.$final_name;
+        $lines = array();
+        $current = '';
+
+        foreach ($words as $word) {
+            // Palavra que sozinha nao cabe: parte no limite e segue na proxima linha.
+            while (core_text::strlen($word) > self::MAX_NAME_LINE_LENGTH) {
+                if ($current !== '') {
+                    $lines[] = $current;
+                    $current = '';
+                }
+                $lines[] = core_text::substr($word, 0, self::MAX_NAME_LINE_LENGTH);
+                $word = core_text::substr($word, self::MAX_NAME_LINE_LENGTH);
+            }
+
+            if ($word === '') {
+                continue;
+            }
+
+            $candidate = ($current === '') ? $word : $current . ' ' . $word;
+
+            if (core_text::strlen($candidate) <= self::MAX_NAME_LINE_LENGTH) {
+                $current = $candidate;
+                continue;
+            }
+
+            if ($current !== '') {
+                $lines[] = $current;
+            }
+            $current = $word;
+        }
+
+        if ($current !== '') {
+            $lines[] = $current;
+        }
+
+        $truncated = count($lines) > self::MAX_NAME_LINES;
+        $wrapped = implode("\n", array_slice($lines, 0, self::MAX_NAME_LINES));
+
+        return $truncated ? $wrapped . '…' : $wrapped;
     }
 
     abstract function __toString();
@@ -511,8 +568,7 @@ class report_unasus_chapter_tcc_activity extends report_unasus_activity {
 
     public function __toString() {
         $name = $this->formatted_name();
-        return html_writer::label(substr($name, 0, self::MAX_NAME_LENGTH),
-            null, false, array('class' => 'c_body'));
+        return html_writer::label($name, null, false, array('class' => 'c_body'));
     }
 
 }

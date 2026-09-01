@@ -22,7 +22,7 @@ class report_uso_sistema_tutor extends report_unasus_factory {
         global $CFG;
 
         if (!$CFG->enablestats) {
-            print_error('statistics_not_enabled_error', 'report_unasus');
+            throw new moodle_exception('statistics_not_enabled_error', 'report_unasus');
         }
 
         echo $renderer->build_page();
