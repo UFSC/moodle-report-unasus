@@ -46,6 +46,26 @@ relatorios/relatorios.php (table/graph + queries via relatorios/queries.php + re
 
 **Coordinator-only**: `acesso_tutor`, `uso_sistema_tutor`.
 
+### Cores e daltonismo
+
+Este plugin comunica quase tudo por cor: as células das tabelas são blocos coloridos e os gráficos
+empilham séries por estado. **Toda definição de cor aqui — `styles.css`, séries de gráfico,
+legendas — deve considerar quem é daltônico.**
+
+- **A paleta é Okabe–Ito**, segura para deuteranopia, protanopia e tritanopia:
+  `#000000` preto, `#E69F00` laranja, `#56B4E9` azul-céu, `#009E73` verde-azulado,
+  `#F0E442` amarelo, `#0072B2` azul, `#D55E00` vermelho-alaranjado, `#CC79A7` rosa.
+  Cinza neutro (`#999999`) para "não aplicado".
+- **Legenda e gráfico usam a mesma cor para o mesmo estado.** O mapa vive em
+  `report_unasus_renderer::cor_da_legenda()` e espelha as classes do `styles.css`; mexer num lado
+  exige mexer no outro.
+- **Nunca introduzir pares vermelho x verde, verde x laranja ou verde-claro x amarelo** para
+  estados que o usuário precise distinguir.
+
+⚠️ **Dívida conhecida:** nas tabelas a cor ainda é o **único** canal — as células são blocos sem
+texto, salvo "sem prazo". Isso falha o WCAG 1.4.1 independentemente da paleta. O conserto completo
+exige um segundo canal (sigla, ícone ou hachura na célula) e está pendente.
+
 ## Plugin Dependencies
 
 - **Required**: `local_tutores`, `local_relationship`

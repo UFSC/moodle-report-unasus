@@ -142,7 +142,7 @@ legend {
 .relatorio-unasus.historico_atribuicao_notas .no_prazo,
 .relatorio-unasus
 .media {
-  background: #FCFF76;
+  background: #F0E442;
   color: gray;
 }
 
@@ -154,14 +154,14 @@ legend {
 .relatorio-unasus.potenciais_evasoes .nao_concluido,
 .relatorio-unasus.boletim
 .abaixo_media {
-  color: #fff;
-  background: #f77;
+  color: #000000;
+  background: #D55E00;
 }
 
 .relatorio-unasus.boletim
 .abaixo_media_nota {
   color: #000000;
-  background: #FCFF76;
+  background: #F0E442;
 }
 
 .relatorio-unasus .rascunho,
@@ -170,12 +170,12 @@ legend {
 .relatorio-unasus.acesso_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes
 .parcial {
-  background: #E8BC6B;
+  background: #E69F00;
 }
 
 .relatorio-unasus
 .revisao {
-  background: #FCFF76 !important;
+  background: #F0E442 !important;
   color: #000000;
 }
 
@@ -648,33 +648,32 @@ table.relatorio-unasus.divisao-por-modulos {
 .relatorio-unasus .avaliado,
 .relatorio-unasus.atividades_vs_notas .nota_atribuida,
 .relatorio-unasus.historico_atribuicao_notas .nao_entregue {
-  background-color: #89A9FF !important;
+  background-color: #0072B2 !important;
   color: #FFFFFF !important;
 }
 
 .relatorio-unasus.tcc_entrega_atividades .rascunho,
 .relatorio-unasus.tcc_concluido .concluido,
-.relatorio-unasus.atividades_vs_notas .nota_atribuida_atraso,
 .relatorio-unasus .concluido,
 .relatorio-unasus.boletim .na_media,
 .relatorio-unasus.potenciais_evasoes .concluido,
 .relatorio-unasus .rascunho,
 .relatorio-unasus.acesso_tutor .acessou,
 .relatorio-unasus.uso_sistema_tutor .acessou {
-  background-color: #67E87E !important;
+  background-color: #009E73 !important;
   color: #000000 !important;
 }
 
 .relatorio-unasus .media,
 .relatorio-unasus.potenciais_evasoes .parcial,
 .relatorio-unasus.tcc_entrega_atividades .revisao {
-  background-color: #FCFF76 !important;
+  background-color: #F0E442 !important;
   color: #000000 !important;
 }
 
 .relatorio-unasus.acesso_tutor .nao_acessou
 {
-  background-color: #FF886E;
+  background-color: #D55E00;
   color: #000000;
 }
 
@@ -685,19 +684,32 @@ table.relatorio-unasus.divisao-por-modulos {
 .relatorio-unasus.uso_sistema_tutor .nao_acessou,
 .relatorio-unasus.potenciais_evasoes .nao_concluido,
 .relatorio-unasus.boletim .abaixo_media {
-  background-color: #f77;
+  background-color: #D55E00;
   color: #000000;
 }
 
 .relatorio-unasus .nao_aplicado {
-  background-color: #777777 !important;
+  background-color: #999999 !important;
+  color: #000000 !important;
+}
+
+/* No atividades_vs_notas estes dois estados precisam de cor propria: o
+   nota_atribuida_atraso dividia o verde-azulado com o pouco_atraso, e o
+   avaliado_sem_nota nao tinha cor alguma. */
+.relatorio-unasus.atividades_vs_notas .nota_atribuida_atraso {
+  background-color: #56B4E9 !important;
+  color: #000000 !important;
+}
+
+.relatorio-unasus.atividades_vs_notas .avaliado_sem_nota {
+  background-color: #E69F00 !important;
   color: #000000 !important;
 }
 
 .relatorio-unasus.atividades_vs_notas .nao_realizada,
 .relatorio-unasus.historico_atribuicao_notas .nao_avaliada {
-  background-color: #DB8AFF !important;
-  color: #FFFFFF !important;
+  background-color: #CC79A7 !important;
+  color: #000000 !important;
 }
 
 .relatorio-unasus.atividades_vs_notas .sem_prazo,
@@ -730,13 +742,13 @@ thead {
 }
 
 .nao_entregue_mas_no_prazo {
-  background-color: #E8BC6B;
-  color: #FFFFFF;
+  background-color: #E69F00;
+  color: #000000;
 }
 
 .nao_entregue_fora_do_prazo {
-  background-color: #FF886E;
-  color: #FFFFFF;
+  background-color: #D55E00;
+  color: #000000;
 }
 
 .sem_prazo {
@@ -745,17 +757,17 @@ thead {
 }
 
 .no_prazo {
-  background-color: #89A9FF;
+  background-color: #0072B2;
   color: #FFFFFF;
 }
 
 .pouco_atraso {
-  background-color: #67E87E;
-  color: #FFFFFF;
+  background-color: #009E73;
+  color: #000000;
 }
 
 .muito_atraso {
-  background-color: #FCFF76;
+  background-color: #F0E442;
   color: #000000;
 }
 
@@ -763,12 +775,12 @@ thead {
 $preto: #000000;
 $branco: #FFFFFF;
 $cinzaclaro: #f5f5f5;
-$verdeescuro: #89A9FF;
-$verdeclaro: #67E87E;
-$amarelo: #FCFF76;
-$laranja: #E8BC6B;
-$vermelho: #FF886E;
-$rosa: #DB8AFF;
+$verdeescuro: #0072B2;
+$verdeclaro: #009E73;
+$amarelo: #F0E442;
+$laranja: #E69F00;
+$vermelho: #D55E00;
+$rosa: #CC79A7;
 $lilas: #CC01FF;
 $azul: blue;
 $azulescuro: #004E95;

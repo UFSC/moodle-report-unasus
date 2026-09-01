@@ -781,15 +781,9 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return String
      */
     public function build_graph($report, $porcentagem = false) {
-        global $PAGE, $USER;
         raise_memory_limit(MEMORY_EXTRA);
 
         $output = $this->default_header();
-
-        $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
-        $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
-        $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/modules/exporting.js"));
-
         $output .= $this->build_filter(true);
 
         // verifica se o gráfico foi implementado
@@ -811,15 +805,112 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $this->apply_role_scope($report);
 
-        $PAGE->requires->js_init_call('M.report_unasus.init_graph', array(
-            $dados_method,
-            array_values($legend),
-            get_string($this->report_name, 'report_unasus'), $porcentagem));
-
-        $output .= '<div id="container" class="relatorio-unasus container relatorio-wrapper"></div>';
+        $output .= $this->grafico_barras_empilhadas(
+            $dados_method, $legend, get_string($this->report_name, 'report_unasus'), $porcentagem);
         $output .= $this->default_footer();
 
         return $output;
+    }
+
+    /**
+     * Monta o gráfico de barras empilhadas com a API de gráficos do core.
+     *
+     * Substituiu o Highcharts 2.2.5 (2012), que vinha empacotado junto de um jQuery 1.7.1. Aquele
+     * jQuery se registrava como o módulo AMD `jquery` e deslocava o do core, quebrando o
+     * JavaScript do Moodle na página inteira -- não só o gráfico.
+     *
+     * @param array $dados array de rótulo (grupo/tutor) => valores, na ordem da legenda
+     * @param array $legend array de classe CSS => descrição, na mesma ordem dos valores
+     * @param string $titulo título do gráfico
+     * @param bool $porcentagem se true, normaliza cada barra para 100%
+     * @return string HTML do gráfico
+     */
+    protected function grafico_barras_empilhadas($dados, $legend, $titulo, $porcentagem = false) {
+        $classes = array_keys($legend);
+        $descricoes = array_values($legend);
+
+        $rotulos = array();
+        $series = array_fill(0, count($descricoes), array());
+
+        foreach ($dados as $rotulo => $valores) {
+            // O rótulo do grupo/tutor vem com marcação HTML, que num gráfico apareceria crua.
+            $rotulos[] = trim(html_to_text($rotulo, 0, false));
+
+            $total = array_sum($valores);
+            foreach ($descricoes as $i => $descricao) {
+                $valor = isset($valores[$i]) ? $valores[$i] : 0;
+                if ($porcentagem) {
+                    // Barra sem nenhum dado fica zerada em vez de dividir por zero.
+                    $valor = $total > 0 ? round($valor * 100 / $total, 1) : 0;
+                }
+                $series[$i][] = $valor;
+            }
+        }
+
+        $chart = new \core\chart_bar();
+        $chart->set_horizontal(true);
+        $chart->set_stacked(true);
+        $chart->set_title($titulo);
+        $chart->set_labels($rotulos);
+
+        foreach ($descricoes as $i => $descricao) {
+            $serie = new \core\chart_series($descricao, $series[$i]);
+
+            // Mantém o gráfico com as mesmas cores da legenda das tabelas.
+            $cor = self::cor_da_legenda($classes[$i]);
+            if ($cor !== null) {
+                $serie->set_color($cor);
+            }
+
+            $chart->add_series($serie);
+        }
+
+        return $this->render($chart);
+    }
+
+    /**
+     * Cor de uma classe da legenda, espelhando o styles.css.
+     *
+     * A paleta e' a Okabe-Ito, segura para deuteranopia, protanopia e tritanopia. A anterior
+     * apoiava-se em pares vermelho x verde e laranja x amarelo, que colapsam para quem tem
+     * deficiencia de visao de cores -- justamente nos estados que o usuario mais precisa
+     * distinguir (entregue no prazo x entregue com atraso x nao entregue).
+     *
+     * Mexer aqui exige mexer no styles.css: legenda da tabela e serie do grafico precisam
+     * dizer a mesma cor para o mesmo estado.
+     *
+     * @param string $classe classe CSS usada na legenda
+     * @return string|null cor em hexadecimal, ou null se nao houver equivalente
+     */
+    protected static function cor_da_legenda($classe) {
+        $cores = array(
+            // Atribuicao de notas
+            'nota_atribuida' => '#0072B2',              // azul       -- nota no prazo
+            'nota_atribuida_atraso' => '#56B4E9',       // azul-ceu   -- nota fora do prazo
+            'avaliado_sem_nota' => '#E69F00',           // laranja    -- entregue, sem nota
+            'nao_entregue' => '#D55E00',                // vermelho   -- nao realizada
+
+            // Entrega de atividades
+            'no_prazo' => '#0072B2',                    // azul       -- entregue em dia
+            'pouco_atraso' => '#009E73',                // verde-azul -- atraso pequeno
+            'muito_atraso' => '#F0E442',                // amarelo    -- atraso grande
+            'nao_entregue_mas_no_prazo' => '#E69F00',   // laranja    -- pendente, no prazo
+            'nao_entregue_fora_do_prazo' => '#D55E00',  // vermelho   -- pendente, fora do prazo
+            'sem_prazo' => '#000000',                   // preto      -- sem prazo definido
+            'nao_aplicado' => '#999999',                // cinza      -- nao se aplica
+            'nao_realizada' => '#CC79A7',               // rosa       -- nao realizada
+
+            // Conclusao
+            'concluido' => '#009E73',
+            'nao_concluido' => '#D55E00',
+
+            // TCC
+            'rascunho' => '#E69F00',
+            'revisao' => '#F0E442',
+            'avaliado' => '#0072B2',
+        );
+
+        return isset($cores[$classe]) ? $cores[$classe] : null;
     }
 
     /**
