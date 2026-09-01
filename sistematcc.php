@@ -82,23 +82,6 @@ class report_unasus_SistemaTccClient {
     }
 
     /**
-     * @param array[int] $user_ids
-     * @return mixed
-     */
-    public function get_report_data($user_ids) {
-
-        $params = array(
-            'consumer_key' => $this->consumer_key,
-            'user_ids' => $user_ids
-        );
-
-        $json = $this->post('/reportingservice', $params);
-        $object = json_decode($json);
-
-        return $object;
-    }
-
-    /**
      * Dados de TCC dos alunos informados.
      *
      * @param array[int] $user_ids
