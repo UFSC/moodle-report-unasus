@@ -694,7 +694,13 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::tag('td', '', array('class' => 'relatorio-unasus blank'));
 
             foreach ($header_method as $module_name => $activities) {
-                $output .= html_writer::tag('th', $module_name, array('class' => 'relatorio-unasus modulo_header cell c1', 'colspan' => count($activities)));
+                // O rotulo vai dentro de um span pelo mesmo motivo da faixa de grupo: a
+                // celula cobre todas as atividades do modulo e ja' nasce mais larga que a
+                // area visivel, entao sticky nela nao segura nada. Sem isto o titulo do
+                // modulo sai de vista ao rolar e a faixa fica vazia -- com 108 colunas,
+                // perde-se a referencia de qual modulo se esta' lendo.
+                $output .= html_writer::tag('th', html_writer::span($module_name, 'modulo-rotulo'),
+                    array('class' => 'relatorio-unasus modulo_header cell c1', 'colspan' => count($activities)));
             }
 
             $output .= html_writer::end_tag('tr');

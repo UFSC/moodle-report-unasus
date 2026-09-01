@@ -234,7 +234,6 @@ legend {
 
 .relatorio-unasus td.blank {
   background: #FAFAFA;
-  border: 0px solid transparent !important;
 }
 
 table.relatorio-unasus.estudante_sem_atividade_postada,
@@ -242,15 +241,13 @@ table.relatorio-unasus.estudante_sem_atividade_avaliada {
   background: #FAFAFA !important;
 }
 
+/* As enfases de modulo usam a MESMA espessura e cor das demais divisas: o modulo
+   ja' e' separado pela faixa de titulo, e uma linha mais grossa so' aumentaria o
+   ruido. Desenham apenas a direita, como todas as outras celulas. */
 .relatorio-unasus.divisao-por-modulos td.cell.ultima_atividade,
 .relatorio-unasus.divisao-por-modulos th.cell.ultima_atividade,
-.relatorio-unasus.divisao-por-modulos td.tutor {
-  border-right: 1px solid #004E95 !important;
-}
-
+.relatorio-unasus.divisao-por-modulos td.tutor,
 .relatorio-unasus.divisao-por-modulos th.cell.modulo_header {
-  border-top: 1px solid #004E95 !important;
-  border-left: 1px solid #004E95 !important;
   border-right: 1px solid #004E95 !important;
 }
 
@@ -578,12 +575,31 @@ legend {
 }
 
 .relatorio-unasus thead tr.r1 th {
-  top: 34px; /* altura da linha de modulos (thead tr.r0) */
+  top: 36px; /* altura da linha de modulos (thead tr.r0) */
 }
 
 .relatorio-unasus thead tr.r0 th,
 .relatorio-unasus thead tr.r0 td {
-  height: 34px !important;
+  height: 36px !important;
+}
+
+/* ⚠️ EXCECAO a' regra "cada celula desenha a direita e a de baixo": a divisa entre
+   a faixa de modulo (r0) e a linha de atividades (r1) pertence a' r1, e nao a' r0.
+
+   As duas linhas sao sticky com deslocamentos diferentes, e a altura da r0 e'
+   ditada pelo conteudo -- `height` em celula de tabela e' minimo, nao valor fixo.
+   Quando a altura usada nao bate com o `top` da r1 (aqui media 36px contra um top
+   de 34px, herdado de quando a faixa era menor), a r1 gruda por cima da r0 e cobre
+   a borda inferior dela: a divisoria existia parada e sumia ao rolar.
+
+   Com a linha pertencendo a' r1, ela acompanha quem fica por cima e nao pode mais
+   ser encoberta, batendo ou nao a altura. Continua sendo UMA borda na divisa. */
+.relatorio-unasus thead tr.r0 > * {
+  border-bottom: 0 !important;
+}
+
+.relatorio-unasus thead tr.r1 > * {
+  border-top: 1px solid #004E95 !important;
 }
 
 /* O nome do modulo nao quebra em duas linhas: a altura da linha r0 e' o
@@ -627,82 +643,37 @@ legend {
   background-color: #FFFFFF !important;
 }
 
-/* As linhas das celulas presas sao redesenhadas num pseudo-elemento.
+/* As celulas presas nao precisam mais de tratamento proprio para as linhas.
 
-   Sob border-collapse:collapse -- que e' o que o tema aplica aqui -- a borda
-   pertence a' grade da tabela, e nao a' caixa da celula. Uma celula com
-   position:sticky que se deslocou deixa as proprias bordas para tras, na posicao
-   original da grade: era isso que fazia as divisorias sumirem ao rolar. Vale para
-   o cabecalho inteiro, e nao so' para a coluna presa -- o thead ja' era sticky no
-   eixo vertical antes desta mudanca.
+   Sob border-collapse:collapse a borda pertencia a' grade da tabela, e uma celula
+   sticky deslocada deixava as proprias bordas para tras -- por isso as divisorias
+   sumiam ao rolar, e por isso existiu aqui um bloco que as redesenhava num
+   pseudo-elemento. Com a tabela em separate (ver "UMA BORDA POR DIVISA") cada
+   celula e' dona da propria borda e a leva junto ao se deslocar, entao o
+   pseudo-elemento, o `transparent` e o desempate de especificidade do
+   modulo_header sairam todos.
 
-   Tres coisas aprendidas na tela, nesta ordem, e que valem para quem mexer aqui:
-
-   1. UMA linha por divisa. Pintar os quatro lados de cada celula dobra a
-      espessura, porque duas vizinhas desenham a mesma divisa. Cada celula desenha
-      so' a direita e a de baixo; a primeira linha fecha em cima e a primeira
-      coluna a' esquerda.
-
-   2. border, e nao box-shadow. O Chrome encaixa border no pixel do dispositivo
-      (um `1px` declarado computa 1,111px a 90% de zoom e 0,8px a 250%, sempre um
-      numero inteiro de pixels de dispositivo); box-shadow nao e' encaixado. Com
-      sombra, a linha saia 1px em um trecho e 2px em outro fora de 100%.
-
-   3. ⚠️ Sobra um desencontro de meio pixel, e ele NAO tem solucao com valor fixo.
-      A borda colapsada e' pintada CENTRADA na divisa; a do pseudo-elemento fica
-      dentro da caixa. O `-0.5px` compensa metade da largura DECLARADA, mas a
-      largura REAL depende do zoom, entao o acerto e' exato so' em 100%. Fora dali
-      o degrau reaparece onde a linha do corpo encontra a do titulo.
-      A saida de verdade seria border-collapse:separate na tabela toda, com cada
-      celula desenhando a propria borda -- mas varias regras deste arquivo
-      dependem do modo colapsado, entao isso e' refatoracao, nao ajuste. */
-.relatorio-unasus thead th,
-.relatorio-unasus tbody th.estudante,
-.relatorio-unasus thead tr.r0 td.blank {
-  border-color: transparent !important;
-  box-shadow: none;
-}
-
-/* ⚠️ O cabecalho de modulo tem regra propria com !important e especificidade
-   maior (.relatorio-unasus.divisao-por-modulos th.cell.modulo_header), entao o
-   transparent acima nao o alcancava: ficava com a borda da grade E a linha nova,
-   e a divisoria de modulos aparecia com 2px -- some ao rolar, volta quando as
-   divisorias das colunas de dados alcancam o titulo. Daqui vem o desempate. */
-.relatorio-unasus.divisao-por-modulos thead th.cell.modulo_header {
-  border-color: transparent !important;
-}
-
-.relatorio-unasus thead th::after,
-.relatorio-unasus tbody th.estudante::after,
-.relatorio-unasus thead tr.r0 td.blank::after {
-  content: "";
-  position: absolute;
-  /* Meia borda para fora, para montar sobre a divisa como a borda colapsada. */
-  top: -0.5px;
-  right: -0.5px;
-  bottom: -0.5px;
-  left: -0.5px;
-  pointer-events: none;
-  border-right: 1px solid #004E95;
-  border-bottom: 1px solid #004E95;
-}
-
-.relatorio-unasus thead tr.r0 th::after,
-.relatorio-unasus thead tr.r0 td.blank::after {
-  border-top: 1px solid #004E95;
-}
-
-.relatorio-unasus thead tr.r1 th.estudante_header::after,
-.relatorio-unasus tbody th.estudante::after,
-.relatorio-unasus thead tr.r0 td.blank::after {
-  border-left: 1px solid #004E95;
-}
-
-/* A sombra projetada fica em box-shadow, que e' onde sombra e' a ferramenta
-   certa: sem ela a coluna que passa por baixo parece encavalar na divisa. */
+   Fica so' a sombra projetada, que e' outra funcao: sem ela a coluna que passa por
+   baixo parece encavalar na divisa em vez de deslizar sob a coluna presa. */
 .relatorio-unasus tbody th.estudante,
 .relatorio-unasus thead tr.r1 th.estudante_header {
   box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.25);
+}
+
+/* O titulo do modulo fica preso na lateral, como o rotulo do grupo: a celula do
+   modulo cobre todas as atividades dele e e' mais larga que a area visivel, entao
+   prender a celula nao adianta -- quem fica preso e' o span dentro dela.
+
+   ⚠️ Preso na borda da coluna congelada, e nao em zero: a coluna do estudante e o
+   canto do cabecalho sao sticky em left:0 com fundo opaco e z-index maior, entao um
+   titulo presoem zero passaria por baixo deles e continuaria invisivel. */
+.relatorio-unasus th.modulo_header .modulo-rotulo {
+  position: sticky;
+  /* 250px da col-estudante + 1px da borda esquerda da tabela. Sem contar a borda,
+     o rotulo gruda exatamente sobre a divisa da coluna congelada e a encobre. */
+  left: 251px;
+  display: inline-block;
+  padding-left: 12px;
 }
 
 /* A faixa do grupo de tutoria e' uma celula unica com colspan cobrindo a tabela
@@ -711,7 +682,10 @@ legend {
    rotulo dentro dela -- por isso o renderer envolve o nome num span. */
 .relatorio-unasus td.tutor .tutor-rotulo {
   position: sticky;
-  left: 0;
+  /* ⚠️ 1px, e nao 0: a tabela tem 1px de borda a' esquerda. Com left:0 o rotulo
+     grudava em cima dela e, no instante em que passava a grudar, saltava 1px para
+     a esquerda -- o texto parecia se mover e sobrepor a linha da borda. */
+  left: 1px;
   /* sticky precisa de uma caixa; num nó inline o deslocamento nao se aplica. */
   display: inline-block;
   /* Alinha com o nome do estudante logo abaixo, que tem o mesmo recuo. */
@@ -774,10 +748,60 @@ table.relatorio-unasus.divisao-por-modulos {
   border: none !important;
 }
 
-.relatorio-unasus tr,
+/* UMA BORDA POR DIVISA.
+
+   A regra anterior punha `border: 1px` nos quatro lados de tr, th e td. Isso
+   significa que toda divisa da tabela tinha DUAS bordas declaradas, uma de cada
+   celula vizinha, mais a da linha. Sob border-collapse o navegador funde as duas e
+   voce ve uma so' -- ate' a fusao se desfazer, o que acontece em dois casos:
+
+     - quando uma celula position:sticky se desloca e deixa a borda da grade para
+       tras, na posicao original;
+     - quando a divisa cai em posicao fracionaria de pixel de dispositivo e as duas
+       bordas encaixam em pixels diferentes.
+
+   Nos dois casos aparecem dois tracos, um deslocado e mais claro. Era a causa de
+   todos os sintomas: linha que some ao rolar, linha com 2px, traco azul-claro
+   colado ao separador, degrau onde o corpo encontra o titulo.
+
+   Com a tabela em border-collapse:separate cada celula e' dona da propria borda e
+   a mantem ao se deslocar -- nao ha mais fusao para desfazer. Para nao dobrar a
+   espessura, cada celula desenha apenas a divisa da DIREITA e a de BAIXO; as
+   bordas externas de cima e da esquerda ficam por conta da primeira linha e da
+   primeira coluna, logo abaixo. */
+table.relatorio-unasus {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.relatorio-unasus tr {
+  border: 0 !important;
+}
+
 .relatorio-unasus th,
 .relatorio-unasus td {
-  border: 1px solid #004E95 !important;
+  border: 0 !important;
+  border-right: 1px solid #004E95 !important;
+  border-bottom: 1px solid #004E95 !important;
+}
+
+/* Fecha a tabela em cima e a' esquerda. */
+.relatorio-unasus thead tr:first-child > * {
+  border-top: 1px solid #004E95 !important;
+}
+
+/* ⚠️ A borda ESQUERDA da tabela pertence ao wrapper, e nao a' primeira celula.
+
+   A faixa de grupo/tutor e' uma celula unica com colspan e, ao contrario das demais
+   linhas, nao tem coluna congelada: ela rola inteira e levava a propria borda
+   esquerda junto. Resultado: ao rolar para o lado, todas as linhas mantinham a
+   linha da esquerda menos a faixa, que ficava aberta.
+
+   O wrapper e' a caixa de rolagem: a borda dele fica fora da area que rola e
+   portanto nunca se move. Uma linha so', igual para linha congelada e nao
+   congelada. */
+.relatorio-wrapper {
+  border-left: 1px solid #004E95;
 }
 
 .relatorio-unasus td {
@@ -863,10 +887,12 @@ table.relatorio-unasus.divisao-por-modulos {
    usando a palavra-chave `blue`, mais clara: sob border-collapse a borda da
    linha vence a da celula quando a espessura empata, entao esse azul claro
    aparecia em algumas arestas e nao em outras. */
-.relatorio-unasus .r0 {
-  border-top: 1px solid #004E95 !important;
-  border-bottom: 1px solid #004E95 !important;
-}
+/* A faixa de modulo/tutor (linha r0) NAO desenha borda de cima: a celula da linha
+   anterior ja' desenha a de baixo, e as duas juntas dariam 2px. Vale a regra geral
+   -- uma borda por divisa, sempre da celula de cima e da celula da esquerda.
+
+   A regra que existia aqui declarava borda em tr, o que sob border-collapse:separate
+   o navegador ignora: nao pintava nada e ainda confundia quem fosse depurar. */
 
 .relatorio-unasus .r1 {
   height: 50px;
