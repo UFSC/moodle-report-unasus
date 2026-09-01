@@ -56,21 +56,28 @@ fi
 # ---------------------------------------------------------------------------
 # Configurações
 # ---------------------------------------------------------------------------
-SISTEM_NAME="local-$CORE_NAME"
-CONTAINER_NAME="moodle-$SISTEM_NAME"
-SELENIUM_CONTAINER="selenium-chrome-$CORE_NAME"
-SELENIUM_IMAGE="selenium/standalone-chrome:3.141.59-selenium"
+# Como no run_tests.sh: tudo abaixo e' derivado de CORE_NAME/DOCKER_VERSION e pode ser
+# sobreposto no .env, para ambientes que fogem da convencao.
+SISTEM_NAME="${SISTEM_NAME:-local-$CORE_NAME}"
+CONTAINER_NAME="${CONTAINER_NAME:-moodle-$SISTEM_NAME}"
+SELENIUM_CONTAINER="${SELENIUM_CONTAINER:-selenium-chrome-$CORE_NAME}"
+# Imagem do Selenium. A 3.141 (Chrome 75, de 2019) fala o protocolo OSS; o Moodle 4.5 usa
+# o driver W3C (OAndreyev\Mink\Driver\WebDriver) e precisa de Selenium 4. Ambientes antigos
+# seguem no default; os novos definem SELENIUM_IMAGE no .env.
+SELENIUM_IMAGE="${SELENIUM_IMAGE:-selenium/standalone-chrome:3.141.59-selenium}"
 # Porta do HOST publicada para o Selenium (lado esquerdo do -p). A porta interna do
 # container é sempre 4444. Parametrizável via SELENIUM_PORT no .env para permitir rodar
 # vários ambientes em paralelo sem conflito na 4444. Default: 4444.
 SELENIUM_HOST_PORT="${SELENIUM_PORT:-4444}"
-DOCKER_COMPOSE_DIR="/home/$USER/workspace/docker/$DOCKER_VERSION"
-MOODLE_LOCAL_SITE="www/$SISTEM_NAME"
-MOODLE_ROOT_IN_CONTAINER="/home/moodle/$MOODLE_LOCAL_SITE"
-DOCKER_NETWORK="moodle-network-$DOCKER_VERSION"
-#BEHAT_PREFIX="bht_"
-BEHAT_DATAROOT="/home/moodle/moodledata/${BEHAT_PREFIX}$SISTEM_NAME"
-BEHAT_WWWROOT="http://$URL_NAME"
+DOCKER_COMPOSE_DIR="${DOCKER_COMPOSE_DIR:-/home/$USER/workspace/docker/$DOCKER_VERSION}"
+MOODLE_LOCAL_SITE="${MOODLE_LOCAL_SITE:-www/$SISTEM_NAME}"
+MOODLE_ROOT_IN_CONTAINER="${MOODLE_ROOT_IN_CONTAINER:-/home/moodle/$MOODLE_LOCAL_SITE}"
+CONTAINER_USER="${CONTAINER_USER:-moodle}"
+DOCKER_NETWORK="${DOCKER_NETWORK:-moodle-network-$DOCKER_VERSION}"
+BEHAT_PREFIX="${BEHAT_PREFIX:-bht_}"
+BEHAT_DATAROOT="${BEHAT_DATAROOT:-/home/moodle/moodledata/${BEHAT_PREFIX}$SISTEM_NAME}"
+# Alguns sites so' respondem em https; o esquema vem do .env quando difere.
+BEHAT_WWWROOT="${BEHAT_WWWROOT:-http://$URL_NAME}"
 BEHAT_ENABLE_FILE="/tmp/.${BEHAT_PREFIX}${SISTEM_NAME}_enabled"
 PLUGIN_COMPONENT="report_unasus"
 PLUGIN_TAG="@report_unasus"
@@ -120,17 +127,17 @@ container_is_running() {
 }
 
 exec_as_moodle() {
-    docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
+    docker exec -u "$CONTAINER_USER" "$CONTAINER_NAME" bash -c "$1"
 }
 
 exec_php_as_moodle_for_init() {
-    docker exec -u moodle "$CONTAINER_NAME" bash -c "$1"
+    docker exec -u "$CONTAINER_USER" "$CONTAINER_NAME" bash -c "$1"
 }
 
 enable_behat_environment() {
     log "Ativando configuração Behat para esta execução..."
     # Ensure parent directory exists and is owned by moodle user
-    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p /home/moodle/moodledata && chown moodle:moodle /home/moodle/moodledata && chmod 755 /home/moodle/moodledata"
+    docker exec -u 0 "$CONTAINER_NAME" bash -c "mkdir -p '$(dirname "$BEHAT_DATAROOT")' && chown $CONTAINER_USER:$CONTAINER_USER '$(dirname "$BEHAT_DATAROOT")' && chmod 755 '$(dirname "$BEHAT_DATAROOT")'"
 
     # O behat_dataroot é volume montado do host: criado por lá, fica com o uid do host, que não é o
     # do usuário moodle do container. Sem escrita para o moodle, o util.php --enable aborta com
@@ -196,6 +203,16 @@ trap cleanup EXIT
 
 ensure_legacy_composer_for_behat_init() {
     log "Preparando composer legado para inicialização do Behat..."
+
+    # O dirroot e' um bind mount e o container roda com namespace de usuario mapeado: o
+    # composer nao consegue reescrever vendor/composer/installed.php. A permissao e' dada
+    # pelo host, onde ela existe -- mesmo contorno que o run_tests.sh usa no dirroot.
+    MOODLE_HOST_DIR="$DOCKER_COMPOSE_DIR/$MOODLE_LOCAL_SITE"
+    if [ -d "$MOODLE_HOST_DIR/vendor/composer" ]; then
+        log "Liberando escrita em vendor/composer a partir do host..."
+        chmod a+w "$MOODLE_HOST_DIR" "$MOODLE_HOST_DIR/vendor" 2>/dev/null || true
+        chmod -R a+w "$MOODLE_HOST_DIR/vendor/composer" 2>/dev/null || true
+    fi
     TMP_COMPOSER_WRAPPER=$(mktemp)
     cat > "$TMP_COMPOSER_WRAPPER" <<'PHPWRAPPER'
 <?php
@@ -348,6 +365,16 @@ enable_behat_environment
 # ---------------------------------------------------------------------------
 # 3. Configurar Behat no config.php (se ainda não configurado)
 # ---------------------------------------------------------------------------
+# O config.php e' um bind mount do host. Com mapeamento de namespace de usuario, o root
+# do container nao consegue escrever nele -- o `sed -i` falha em criar o arquivo temporario.
+# Por isso as edicoes sao feitas pelo host, onde a permissao existe. Mesmo obstaculo que o
+# run_tests.sh ja' contorna ao inicializar o PHPUnit.
+CONFIG_NO_HOST="$DOCKER_COMPOSE_DIR/$MOODLE_LOCAL_SITE/config.php"
+
+if [ ! -w "$CONFIG_NO_HOST" ]; then
+    err "config.php do host não encontrado ou sem permissão de escrita: $CONFIG_NO_HOST"
+fi
+
 log "Verificando configuração Behat no config.php..."
 
 BEHAT_CONFIGURED=$(exec_as_moodle "
@@ -360,24 +387,49 @@ if [ "$BEHAT_CONFIGURED" != "yes" ]; then
 
     # Diretórios e ownership já garantidos por enable_behat_environment().
 
-    exec_as_moodle "sed -i \"/require_once.*lib\/setup\.php/i\\
-\\\$CFG->behat_wwwroot  = '$BEHAT_WWWROOT';\\
-\\\$CFG->behat_prefix   = '$BEHAT_PREFIX';\\
-\\\$CFG->behat_dataroot = '$BEHAT_DATAROOT';\\
-\\\$CFG->behat_config   = array(\\
-    'default' => array(\\
-        'extensions' => array(\\
-            'Behat\\\\\\\\MinkExtension\\\\\\\\Extension' => array(\\
-                'selenium2' => array(\\
-                    'browser'      => 'chrome',\\
-                    'capabilities' => array('chrome' => array('switches' => array('--no-sandbox', '--disable-dev-shm-usage'))),\\
-                    'wd_host'      => 'http://$SELENIUM_CONTAINER:4444/wd/hub',\\
-                ),\\
-            ),\\
-        ),\\
-    ),\\
-);
-\" '$MOODLE_ROOT_IN_CONTAINER/config.php'"
+    python3 - "$CONFIG_NO_HOST" "$BEHAT_WWWROOT" "$BEHAT_PREFIX" "$BEHAT_DATAROOT" \
+             "$SELENIUM_CONTAINER" "$BEHAT_ENABLE_FILE" <<'PYCFG'
+import io, re, sys
+
+caminho, wwwroot, prefixo, dataroot, selenium, arquivo_ativo = sys.argv[1:7]
+conteudo = io.open(caminho, encoding='utf-8').read()
+
+# O bloco fica dentro de um file_exists(): sem essa guarda o Moodle enxerga behat_dataroot
+# o tempo todo e o site normal quebra com HTTP 500, porque o diretorio so' existe enquanto o
+# Behat esta' ligado. E' o modelo que o unasus-cp usa.
+bloco = (
+    "// Behat: so' ativo enquanto o arquivo-sentinela existir. Escrito por run_behat.sh.\n"
+    "if (file_exists('%s')) {\n"
+    "    $CFG->behat_wwwroot  = '%s';\n"
+    "    $CFG->behat_prefix   = '%s';\n"
+    "    $CFG->behat_dataroot = '%s';\n"
+    "    $CFG->behat_faildump_path = '%s/faildumps';\n"
+    "\n"
+    "    define('BEHAT_FEATURE_TIMING_FILE', '%s/timing.json');\n"
+    "\n"
+    "    $CFG->behat_config = array(\n"
+    "        'default' => array(\n"
+    "            'extensions' => array(\n"
+    "                'Behat\\\\MinkExtension\\\\Extension' => array(\n"
+    "                    'selenium2' => array(\n"
+    "                        'browser'      => 'chrome',\n"
+    "                        'capabilities' => array('chrome' => array('switches' => array('--no-sandbox', '--disable-dev-shm-usage'))),\n"
+    "                        'wd_host'      => 'http://%s:4444/wd/hub',\n"
+    "                    ),\n"
+    "                ),\n"
+    "            ),\n"
+    "        ),\n"
+    "    );\n"
+    "}\n\n"
+) % (arquivo_ativo, wwwroot, prefixo, dataroot, dataroot, dataroot, selenium)
+
+alvo = re.search(r'^.*require_once.*lib/setup\.php.*$', conteudo, re.M)
+if not alvo:
+    sys.exit("require_once de lib/setup.php nao encontrado em " + caminho)
+
+conteudo = conteudo[:alvo.start()] + bloco + conteudo[alvo.start():]
+io.open(caminho, 'w', encoding='utf-8').write(conteudo)
+PYCFG
 
     log "Configurações Behat adicionadas ao config.php."
 fi
@@ -432,7 +484,11 @@ fi
 # ---------------------------------------------------------------------------
 # 4. Inicializar (ou reinicializar) o ambiente Behat
 # ---------------------------------------------------------------------------
-BEHAT_YML="$BEHAT_DATAROOT/behat/behat.yml"
+# O caminho do behat.yml mudou entre versoes do Moodle: nas antigas fica direto em
+# <dataroot>/behat/, nas 4.x sob <dataroot>/behatrun/behat/. Como este script serve varios
+# ambientes, o arquivo e' procurado em vez de assumido.
+BEHAT_YML=$(exec_as_moodle "find '$BEHAT_DATAROOT' -type f -name behat.yml -path '*/behat/*' 2>/dev/null | head -1" 2>/dev/null || true)
+BEHAT_YML="${BEHAT_YML:-$BEHAT_DATAROOT/behat/behat.yml}"
 
 # Nº de workers para o qual o ambiente está instalado. O Moodle grava esse valor em
 # parallel_environment_enabled.txt dentro do behat dir de cada worker; ausente = sequencial.
@@ -536,7 +592,7 @@ if [ -n "$PARALLEL_RUNS" ]; then
     log "Modo paralelo: $PARALLEL_RUNS workers"
     BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M admin/tool/behat/cli/run.php"
 else
-    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML' --ansi"
+    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML'"
 fi
 
 if [ -n "$FEATURE_FILE" ]; then
