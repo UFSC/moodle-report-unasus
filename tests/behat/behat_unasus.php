@@ -69,11 +69,17 @@ EOD;
 
     /**
      * Get the context id of a category given its idnumber.
+     *
+     * Nao se chama get_category_id porque o behat_base do Moodle ja' tem um metodo com esse
+     * nome -- e com outra semantica: o do core devolve o id da categoria, este devolve o id
+     * do contexto. A colisao quebrava a inicializacao inteira do Behat no Moodle 4.5, que
+     * passou a tipar a assinatura do core.
+     *
      * @param string $idnumber
      * @return int
      * @throws Exception
      */
-    public function get_category_id($idnumber) {
+    public function get_category_context_id($idnumber) {
         global $DB;
         $category = $DB->get_record('course_categories', array('idnumber' => $idnumber), 'id', MUST_EXIST);
         $context = context_coursecat::instance($category->id);
@@ -336,7 +342,7 @@ EOD;
             return (int) $existing->id;
         }
 
-        $contextid = $this->get_category_id($categoryidnumber);
+        $contextid = $this->get_category_context_id($categoryidnumber);
         $relationship = $this->create_relationship(array(
             'name' => $relationshipname,
             'contextid' => $contextid,
