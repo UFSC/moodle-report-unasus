@@ -469,3 +469,41 @@ Para que o Behat rode no stack Moodle 3.0.5 + PHP 5.6 com chromedriver moderno, 
 4. **Patch em `vendor/behat/mink-selenium2-driver/src/Behat/Mink/Driver/Selenium2Driver.php`** força `chromeOptions.w3c=false` quando o browser é chrome. Sem esse patch, chromedriver ≥ 75 negocia dialeto W3C com Selenium e devolve elementos com chave `element-6066-11e4-a52e-4f735466cecf`. O Mink antigo da Behat 2.x só conhece a chave OSS `ELEMENT`, então `find()` retorna vazio e o primeiro `before_scenario` morre com `"is not a behat test site"` mesmo com a página renderizando corretamente.
 
 **Atenção ao composer:** se composer rodar e regenerar `vendor/`, o patch é perdido. Re-aplicar.
+
+---
+
+## Verificação das bordas das tabelas (manual, no navegador)
+
+`docs/verifica-bordas.js` mede, no DOM, se cada divisa entre células tem
+**exatamente uma borda visível**. Cole no console com a tabela do relatório na
+tela; devolve `total: 0` quando está correto.
+
+Duas bordas na mesma divisa é o defeito que o `border-collapse` esconde enquanto
+nada rola — o navegador funde as duas e se vê uma só. A fusão se desfaz quando
+uma célula `position:sticky` se desloca, e aí a divisa some ou aparece com 2px.
+Antes da refatoração o boletim media **22.333** divisas com duas bordas; depois,
+**0**.
+
+### Como exercitar os 15 relatórios
+
+⚠️ Três armadilhas que fazem o relatório voltar **sem tabela, em silêncio**, e que
+já produziram um relato de "cobertura em aberto" que não existia:
+
+1. **Nem toda tabela leva a classe `relatorio-unasus`.** A do `modulos_concluidos`
+   não leva. Filtrar por essa classe faz o verificador pular o relatório sem
+   avisar — filtre por `.relatorio-wrapper table`.
+2. **Os três relatórios de TCC exigem o relationship de _orientação_**, e não o de
+   tutoria. Rodados numa turma que só tem tutoria, devolvem
+   *"Não foi configurado o Relacionamento de Orientação"*.
+3. **`uso_sistema_tutor` e `acesso_tutor` exigem intervalo de datas.** Sem
+   `data_inicio` e `data_fim` a página volta sem tabela e sem mensagem.
+
+A tabela pode ser pedida direto pela URL, sem passar pelo formulário:
+
+```
+/report/unasus/index.php?relatorio=<nome>&course=<id>&modo_exibicao=tabela
+# nos de tutor, acrescentar:  &data_inicio=01/08/2026&data_fim=01/09/2026
+```
+
+`potenciais_evasoes` está **comentado no `lib.php`** — desativado de propósito,
+não aparece na interface e não há o que verificar. São 14 relatórios ativos.
