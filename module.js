@@ -1,5 +1,23 @@
 M.report_unasus = {};
 
+/**
+ * Publica a posicao do topo da tabela em `--topo-relatorio`, para o styles.css calcular
+ * a altura util ate' o fim da janela (ver "A altura util vai ate' o fim da JANELA").
+ *
+ * A conta usa a posicao no DOCUMENTO (rect.top + scrollY), e nao na viewport: assim o
+ * valor nao muda quando a pagina rola, e a caixa nao fica mudando de tamanho debaixo do
+ * cursor de quem esta' lendo.
+ */
+M.report_unasus.ajusta_altura_util = function() {
+    var wrapper = document.querySelector('.relatorio-wrapper');
+    if (!wrapper) {
+        return; // relatorio ainda no formulario de filtro, sem tabela
+    }
+
+    var topo = wrapper.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0);
+    document.documentElement.style.setProperty('--topo-relatorio', Math.round(topo) + 'px');
+};
+
 M.report_unasus.init = function(Y) {
 
     // Se javascript for executado ele mostra o botão ocultar/mostrar filtros
@@ -27,7 +45,29 @@ M.report_unasus.init = function(Y) {
             $filter_div.addClass('visible');
             $filter_div.removeClass('hidden');
         }
+
+        // ⚠️ Abrir ou fechar o painel EMPURRA a tabela, e a altura util depende de onde
+        // ela comeca. Sem recalcular aqui, expandir o filtro joga a caixa para fora da
+        // janela de novo -- que e' o defeito que a altura responsiva veio corrigir.
+        M.report_unasus.ajusta_altura_util();
     }, document, '#button-mostrar-filtro');
+
+    M.report_unasus.ajusta_altura_util();
+
+    // O resize dispara em rajada enquanto se arrasta a borda da janela; um quadro de
+    // espera basta para nao recalcular dezenas de vezes por segundo.
+    var aguardando = false;
+    window.addEventListener('resize', function() {
+        if (aguardando) {
+            return;
+        }
+        aguardando = true;
+        window.requestAnimationFrame(function() {
+            aguardando = false;
+            M.report_unasus.ajusta_altura_util();
+        });
+    });
+
     // Botoes de selecionar todos e limpar selecao.
     //
     // Todos cancelam o evento: os links sao <a href="#"> e, sem `preventDefault`, o

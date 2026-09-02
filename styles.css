@@ -557,10 +557,51 @@ legend {
    independentes: as colunas do cabecalho e as do corpo eram dimensionadas
    separadamente e deixavam de coincidir. Com as secoes de volta ao fluxo normal
    da tabela, o navegador alinha as colunas sozinho. */
+/* A altura util vai ate' o fim da JANELA, e nao a uma fracao dela.
+
+   `70vh` e' relativo a' janela inteira e ignora o que existe acima da tabela --
+   migalhas, titulo, caixa de filtros, legenda. Numa medida real: janela de 1026px, o
+   wrapper comecando em y=342, 70vh dando 718px -- 342+718 passava 34px do rodape. O
+   resultado eram DUAS rolagens empilhadas, a da pagina e a da tabela, que e' justamente
+   o que a trava do cabecalho existe para evitar. Em janela alta com filtro recolhido,
+   sobrava espaco morto.
+
+   O `--topo-relatorio` e' escrito pelo module.js a partir da posicao do proprio wrapper,
+   no carregamento, no resize e no toggle do filtro -- este ultimo importa porque abrir o
+   painel empurra a tabela para baixo e muda a conta.
+
+   ⚠️ O piso de 280px nao e' enfeite. Com o painel de filtros ABERTO numa janela baixa a
+   tabela comeca abaixo da dobra -- medido: wrapper em y=1067 numa janela de 805px -- e a
+   subtracao da negativo; sem piso o max-height virava 0px e a tabela sumia.
+
+   O valor vem do CONTEUDO, e nao de uma fracao da janela: cabecalho de ate' 148px (os
+   rotulos girados na vertical) + 5 linhas de 21px + 15px da barra de rolagem horizontal
+   = 268px. Abaixo disso a caixa mostra menos de cinco estudantes e rolar dentro dela fica
+   pior do que nao ter caixa nenhuma.
+
+   ⚠️ Piso em `dvh` seria errado: escala junto com o problema. Meia janela vira 250px num
+   notebook de 500px de altura (some) e 700px numa tela de 1400px (generoso demais, e a
+   rolagem dupla volta). */
+
+/* ⚠️ As duas declaracoes sao PROPOSITAIS: navegador que nao conhece `dvh` (Safari
+   anterior ao 15.4, por exemplo) descarta a segunda linha inteira e fica com a primeira.
+   Nao juntar numa so'. E `dvh` em vez de `vh` porque no celular a barra do navegador
+   entra e sai, e so' o dvh acompanha. */
 .relatorio-wrapper {
   max-height: 70vh;
+  max-height: max(280px, calc(100dvh - var(--topo-relatorio, 30vh) - 16px));
 }
 
+/* ⚠️ QUEM E' CABECALHO NAO E' SO' O QUE ESTA' NO <thead>.
+
+   Os relatorios se dividem em quatro caminhos de renderizacao, e so' um deles poe o
+   cabecalho no <thead> com as linhas r0/r1. O `table_tutores()` monta um cabecalho de
+   DUAS linhas, que o html_table do Moodle nao sabe representar ($table->head e' uma
+   linha so'), entao ele sai dentro do <tbody> marcado com `.cabecalho` -- ver
+   build_double_header() no locallib.php. Enquanto a trava esteve pendurada em `thead`,
+   esses relatorios rolavam sem cabecalho fixo e sem coluna fixa.
+
+   Por isso cada regra daqui para baixo lista as duas formas. */
 .relatorio-unasus thead th {
   position: sticky;
   top: 0; /* padrao para os relatorios de cabecalho de uma linha so' */
