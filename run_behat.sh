@@ -212,6 +212,12 @@ ensure_legacy_composer_for_behat_init() {
         log "Liberando escrita em vendor/composer a partir do host..."
         chmod a+w "$MOODLE_HOST_DIR" "$MOODLE_HOST_DIR/vendor" 2>/dev/null || true
         chmod -R a+w "$MOODLE_HOST_DIR/vendor/composer" 2>/dev/null || true
+        # ⚠️ E o proprio autoload.php: o composer o REESCREVE ao gerar o autoload, e o
+        # arquivo ja' existe com o uid do host. Sem esta linha o init falha com
+        # "file_put_contents(vendor/autoload.php): Permission denied" -- DEPOIS de ja' ter
+        # derrubado a base de teste, deixando o ambiente sem tabelas e com uma mensagem
+        # seguinte que nao diz onde foi a queda.
+        chmod a+w "$MOODLE_HOST_DIR/vendor/autoload.php" 2>/dev/null || true
     fi
     TMP_COMPOSER_WRAPPER=$(mktemp)
     cat > "$TMP_COMPOSER_WRAPPER" <<'PHPWRAPPER'
@@ -410,11 +416,22 @@ bloco = (
     "    $CFG->behat_config = array(\n"
     "        'default' => array(\n"
     "            'extensions' => array(\n"
-    "                'Behat\\\\MinkExtension\\\\Extension' => array(\n"
-    "                    'selenium2' => array(\n"
+    "                // Forma do Moodle 4.x: `Behat\\MinkExtension` + `webdriver`.\n"
+    "                // A antiga (`...\\Extension` + `selenium2`) e' ignorada em SILENCIO\n"
+    "                // pelo gerador do behat.yml, que entao cai no padrao: Firefox em\n"
+    "                // localhost:4444. O erro resultante fala em Selenium fora do ar e\n"
+    "                // aponta para o lugar errado.\n"
+    "                'Behat\\\\MinkExtension' => array(\n"
+    "                    'webdriver' => array(\n"
     "                        'browser'      => 'chrome',\n"
-    "                        'capabilities' => array('chrome' => array('switches' => array('--no-sandbox', '--disable-dev-shm-usage'))),\n"
     "                        'wd_host'      => 'http://%s:4444/wd/hub',\n"
+    "                        'capabilities' => array(\n"
+    "                            'extra_capabilities' => array(\n"
+    "                                'goog:chromeOptions' => array(\n"
+    "                                    'args' => array('no-sandbox', 'disable-dev-shm-usage'),\n"
+    "                                ),\n"
+    "                            ),\n"
+    "                        ),\n"
     "                    ),\n"
     "                ),\n"
     "            ),\n"
@@ -434,26 +451,31 @@ PYCFG
     log "Configurações Behat adicionadas ao config.php."
 fi
 
-# Detectar configuração desatualizada (chromeOptions/extra_capabilities não são válidos nesta versão)
-# O formato correto para esta versão do MinkExtension é: capabilities.chrome.switches
-BEHAT_CONFIG_STALE=$(exec_as_moodle "
-    grep -q 'chromeOptions\|extra_capabilities' '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no
+# ⚠️ AQUI HAVIA UMA "CORRECAO" QUE QUEBRAVA A EXECUCAO NO MOODLE 4.5.
+#
+# O bloco antigo tratava `chromeOptions`/`extra_capabilities` no config.php como
+# configuracao desatualizada e reescrevia para a forma do MinkExtension 1.x
+# (`selenium2` + `capabilities.chrome.switches`). So' que o gerador do behat.yml do
+# Moodle 4.5 le' a forma NOVA (`Behat\MinkExtension` + `webdriver`) e IGNORA a antiga em
+# silencio: o yml saia com o padrao -- Firefox em localhost:4444 -- e o teste falhava
+# dizendo "The Selenium or WebDriver server is not running", apontando para o lugar
+# errado. O Selenium estava no ar; o Behat e' que procurava outro navegador noutro
+# endereco.
+#
+# Pior: quando a reescrita falhava por permissao (config.php pertence ao uid do host,
+# nao ao do container), o bloco ainda marcava INIT_FLAG=yes -- e cada execucao passava a
+# derrubar e recriar a base de teste antes de testar, num laco que nunca estabilizava.
+#
+# Nada substitui o bloco: a configuracao correta vive no config.php e nao cabe a este
+# script reescrever. O que cabe e' AVISAR quando a forma antiga estiver la'.
+BEHAT_CONFIG_LEGADO=$(exec_as_moodle "
+    grep -q \"MinkExtension..Extension\|'selenium2'\" '$MOODLE_ROOT_IN_CONTAINER/config.php' && echo yes || echo no
 " 2>/dev/null || echo "no")
 
-if [ "$BEHAT_CONFIG_STALE" = "yes" ]; then
-    warn "Configuração Behat desatualizada (chromeOptions/extra_capabilities). Corrigindo config.php..."
-    exec_as_moodle "php -r \"
-        \\\$f = file_get_contents('$MOODLE_ROOT_IN_CONTAINER/config.php');
-        \\\$old = array(
-            \\\"'capabilities' => array('chromeOptions' => array('args' => array('--headless', '--no-sandbox', '--disable-dev-shm-usage')))\\\",
-            \\\"'capabilities' => array('extra_capabilities' => array('chromeOptions' => array('args' => array('--headless', '--no-sandbox', '--disable-dev-shm-usage'))))\\\",
-        );
-        \\\$new = \\\"'capabilities' => array('chrome' => array('switches' => array('--no-sandbox', '--disable-dev-shm-usage')))\\\";
-        \\\$f = str_replace(\\\$old, \\\$new, \\\$f);
-        file_put_contents('$MOODLE_ROOT_IN_CONTAINER/config.php', \\\$f);
-    \""
-    log "config.php corrigido. Forçando reinicialização do Behat..."
-    INIT_FLAG="yes"
+if [ "$BEHAT_CONFIG_LEGADO" = "yes" ]; then
+    warn "config.php usa a forma antiga do MinkExtension (Extension/selenium2)."
+    warn "No Moodle 4.x ela e' ignorada em silencio e o Behat cai no padrao (Firefox em localhost:4444)."
+    warn "Use: 'Behat\\MinkExtension' => array('webdriver' => array('browser' => ..., 'wd_host' => ...))"
 fi
 
 # Detectar behat_dataroot desatualizado (prefixo errado, ex: behat_ em vez de bht_)
@@ -550,6 +572,17 @@ elif [ -n "$INIT_FLAG" ]; then
 
     log "Behat reinicializado."
 
+    # ⚠️ RE-RESOLVE o caminho: o behat.yml so' passa a existir AGORA.
+    #
+    # A resolucao la' em cima roda antes do init. Num ambiente ainda nao inicializado --
+    # ou logo apos um --init -- o `find` nao acha nada e cai no palpite
+    # "<dataroot>/behat/behat.yml", enquanto o Moodle 4.x cria em
+    # "<dataroot>/behatrun/behat/behat.yml". A execucao seguinte morria com "The
+    # requested config file does not exist", depois de varios minutos de init bem
+    # sucedido -- e bastava rodar de novo para funcionar, o que mascarava a causa.
+    BEHAT_YML=$(exec_as_moodle "find '$BEHAT_DATAROOT' -type f -name behat.yml -path '*/behat/*' 2>/dev/null | head -1" 2>/dev/null || true)
+    BEHAT_YML="${BEHAT_YML:-$BEHAT_DATAROOT/behat/behat.yml}"
+
 elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
     log "Inicializando ambiente Behat pela primeira vez (pode demorar alguns minutos)..."
 
@@ -560,6 +593,10 @@ elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
     ensure_legacy_composer_for_behat_init
     exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
     log "Behat inicializado com sucesso."
+
+    # Mesmo motivo do bloco de reinicializacao: o arquivo acabou de nascer.
+    BEHAT_YML=$(exec_as_moodle "find '$BEHAT_DATAROOT' -type f -name behat.yml -path '*/behat/*' 2>/dev/null | head -1" 2>/dev/null || true)
+    BEHAT_YML="${BEHAT_YML:-$BEHAT_DATAROOT/behat/behat.yml}"
 else
     log "Ambiente Behat já inicializado."
 fi
