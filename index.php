@@ -75,6 +75,48 @@ function report_unasus_pagina_de_erro($mensagem, $courseid, $parcial = null, $de
     die;
 }
 
+/**
+ * Indice dos relatorios do curso, mostrado quando nao se pede um relatorio especifico.
+ *
+ * ⚠️ Existe por causa da pagina /report/view.php (a lista "Relatorios" do curso). O
+ * template do core que a monta so' percorre um nivel e emite <a href="{{action}}">; o no'
+ * do plugin e' um container cujos relatorios ficam um nivel abaixo. Sem um destino, ele
+ * aparecia la' como <a href="">UNA-SUS</a> -- item morto. Esta pagina e' esse destino.
+ *
+ * Lista SO' o que o usuario pode ver, pela mesma funcao que monta o menu do curso, para
+ * as duas telas nao discordarem.
+ *
+ * @param int $courseid
+ * @param context_course $context
+ */
+function report_unasus_pagina_indice($courseid, $context) {
+    global $OUTPUT;
+
+    $relatorios = report_unasus_relatorios_visiveis_list(get_course($courseid), $context);
+
+    if (empty($relatorios)) {
+        throw new required_capability_exception($context, 'report/unasus:view_all', 'nopermissions', '');
+    }
+
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading(get_string('pluginname', 'report_unasus'));
+
+    $itens = '';
+    foreach ($relatorios as $relatorio) {
+        $url = new moodle_url('/report/unasus/index.php',
+            array('relatorio' => $relatorio, 'course' => $courseid));
+        $itens .= html_writer::tag('li',
+            html_writer::link($url, get_string($relatorio, 'report_unasus')));
+    }
+
+    // Mesmas classes do template core/report_link_page, para o indice do plugin nao
+    // destoar da lista de relatorios do core que fica a um clique daqui.
+    echo html_writer::tag('ul', $itens, array('class' => 'list-unstyled ms-0'));
+
+    echo $OUTPUT->footer();
+    die;
+}
+
 // ⚠️ O LOGIN VEM ANTES DA FACTORY, e a ordem importa por dois motivos.
 //
 // Segurança: a factory le' parametros e consulta o banco; fazer isso antes de saber quem
@@ -91,6 +133,12 @@ require_login($courseid);
 $PAGE->set_url('/report/unasus/index.php', array('course' => $courseid));
 $PAGE->set_context(context_course::instance($courseid));
 $PAGE->set_pagelayout('report');
+
+// ⚠️ SEM `relatorio`, esta pagina e' o INDICE -- e o desvio vem ANTES da factory, que
+// exige o parametro e estoura com `unknow_report` quando ele falta.
+if (optional_param('relatorio', null, PARAM_ALPHANUMEXT) === null) {
+    report_unasus_pagina_indice($courseid, context_course::instance($courseid));
+}
 
 /** @var $factory report_unasus_factory */
 try {

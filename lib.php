@@ -45,44 +45,74 @@ function report_unasus_relatorios_restritos_list() {
 }
 
 /**
+ * Relatorios que o usuario corrente pode ver neste curso.
+ *
+ * Existe para o menu do curso e o indice (index.php sem `relatorio`) nao terem duas
+ * copias da mesma regra de capability -- divergindo, o menu ofereceria relatorio que o
+ * indice nega, ou o contrario.
+ *
+ * @param stdClass $course
+ * @param context_course $context
+ * @return string[] nomes dos relatorios, na ordem de exibicao
+ */
+function report_unasus_relatorios_visiveis_list($course, $context) {
+
+    $reports = array();
+
+    if ($course->id == SITEID) {
+        return $reports;
+    }
+
+    $tudo = has_capability('report/unasus:view_all', $context);
+
+    //Caso usuário seja tutor
+    if ($tudo || has_capability('report/unasus:view_tutoria', $context)) {
+        $reports = array_merge($reports, report_unasus_relatorios_validos_tutoria_list());
+    }
+
+    //Caso usuário seja coordenador
+    if ($tudo) {
+        $reports = array_merge($reports, report_unasus_relatorios_restritos_list());
+    }
+
+    //Caso usuário seja orientador
+    if ($tudo || has_capability('report/unasus:view_orientacao', $context)) {
+        $reports = array_merge($reports, report_unasus_relatorios_validos_orientacao_list());
+    }
+
+    return $reports;
+}
+
+/**
  * @param navigation_node $navigation
  * @param stdClass $course
  * @param context_course $context
  */
 function report_unasus_extend_navigation_course($navigation, $course, $context) {
 
-    $reports = array();
+    $reports = report_unasus_relatorios_visiveis_list($course, $context);
 
-    //Caso usuário seja tutor
-    if( ($course->id != SITEID && has_capability('report/unasus:view_all', $context)) ||
-        ($course->id != SITEID && has_capability('report/unasus:view_tutoria', $context))
-      ) {
-        $reports = array_merge($reports, report_unasus_relatorios_validos_tutoria_list());
+    if (empty($reports)) {
+        return;
     }
 
-    //Caso usuário seja coordenador
-    if( ($course->id != SITEID && has_capability('report/unasus:view_all', $context))
-      ) {
-        $reports = array_merge($reports, report_unasus_relatorios_restritos_list());
-    }
+    // ⚠️ O NO' PRECISA DE ACTION, mesmo sendo um container com filhos.
+    //
+    // A pagina /report/view.php (a lista "Relatorios" do curso) renderiza o template
+    // core/report_link_page, que percorre UM UNICO nivel -- os filhos diretos do no'
+    // `coursereports` -- e emite cada um como <a href="{{action}}">. Sem action, este no'
+    // saia de la' como <a href="">UNA-SUS</a>: um item morto, e os relatorios, que estao
+    // um nivel abaixo, nao apareciam naquela tela.
+    //
+    // Pelo menu do curso nada disso se notava: a navegacao secundaria desce a arvore
+    // inteira, e por ali os relatorios sempre estiveram acessiveis.
+    $url_indice = new moodle_url('/report/unasus/index.php', array('course' => $course->id));
 
-    //Caso usuário seja orientador
-    if( ($course->id != SITEID && has_capability('report/unasus:view_all', $context)) ||
-        ($course->id != SITEID && has_capability('report/unasus:view_orientacao', $context))
-      ) {
-        $reports = array_merge($reports, report_unasus_relatorios_validos_orientacao_list());
-    }
+    $unasus_node = $navigation->add(get_string('unasus_navigation_name', 'report_unasus'),
+        $url_indice, navigation_node::TYPE_CONTAINER);
 
-    if( ($course->id != SITEID && has_capability('report/unasus:view_all', $context)) ||
-        ($course->id != SITEID && has_capability('report/unasus:view_tutoria', $context)) ||
-        ($course->id != SITEID && has_capability('report/unasus:view_orientacao', $context))
-    ) {
-
-        $unasus_node = $navigation->add(get_string('unasus_navigation_name', 'report_unasus'), null, navigation_node::TYPE_CONTAINER);
-
-        foreach ($reports as $report) {
-            $url = new moodle_url('/report/unasus/index.php', array('relatorio' => $report, 'course' => $course->id));
-            $unasus_node->add(get_string($report, 'report_unasus'), $url, navigation_node::TYPE_SETTING, null, $report, new pix_icon('i/report', ''));
-        }
+    foreach ($reports as $report) {
+        $url = new moodle_url('/report/unasus/index.php', array('relatorio' => $report, 'course' => $course->id));
+        $unasus_node->add(get_string($report, 'report_unasus'), $url, navigation_node::TYPE_SETTING, null, $report, new pix_icon('i/report', ''));
     }
 }
