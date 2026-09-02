@@ -36,14 +36,19 @@ M.report_unasus.init = function(Y) {
         var $filter_button = Y.one('#button-mostrar-filtro');
         var $filter_div = Y.one('#div_filtro');
 
+        // ⚠️ Trocar o ESTADO, e nao o texto. O rotulo agora e' o nome da secao
+        // ("Filtrar Resultados") com a seta ao lado, como na arvore de navegacao do
+        // Moodle: quem diz aberto/fechado e' o `aria-expanded`, que o CSS le' para
+        // escolher a seta e o leitor de tela anuncia. Reescrever o texto do botao aqui
+        // apagaria as setas e a contagem de filtros junto.
         if ($filter_div.hasClass('visible')) {
-            $filter_button.set('text', 'Mostrar Filtro');
             $filter_div.addClass('hidden');
             $filter_div.removeClass('visible');
+            $filter_button.setAttribute('aria-expanded', 'false');
         } else {
-            $filter_button.set('text', 'Ocultar Filtro');
             $filter_div.addClass('visible');
             $filter_div.removeClass('hidden');
+            $filter_button.setAttribute('aria-expanded', 'true');
         }
 
         // ⚠️ Abrir ou fechar o painel EMPURRA a tabela, e a altura util depende de onde

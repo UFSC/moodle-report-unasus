@@ -1258,3 +1258,356 @@ table.relatorio-unasus.mapa-calor {
   padding-left: 2px !important;
   padding-right: 2px !important;
 }
+
+/*//////////////// Barra de ferramentas do relatorio ////////////////*/
+/* Botao de filtro, chips do filtro ativo e legenda na MESMA faixa horizontal.
+
+   Antes eram tres blocos empilhados, e o cabecalho da pagina somava 482px antes do
+   primeiro dado -- metade de uma janela de 958px, sobrando 15,8 linhas visiveis de 252.
+   A legenda sozinha eram 108px. */
+.relatorio-unasus.barra-ferramentas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+/* A legenda vai para a direita da faixa, e desce para a linha de baixo quando nao cabe
+   -- em vez de espremer os chips, que sao o dado mais importante da barra. */
+.relatorio-unasus.legenda-compacta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-left: auto;
+}
+
+.relatorio-unasus.legenda-rotulo,
+.relatorio-unasus.filtro-ativo-rotulo {
+  font-weight: bold;
+}
+
+.relatorio-unasus.legenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* A amostra tem BORDA propria: sem ela, os estados claros (o amarelo #F0E442 e o branco
+   de "na media") somem no fundo da barra e a legenda perde justamente os itens que mais
+   precisam de contorno. */
+.relatorio-unasus.legenda-amostra {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #767676;
+  flex: none;
+}
+
+/* O titulo do fieldset competia com o titulo do relatorio em 16pt. Na barra de uma linha
+   ele e' rotulo, nao cabecalho -- mas continua no DOM porque e' o nome acessivel do
+   fieldset. */
+.relatorio-unasus.fieldset legend {
+  font-size: 13px !important;
+  font-weight: bold;
+}
+
+.relatorio-unasus.fieldset {
+  margin-bottom: 1em !important;
+}
+
+/*//////////////// Legibilidade do dado ////////////////*/
+/* Algarismos de largura fixa. Sem isto o "1" e' mais estreito que o "8", e uma coluna de
+   notas ("39,0" sobre "100,0" sobre "9,0") fica com os numeros dancando de posicao a cada
+   linha -- o olho perde a coluna justamente onde deveria comparar valores.
+
+   Herdado por todas as celulas; nao ha custo em aplicar no texto tambem. */
+.relatorio-unasus table {
+  font-variant-numeric: tabular-nums;
+  -moz-font-feature-settings: "tnum";
+  -webkit-font-feature-settings: "tnum";
+  font-feature-settings: "tnum";
+}
+
+/* ⚠️ GRADE INTERNA EM CINZA, estrutura em azul.
+
+   A grade era #004E95 cheio em TODA celula. Com 108 colunas isso vira uma malha azul
+   saturada que compete com o dado -- e o dado aqui e' a cor da celula, que e' o canal
+   principal de leitura do relatorio. A regra de dataviz e' gridline-subtle: a linha
+   organiza, nao disputa.
+
+   O azul continua onde a linha SIGNIFICA alguma coisa: divisa de modulo, contorno da
+   tabela e separacao entre cabecalho e corpo. Cinza neutro (e nao um azul claro) porque
+   as celulas sao blocos coloridos fortes -- verde, amarelo, laranja, preto -- e um
+   neutro se distingue sobre todos eles.
+
+   Isto muda so' a COR: cada divisa continua com exatamente uma borda, e o
+   docs/verifica-bordas.js continua valendo (ele mede espessura, nao matiz). */
+.relatorio-unasus th,
+.relatorio-unasus td {
+  border-right-color: #B0B0B0 !important;
+  border-bottom-color: #B0B0B0 !important;
+}
+
+/* A divisa de modulo e' informacao: separa blocos que se leem em conjunto. */
+.relatorio-unasus .ultima_atividade,
+.relatorio-unasus th.modulo_header,
+.relatorio-unasus td.tutor {
+  border-right-color: #004E95 !important;
+}
+
+/* Contorno da tabela e divisa cabecalho/corpo: continuam fortes. */
+.relatorio-unasus thead tr:first-child > *,
+.relatorio-unasus tbody tr.cabecalho.r0:first-child > * {
+  border-top-color: #004E95 !important;
+}
+
+.relatorio-unasus thead tr.r1 > *,
+.relatorio-unasus tr.cabecalho.r1 > * {
+  border-top-color: #004E95 !important;
+}
+
+.relatorio-unasus thead tr:last-child > *,
+.relatorio-unasus tr.cabecalho.r1 > *,
+.relatorio-unasus td.tutor {
+  border-bottom-color: #004E95 !important;
+}
+
+/* A divisa da COLUNA CONGELADA tambem e' estrutura, e nao grade: separa o que fica
+   parado do que rola por baixo. Em cinza ela sumia justamente na hora em que mais
+   importa, com a tabela em movimento. */
+.relatorio-unasus tbody th.estudante,
+.relatorio-unasus tbody .primeira_coluna,
+.relatorio-unasus th.estudante_header,
+.relatorio-unasus td.blank {
+  border-right-color: #004E95 !important;
+}
+
+/*//////////////// Controle de abrir/fechar o filtro ////////////////*/
+/* A seta `>` / `v` do proprio Moodle, no lugar do botao "Mostrar/Ocultar Filtros".
+   O controle e' o titulo da secao, como na arvore de navegacao.
+
+   ⚠️ Continua sendo um <button> no HTML: e' dele que vem o foco por teclado, o
+   acionamento por Enter/Espaco e o papel anunciado ao leitor de tela. Aqui so' se tira a
+   APARENCIA de botao -- nao trocar por <span> ou <a href="#">. */
+.relatorio-unasus.botao-ocultar {
+  float: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  color: #004E95;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* O foco NAO pode sumir junto com a borda do botao: sem contorno visivel, quem navega
+   por teclado perde a posicao. */
+.relatorio-unasus.botao-ocultar:focus-visible {
+  outline: 2px solid #0072B2;
+  outline-offset: 2px;
+}
+
+.relatorio-unasus.botao-ocultar:hover .rotulo-filtro {
+  text-decoration: underline;
+}
+
+/* Uma seta de cada vez, escolhida pelo estado que o leitor de tela tambem anuncia. */
+.relatorio-unasus.botao-ocultar[aria-expanded="true"] .seta-fechada,
+.relatorio-unasus.botao-ocultar[aria-expanded="false"] .seta-aberta {
+  display: none;
+}
+
+.relatorio-unasus .seta-filtro {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* A contagem acompanha o titulo, em peso normal: ela informa, nao chama. */
+.relatorio-unasus.contagem-filtro {
+  font-weight: normal;
+  color: #004E95;
+  /* O flex remove o espaco entre os nos de texto; sem isto sai "Resultados(3)". */
+  margin-left: 4px;
+}
+
+/* ⚠️ A regra `.botao-ocultar.visible { display: block }`, la' em cima, tem tres classes e
+   vence a de aparencia. Sem repetir a especificidade aqui, o controle vira bloco e o
+   `gap` entre a seta e o rotulo nao se aplica. */
+.relatorio-unasus.botao-ocultar.visible {
+  display: inline-flex;
+}
+
+/*//////////////// Dica com o resumo dos filtros ////////////////*/
+/* O resumo por dimensao e' DICA do controle, e nao uma faixa fixa: com muitos itens
+   escolhidos a faixa de chips crescia sem limite e devolvia o espaco que a barra tinha
+   acabado de recuperar. A contagem no titulo continua visivel sem interacao.
+
+   ⚠️ Aparece no hover E no foco por teclado. So' no hover, teclado e toque ficariam sem
+   nada -- e o `aria-describedby` no botao entrega o mesmo texto ao leitor de tela. */
+.relatorio-unasus.controle-filtro {
+  position: relative;
+  display: inline-block;
+}
+
+.relatorio-unasus.dica-filtro {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  min-width: 260px;
+  max-width: 520px;
+  padding: 8px 10px;
+  border: 1px solid #004E95;
+  border-radius: 3px;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: #1D2125;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+}
+
+/* ⚠️ So' com o painel FECHADO. Com ele aberto a dica repetiria, por cima, o que os
+   proprios selects ja' mostram -- e ainda cobriria os controles do filtro. */
+.relatorio-unasus.botao-ocultar[aria-expanded="false"]:hover + .dica-filtro,
+.relatorio-unasus.botao-ocultar[aria-expanded="false"]:focus-visible + .dica-filtro {
+  display: block;
+}
+
+.relatorio-unasus.dica-linha + .dica-linha {
+  margin-top: 2px;
+}
+
+.relatorio-unasus.dica-rotulo {
+  font-weight: bold;
+}
+
+/*//////////////// Fila dos filtros ////////////////*/
+/* Os filtros preenchem o espaco disponivel e quebram so' quando falta largura.
+
+   Antes eram `inline-block` de 35% com um `<div class="clear">` no meio: o div, sendo
+   bloco, quebrava a linha SEMPRE -- inclusive quando o filtro de cohorts nem aparecia --
+   e sobrava meia largura vazia ao lado de cada filtro.
+
+   `flex: 1 1 240px` da' a cada um o mesmo peso, com 240px de base: dois cabem lado a lado
+   numa area estreita, tres numa larga, e o que nao couber desce. O `max-width` impede que
+   um filtro sozinho se estique pela largura inteira, o que deixaria o rotulo longe da
+   caixa de selecao. */
+#div-multiple {
+  /* `auto-fit` + `1fr` distribui a largura INTEIRA entre os filtros que existirem: dois
+     filtros dividem a linha ao meio, tres dividem em tres, e nao sobra faixa morta a'
+     direita. Com `flex` sobrava -- os blocos paravam na largura base e o resto da linha
+     ficava vazio.
+
+     O `minmax(240px, 1fr)` e' quem decide quantos cabem: abaixo de 240px por coluna, o
+     proximo filtro desce sozinho. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: start;
+  gap: 12px 20px;
+}
+
+#div-multiple .multiple_list,
+#div-multiple .time_filter {
+  display: block;
+  /* Teto so' para o caso de UM filtro sozinho, que senao se esticaria pela largura
+     inteira e deixaria o rotulo a meia tela da caixa de selecao. Com dois ou mais a
+     coluna e' menor que o teto e o preenchimento e' total. */
+  max-width: 420px;
+  width: auto;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* As acoes ficam no RODAPE do painel: modo de exibicao a' esquerda, "Gerar relatorio" no
+   fim da linha. E' a acao que conclui o formulario, entao o lugar dela e' o fim dele --
+   e assim ela nao muda de posicao conforme a quantidade de filtros do relatorio.
+
+   O filete de cima separa a area de escolha da area de acao sem pedir mais altura. */
+.relatorio-unasus.acoes-relatorio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #C7D6E5;
+}
+
+/* O espacamento entre as opcoes passa a ser o `gap` do flex; o margin-right antigo
+   somaria aos dois e abriria buraco. */
+.relatorio-unasus.acoes-relatorio .opcao-exibicao {
+  margin-right: 0;
+}
+
+/* ⚠️ O botao abre a linha, antes das opcoes de exibicao -- posicao escolhida por Roberto
+   em 02/09/2026, nao por acaso.
+
+   Fica a' ESQUERDA porque e' onde o Moodle poe o submit dos proprios formularios
+   ("Salvar mudancas") e porque, num painel largo, o botao no canto oposto fica longe
+   demais do que o comanda.
+
+   O `order` inverte so' a apresentacao: no DOM o submit continua depois dos radios, entao
+   a navegacao por teclado e o leitor de tela ainda encontram as opcoes ANTES da acao --
+   que importa porque os radios mudam o que o botao FAZ (Tabela desenha a tela, CSV baixa
+   um arquivo). Nao trocar a ordem no HTML para "acertar" isso. */
+.relatorio-unasus.acoes-relatorio input[type="submit"] {
+  order: -1;
+  margin-left: 0;
+  margin-right: 12px;
+}
+
+/* O grupo rotulado das opcoes de exibicao. O rotulo existe porque o botao vem ANTES dos
+   radios na linha: sem ele, tres controles em fila leem-se como tres acoes, em vez de uma
+   acao e o modo dela. */
+.relatorio-unasus.grupo-exibicao {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.relatorio-unasus.rotulo-exibicao {
+  font-weight: bold;
+  color: #004E95;
+  white-space: nowrap;
+}
+
+/* Alinhamento do grupo de exibicao: radio, icone e texto no mesmo eixo do botao.
+
+   Sem isto o radio ficava pela LINHA DE BASE do texto -- alto em relacao ao centro do
+   rotulo e do botao ao lado -- e o icone dependia de um `margin-bottom: -3px`, gambiarra
+   para compensar a mesma linha de base. Com flex + `align-items: center` os tres centros
+   coincidem e a compensacao sai.
+
+   O `gap` e' o espaco entre o radio e o seu texto, que antes era zero. */
+.relatorio-unasus.grupo-exibicao .opcao-exibicao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.relatorio-unasus.grupo-exibicao label.radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+
+.relatorio-unasus.grupo-exibicao label.radio img {
+  margin: 0 !important;
+}
+
+.relatorio-unasus.grupo-exibicao input[type="radio"] {
+  margin: 0;
+  flex: none;
+}

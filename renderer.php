@@ -69,6 +69,46 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Legenda em faixa horizontal, para ficar na mesma linha do botao de filtros.
+     *
+     * ⚠️ A legenda NAO e' colapsavel, e isso e' deliberado: nas tabelas a cor e' o UNICO
+     * canal -- as celulas sao blocos coloridos sem texto (divida de WCAG 1.4.1 registrada
+     * no CLAUDE.md). Enquanto isso for verdade, a legenda e' o unico decodificador da
+     * tela, e esconde-la quebra a leitura para quem e' daltonico. Compacta, sim;
+     * escondida, nao.
+     *
+     * A versao em bloco (build_legend) consumia 108px de altura numa tela onde o
+     * cabecalho ja' comia 482px antes do primeiro dado. Esta ocupa uma linha.
+     *
+     * @param array $legend itens da legenda, do tipo ["classe_css"] => ["Descricao"]
+     * @return String
+     */
+    public function build_legend_compacta($legend) {
+        if ($legend === false || empty($legend)) {
+            return null;
+        }
+
+        $itens = '';
+        foreach ($legend as $class => $description) {
+            // A amostra de cor leva `aria-hidden`: quem usa leitor de tela ja' recebe o
+            // texto ao lado, e um quadrado vazio anunciado no meio atrapalharia.
+            $amostra = html_writer::tag('span', '', array(
+                'class' => "relatorio-unasus legenda-amostra {$class}",
+                'aria-hidden' => 'true'));
+            $itens .= html_writer::tag('span', $amostra . s($description),
+                array('class' => 'relatorio-unasus legenda-item'));
+        }
+
+        // ⚠️ O nome do relatorio TEM de estar no container. As cores dos estados sao
+        // escopadas por ele -- `.relatorio-unasus.boletim .na_media`, e assim por diante
+        // -- entao uma amostra fora desse escopo sai branca. A versao em bloco punha o
+        // nome no fieldset; sem ele aqui, a legenda vira uma fileira de quadrados vazios.
+        return html_writer::tag('div',
+            html_writer::tag('span', 'Legenda:', array('class' => 'relatorio-unasus legenda-rotulo')) . $itens,
+            array('class' => "relatorio-unasus legenda-compacta {$this->report_name}"));
+    }
+
+    /**
      * Cria a barra de legenda para os relatórios
      *
      * @param array $legend itens da legenda, é do tipo ["classe_css"]=>["Descricao da legenda"]
@@ -112,11 +152,178 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Lista, em texto, os filtros que estao valendo na tela.
+     *
+     * ⚠️ Existe porque o filtro ATIVO era invisivel. As selecoes moram dentro do painel
+     * colapsado; com ele fechado -- que e' o estado padrao -- a tela dizia apenas
+     * "Filtrar Resultados / Mostrar Filtros", identica a' de um relatorio sem filtro
+     * nenhum. Quem abrisse um link compartilhado, ou voltasse a uma aba antiga, lia um
+     * boletim de 3 grupos como se fosse o da turma inteira. Nao e' questao de estetica:
+     * e' leitura errada de dado de gestao.
+     *
+     * @return array lista de rotulos, ja' prontos para exibicao
+     */
+    private function get_resumo_filtros($report) {
+        $linhas = array();
+
+        // "Todos" e' informacao, e nao ausencia dela: quem le' precisa saber que a
+        // dimensao existe e nao esta' estreitando, em vez de ficar na duvida se ela foi
+        // esquecida. Por isso cada dimensao que o relatorio oferece entra no resumo,
+        // estreitada ou nao.
+        $descreve = function ($rotulo, $selecionados, $menu) use (&$linhas) {
+            $selecionados = (array)$selecionados;
+
+            // ⚠️ Dimensao SEM OPCAO nenhuma nao entra: o filtro e' inoperante, e anuncia-la
+            // como "Todos" e' pior que omitir -- diz que existe um recorte possivel onde
+            // nao existe. Cai aqui, por exemplo, o filtro de cohorts numa turma cujos
+            // cohorts vivem em outra categoria: o select sai vazio.
+            //
+            // Sem esta guarda a conta `0 >= 0` mandava a dimensao vazia direto para o
+            // ramo do "Todos".
+            if (empty($menu)) {
+                return;
+            }
+
+            if (empty($selecionados) || count($selecionados) >= count($menu)) {
+                $linhas[] = array('rotulo' => $rotulo, 'valor' => 'Todos', 'estreita' => 0);
+                return;
+            }
+
+            $nomes = array();
+            foreach ($selecionados as $id) {
+                if (isset($menu[$id])) {
+                    $nomes[] = $menu[$id];
+                }
+            }
+
+            $linhas[] = array(
+                'rotulo' => $rotulo,
+                'valor' => implode(', ', $nomes),
+                'estreita' => count($nomes));
+        };
+
+        if ($report->mostrar_filtro_modulos) {
+            $descreve('Módulos', $report->modulos_selecionados,
+                report_unasus_get_nome_modulos($report->get_categoria_turma_ufsc()));
+        }
+
+        // As dimensoes abaixo so' existem para quem pode ver tudo -- o mesmo teste que
+        // decide se elas aparecem no painel. Sem espelhar isso, o resumo anunciaria
+        // filtros que o usuario nem pode operar.
+        if (has_capability('report/unasus:view_all', $report->get_context())) {
+
+            if ($report->mostrar_filtro_cohorts) {
+                $descreve('Cohorts', $report->cohorts_selecionados,
+                    report_unasus_get_nomes_cohorts($report->get_categoria_curso_ufsc()));
+            }
+
+            if ($report->mostrar_filtro_grupo_tutoria) {
+                $descreve('Grupos de Tutoria', $report->tutores_selecionados,
+                    local_tutores_grupos_tutoria::get_grupos_tutoria_menu($report->get_categoria_turma_ufsc()));
+            } elseif ($report->mostrar_filtro_tutores) {
+                $descreve('Tutores', $report->tutores_selecionados,
+                    local_tutores_grupos_tutoria::get_tutores($report->get_categoria_turma_ufsc()));
+            }
+
+            if ($report->mostrar_filtro_grupos_orientacao) {
+                $descreve('Grupos de Orientação', $report->orientadores_selecionados,
+                    local_tutores_grupo_orientacao::get_orientadores_grupos($report->get_categoria_turma_ufsc()));
+            } elseif ($report->mostrar_filtro_orientadores) {
+                $descreve('Orientadores', $report->orientadores_selecionados,
+                    local_tutores_grupo_orientacao::get_orientadores($report->get_categoria_turma_ufsc()));
+            }
+
+            if ($report->mostrar_filtro_polos) {
+                $polos = report_unasus_get_polos($report->get_categoria_turma_ufsc());
+                if (!empty($polos)) {
+                    $descreve('Polos', $report->polos_selecionados, $polos);
+                }
+            }
+        }
+
+        if ($report->mostrar_filtro_intervalo_tempo) {
+            $periodo = trim($report->data_inicio . ' a ' . $report->data_fim);
+            $linhas[] = array(
+                'rotulo' => 'Período',
+                'valor' => ($periodo === 'a') ? 'Todos' : $periodo,
+                'estreita' => ($periodo === 'a') ? 0 : 1);
+        }
+
+        return $linhas;
+    }
+
+    private function get_filtros_ativos($report) {
+        $ativos = array();
+
+        // Cada bloco resolve o id para o nome usando o MESMO menu que alimenta o select
+        // correspondente, para o chip e a lista nunca divergirem. So' consulta quando ha'
+        // selecao, entao numa tela sem filtro nao ha custo de banco nenhum.
+        //
+        // ⚠️ Selecao que cobre o conjunto INTEIRO nao e' filtro, e nao entra na conta. A
+        // factory preenche `modulos_selecionados` com todos os modulos quando nada foi
+        // escolhido; contando isso, um boletim filtrado por 3 grupos anunciava "15
+        // filtros" -- 12 deles sendo "o curso inteiro". Inflar a contagem destroi
+        // justamente a informacao que os chips existem para dar.
+        $nomes = function ($selecionados, $menu) {
+            $selecionados = (array)$selecionados;
+            if (count($selecionados) >= count($menu)) {
+                return array();
+            }
+
+            $rotulos = array();
+            foreach ($selecionados as $id) {
+                if (isset($menu[$id])) {
+                    $rotulos[] = $menu[$id];
+                }
+            }
+            return $rotulos;
+        };
+
+        if (!empty($report->modulos_selecionados)) {
+            $ativos = array_merge($ativos, $nomes($report->modulos_selecionados,
+                report_unasus_get_nome_modulos($report->get_categoria_turma_ufsc())));
+        }
+
+        if (!empty($report->cohorts_selecionados)) {
+            $ativos = array_merge($ativos, $nomes($report->cohorts_selecionados,
+                report_unasus_get_nomes_cohorts($report->get_categoria_curso_ufsc())));
+        }
+
+        if (!empty($report->tutores_selecionados)) {
+            $menu = $report->mostrar_filtro_grupo_tutoria
+                ? local_tutores_grupos_tutoria::get_grupos_tutoria_menu($report->get_categoria_turma_ufsc())
+                : local_tutores_grupos_tutoria::get_tutores($report->get_categoria_turma_ufsc());
+            $ativos = array_merge($ativos, $nomes($report->tutores_selecionados, $menu));
+        }
+
+        if (!empty($report->orientadores_selecionados)) {
+            $menu = $report->mostrar_filtro_grupos_orientacao
+                ? local_tutores_grupo_orientacao::get_orientadores_grupos($report->get_categoria_turma_ufsc())
+                : local_tutores_grupo_orientacao::get_orientadores($report->get_categoria_turma_ufsc());
+            $ativos = array_merge($ativos, $nomes($report->orientadores_selecionados, $menu));
+        }
+
+        if (!empty($report->polos_selecionados)) {
+            $ativos = array_merge($ativos, $nomes($report->polos_selecionados,
+                report_unasus_get_polos($report->get_categoria_turma_ufsc())));
+        }
+
+        // O intervalo de tempo conta como filtro ativo: nos relatorios de tutor ele muda
+        // o resultado tanto quanto a selecao de grupos.
+        if ($report->mostrar_filtro_intervalo_tempo &&
+            (!is_null($report->data_inicio) || !is_null($report->data_fim))) {
+            $ativos[] = trim($report->data_inicio . ' a ' . $report->data_fim);
+        }
+
+        return $ativos;
+    }
+
+    /**
      * Cria a barra de Filtros
      *
      * @return string $output
      */
-    public function build_filter() {
+    public function build_filter($legenda_compacta = null) {
         global $CFG, $_POST;
 
         /** @var $report report_unasus_factory */
@@ -129,11 +336,83 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         // Fieldset
         $output .= html_writer::start_tag('fieldset', array('class' => 'relatorio-unasus fieldset'));
-        $output .= html_writer::nonempty_tag('legend', get_string('filter_header', 'report_unasus'));
 
         // Botao de ocultar/mostrar filtros, só aparece com javascript carregado
         $css_class = ($report->mostrar_barra_filtragem == true) ? 'hidden' : 'visible';
-        $output .= html_writer::nonempty_tag('button', 'Mostrar Filtros', array('id' => 'button-mostrar-filtro', 'type' => 'button', 'class' => "relatorio-unasus botao-ocultar {$css_class}"));
+
+        $filtros_ativos = $this->get_filtros_ativos($report);
+
+        // O controle e' o PROPRIO TITULO da secao com a seta ao lado, como na arvore de
+        // navegacao do Moodle -- e nao um botao escrito "Mostrar/Ocultar Filtros". Com o
+        // titulo virando controle, o rotulo de acao fica redundante e sai.
+        //
+        // As duas setas sao emitidas juntas e o CSS mostra uma so', conforme o
+        // `aria-expanded` do botao: assim o JS troca UM atributo, que e' o mesmo que o
+        // leitor de tela anuncia, em vez de trocar classe de icone e estado em dois
+        // lugares que podem divergir.
+        $icone_fechado = $this->pix_icon('t/collapsed', '', 'moodle',
+            array('class' => 'icon seta-filtro seta-fechada'));
+        $icone_aberto = $this->pix_icon('t/expanded', '', 'moodle',
+            array('class' => 'icon seta-filtro seta-aberta'));
+
+        $rotulo_botao = $icone_fechado . $icone_aberto .
+            html_writer::tag('span', get_string('filter_header', 'report_unasus'),
+                array('class' => 'relatorio-unasus rotulo-filtro'));
+
+        if (!empty($filtros_ativos)) {
+            $rotulo_botao .= html_writer::tag('span', '(' . count($filtros_ativos) . ')',
+                array('class' => 'relatorio-unasus contagem-filtro'));
+        }
+
+        // Barra de ferramentas: botao, chips do filtro ativo e legenda na MESMA faixa.
+        // Antes eram tres blocos empilhados -- fieldset do filtro, e a legenda num bloco
+        // proprio de 108px -- somando 482px de cabecalho antes do primeiro dado, metade
+        // da janela numa tela de 958px.
+        $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus barra-ferramentas'));
+
+        // Continua sendo um <button>: e' o que da' foco por teclado, acionamento por
+        // Enter/Espaco e o papel anunciado ao leitor de tela. So' a aparencia de botao
+        // sai, no CSS. `aria-expanded` diz o estado; `aria-controls` diz o que ele abre.
+        // O resumo por dimensao vira DICA do controle, e nao uma faixa fixa de chips: com
+        // muitos itens escolhidos a faixa crescia sem limite e devolvia o espaco que a
+        // barra tinha acabado de recuperar. A contagem no titulo continua visivel sem
+        // interacao -- e' ela o alarme de "isto esta' filtrado"; a dica traz o detalhe.
+        $resumo = $this->get_resumo_filtros($report);
+        $dica = '';
+        foreach ($resumo as $linha) {
+            $dica .= html_writer::tag('div',
+                html_writer::tag('span', s($linha['rotulo']) . ':', array('class' => 'relatorio-unasus dica-rotulo')) .
+                ' ' . s($linha['valor']),
+                array('class' => 'relatorio-unasus dica-linha'));
+        }
+
+        // O invólucro posiciona a dica; a dica vem DEPOIS do botao no DOM para o CSS
+        // alcanca-la pelo seletor de irmao adjacente.
+        $output .= html_writer::start_tag('span', array('class' => 'relatorio-unasus controle-filtro'));
+
+        $output .= html_writer::tag('button', $rotulo_botao, array(
+            'id' => 'button-mostrar-filtro',
+            'type' => 'button',
+            'class' => "relatorio-unasus botao-ocultar {$css_class}",
+            'aria-expanded' => ($report->mostrar_barra_filtragem == true) ? 'true' : 'false',
+            'aria-controls' => 'div_filtro',
+            'aria-describedby' => empty($dica) ? null : 'dica-filtro'));
+
+        if (!empty($dica)) {
+            // `role=tooltip` + `aria-describedby` no botao: assim o leitor de tela recebe
+            // o resumo junto com o nome do controle, sem depender de hover -- que nao
+            // existe para teclado nem para toque.
+            $output .= html_writer::tag('span', $dica,
+                array('id' => 'dica-filtro', 'role' => 'tooltip', 'class' => 'relatorio-unasus dica-filtro'));
+        }
+
+        $output .= html_writer::end_tag('span');
+
+        if (!is_null($legenda_compacta)) {
+            $output .= $legenda_compacta;
+        }
+
+        $output .= html_writer::end_tag('div');
 
         // Filtros
         $output .= html_writer::start_tag('div', array('class' => "relatorio-unasus conteudo-filtro", 'id' => 'div_filtro'));
@@ -176,15 +455,31 @@ class report_unasus_renderer extends plugin_renderer_base {
 
             if ($report->mostrar_filtro_cohorts) {
                 // Filtro de Cohorts
-                $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '';
-                $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
-                $filter_cohorts .= html_writer::select(report_unasus_get_nomes_cohorts($report->get_categoria_curso_ufsc()), 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
-                $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
-                $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'relatorio-unasus multiple_list'));
+                //
+                // ⚠️ So' sai quando ha' cohort para escolher, como ja' acontecia com os
+                // polos logo abaixo. Numa turma cujos cohorts vivem em outra categoria a
+                // consulta devolve nada, e o que ia para a tela era uma caixa de selecao
+                // vazia com "Selecionar Todos / Limpar Selecao" ao lado: um controle que
+                // ocupa espaco, sugere um recorte possivel e nao faz coisa alguma.
+                $db_cohorts = report_unasus_get_nomes_cohorts($report->get_categoria_curso_ufsc());
+                if (!empty($db_cohorts)) {
+                    $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '';
+                    $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
+                    $filter_cohorts .= html_writer::select($db_cohorts, 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
+                    $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
+                    $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
+                    $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'relatorio-unasus multiple_list'));
+                }
             }
 
-            $output .= html_writer::tag('div', '', array('class' => 'relatorio-unasus clear'));
+            // ⚠️ Aqui havia um `<div class="clear">` separando os cohorts dos grupos.
+            // Sendo bloco, ele quebrava a linha SEMPRE -- inclusive quando o filtro de
+            // cohorts nem sai da tela -- e os filtros seguintes empilhavam um embaixo do
+            // outro, deixando meia largura vazia ao lado. Quem organiza a fila agora e' o
+            // flex do `#div-multiple`, que preenche o espaco e quebra so' quando falta.
+            //
+            // A classe `clear` tambem nao tinha regra nenhuma no styles.css: quem
+            // quebrava a linha era o elemento ser bloco, e nao um float sendo limpo.
 
             if ($report->mostrar_filtro_grupo_tutoria) {
                 // Filtro de Tutores
@@ -260,7 +555,14 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::end_tag('div');
         }
 
-        $output .= html_writer::end_tag('div');
+        $output .= html_writer::end_tag('div'); // #div-multiple
+
+        // ⚠️ As acoes ficam no RODAPE do painel, sempre -- e nao como mais uma coluna na
+        // fila dos filtros. Chegaram a ficar na fila, para preencher a faixa morta a'
+        // direita em janela larga, mas o lugar de "Gerar relatorio" e' no fim do
+        // formulario: e' a acao que conclui o preenchimento, e ela muda de posicao a cada
+        // relatorio se acompanhar a quantidade de filtros.
+        $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus acoes-relatorio'));
 
         // Radio para selecao do modo de busca, tabela e/ou gráficos.
         // Cada par input+label vai dentro de um span: sem ele a linha pode quebrar entre o
@@ -276,6 +578,26 @@ class report_unasus_renderer extends plugin_renderer_base {
                     $id, true, array('class' => 'relatorio-unasus radio')),
                 array('class' => 'relatorio-unasus opcao-exibicao'));
         };
+
+        // ⚠️ Os radios sao um GRUPO ROTULADO, e nao opcoes soltas.
+        //
+        // Eles nao sao acoes ao lado do botao: dizem o que "Gerar relatorio" vai FAZER --
+        // com Tabela ele desenha a tela, com CSV ele baixa um arquivo. Como o botao vem
+        // ANTES deles na linha, essa relacao precisa estar escrita: sem rotulo, tres
+        // controles em fila leem-se como tres acoes.
+        //
+        // `role=radiogroup` + `aria-labelledby` em vez de <fieldset><legend>: o legend
+        // dentro de um container flex tem historico de comportamento irregular entre
+        // navegadores, e aqui a faixa inteira e' flex. O anuncio ao leitor de tela e' o
+        // mesmo -- antes deste rotulo o grupo era anunciado como radios avulsos, sem
+        // dizer de que sao opcoes.
+        $output .= html_writer::start_tag('span', array(
+            'class' => 'relatorio-unasus grupo-exibicao',
+            'role' => 'radiogroup',
+            'aria-labelledby' => 'rotulo-exibicao'));
+
+        $output .= html_writer::tag('span', 'Exibir como:',
+            array('id' => 'rotulo-exibicao', 'class' => 'relatorio-unasus rotulo-exibicao'));
 
         $output .= $opcao('tabela', 'radio_tabela', 'table.png', 'Tabela de Dados', true);
 
@@ -295,9 +617,12 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= $opcao('export_csv', 'radio_csv', 'csv_icon.png', 'Exportar para CSV');
         }
 
+        $output .= html_writer::end_tag('span'); // .grupo-exibicao
+
         $output .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => 'Gerar relatório'));
 
-        $output .= html_writer::end_tag('div');
+        $output .= html_writer::end_tag('div'); // .acoes-relatorio
+        $output .= html_writer::end_tag('div'); // #div_filtro
 
         $output .= html_writer::end_tag('fieldset');
         $output .= html_writer::end_tag('form');
@@ -711,7 +1036,6 @@ class report_unasus_renderer extends plugin_renderer_base {
         raise_memory_limit(MEMORY_EXTRA);
 
         $output = $this->default_header();
-        $output .= $this->build_filter();
 
         //-----------------------------------------------------------------
         //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
@@ -719,13 +1043,31 @@ class report_unasus_renderer extends plugin_renderer_base {
         $data_class = $report->get_estrutura_dados_relatorio();
         //-----------------------------------------------------------------
 
-        $output .= html_writer::tag('div', $this->build_legend($data_class::get_legend()), array('class' => 'relatorio-unasus right_legend'));
+        // A legenda entra DENTRO da barra de filtros, e nao mais num bloco proprio abaixo
+        // dela: sao os mesmos itens ocupando uma linha em vez de 108px.
+        $output .= $this->build_filter($this->build_legend_compacta($data_class::get_legend()));
 
         $this->apply_role_scope($report);
 
         /* Ajustes para o cabeçalho duplo de alguns relatórios */
 
-        $class = $report->get_relatorio() . ' generaltable_without_stripes divisao-por-modulos fixed';
+        // ⚠️ `relatorio-unasus` vai na propria TABELA, e nao so' no wrapper em volta:
+        // `table.relatorio-unasus { border-collapse: separate }` e' seletor de tabela, nao
+        // descendente. Sem a classe aqui, o ramo de cabecalho simples (default_table)
+        // ficava em `collapse` -- com duas bordas por divisa, que e' o que faz a linha
+        // sumir quando uma celula presa se desloca. So' o ramo de cabecalho duplo
+        // acrescentava a classe, na hora de emitir a tag.
+        //
+        // ⚠️ E `divisao-por-modulos` NAO vai junto: ela e' do ramo de cabecalho duplo, o
+        // unico que emite o <colgroup>. A regra
+        // `table.relatorio-unasus.divisao-por-modulos { table-layout: fixed }` tira as
+        // larguras do conteudo e as le' do colgroup -- numa tabela sem colgroup as
+        // colunas colapsam para zero e o nome do estudante quebra letra a letra. A classe
+        // sempre esteve nas duas, e so' nao fazia estrago porque sem `relatorio-unasus` a
+        // regra nao alcancava a tabela.
+        $classe_base = 'relatorio-unasus ' . $report->get_relatorio() .
+                       ' generaltable_without_stripes';
+        $class = $classe_base . ' divisao-por-modulos fixed';
 
         // Descobre se o cabeçalho é de 2 ou 1 linha, se for de 2 cria o header de duas linhas
         // que não existe no moodle API
