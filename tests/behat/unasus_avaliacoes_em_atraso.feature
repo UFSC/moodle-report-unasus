@@ -20,7 +20,7 @@ Background:
 
   @javascript @avaliacoes_em_atraso
 Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
-    And I set the grade of activity "a4" for user "student1" to "90"
+    Given I set the grade of activity "a4" for user "student1" to "90"
     And I log in as "admin"
     And I open the unasus report "avaliacoes_em_atraso" directly for course "c1"
     And I press "Gerar relatório"
@@ -44,7 +44,7 @@ Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
 
   @avaliacoes_em_atraso @csv
   Scenario: avaliacoes_em_atraso exporta CSV com dados esperados
-    And I set the grade of activity "a4" for user "student1" to "90"
+    Given I set the grade of activity "a4" for user "student1" to "90"
     And I log in as "admin"
     And I export the unasus report "avaliacoes_em_atraso" as csv for course "c1" with params:
       | name | value |

@@ -21,7 +21,7 @@ Background:
   @javascript @estudante_sem_atividade_avaliada
 Scenario: estudante_sem_atividade_avaliada - cobertura com limites e variacoes de borda
     # student2: duas entregas, uma corrigida e outra sem nota (deve aparecer).
-    And I submit assignment "a4" for user "student2"
+    Given I submit assignment "a4" for user "student2"
 
     # student4: duas entregas, uma corrigida e outra sem nota (deve aparecer).
     And I submit assignment "a1" for user "student4"

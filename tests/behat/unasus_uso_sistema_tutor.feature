@@ -1,4 +1,14 @@
 @unasus @report_unasus @uso_sistema_tutor
+# ⚠️ As colunas de data NAO tem ano: desde o commit 6d4d9ee o cabecalho e' `d/m`, porque o
+# ano se repetia em toda coluna e o mes ja' vem no cabecalho de cima, que agrupa as datas.
+#
+# O ano sobreviveu tanto tempo nas asercoes porque o passo de celula de tabela casa a coluna
+# por substring nos DOIS sentidos (behat_unasus.php:1817): "10/03/26" casa com o cabecalho
+# "10/03". Ja' `I should see` e o passo de CSV comparam texto de verdade, e reprovavam. Um
+# "I should not see" com ano chegou a passar por vacuidade, negando texto que nao existe.
+#
+# Os campos data_inicio/data_fim seguem com ano de 4 digitos: sao entrada de formulario,
+# e nao rotulo de coluna.
 Feature: Relatório UNA-SUS de uso do sistema pelo tutor com período fixo
   Para validar o relatório de horas de uso do tutor
   Como usuário com capability report/unasus:view_all
@@ -100,10 +110,10 @@ Background:
     Then I should see "Media"
     And I should see "Total"
     # CSS class confirma acessou/nao_acessou por tutor e dia (valor numérico de horas omitido por ser incerto sem execução).
-    And the unasus report table cell at row "Tutor One" and column "10/03/26" should have css class "acessou"
-    And the unasus report table cell at row "Tutor One" and column "15/03/26" should have css class "nao_acessou"
-    And the unasus report table cell at row "Tutor Two" and column "10/03/26" should have css class "nao_acessou"
-    And the unasus report table cell at row "Tutor Two" and column "15/03/26" should have css class "acessou"
+    And the unasus report table cell at row "Tutor One" and column "10/03" should have css class "acessou"
+    And the unasus report table cell at row "Tutor One" and column "15/03" should have css class "nao_acessou"
+    And the unasus report table cell at row "Tutor Two" and column "10/03" should have css class "nao_acessou"
+    And the unasus report table cell at row "Tutor Two" and column "15/03" should have css class "acessou"
 
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor contabiliza faixas de meia hora, média e total
@@ -128,12 +138,12 @@ Background:
     And I set the field "data_inicio" to "09/03/2026"
     And I set the field "data_fim" to "22/03/2026"
     And I press "Gerar relatório"
-    Then the unasus report table should have "1" at row "Tutor One" and column "10/03/26"
-    And the unasus report table should have "1" at row "Tutor One" and column "20/03/26"
-    And the unasus report table should have "0.5" at row "Tutor One" and column "21/03/26"
+    Then the unasus report table should have "1" at row "Tutor One" and column "10/03"
+    And the unasus report table should have "1" at row "Tutor One" and column "20/03"
+    And the unasus report table should have "0.5" at row "Tutor One" and column "21/03"
     And the unasus report table should have "0.2" at row "Tutor One" and column "Media"
     And the unasus report table should have "2.5" at row "Tutor One" and column "Total"
-    And the unasus report table should have "0" at row "Tutor Two" and column "22/03/26"
+    And the unasus report table should have "0" at row "Tutor Two" and column "22/03"
     And the unasus report table should have "1" at row "Tutor Two" and column "Total"
 
   @javascript @uso_sistema_tutor
@@ -153,8 +163,8 @@ Background:
     And I set the field "data_inicio" to "22/03/2026"
     And I set the field "data_fim" to "23/03/2026"
     And I press "Gerar relatório"
-    Then the unasus report table should have "0.5" at row "Tutor One" and column "22/03/26"
-    And the unasus report table should have "0.5" at row "Tutor One" and column "23/03/26"
+    Then the unasus report table should have "0.5" at row "Tutor One" and column "22/03"
+    And the unasus report table should have "0.5" at row "Tutor One" and column "23/03"
     And the unasus report table should have "0.5" at row "Tutor One" and column "Media"
     And the unasus report table should have "1" at row "Tutor One" and column "Total"
 
@@ -165,9 +175,9 @@ Background:
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
     And I press "Gerar relatório"
-    Then I should see "10/03/26"
-    And I should see "15/03/26"
-    And I should not see "05/04/26"
+    Then I should see "10/03"
+    And I should see "15/03"
+    And I should not see "05/04"
 
   @javascript @uso_sistema_tutor
   Scenario: usuário sem view_all não visualiza relatório restrito uso_sistema_tutor
@@ -195,7 +205,7 @@ Background:
     And I set the field "data_inicio" to "2026-03-01"
     And I set the field "data_fim" to "31/03/2026"
     And I press "Gerar relatório"
-    Then I should not see "10/03/26"
+    Then I should not see "10/03"
 
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe opção de exportar CSV para usuário com view_all
@@ -211,12 +221,12 @@ Background:
       | data_inicio| 09/03/2026 |
       | data_fim   | 22/03/2026 |
     Then the exported unasus csv should contain "Tutores"
-    And the exported unasus csv should have "1" at row "Tutor One" and column "10/03/26"
-    And the exported unasus csv should have "0" at row "Tutor One" and column "15/03/26"
+    And the exported unasus csv should have "1" at row "Tutor One" and column "10/03"
+    And the exported unasus csv should have "0" at row "Tutor One" and column "15/03"
     And the exported unasus csv should have "0.1" at row "Tutor One" and column "Media"
     And the exported unasus csv should have "1" at row "Tutor One" and column "Total"
-    And the exported unasus csv should have "0" at row "Tutor Two" and column "10/03/26"
-    And the exported unasus csv should have "1" at row "Tutor Two" and column "15/03/26"
+    And the exported unasus csv should have "0" at row "Tutor Two" and column "10/03"
+    And the exported unasus csv should have "1" at row "Tutor Two" and column "15/03"
     And the exported unasus csv should have "0.1" at row "Tutor Two" and column "Media"
     And the exported unasus csv should have "1" at row "Tutor Two" and column "Total"
 
@@ -243,11 +253,11 @@ Background:
       | name        | value      |
       | data_inicio | 09/03/2026 |
       | data_fim    | 22/03/2026 |
-    Then the exported unasus csv should have "1" at row "Tutor One" and column "10/03/26"
-    And the exported unasus csv should have "1" at row "Tutor One" and column "20/03/26"
-    And the exported unasus csv should have "0.5" at row "Tutor One" and column "21/03/26"
+    Then the exported unasus csv should have "1" at row "Tutor One" and column "10/03"
+    And the exported unasus csv should have "1" at row "Tutor One" and column "20/03"
+    And the exported unasus csv should have "0.5" at row "Tutor One" and column "21/03"
     And the exported unasus csv should have "0.2" at row "Tutor One" and column "Media"
     And the exported unasus csv should have "2.5" at row "Tutor One" and column "Total"
-    And the exported unasus csv should have "0" at row "Tutor Two" and column "22/03/26"
+    And the exported unasus csv should have "0" at row "Tutor Two" and column "22/03"
     And the exported unasus csv should have "0.1" at row "Tutor Two" and column "Media"
     And the exported unasus csv should have "1" at row "Tutor Two" and column "Total"

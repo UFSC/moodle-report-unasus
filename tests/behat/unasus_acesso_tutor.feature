@@ -92,7 +92,7 @@ Background:
 
   @javascript @acesso_tutor
   Scenario: acesso_tutor com período fixo mostra tutores e estados de acesso no mês
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I open the unasus report "acesso_tutor" directly for course "c1"
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
@@ -114,7 +114,7 @@ Background:
     # 1774223940 = 22/03/2026 23:59:00 UTC
     # 1774224060 = 23/03/2026 00:01:00 UTC
     # 1774224240 = 23/03/2026 00:04:00 UTC
-    And the following tutor report logs exist:
+    Given the following tutor report logs exist:
       | username | course | datetime   | action  |
       | tutor1   | c1     | 1774223760 | viewed  |
       | tutor1   | c1     | 1774223940 | updated |
@@ -136,7 +136,7 @@ Background:
 
   @javascript @acesso_tutor
   Scenario: acesso_tutor não mostra dia de abril quando o período é março de 2026
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I open the unasus report "acesso_tutor" directly for course "c1"
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
@@ -147,7 +147,7 @@ Background:
 
   @javascript @acesso_tutor
   Scenario: usuário sem view_all não visualiza relatório restrito acesso_tutor
-    And I log in as "tutor1"
+    Given I log in as "tutor1"
     # ⚠️ A checagem e' contra o INDICE, e nao contra a pagina inicial do curso.
     #
     # A versao anterior fazia `I follow "Course1"` e negava o texto ali. No 4.5 os itens do
@@ -166,7 +166,7 @@ Background:
 
   @javascript @acesso_tutor
   Scenario: acesso_tutor exibe aviso para intervalo de datas inválido
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I open the unasus report "acesso_tutor" directly for course "c1"
     And I set the field "data_inicio" to "31/03/2026"
     And I set the field "data_fim" to "01/03/2026"
@@ -175,13 +175,13 @@ Background:
 
   @javascript @acesso_tutor
   Scenario: acesso_tutor exibe opção de exportar CSV para usuário com view_all
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I open the unasus report "acesso_tutor" directly for course "c1"
     Then I should see "Exportar para CSV"
 
   @acesso_tutor @csv
   Scenario: acesso_tutor exporta CSV com conteúdo esperado
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I export the unasus report "acesso_tutor" as csv for course "c1" with params:
       | name       | value      |
       | data_inicio| 01/03/2026 |

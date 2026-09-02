@@ -21,7 +21,7 @@ Background:
   @javascript @atividades_vs_notas
 Scenario: atividades_vs_notas - estados de entrega e nota
     # Cria atividade com prazo definido para validar legenda de nota no prazo (ate 24hs).
-    And the following "activities" exist:
+    Given the following "activities" exist:
       | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected | completion |
       | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 1          |
 
@@ -91,7 +91,7 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     # Com prazo=0, o tutor deve avaliar no mesmo dia da submissão.
     # Uma nota dada 1 dia após a submissão deve ser classificada como nota_atribuida_atraso.
     # Com prazo=1 (padrão), o mesmo cenário produziria nota_atribuida (no prazo).
-    And the following config values are set as admin:
+    Given the following config values are set as admin:
       | report_unasus_prazo_avaliacao | 0 |
     And I set the grade of activity "a4" for user "student1" to "90"
     And I set the grade date of activity "a4" for user "student1" to "1" days after submission
@@ -104,7 +104,7 @@ Scenario: atividades_vs_notas - estados de entrega e nota
   @atividades_vs_notas @csv
   Scenario: atividades_vs_notas exporta CSV com dados esperados
     # Reaplica setup deterministico para o cenario de exportacao CSV.
-    And the following "activities" exist:
+    Given the following "activities" exist:
       | activity | course | idnumber | name                  | intro             | grade | assignsubmission_onlinetext_enabled | completionexpected | completion |
       | assign   | C1     | a7       | Test assignment seven | Submit something! | 100   | 1                                   | 946684800          | 1          |
 

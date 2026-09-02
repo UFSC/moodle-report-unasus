@@ -21,7 +21,7 @@ Background:
   @javascript @modulos_concluidos
 Scenario: modulos_concluidos - verificacao de completion de atividades
     # student10: todas as atividades concluidas, com notas, deve mostrar a media final do curso.
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a1" for user "student10" to "80"

@@ -21,7 +21,7 @@ Background:
   @javascript @atividades_nota_atribuida
   Scenario: atividades_nota_atribuida - sintese de completude por tutor
     # Teacher t1: dois estudantes concluiram todas as atividades com completude ativa.
-    And I mark all completion-enabled activities in course "c1" as complete for user "student1"
+    Given I mark all completion-enabled activities in course "c1" as complete for user "student1"
     And I mark all completion-enabled activities in course "c1" as complete for user "student2"
 
     # Teacher t2: um estudante concluiu todas; outro concluiu apenas uma atividade.
@@ -59,7 +59,7 @@ Background:
   @atividades_nota_atribuida @csv
   Scenario: atividades_nota_atribuida exporta CSV com dados esperados
     # Teacher t1: dois estudantes concluiram todas as atividades com completude ativa.
-    And I mark all completion-enabled activities in course "c1" as complete for user "student1"
+    Given I mark all completion-enabled activities in course "c1" as complete for user "student1"
     And I mark all completion-enabled activities in course "c1" as complete for user "student2"
 
     # Teacher t2: um estudante concluiu todas; outro concluiu apenas uma atividade.

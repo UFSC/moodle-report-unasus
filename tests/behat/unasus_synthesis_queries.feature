@@ -15,7 +15,7 @@ Background:
     # Os outros 11 estudantes NÃO interagem com d1.
     # Se a query usar INNER JOIN, o denominador reduziria para 1; com LEFT JOIN
     # devemos ver "1/12" — provando que estudantes sem registro permanecem no total.
-    And I mark activity "d1" as complete for user "student1"
+    Given I mark activity "d1" as complete for user "student1"
 
     And I log in as "admin"
     And I open the unasus report "atividades_nota_atribuida" directly for course "c1"

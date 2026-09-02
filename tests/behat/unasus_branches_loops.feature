@@ -16,7 +16,7 @@ Background:
     # student9, student10, student11) e o inclui em uma tutoria. Removemos a matrícula
     # mantendo a participação na tutoria — essa é a combinação que exercita o filtro
     # INNER JOIN com user_enrolments em queries.php.
-    And I submit assignment "a1" for user "student2"
+    Given I submit assignment "a1" for user "student2"
     And I submit assignment "a2" for user "student3"
     And I unenrol user "student12" from course "c1"
 

@@ -20,7 +20,7 @@ Background:
 
   @javascript @entrega_de_atividades
 Scenario: entrega_de_atividades - todas as legendas de entrega
-    And I log in as "admin"
+    Given I log in as "admin"
     And I open the unasus report "entrega_de_atividades" directly for course "c1"
     And I press "Gerar relatório"
     # a3 deadline=0: estudantes que nao entregaram aparecem como "sem prazo" na coluna.

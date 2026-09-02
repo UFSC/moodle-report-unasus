@@ -256,7 +256,7 @@ Background:
     # Overrides the Background definition mock with JSON null so get_tcc_definition()
     # returns PHP null, triggering the !$object guard in report_unasus_lti_tcc_definition().
     # The report must load without fatal errors and show no chapter columns.
-    And the TCC webservice definition endpoint fails
+    Given the TCC webservice definition endpoint fails
     And I log in as "admin"
     And I open the unasus report "tcc_entrega_atividades" directly for course "c1"
     And I press "Gerar relatório"

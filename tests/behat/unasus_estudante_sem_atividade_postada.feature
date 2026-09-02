@@ -30,7 +30,7 @@ Scenario: estudante_sem_atividade_postada - cobertura com limites e variacoes de
     # - student2  (grupo1): background - entregou a2, postou em f2; a4/a5/a6 pendentes -> aparece.
 
     # --- setup student10: entrega apenas a4 ---
-    And I submit assignment "a4" for user "student10"
+    Given I submit assignment "a4" for user "student10"
 
     # --- setup student11: entrega a4 e a5 ---
     And I submit assignment "a4" for user "student11"

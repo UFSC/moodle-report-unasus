@@ -24,9 +24,20 @@ Background:
     | teacher3  | Teacher   | t3       | teacher3@example.com   |
     | manager1  | Manager   | m1       | manager1@example.com   |
 
+  # ⚠️ A categoria-mae precisa de idnumber `curso_%`.
+  #
+  # `local_tutores\categoria::curso_ufsc()` resolve a categoria do curso UFSC por
+  # `idnumber like 'curso_%'`. Sem nenhuma assim no caminho, ela devolve falso, a consulta
+  # de cohorts (`report_unasus_get_nomes_cohorts`) nao acha nada, e o filtro de cohorts NAO
+  # e' renderizado -- desde o commit 49cf1f2, que deixou de emitir filtro sem opcao.
+  #
+  # A marca vai na MAE, e nao na CAT1, para as referencias `| ... | CAT1 |` deste arquivo
+  # (cohorts, permission overrides, relationships) continuarem valendo. A busca de cohorts
+  # varre a categoria e seus descendentes, entao os cohorts seguem em CAT1.
   And the following "categories" exist:
     | name       | category | idnumber |
-    | Category 1 | 0        | CAT1     |
+    | Curso UFSC | 0        | curso_1  |
+    | Category 1 | curso_1  | CAT1     |
 
   And the following "courses" exist:
     | fullname | shortname | category | groupmode | enablecompletion |
@@ -163,9 +174,13 @@ Background:
 
   @javascript @entrega_de_atividades
   Scenario: manager com view_all visualiza todos os estudantes na tutoria
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I open the unasus report "entrega_de_atividades" directly for course "c1"
-    Then I should see "Filtrar Cohorts:"
+    # ⚠️ Sem dois-pontos: o filtro de Cohorts e' RECOLHIVEL, e o `build_filtro_lista` so'
+    # emite `<label>Rotulo:</label>` no caminho nao-recolhivel; no recolhivel o rotulo vira
+    # o texto do botao, sem pontuacao. Com o dois-pontos, a asercao negativa passava por
+    # vacuidade -- negava um texto que nao existe em versao nenhuma da tela.
+    Then I should see "Filtrar Cohorts"
     And I should see "Filtrar Grupos de Tutoria:"
     And I press "Gerar relatório"
     And I should see "Student s1"
@@ -183,7 +198,7 @@ Background:
 
   @javascript @entrega_de_atividades
   Scenario: manager filtra relatório de tutoria por grupo de tutoria
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I open the unasus report "entrega_de_atividades" directly for course "c1" with params:
       | name           | value                                      |
       | modo_exibicao  | tabela                                     |
@@ -197,7 +212,7 @@ Background:
 
   @javascript @modulos_concluidos @atividades_nota_atribuida
   Scenario Outline: manager filtra relatório por módulo
-    And the following "courses" exist:
+    Given the following "courses" exist:
       | fullname | shortname | category | groupmode | enablecompletion |
       | Course2  | c2        | CAT1     | 1         | 1                |
     And the following "activities" exist:
@@ -218,7 +233,7 @@ Background:
 
   @javascript @modulos_concluidos @atividades_nota_atribuida
   Scenario Outline: manager filtra sínteses de tutoria por grupo de tutoria
-    And I log in as "manager1"
+    Given I log in as "manager1"
     And I open the unasus report "<report>" directly for course "c1" with params:
       | name          | value                                  |
       | modo_exibicao | tabela                                 |
@@ -233,9 +248,13 @@ Background:
 
   @javascript @entrega_de_atividades
   Scenario: tutor sem view_all nao visualiza estudantes de outros grupos na tutoria
-    And I log in as "teacher1"
+    Given I log in as "teacher1"
     And I open the unasus report "entrega_de_atividades" directly for course "c1"
-    Then I should not see "Filtrar Cohorts:"
+    # ⚠️ Sem dois-pontos: o filtro de Cohorts e' RECOLHIVEL, e o `build_filtro_lista` so'
+    # emite `<label>Rotulo:</label>` no caminho nao-recolhivel; no recolhivel o rotulo vira
+    # o texto do botao, sem pontuacao. Com o dois-pontos, a asercao negativa passava por
+    # vacuidade -- negava um texto que nao existe em versao nenhuma da tela.
+    Then I should not see "Filtrar Cohorts"
     And I press "Gerar relatório"
     And I should see "Student s1"
     And I should see "Student s2"

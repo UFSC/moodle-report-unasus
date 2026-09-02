@@ -68,7 +68,7 @@ Background:
 
   @csv @csv_borda
   Scenario: csv_borda - nome de estudante com virgula e exportado como campo entre aspas
-    And I log in as "admin"
+    Given I log in as "admin"
     And I export the unasus report "boletim" as csv for course "c1" with params:
       | name | value |
     # O parser str_getcsv deve reconhecer "Silva da Silva, Jr." como um campo único
@@ -78,7 +78,7 @@ Background:
 
   @csv @csv_borda
   Scenario: csv_borda - nome de atividade com virgula no cabecalho do CSV
-    And I log in as "admin"
+    Given I log in as "admin"
     And I export the unasus report "boletim" as csv for course "c1" with params:
       | name | value |
     # O cabeçalho deve conter o nome da atividade como campo único (com aspas no CSV bruto)

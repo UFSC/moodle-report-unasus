@@ -18,7 +18,7 @@ Background:
 
   @javascript @boletim
 Scenario: boletim - verificacao de notas
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a4" for user "student1" to "100"
@@ -48,7 +48,7 @@ Scenario: boletim - verificacao de notas
 
   @boletim @csv
   Scenario: boletim exporta CSV com dados esperados
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a4" for user "student1" to "100"
@@ -67,7 +67,7 @@ Scenario: boletim - verificacao de notas
 
   @javascript @boletim
 Scenario: boletim - média ponderada no gradebook
-    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    Given I set gradebook aggregation for course "c1" to weighted mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set gradebook weight "75" for activity "a4" in course "c1"
@@ -87,7 +87,7 @@ Scenario: boletim - média ponderada no gradebook
 
   @boletim @csv
   Scenario: boletim - média ponderada no gradebook exporta CSV
-    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    Given I set gradebook aggregation for course "c1" to weighted mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set gradebook weight "75" for activity "a4" in course "c1"
@@ -106,7 +106,7 @@ Scenario: boletim - média ponderada no gradebook
 
   @javascript @boletim
 Scenario: boletim - média simples com vazias=zero
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to enabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a4" for user "student1" to "100"
@@ -125,7 +125,7 @@ Scenario: boletim - média simples com vazias=zero
 
   @boletim @csv
   Scenario: boletim - média simples com vazias=zero exporta CSV
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to enabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a4" for user "student1" to "100"
@@ -139,7 +139,7 @@ Scenario: boletim - média simples com vazias=zero
 
   @javascript @boletim
 Scenario: boletim - média ponderada com vazias=zero
-    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    Given I set gradebook aggregation for course "c1" to weighted mean of grades
     And I set gradebook include empty grades for course "c1" to enabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I reset all gradebook weights for course "c1"
@@ -161,7 +161,7 @@ Scenario: boletim - média ponderada com vazias=zero
 
   @boletim @csv
   Scenario: boletim - média ponderada com vazias=zero exporta CSV
-    And I set gradebook aggregation for course "c1" to weighted mean of grades
+    Given I set gradebook aggregation for course "c1" to weighted mean of grades
     And I set gradebook include empty grades for course "c1" to enabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I reset all gradebook weights for course "c1"
@@ -182,7 +182,7 @@ Scenario: boletim - atividades base 100 com nota final base 10
     # Atividades têm grademax=100; course total configurado para base 10 (grademax=10).
     # finalgrade armazenado em escala 0-10 → boletim exibe valor bruto: 7.0 (não 70.0).
     # student1: a4=80/100 (80%), a5=60/100 (60%) → média=70% → finalgrade=7.0
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "10"
     And I set the grade of activity "a4" for user "student1" to "80"
@@ -201,7 +201,7 @@ Scenario: boletim - atividades base 100 com nota final base 10
 
   @boletim @csv
   Scenario: boletim - atividades base 100 com nota final base 10 exporta CSV
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "10"
     And I set the grade of activity "a4" for user "student1" to "80"
@@ -217,7 +217,7 @@ Scenario: boletim - atividades base 100 com nota final base 10
 Scenario: boletim - todas as atividades avaliadas verifica media final
     # student1: a1=60, a2=70, a3=80, a4=90, a5=100, a6=80
     # media simples (6 notas) = 480/6 = 80.0%
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a1" for user "student1" to "60"
@@ -242,7 +242,7 @@ Scenario: boletim - todas as atividades avaliadas verifica media final
   Scenario: boletim - todas as atividades avaliadas verifica media final exporta CSV
     # student1: a1=60, a2=70, a3=80, a4=90, a5=100, a6=80
     # media simples (6 notas) = 480/6 = 80.0%
-    And I set gradebook aggregation for course "c1" to mean of grades
+    Given I set gradebook aggregation for course "c1" to mean of grades
     And I set gradebook include empty grades for course "c1" to disabled
     And I set gradebook course total grademax for course "c1" to "100"
     And I set the grade of activity "a1" for user "student1" to "60"
@@ -268,7 +268,7 @@ Scenario: boletim - todas as atividades avaliadas verifica media final
   Scenario: config_borda - todos os estudantes com nota identica mostram mesma classificacao CSS
     # Variância zero: dois estudantes com a mesma nota devem ter idêntica classificação.
     # Verifica que o boletim não se comporta de forma inesperada quando não há dispersão de notas.
-    And I submit assignment "a4" for user "student2"
+    Given I submit assignment "a4" for user "student2"
     And I set the submission date of activity "a4" to "0" days after
     And I set the grade of activity "a4" for user "student1" to "80"
     And I set the grade of activity "a4" for user "student2" to "80"
