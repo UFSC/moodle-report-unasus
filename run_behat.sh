@@ -69,6 +69,16 @@ SELENIUM_IMAGE="${SELENIUM_IMAGE:-selenium/standalone-chrome:3.141.59-selenium}"
 # container é sempre 4444. Parametrizável via SELENIUM_PORT no .env para permitir rodar
 # vários ambientes em paralelo sem conflito na 4444. Default: 4444.
 SELENIUM_HOST_PORT="${SELENIUM_PORT:-4444}"
+# ⚠️ UM SLOT DE SESSAO POR WORKER.
+#
+# A imagem standalone sobe com SE_NODE_MAX_SESSIONS=1. Com mais workers do que slots, os
+# excedentes ficam na fila ate' estourar 180s e o Behat reporta
+# "Could not open connection ... Operation timed out after 180002 milliseconds" -- que
+# parece falha de teste, e nao e'. Vale tambem em execucao sequencial: com um slot so',
+# qualquer sessao vazada bloqueia a proxima ate' expirar.
+SELENIUM_MAX_SESSIONS="${SELENIUM_MAX_SESSIONS:-${BEHAT_PARALLEL:-1}}"
+# Cada Chrome quer ~2g de /dev/shm; abaixo disso ele morre em silencio no meio do cenario.
+SELENIUM_SHM_SIZE="${SELENIUM_SHM_SIZE:-2g}"
 DOCKER_COMPOSE_DIR="${DOCKER_COMPOSE_DIR:-/home/$USER/workspace/docker/$DOCKER_VERSION}"
 MOODLE_LOCAL_SITE="${MOODLE_LOCAL_SITE:-www/$SISTEM_NAME}"
 MOODLE_ROOT_IN_CONTAINER="${MOODLE_ROOT_IN_CONTAINER:-/home/moodle/$MOODLE_LOCAL_SITE}"
@@ -124,6 +134,21 @@ build_escaped_args() {
 
 container_is_running() {
     docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | grep -q "true"
+}
+
+# ⚠️ Um lugar so' para subir o Selenium. Este comando existia DUPLICADO (no caminho da rede
+# removida e no da criacao inicial); mudar um e esquecer o outro deixava o container com
+# configuracao diferente conforme o caminho tomado -- e o defeito so' aparecia de vez em
+# quando, que e' o pior modo de aparecer.
+run_selenium_container() {
+    docker run -d \
+        --name "$SELENIUM_CONTAINER" \
+        --network "$DOCKER_NETWORK" \
+        --shm-size="$SELENIUM_SHM_SIZE" \
+        -e SE_NODE_MAX_SESSIONS="$SELENIUM_MAX_SESSIONS" \
+        -e SE_NODE_OVERRIDE_MAX_SESSIONS=true \
+        -p ${SELENIUM_HOST_PORT}:4444 \
+        "$SELENIUM_IMAGE"
 }
 
 exec_as_moodle() {
@@ -302,6 +327,17 @@ if docker inspect "$SELENIUM_CONTAINER" &>/dev/null; then
         warn "Container Selenium usa imagem '$EXISTING_SELENIUM_IMAGE' (esperado '$SELENIUM_IMAGE'). Recriando..."
         docker rm -f "$SELENIUM_CONTAINER" >/dev/null 2>&1 || true
     fi
+
+    # ⚠️ E tambem quando os SLOTS mudam: o container e' REAPROVEITADO entre execucoes, entao
+    # so' subir BEHAT_PARALLEL no .env nao adianta -- o Selenium continuaria com os slots de
+    # antes, e o paralelismo falharia com o timeout de 180s sem nada explicando por que.
+    EXISTING_SELENIUM_SESSIONS=$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' \
+        "$SELENIUM_CONTAINER" 2>/dev/null | grep '^SE_NODE_MAX_SESSIONS=' | cut -d= -f2 || true)
+    EXISTING_SELENIUM_SESSIONS="${EXISTING_SELENIUM_SESSIONS:-1}"
+    if [ "$EXISTING_SELENIUM_SESSIONS" != "$SELENIUM_MAX_SESSIONS" ]; then
+        warn "Container Selenium tem $EXISTING_SELENIUM_SESSIONS slot(s) de sessao (esperado $SELENIUM_MAX_SESSIONS). Recriando..."
+        docker rm -f "$SELENIUM_CONTAINER" >/dev/null 2>&1 || true
+    fi
 fi
 
 if container_is_running "$SELENIUM_CONTAINER"; then
@@ -315,24 +351,14 @@ else
             if echo "$START_OUTPUT" | grep -qi "network .* not found"; then
                 warn "Container Selenium preso a rede removida. Recriando container..."
                 docker rm -f "$SELENIUM_CONTAINER" >/dev/null 2>&1 || true
-                docker run -d \
-                    --name "$SELENIUM_CONTAINER" \
-                    --network "$DOCKER_NETWORK" \
-                    --shm-size=2g \
-                    -p ${SELENIUM_HOST_PORT}:4444 \
-                    "$SELENIUM_IMAGE"
+                run_selenium_container
             else
                 err "Falha ao iniciar '$SELENIUM_CONTAINER': $START_OUTPUT"
             fi
         fi
     else
         log "Iniciando novo container Selenium (imagem: $SELENIUM_IMAGE)..."
-        docker run -d \
-            --name "$SELENIUM_CONTAINER" \
-            --network "$DOCKER_NETWORK" \
-            --shm-size=2g \
-            -p ${SELENIUM_HOST_PORT}:4444 \
-            "$SELENIUM_IMAGE"
+        run_selenium_container
     fi
 
     log "Aguardando Selenium inicializar..."
