@@ -1019,6 +1019,24 @@ function report_unasus_get_prazo_maximo_entrega() {
  */
 class report_unasus_table extends html_table {
 
+    /**
+     * ⚠️ Sem o embrulho responsivo do Moodle -- ele quebra a trava da tabela.
+     *
+     * Com `$responsive = true` (o padrao do html_table), o html_writer::table() envolve
+     * a saida num `<div class="table-responsive">`, que tem overflow proprio. Passam a
+     * existir DOIS conteineres de rolagem aninhados: esse div e o `.relatorio-wrapper`.
+     * `position: sticky` se prende ao ancestral rolavel MAIS PROXIMO, que passa a ser o
+     * div de dentro -- e como quem rola de verdade e' o wrapper de fora, o cabecalho
+     * simplesmente acompanha o conteudo. O sintoma engana: no inspetor a celula aparece
+     * com `position: sticky` aplicado, e mesmo assim desloca a rolagem inteira.
+     *
+     * O `.relatorio-wrapper` ja' e' a caixa de rolagem do relatorio (overflow:auto e
+     * max-height no styles.css), entao o embrulho nao acrescenta nada aqui.
+     *
+     * @var bool
+     */
+    public $responsive = false;
+
     // Para o caso que a tabela tenha um cabeçalho de uma única linha.
     // Head 1  |  Head 2  |  Head 3
     //
@@ -1095,8 +1113,22 @@ class report_unasus_table extends html_table {
             }
         }
 
-        $this->data[] = new html_table_row($heading1);
-        $this->data[] = new html_table_row($heading2);
+        // ⚠️ Estas duas linhas sao o CABECALHO, mas saem no <tbody>: o html_table do
+        // Moodle so' sabe montar um <thead> de uma linha ($this->head), e aqui sao duas.
+        // Sem marcacao, a trava do CSS -- toda pendurada em thead -- nao as alcancava, e
+        // os relatorios que passam por aqui rolavam sem cabecalho nem coluna fixa.
+        //
+        // A classe e' `cabecalho`, e nao so' `r0`/`r1`: essas duas nao sao exclusivas do
+        // cabecalho, o default_table() as usa tambem nas faixas de tutor DENTRO do corpo.
+        // Prender por elas sozinhas grudaria as faixas no topo.
+        $linha_modulos = new html_table_row($heading1);
+        $linha_modulos->attributes['class'] = 'relatorio-unasus cabecalho r0';
+
+        $linha_atividades = new html_table_row($heading2);
+        $linha_atividades->attributes['class'] = 'relatorio-unasus cabecalho r1';
+
+        $this->data[] = $linha_modulos;
+        $this->data[] = $linha_atividades;
     }
 
 }

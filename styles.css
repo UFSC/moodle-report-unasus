@@ -575,12 +575,45 @@ legend {
 }
 
 .relatorio-unasus thead tr.r1 th {
-  top: 36px; /* altura da linha de modulos (thead tr.r0) */
+  top: 36px; /* altura da linha de modulos (r0) */
 }
 
 .relatorio-unasus thead tr.r0 th,
 .relatorio-unasus thead tr.r0 td {
   height: 36px !important;
+}
+
+/* ⚠️ No <tbody>, quem fica preso e' a LINHA, e nao a celula.
+
+   Uma celula sticky nao pode deixar a caixa da propria linha: quando a linha sai da
+   area visivel, a celula sai junto, mesmo declarada `position: sticky; top: 0`. Foi
+   exatamente o que se mediu -- a celula tinha o sticky aplicado e ainda assim
+   deslocava os 309px inteiros da rolagem. No <thead> o navegador prende as celulas
+   sozinho, e por isso o problema nao aparecia no caminho ja' corrigido.
+
+   Sticky na <tr> resolve, e traz junto as celulas todas. A trava LATERAL continua nas
+   celulas (left), que e' outro eixo e convive com esta sem conflito. */
+.relatorio-unasus tr.cabecalho {
+  position: sticky;
+  z-index: 2;
+}
+
+.relatorio-unasus tr.cabecalho.r0 {
+  top: 0;
+}
+
+.relatorio-unasus tr.cabecalho.r1 {
+  top: 36px; /* altura da linha de modulos (r0) */
+}
+
+.relatorio-unasus tr.cabecalho.r0 > * {
+  height: 36px !important;
+}
+
+/* O fundo opaco vai nas celulas: a <tr> presa nao pinta area propria, e sem isto o
+   corpo passaria visivel por baixo do cabecalho. */
+.relatorio-unasus tr.cabecalho > * {
+  background-color: #FFFFFF;
 }
 
 /* ⚠️ EXCECAO a' regra "cada celula desenha a direita e a de baixo": a divisa entre
@@ -594,11 +627,13 @@ legend {
 
    Com a linha pertencendo a' r1, ela acompanha quem fica por cima e nao pode mais
    ser encoberta, batendo ou nao a altura. Continua sendo UMA borda na divisa. */
-.relatorio-unasus thead tr.r0 > * {
+.relatorio-unasus thead tr.r0 > *,
+.relatorio-unasus tr.cabecalho.r0 > * {
   border-bottom: 0 !important;
 }
 
-.relatorio-unasus thead tr.r1 > * {
+.relatorio-unasus thead tr.r1 > *,
+.relatorio-unasus tr.cabecalho.r1 > * {
   border-top: 1px solid #004E95 !important;
 }
 
@@ -618,25 +653,38 @@ legend {
      2 - o resto do thead (definido acima)
      1 - a coluna do estudante no corpo, que passa por baixo do cabecalho */
 
-.relatorio-unasus thead tr.r0 td.blank,
-.relatorio-unasus thead tr.r1 th.estudante_header,
-.relatorio-unasus tbody th.estudante {
+/* ⚠️ Presas pela CLASSE DA CELULA, e nao pela linha em que ela esta'.
+
+   A versao anterior qualificava por `thead tr.r1 th.estudante_header`. Isso deixava de
+   fora duas das quatro formas de tabela: o cabecalho de uma linha so' (default_table),
+   cujo <tr> no <thead> nao tem `r1`, e o cabecalho duplo do table_tutores, que nem no
+   <thead> esta'. Nos dois casos a coluna do estudante congelava no CORPO e o titulo
+   dela nao -- ao rolar para o lado, o "Estudantes" saia de vista por cima da propria
+   coluna que ficara' parada.
+
+   `blank` e `estudante_header` so' existem em celula de cabecalho, entao nao ha risco
+   de a regra pegar celula do corpo. */
+.relatorio-unasus td.blank,
+.relatorio-unasus th.estudante_header,
+.relatorio-unasus tbody th.estudante,
+.relatorio-unasus tbody .primeira_coluna {
   position: sticky;
   left: 0;
 }
 
 /* O canto superior esquerdo. A celula da linha r0 e' um td, entao a regra de
    thead th la' de cima nao a alcanca -- o top vai aqui. */
-.relatorio-unasus thead tr.r0 td.blank {
+.relatorio-unasus td.blank {
   top: 0;
 }
 
-.relatorio-unasus thead tr.r0 td.blank,
-.relatorio-unasus thead tr.r1 th.estudante_header {
+.relatorio-unasus td.blank,
+.relatorio-unasus th.estudante_header {
   z-index: 3;
 }
 
-.relatorio-unasus tbody th.estudante {
+.relatorio-unasus tbody th.estudante,
+.relatorio-unasus tbody .primeira_coluna {
   z-index: 1;
   /* Fundo opaco, sem o que as notas apareceriam por baixo do nome ao rolar.
      O !important acompanha o da regra de cor da mesma classe, mais acima. */
@@ -656,7 +704,8 @@ legend {
    Fica so' a sombra projetada, que e' outra funcao: sem ela a coluna que passa por
    baixo parece encavalar na divisa em vez de deslizar sob a coluna presa. */
 .relatorio-unasus tbody th.estudante,
-.relatorio-unasus thead tr.r1 th.estudante_header {
+.relatorio-unasus tbody .primeira_coluna,
+.relatorio-unasus th.estudante_header {
   box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.25);
 }
 
@@ -785,8 +834,36 @@ table.relatorio-unasus {
   border-bottom: 1px solid #004E95 !important;
 }
 
-/* Fecha a tabela em cima e a' esquerda. */
-.relatorio-unasus thead tr:first-child > * {
+/* ⚠️ LINHAS IRREGULARES: a divisa e' de quem esta' EM CIMA, sempre.
+
+   As listas de atividades pendentes tem linhas de larguras diferentes -- cada estudante
+   tem tantas celulas quantas forem as pendencias dele. Onde a linha de baixo e' mais
+   longa que a de cima, as celulas que sobram nao tem ninguem acima e ficavam sem linha
+   superior, porque nesta tabela toda divisa horizontal e' o `border-bottom` da celula
+   de CIMA.
+
+   ⚠️ Nao tente resolver pelo lado de baixo. Um `border-top` na celula orfa desenha no
+   PRIMEIRO pixel de dentro dela, e nao no ULTIMO da celula de cima: a linha sai um
+   pixel abaixo das vizinhas. Deslocar um pseudo-elemento em `-1px` tambem nao serve --
+   a espessura USADA da borda nao e' 1px em todo zoom (medida: 0,571px a 175% de dpr),
+   entao o deslocamento fixo erra para o outro lado e a linha sai um pixel acima. As
+   duas tentativas foram feitas e as duas apareceram na tela.
+
+   O renderer resolve na estrutura: preenche a linha de cima com celulas VAZIAS ate'
+   alcancar o comprimento da de baixo (`celula_vazia`, no table_todo_list). A divisa
+   volta a ser o border-bottom de uma celula de verdade, no mesmo pixel de todas as
+   outras, em qualquer zoom -- e some a excecao.
+
+   A celula vazia nao desenha a divisa VERTICAL: ela existe so' para carregar a linha de
+   baixo, e a area vazia da tabela continua sem grade, como sempre foi. */
+.relatorio-unasus .celula_vazia {
+  border-right: 0 !important;
+}
+
+/* Fecha a tabela em cima e a' esquerda. A segunda forma cobre as tabelas cujo
+   cabecalho vive no <tbody>: la' a primeira linha da tabela e' a `.cabecalho.r0`. */
+.relatorio-unasus thead tr:first-child > *,
+.relatorio-unasus tbody tr.cabecalho.r0:first-child > * {
   border-top: 1px solid #004E95 !important;
 }
 

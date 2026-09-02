@@ -419,6 +419,7 @@ class report_unasus_renderer extends plugin_renderer_base {
         //atividades de cada aluno daquele dado tutor
         foreach ($dadostabela as $aluno) {
             $row = new html_table_row();
+            $coluna = 0;
             foreach ($aluno as $valor) {
                 $cell = new html_table_cell($valor);
                 if (is_a($valor, 'report_unasus_data_render')) {
@@ -428,6 +429,20 @@ class report_unasus_renderer extends plugin_renderer_base {
                     $cell->header = true;
                     $cell->attributes = array('class' => 'relatorio-unasus estudante ');
                 }
+
+                // ⚠️ A trava lateral nao pode depender do TIPO do conteudo.
+                //
+                // A primeira coluna e' a coluna congelada, sempre -- mas ate' aqui quem
+                // ganhava a marcacao era o ramo do "Aluno", isto e', so' quando o rotulo
+                // vinha como string. No tcc_consolidado o rotulo da linha de total e' um
+                // report_unasus_dado_texto_render, entao caia no ramo de dados, saia como
+                // `td.total` sem trava, e era a unica celula da coluna que escorregava ao
+                // rolar para o lado -- as outras ficavam paradas, e a linha do total
+                // aparecia desencontrada das demais.
+                if ($coluna === 0) {
+                    $cell->attributes['class'] .= ' primeira_coluna';
+                }
+                $coluna++;
 
                 $row->cells[] = $cell;
             }
@@ -460,13 +475,33 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $student = new html_table_cell('Estudantes');
         $student->header = true;
-        $student->attributes = array('class' => 'relatorio-unasus title estudante');
+        // `estudante_header` alem de `estudante`: e' por ela que a trava lateral do
+        // cabecalho pega (styles.css, "Trava da coluna do estudante"). Sem a classe,
+        // a coluna do estudante congelava no corpo e o titulo dela nao acompanhava.
+        $student->attributes = array('class' => 'relatorio-unasus title estudante estudante_header');
 
         $heading1 = array();
         $heading1[] = $student;
         $heading1[] = $table_title;
 
         $table->head = $heading1;
+
+        // ⚠️ Esta tabela tem LINHAS IRREGULARES: cada estudante tem tantas celulas
+        // quantas forem as pendencias dele. Sob "cada celula desenha so' a direita e a
+        // de baixo", o topo de uma celula e' a borda de baixo da celula ACIMA -- e a
+        // celula que sobra numa linha mais longa que a anterior nao tem ninguem acima,
+        // entao fica sem linha superior. Aparecia como um pedaco de linha faltando a
+        // partir da coluna onde a linha de cima terminou.
+        //
+        // A correcao e' ESTRUTURAL, e nao de estilo: a linha de cima recebe celulas
+        // vazias ate' alcancar o comprimento da de baixo, e a divisa volta a ser o
+        // border-bottom de uma celula de verdade. Ver a nota do `celula_vazia` no
+        // styles.css para as duas tentativas de resolver pelo CSS que sairam
+        // desalinhadas por um pixel, cada uma para um lado.
+        //
+        // O cabecalho e as faixas de tutor cobrem a largura inteira (headspan e
+        // colspan), entao a linha logo abaixo de uma delas ja' vem fechada.
+
        // passa por todos os tutores
         foreach ($dadostabela as $tutor => $alunos) {
 
@@ -479,6 +514,12 @@ class report_unasus_renderer extends plugin_renderer_base {
             $row_tutor = new html_table_row();
             $row_tutor->cells[] = $cel_tutor;
             $table->data[] = $row_tutor;
+
+            // As linhas do grupo sao montadas antes de entrar na tabela: para saber se
+            // uma precisa de celulas vazias e' preciso conhecer o comprimento da
+            // SEGUINTE.
+            $linhas_grupo = array();
+
             //atividades de cada aluno daquele dado tutor
             foreach ($alunos as $aluno) {
                 $row = new html_table_row();
@@ -499,7 +540,40 @@ class report_unasus_renderer extends plugin_renderer_base {
                         $row->cells[] = $cell;
                     };
                 }
-                $table->data[] = $row;
+                $linhas_grupo[] = $row;
+            }
+
+            // Fecha o topo das celulas que sobram na linha de baixo, alongando a de
+            // cima com celulas vazias. A ultima linha do grupo nao precisa: quem vem
+            // depois dela e' a faixa do proximo tutor, que cobre a tabela inteira.
+            //
+            // ⚠️ A conta usa o numero de celulas de DADO da linha de baixo, medido antes
+            // de qualquer preenchimento. A divisa entre duas linhas vai ate' o maior dos
+            // dois vizinhos, e nem um pixel alem.
+            //
+            // Propagar o comprimento ja' preenchido (percorrendo de baixo para cima, por
+            // exemplo) faz o tamanho subir em cascata pelo grupo inteiro: uma linha longa
+            // la' embaixo estica todas as de cima, e sobra linha muito depois do fim dos
+            // dados. Foi o que aconteceu entre Gabriela Lima e Thiago Cavalcanti.
+            $dados_por_linha = array();
+            foreach ($linhas_grupo as $linha) {
+                $dados_por_linha[] = count($linha->cells);
+            }
+
+            foreach ($linhas_grupo as $i => $linha) {
+                if (!isset($dados_por_linha[$i + 1])) {
+                    continue; // ultima do grupo: embaixo dela vem a faixa do proximo tutor
+                }
+                $faltam = $dados_por_linha[$i + 1] - $dados_por_linha[$i];
+                for ($n = 0; $n < $faltam; $n++) {
+                    $vazia = new html_table_cell('');
+                    $vazia->attributes = array('class' => 'relatorio-unasus celula_vazia');
+                    $linha->cells[] = $vazia;
+                }
+            }
+
+            foreach ($linhas_grupo as $linha) {
+                $table->data[] = $linha;
             }
         }
 
@@ -674,7 +748,7 @@ class report_unasus_renderer extends plugin_renderer_base {
             /* Dados do cabeçalho */
 
             $output .= html_writer::start_tag('div', array('class' => 'relatorio-unasus relatorio-wrapper'));
-            $output .= html_writer::start_tag('table', array('class' => "relatorio-unasus ".$class));
+            $output .= html_writer::start_tag('table', array('class' => $class));
 
             // A tabela usa table-layout:fixed, entao as larguras vem do colgroup e nao do
             // conteudo. Sem isso a linha do grupo/tutor (uma unica celula com colspan e um
@@ -779,11 +853,13 @@ class report_unasus_renderer extends plugin_renderer_base {
             $output .= html_writer::end_tag('div');
         } else {
             $table = new report_unasus_table();
-            $table->attributes['class'] = $class;
+            // Sem `divisao-por-modulos`: aqui nao ha colgroup para o table-layout:fixed
+            // ler, e as larguras tem de continuar vindo do conteudo.
+            $table->attributes['class'] = $classe_base;
 
             $header_method = $report->get_table_header();
             $dados_method = $report->get_dados();
-            $table = $this->default_table($dados_method, $header_method, $table, $class);
+            $table = $this->default_table($dados_method, $header_method, $table, $classe_base);
             $output .= html_writer::tag('div', html_writer::table($table), array('class' => 'relatorio-unasus relatorio-wrapper'));
         }
 
