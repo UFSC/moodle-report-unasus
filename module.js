@@ -73,49 +73,45 @@ M.report_unasus.init = function(Y) {
         });
     });
 
+    // Recolher/expandir um filtro individual (Polos, Cohorts).
+    //
+    // ⚠️ Delegado por CLASSE, e nao por id: sao varios botoes e o conjunto muda conforme
+    // o relatorio e a capability. Cada botao diz o que controla no proprio
+    // `aria-controls`, entao o mesmo handler serve para todos -- inclusive para filtros
+    // que venham a ser recolhiveis depois, sem tocar aqui.
+    Y.delegate('click', function(e) {
+        var botao = e.currentTarget;
+        var corpo = Y.one('#' + botao.getAttribute('aria-controls'));
+
+        if (!corpo) {
+            return;
+        }
+
+        var aberto = botao.getAttribute('aria-expanded') === 'true';
+        botao.setAttribute('aria-expanded', aberto ? 'false' : 'true');
+
+        // A altura util da tabela depende de onde ela comeca, e recolher um filtro move
+        // isso -- mesma razao do recalculo no toggle do painel inteiro.
+        M.report_unasus.ajusta_altura_util();
+    }, document, '.relatorio-unasus.botao-recolher-filtro');
+
     // Botoes de selecionar todos e limpar selecao.
     //
-    // Todos cancelam o evento: os links sao <a href="#"> e, sem `preventDefault`, o
-    // clique salta para o topo da pagina e ainda suja a URL com um "#".
+    // ⚠️ UM tratador para todos, delegado por CLASSE, com o alvo no `data-alvo` do proprio
+    // link. Antes havia um par de tratadores POR FILTRO, listando ids fixos -- e o filtro
+    // de orientacao nao tinha o seu: os links so' funcionavam porque reusavam os ids do
+    // filtro de tutoria. Assim que os dois blocos ganharam ids proprios, os de orientacao
+    // pararam de funcionar em silencio.
+    //
+    // Deste jeito, filtro novo nao precisa de linha nenhuma aqui.
     Y.delegate('click', function(e) {
+        // Os links sao <a href="#">: sem cancelar, o clique salta para o topo da pagina e
+        // ainda suja a URL com um "#".
         e.preventDefault();
-        select_all('#multiple_cohort', true);
-    }, document, '#select_all_cohort');
-    
-    Y.delegate('click', function(e) {
-        e.preventDefault();
-        select_all('#multiple_cohort', false);
-    }, document, '#select_none_cohort');
-    
-    Y.delegate('click', function(e) {
-        e.preventDefault();
-        select_all('#multiple_modulo', true);
-    }, document, '#select_all_modulo');
 
-    Y.delegate('click', function(e) {
-        e.preventDefault();
-        select_all('#multiple_modulo', false);
-    }, document, '#select_none_modulo');
-
-    Y.delegate('click', function(e) {
-        e.preventDefault();
-        select_all('#multiple_polo', true);
-    }, document, '#select_all_polo');
-
-    Y.delegate('click', function(e) {
-        e.preventDefault();
-        select_all('#multiple_polo', false);
-    }, document, '#select_none_polo');
-
-    Y.delegate('click', function(e) {
-        e.preventDefault();
-        select_all('#multiple_tutor', true);
-    }, document, '#select_all_tutor');
-
-    Y.delegate('click', function(e) {
-        e.preventDefault();
-        select_all('#multiple_tutor', false);
-    }, document, '#select_none_tutor');
+        var link = e.currentTarget;
+        select_all('#' + link.getAttribute('data-alvo'), link.getAttribute('data-marcar') === '1');
+    }, document, '.relatorio-unasus.link-selecionar');
 
 };
 

@@ -1479,7 +1479,9 @@ table.relatorio-unasus.mapa-calor {
 /* ⚠️ So' com o painel FECHADO. Com ele aberto a dica repetiria, por cima, o que os
    proprios selects ja' mostram -- e ainda cobriria os controles do filtro. */
 .relatorio-unasus.botao-ocultar[aria-expanded="false"]:hover + .dica-filtro,
-.relatorio-unasus.botao-ocultar[aria-expanded="false"]:focus-visible + .dica-filtro {
+.relatorio-unasus.botao-ocultar[aria-expanded="false"]:focus-visible + .dica-filtro,
+.relatorio-unasus.botao-recolher-filtro[aria-expanded="false"]:hover ~ .dica-filtro,
+.relatorio-unasus.botao-recolher-filtro[aria-expanded="false"]:focus-visible ~ .dica-filtro {
   display: block;
 }
 
@@ -1610,4 +1612,52 @@ table.relatorio-unasus.mapa-calor {
 .relatorio-unasus.grupo-exibicao input[type="radio"] {
   margin: 0;
   flex: none;
+}
+
+/*//////////////// Filtro recolhivel (Polos, Cohorts) ////////////////*/
+/* Mesmo idioma do "Filtrar Resultados", um nivel abaixo: o rotulo e' o controle, a seta
+   diz o estado e o `aria-expanded` e' a unica fonte desse estado.
+
+   ⚠️ Continua sendo <button>: dele vem o foco por teclado e o papel anunciado. Aqui so'
+   sai a aparencia de botao. */
+.relatorio-unasus.botao-recolher-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #004E95;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: left;
+}
+
+.relatorio-unasus.botao-recolher-filtro:focus-visible {
+  outline: 2px solid #0072B2;
+  outline-offset: 2px;
+}
+
+.relatorio-unasus.botao-recolher-filtro:hover span {
+  text-decoration: underline;
+}
+
+.relatorio-unasus.botao-recolher-filtro[aria-expanded="true"] .seta-fechada,
+.relatorio-unasus.botao-recolher-filtro[aria-expanded="false"] .seta-aberta {
+  display: none;
+}
+
+/* O corpo (lista + links) fica escondido enquanto recolhido. O seletor le' o estado do
+   botao irmao, entao nao ha um segundo lugar guardando "aberto ou fechado". */
+.relatorio-unasus.botao-recolher-filtro[aria-expanded="false"] ~ .corpo-filtro {
+  display: none;
+}
+
+/* Recolhido, o bloco nao precisa da altura da lista -- senao os filtros ao lado ficariam
+   alinhados a uma caixa vazia. */
+.relatorio-unasus.filtro-colapsavel {
+  align-self: start;
+  /* Referencia de posicionamento da dica deste filtro. Sem isto ela se penduraria no
+     contexto de cima e apareceria longe do rotulo que descreve. */
+  position: relative;
 }

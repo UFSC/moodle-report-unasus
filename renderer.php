@@ -152,6 +152,102 @@ class report_unasus_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Monta um bloco de filtro de selecao multipla, com recolhimento opcional.
+     *
+     * ⚠️ Existe para os quatro filtros nao serem quatro copias do mesmo codigo. Eram seis
+     * blocos praticamente identicos (rotulo, select, "Selecionar Todos / Limpar Selecao"),
+     * e acrescentar recolhimento em cada copia multiplicaria a divergencia.
+     *
+     * @param string $rotulo texto do rotulo, ex.: 'Filtrar Polos'
+     * @param string $id id do <select>, ex.: 'multiple_polo'
+     * @param string $sufixo sufixo dos links de selecao, ex.: 'polo'
+     * @param array $opcoes menu id => nome
+     * @param string $campo nome do campo no POST, ex.: 'polos'
+     * @param array|string $selecionados selecao vinda do formulario
+     * @param bool $colapsavel se ganha a seta de recolher
+     * @param array $ativos rotulos do que esta' selecionado de fato (para o resumo)
+     * @return string
+     */
+    private function build_filtro_lista($rotulo, $id, $sufixo, $opcoes, $campo,
+                                        $selecionados, $colapsavel = false, $ativos = array()) {
+
+        $select = html_writer::select($opcoes, $campo . '[]', $selecionados, false,
+            array('multiple' => 'multiple', 'id' => $id));
+
+        // ⚠️ Os links dizem no `data-alvo` qual select operam, e o JS os pega por CLASSE.
+        //
+        // Antes cada par de links tinha id proprio e o module.js listava um tratador por
+        // id -- quatro pares no codigo, e nenhum para orientacao, que "funcionava" apenas
+        // porque reusava os ids de tutoria. Filtro novo, ou id renomeado, e os links
+        // param de funcionar em silencio: foi o que aconteceu ao separar os dois blocos.
+        //
+        // Os ids continuam sendo emitidos: ha' teste de Behat que clica por id.
+        $links = html_writer::tag('a', 'Selecionar Todos', array(
+                'id' => 'select_all_' . $sufixo,
+                'href' => '#',
+                'class' => 'relatorio-unasus link-selecionar',
+                'data-alvo' => $id,
+                'data-marcar' => '1'))
+            . ' / '
+            . html_writer::tag('a', 'Limpar Seleção', array(
+                'id' => 'select_none_' . $sufixo,
+                'href' => '#',
+                'class' => 'relatorio-unasus link-selecionar',
+                'data-alvo' => $id,
+                'data-marcar' => '0'));
+
+        $corpo_id = 'corpo_' . $id;
+        $corpo = html_writer::tag('div', $select . $links,
+            array('id' => $corpo_id, 'class' => 'relatorio-unasus corpo-filtro'));
+
+        if (!$colapsavel) {
+            return html_writer::tag('div',
+                html_writer::label($rotulo . ':', $id) . $corpo,
+                array('class' => 'relatorio-unasus multiple_list'));
+        }
+
+        // Recolhivel: o rotulo vira o controle, com a mesma seta e o mesmo `aria-expanded`
+        // do "Filtrar Resultados" -- um idioma so' em dois niveis.
+        $seta = $this->pix_icon('t/collapsed', '', 'moodle', array('class' => 'icon seta-filtro seta-fechada'))
+              . $this->pix_icon('t/expanded', '', 'moodle', array('class' => 'icon seta-filtro seta-aberta'));
+
+        $texto = $rotulo;
+        if (!empty($ativos)) {
+            $texto .= ' (' . count($ativos) . ')';
+        }
+
+        // O detalhe da selecao vai para a DICA, nao para a tela: o rotulo mostra so' a
+        // contagem, que e' o sinal de que ha' recorte, e o "quais" aparece no hover ou no
+        // foco. Mesmo arranjo do "Filtrar Resultados", um nivel abaixo.
+        $dica_id = 'dica_' . $id;
+        $dica = '';
+        if (!empty($ativos)) {
+            $itens = '';
+            foreach ($ativos as $rotulo_ativo) {
+                $itens .= html_writer::tag('div', s($rotulo_ativo), array('class' => 'relatorio-unasus dica-linha'));
+            }
+            $dica = html_writer::tag('span', $itens,
+                array('id' => $dica_id, 'role' => 'tooltip', 'class' => 'relatorio-unasus dica-filtro'));
+        }
+
+        $botao = html_writer::tag('button', $seta . html_writer::tag('span', s($texto)), array(
+            'type' => 'button',
+            'class' => 'relatorio-unasus botao-recolher-filtro',
+            'aria-expanded' => 'false',
+            'aria-controls' => $corpo_id,
+            // Sem hover nao ha' dica; o `aria-describedby` entrega o mesmo texto a quem usa
+            // leitor de tela, que e' onde o hover puro deixaria gente de fora.
+            'aria-describedby' => empty($dica) ? null : $dica_id));
+
+        // ⚠️ Botao, dica e corpo sao IRMAOS, e nao aninhados: o CSS esconde o corpo e
+        // mostra a dica lendo o `aria-expanded` do botao pelo seletor de irmao. Envolver o
+        // botao num span quebraria essa relacao e exigiria um segundo lugar guardando o
+        // estado.
+        return html_writer::tag('div', $botao . $dica . $corpo,
+            array('class' => 'relatorio-unasus multiple_list filtro-colapsavel'));
+    }
+
+    /**
      * Lista, em texto, os filtros que estao valendo na tela.
      *
      * ⚠️ Existe porque o filtro ATIVO era invisivel. As selecoes moram dentro do painel
@@ -440,97 +536,107 @@ class report_unasus_renderer extends plugin_renderer_base {
         // Div para os 3 filtros
         $output .= html_writer::start_tag('div', array('id' => 'div-multiple'));
 
-        // Filtro de modulo
+        // ⚠️ ORDEM POR FREQUENCIA DE USO: Modulos e Grupos sao os filtros do dia a dia;
+        // Polos e Cohorts sao ocasionais, vem depois e ja' nascem recolhidos. Antes a
+        // ordem era Modulos, Cohorts, Grupos, Polos -- o mais raro no meio dos mais usados.
+        //
+        // Modulos e Grupos NAO recolhem: recolher o que se usa toda vez so' acrescenta um
+        // clique a cada consulta.
+
+        // ⚠️ A selecao vem da FACTORY, e nao do $_POST.
+        //
+        // O painel lia so' o $_POST, entao um filtro aplicado por URL (link compartilhado,
+        // aba antiga, favorito) chegava aos dados mas nao aparecia marcado na lista: a tela
+        // mostrava um relatorio recortado com os selects em branco.
+        //
+        // Selecao que cobre o conjunto INTEIRO nao e' marcada: a factory preenche
+        // `modulos_selecionados` com todos os modulos quando nada foi escolhido, e marcar
+        // os doze anunciaria um recorte que nao existe. Vazio le'-se "Todos", que e' o que
+        // de fato esta' valendo.
+        $selecao_efetiva = function ($selecionados, $menu) {
+            $selecionados = (array)$selecionados;
+            if (empty($menu) || count($selecionados) >= count($menu)) {
+                return array();
+            }
+            return $selecionados;
+        };
+
+        // Rotulos do que esta' de fato estreitando, para a dica do bloco recolhido.
+        // Mesma regra: selecao que cobre o conjunto inteiro nao e' filtro.
+        $rotulos_ativos = function ($selecionados, $menu) {
+            $selecionados = (array)$selecionados;
+            if (empty($menu) || empty($selecionados) || count($selecionados) >= count($menu)) {
+                return array();
+            }
+            $nomes = array();
+            foreach ($selecionados as $id) {
+                if (isset($menu[$id])) {
+                    $nomes[] = $menu[$id];
+                }
+            }
+            return $nomes;
+        };
+
+        // 1 - Modulos
         if ($report->mostrar_filtro_modulos) {
-            $selecao_modulos_post = array_key_exists('modulos', $_POST) ? $_POST['modulos'] : '';
-            $nome_modulos = report_unasus_get_nome_modulos($report->get_categoria_turma_ufsc());
-            $filter_modulos = html_writer::label('Filtrar Modulos:', 'multiple_modulo');
-            $filter_modulos .= html_writer::select($nome_modulos, 'modulos[]', $selecao_modulos_post, '', array('multiple' => 'multiple', 'id' => 'multiple_modulo'));
-            $modulos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_modulo', 'href' => '#'));
-            $modulos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_modulo', 'href' => '#'));
-            $output .= html_writer::tag('div', $filter_modulos . $modulos_all . ' / ' . $modulos_none, array('class' => 'relatorio-unasus multiple_list'));
+            $menu = report_unasus_get_nome_modulos($report->get_categoria_turma_ufsc());
+            $selecao = $selecao_efetiva($report->modulos_selecionados, $menu);
+            $output .= $this->build_filtro_lista('Filtrar Modulos', 'multiple_modulo', 'modulo',
+                $menu, 'modulos', $selecao);
         }
 
         if (has_capability('report/unasus:view_all', $report->get_context())) {
 
-            if ($report->mostrar_filtro_cohorts) {
-                // Filtro de Cohorts
-                //
-                // ⚠️ So' sai quando ha' cohort para escolher, como ja' acontecia com os
-                // polos logo abaixo. Numa turma cujos cohorts vivem em outra categoria a
-                // consulta devolve nada, e o que ia para a tela era uma caixa de selecao
-                // vazia com "Selecionar Todos / Limpar Selecao" ao lado: um controle que
-                // ocupa espaco, sugere um recorte possivel e nao faz coisa alguma.
-                $db_cohorts = report_unasus_get_nomes_cohorts($report->get_categoria_curso_ufsc());
-                if (!empty($db_cohorts)) {
-                    $selecao_cohorts_post = array_key_exists('cohorts', $_POST) ? $_POST['cohorts'] : '';
-                    $filter_cohorts = html_writer::label('Filtrar Cohorts:', 'multiple_cohort');
-                    $filter_cohorts .= html_writer::select($db_cohorts, 'cohorts[]', $selecao_cohorts_post, false, array('multiple' => 'multiple', 'id' => 'multiple_cohort'));
-                    $cohorts_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_cohort', 'href' => '#'));
-                    $cohorts_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_cohort', 'href' => '#'));
-                    $output .= html_writer::tag('div', $filter_cohorts . $cohorts_all . ' / ' . $cohorts_none, array('class' => 'relatorio-unasus multiple_list'));
-                }
-            }
-
-            // ⚠️ Aqui havia um `<div class="clear">` separando os cohorts dos grupos.
-            // Sendo bloco, ele quebrava a linha SEMPRE -- inclusive quando o filtro de
-            // cohorts nem sai da tela -- e os filtros seguintes empilhavam um embaixo do
-            // outro, deixando meia largura vazia ao lado. Quem organiza a fila agora e' o
-            // flex do `#div-multiple`, que preenche o espaco e quebra so' quando falta.
-            //
-            // A classe `clear` tambem nao tinha regra nenhuma no styles.css: quem
-            // quebrava a linha era o elemento ser bloco, e nao um float sendo limpo.
-
+            // 2 - Grupos, de tutoria ou de orientacao conforme o relatorio
             if ($report->mostrar_filtro_grupo_tutoria) {
-                // Filtro de Tutores
-                $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
-                $filter_tutores = html_writer::label('Filtrar Grupos de Tutoria:', 'multiple_tutor');
-                $filter_tutores .= html_writer::select(local_tutores_grupos_tutoria::get_grupos_tutoria_menu($report->get_categoria_turma_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-                $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
-                $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'relatorio-unasus multiple_list'));
+                $menu = local_tutores_grupos_tutoria::get_grupos_tutoria_menu($report->get_categoria_turma_ufsc());
+                $selecao = $selecao_efetiva($report->tutores_selecionados, $menu);
+                $output .= $this->build_filtro_lista('Filtrar Grupos de Tutoria', 'multiple_tutor', 'tutor',
+                    $menu, 'tutores', $selecao);
             } elseif ($report->mostrar_filtro_tutores) {
-                // Filtro de Tutores
-                $selecao_tutores_post = array_key_exists('tutores', $_POST) ? $_POST['tutores'] : '';
-                $filter_tutores = html_writer::label('Filtrar Tutores:', 'multiple_tutor');
-                $filter_tutores .= html_writer::select(local_tutores_grupos_tutoria::get_tutores($report->get_categoria_turma_ufsc()), 'tutores[]', $selecao_tutores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-                $tutores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
-                $tutores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_tutores . $tutores_all . ' / ' . $tutores_none, array('class' => 'relatorio-unasus multiple_list'));
+                $menu = local_tutores_grupos_tutoria::get_tutores($report->get_categoria_turma_ufsc());
+                $selecao = $selecao_efetiva($report->tutores_selecionados, $menu);
+                $output .= $this->build_filtro_lista('Filtrar Tutores', 'multiple_tutor', 'tutor',
+                    $menu, 'tutores', $selecao);
             }
 
             if ($report->mostrar_filtro_grupos_orientacao) {
-                // Filtro de Grupos de Orientação
-                $selecao_orientadores_post = array_key_exists('orientadores', $_POST) ? $_POST['orientadores'] : '';
-                $filter_orientadores = html_writer::label('Filtrar Grupos de Orientação:', 'multiple_tutor');
-                $filter_orientadores .= html_writer::select(local_tutores_grupo_orientacao::get_orientadores_grupos($report->get_categoria_turma_ufsc()), 'orientadores[]', $selecao_orientadores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-                $orientadores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
-                $orientadores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_orientadores . $orientadores_all . ' / ' . $orientadores_none, array('class' => 'relatorio-unasus multiple_list'));
-
+                $menu = local_tutores_grupo_orientacao::get_orientadores_grupos($report->get_categoria_turma_ufsc());
+                $selecao = $selecao_efetiva($report->orientadores_selecionados, $menu);
+                $output .= $this->build_filtro_lista('Filtrar Grupos de Orientação', 'multiple_orientador', 'orientador',
+                    $menu, 'orientadores', $selecao);
             } elseif ($report->mostrar_filtro_orientadores) {
-                // Filtro de Orientadores
-                $selecao_orientadores_post = array_key_exists('orientadores', $_POST) ? $_POST['orientadores'] : '';
-                $filter_orientadores = html_writer::label('Filtrar Orientadores:', 'multiple_tutor');
-                $filter_orientadores .= html_writer::select(local_tutores_grupo_orientacao::get_orientadores($report->get_categoria_turma_ufsc()), 'orientadores[]', $selecao_orientadores_post, false, array('multiple' => 'multiple', 'id' => 'multiple_tutor'));
-                $orientadores_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_tutor', 'href' => '#'));
-                $orientadores_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_tutor', 'href' => '#'));
-                $output .= html_writer::tag('div', $filter_orientadores . $orientadores_all . ' / ' . $orientadores_none, array('class' => 'relatorio-unasus multiple_list'));
+                $menu = local_tutores_grupo_orientacao::get_orientadores($report->get_categoria_turma_ufsc());
+                $selecao = $selecao_efetiva($report->orientadores_selecionados, $menu);
+                $output .= $this->build_filtro_lista('Filtrar Orientadores', 'multiple_orientador', 'orientador',
+                    $menu, 'orientadores', $selecao);
             }
 
+            // 3 - Polos, recolhido
             if ($report->mostrar_filtro_polos) {
-                // Filtro de Polo
-                $selecao_polos_post = array_key_exists('polos', $_POST) ? $_POST['polos'] : '';
-                $db_polos = report_unasus_get_polos($report->get_categoria_turma_ufsc());
-                if (!empty($db_polos)) {
-                    $filter_polos = html_writer::label('Filtrar Polos:', 'multiple_polo');
-                    $filter_polos .= html_writer::select($db_polos, 'polos[]', $selecao_polos_post, false, array('multiple' => 'multiple', 'id' => 'multiple_polo'));
-                    $polos_all = html_writer::tag('a', 'Selecionar Todos', array('id' => 'select_all_polo', 'href' => '#'));
-                    $polos_none = html_writer::tag('a', 'Limpar Seleção', array('id' => 'select_none_polo', 'href' => '#'));
-                    $output .= html_writer::tag('div', $filter_polos . $polos_all . ' / ' . $polos_none, array('class' => 'relatorio-unasus multiple_list'));
+                $menu = report_unasus_get_polos($report->get_categoria_turma_ufsc());
+                if (!empty($menu)) {
+                    $selecao = $selecao_efetiva($report->polos_selecionados, $menu);
+                    $output .= $this->build_filtro_lista('Filtrar Polos', 'multiple_polo', 'polo',
+                        $menu, 'polos', $selecao, true,
+                        $rotulos_ativos($report->polos_selecionados, $menu));
                 }
             }
 
+            // 4 - Cohorts, recolhido
+            //
+            // ⚠️ So' sai quando ha' cohort para escolher. Numa turma cujos cohorts vivem em
+            // outra categoria a consulta devolve nada, e o que ia para a tela era uma caixa
+            // de selecao vazia: ocupa espaco, sugere um recorte possivel e nao faz nada.
+            if ($report->mostrar_filtro_cohorts) {
+                $menu = report_unasus_get_nomes_cohorts($report->get_categoria_curso_ufsc());
+                if (!empty($menu)) {
+                    $selecao = $selecao_efetiva($report->cohorts_selecionados, $menu);
+                    $output .= $this->build_filtro_lista('Filtrar Cohorts', 'multiple_cohort', 'cohort',
+                        $menu, 'cohorts', $selecao, true,
+                        $rotulos_ativos($report->cohorts_selecionados, $menu));
+                }
+            }
         }
 
         if ($report->mostrar_filtro_intervalo_tempo) {
