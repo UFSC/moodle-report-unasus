@@ -183,44 +183,44 @@ EOD;
     /**
      * Adiciona uma tag no relationship.
      *
+     * ⚠️ Pela API do core, e nao com INSERT montado a mao.
+     *
+     * A versao anterior inseria direto em {tag} e {tag_instance} com um registro escrito
+     * a' mao, e o registro era de um schema antigo: nao trazia `tagcollid` (NOT NULL, sem
+     * default), mandava `tagtype`, coluna que nao existe mais, e punha `component` como
+     * null. Sob MySQL 8 com STRICT_TRANS_TABLES isso e' erro fatal:
+     *
+     *     Field 'tagcollid' doesn't have a default value
+     *
+     * e derrubava os 8 cenarios da suite logo no passo de montagem. Em MySQL 5.6, sem o
+     * modo estrito, o `tagcollid` virava 0 em silencio -- a tag nascia numa colecao
+     * inexistente e o teste passava por acidente.
+     *
+     * `add_item_tag` resolve a colecao, o componente e o contexto sozinho, entao o teste
+     * acompanha o schema sem precisar saber dele.
+     *
+     * ⚠️ E' `add_item_tag`, NAO `set_item_tags`. O `set` define o conjunto COMPLETO de
+     * tags do item e APAGA as que nao estiverem na lista ("all tags that aren't in the
+     * requested tags should be deleted", tag/classes/tag.php). Os features de TCC chamam
+     * este passo DEPOIS de `a basic unasus tutoria environment exists`, que ja' marcou o
+     * mesmo relationship com `grupo_tutoria`; com `set`, essa tag sumia e o relatorio
+     * caia na tela "Nao foi configurado o Relacionamento de Tutoria" -- sem tabela, e
+     * portanto sem nenhum dos nomes que os cenarios procuram. O INSERT manual que este
+     * metodo substituiu ACRESCENTAVA, e era essa a semantica a preservar.
+     *
      * @Given /^instance the tag "([^"]*)" at relationship "([^"]*)"$/
      */
     public function instance_the_tag_at_relationship($tag, $relationship) {
         global $DB;
 
-        $adminid = $DB->get_field('user', 'id', array('username' => 'admin'), MUST_EXIST);
+        $rl = $DB->get_record('relationship', array('name' => $relationship), 'id, contextid', MUST_EXIST);
 
-        $record = new stdClass();
-        $record->userid = $adminid;
-        $record->name = $tag;
-        $record->rawname = $tag;
-        $record->tagtype = 'default';
-        $record->description = null;
-        $record->descriptionformat = 0;
-        $record->flag = 0;
-        $record->timemodified = time();
-
-        $DB->insert_record('tag', $record);
-
-        $sql = "SELECT tag.id as tagid, relationship.id as relationshipid
-                FROM {tag} tag, {relationship} relationship
-                WHERE tag.name = :tag
-                  AND relationship.name = :relationship";
-
-        $id = $DB->get_record_sql($sql, array('tag' => $tag, 'relationship' => $relationship));
-
-        $record2 = new stdClass();
-        $record2->tagid = $id->tagid;
-        $record2->component = null;
-        $record2->itemtype = 'relationship';
-        $record2->itemid = $id->relationshipid;
-        $record2->contextid = null;
-        $record2->tiuserid = 0;
-        $record2->ordering = 0;
-        $record2->timecreated = time();
-        $record2->timemodified = time();
-
-        $DB->insert_record('tag_instance', $record2);
+        core_tag_tag::add_item_tag(
+            'local_relationship',
+            'relationship',
+            $rl->id,
+            context::instance_by_id($rl->contextid),
+            $tag);
     }
 
     /**
