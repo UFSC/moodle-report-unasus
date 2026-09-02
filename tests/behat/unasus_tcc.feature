@@ -154,10 +154,7 @@ Background:
       | student2 | 1                | null   |            |
       | student2 | 2                | null   |            |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_entrega_atividades" directly for course "c1"
     And I press "Gerar relatório"
     # CSS class cobre todos os estados: avaliado, revisao, rascunho, nao_aplicado.
     Then the unasus report table cell at row "Student s1" and column "Resumo" should have css class "avaliado"
@@ -176,10 +173,7 @@ Background:
       | student2 | 1                | null  |            |
       | student2 | 2                | null  |            |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: Atividades concluídas" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_concluido" directly for course "c1"
     And I press "Gerar relatório"
     # CSS class: dois capítulos concluidos e um nao_concluido para student1; student2 sem dados.
     Then the unasus report table cell at row "Student s1" and column "Resumo" should have css class "concluido"
@@ -204,10 +198,7 @@ Background:
       | student4 | 1                | null  |            |
       | student4 | 2                | null  |            |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: TCCs Consolidados" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_consolidado" directly for course "c1"
     And I press "Gerar relatório"
     Then I should see "Resumo"
     And I should see "Capítulo 1"
@@ -247,8 +238,7 @@ Background:
       | student5 | 0                | done  | 2024-01-01 |
       | student9 | 0                | done  | 2024-01-01 |
     And I log in as "teacher1"
-    And I follow "Course1"
-    And I navigate to "<reportnode>" node in "Reports > UNA-SUS"
+    And I open the unasus report "<report>" directly for course "c1"
     And I press "Gerar relatório"
     Then I should see "Student s1"
     And I should see "Student s2"
@@ -257,9 +247,9 @@ Background:
     And I log out
 
     Examples:
-      | reportnode                   |
-      | TCC: Entrega de Atividades   |
-      | TCC: Atividades concluídas   |
+      | report                 |
+      | tcc_entrega_atividades |
+      | tcc_concluido          |
 
   @javascript @tcc_borda
   Scenario: tcc_borda - webservice indisponivel exibe relatorio sem capitulos TCC
@@ -268,10 +258,7 @@ Background:
     # The report must load without fatal errors and show no chapter columns.
     And the TCC webservice definition endpoint fails
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_entrega_atividades" directly for course "c1"
     And I press "Gerar relatório"
     Then I should not see "Capítulo 1"
     And I should not see "Fatal error"

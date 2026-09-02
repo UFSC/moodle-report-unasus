@@ -163,10 +163,7 @@ Background:
       | student9 | 0                | done   | 2024-01-01 |
       | student9 | 1                | review | 2024-01-20 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_entrega_atividades" directly for course "c1"
     And I press "Gerar relatório"
     # Sob singular wrapper de orientador, only students do primeiro advisor cohort apareceriam.
     # Asserções de presença e CSS state cobrem o pipeline orientador cohort → grupo → estudante.
@@ -188,10 +185,7 @@ Background:
       | student9 | 0                | done  | 2024-01-01 |
       | student9 | 1                | done  | 2024-01-10 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: Atividades concluídas" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_concluido" directly for course "c1"
     And I press "Gerar relatório"
     # Cada estudante representativo de seu advisor cohort tem Resumo + Capítulo 1 concluídos.
     Then the unasus report table cell at row "Student s1" and column "Resumo" should have css class "concluido"
@@ -217,10 +211,7 @@ Background:
       | student5 | 2                | done   | 2024-01-15 |
       | student5 | 3                | done   | 2024-01-20 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: Entrega de Atividades" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_entrega_atividades" directly for course "c1"
     And I press "Gerar relatório"
     # Asserção principal: número de células no body row deve casar com o header.
     # Definição tem 2 capítulos (header = Estudante + Resumo + Capítulo 1 + Capítulo 2 = 4 colunas).
@@ -239,10 +230,7 @@ Background:
       | student9 | 0                | done  | 2024-01-01 |
       | student9 | 1                | done  | 2024-01-10 |
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "TCC: TCCs Consolidados" node in "Reports > UNA-SUS"
+    And I open the unasus report "tcc_consolidado" directly for course "c1"
     And I press "Gerar relatório"
     # tcc_consolidado é um relatório de síntese — verificamos que as colunas existem e
     # que os 3 grupos de orientação (um por cohort/role de advisor) aparecem.

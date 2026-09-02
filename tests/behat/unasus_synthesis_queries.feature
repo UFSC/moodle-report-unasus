@@ -18,10 +18,7 @@ Background:
     And I mark activity "d1" as complete for user "student1"
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "Síntese: atividades concluídas" node in "Reports > UNA-SUS"
+    And I open the unasus report "atividades_nota_atribuida" directly for course "c1"
     And I press "Gerar relatório"
 
     # Contrato: total inclui todos os 12 estudantes, não apenas os com registro de data

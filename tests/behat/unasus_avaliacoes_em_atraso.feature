@@ -22,10 +22,7 @@ Background:
 Scenario: avaliacoes_em_atraso - sintese de avaliacoes pendentes
     And I set the grade of activity "a4" for user "student1" to "90"
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "Síntese: avaliações em atraso" node in "Reports > UNA-SUS"
+    And I open the unasus report "avaliacoes_em_atraso" directly for course "c1"
     And I press "Gerar relatório"
 
     # Teacher t1 tem atividades enviadas por seus estudantes e ainda sem avaliacao.

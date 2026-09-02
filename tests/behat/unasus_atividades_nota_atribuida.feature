@@ -29,10 +29,7 @@ Background:
     And I mark activity "a1" as complete for user "student6"
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "Síntese: atividades concluídas" node in "Reports > UNA-SUS"
+    And I open the unasus report "atividades_nota_atribuida" directly for course "c1"
     And I press "Gerar relatório"
 
     Then the unasus report table should have "2/4 50.0%" at row "Teacher t1" and column "Test assignment one"

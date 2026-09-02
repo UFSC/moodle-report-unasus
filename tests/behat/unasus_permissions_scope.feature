@@ -107,8 +107,7 @@ Background:
   @javascript @escopo_tutor
   Scenario: tutor_scope - tutor ve apenas estudantes do seu grupo
     And I log in as "teacher1"
-    And I follow "Course1"
-    And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
+    And I open the unasus report "estudante_sem_atividade_postada" directly for course "c1"
     And I press "Gerar relatório"
     # teacher1 pertence ao group1: deve ver seus estudantes (s1–s4)
     Then I should see "Student s1"
@@ -119,8 +118,7 @@ Background:
   @javascript @escopo_tutor
   Scenario: tutor_scope - tutor com grupo sem estudantes nao causa erro
     And I log in as "teacher3"
-    And I follow "Course1"
-    And I navigate to "Lista: atividades não postadas e sem nota" node in "Reports > UNA-SUS"
+    And I open the unasus report "estudante_sem_atividade_postada" directly for course "c1"
     And I press "Gerar relatório"
     # relationship_group3 nao tem estudantes — relatório deve carregar sem erro
     Then I should not see "Student"

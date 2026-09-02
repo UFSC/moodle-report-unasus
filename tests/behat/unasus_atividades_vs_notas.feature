@@ -53,10 +53,7 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     And I set the grade date of activity "a7" for user "student3" to "0" days after submission
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
+    And I open the unasus report "atividades_vs_notas" directly for course "c1"
     And I press "Gerar relatório"
 #    And I take a screenshot
 
@@ -99,10 +96,7 @@ Scenario: atividades_vs_notas - estados de entrega e nota
     And I set the grade of activity "a4" for user "student1" to "90"
     And I set the grade date of activity "a4" for user "student1" to "1" days after submission
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
+    And I open the unasus report "atividades_vs_notas" directly for course "c1"
     And I press "Gerar relatório"
     # prazo=0: 1 dia após submissão > 0 → nota_atribuida_atraso
     Then the unasus report table cell at row "Student s1" and column "Test assignment four" should have css class "nota_atribuida_atraso"

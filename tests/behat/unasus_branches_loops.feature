@@ -21,10 +21,7 @@ Background:
     And I unenrol user "student12" from course "c1"
 
     And I log in as "admin"
-    And I follow "Courses"
-    And I follow "Category 1"
-    And I follow "Course1"
-    And I navigate to "Acompanhamento: atribuição de notas" node in "Reports > UNA-SUS"
+    And I open the unasus report "atividades_vs_notas" directly for course "c1"
     And I press "Gerar relatório"
 
     # Contrato 1: student12 desmatriculado é filtrado e NÃO aparece no relatório.

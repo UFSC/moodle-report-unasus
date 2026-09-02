@@ -93,8 +93,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor com período fixo mostra tutores e colunas de média e total
     And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    And I open the unasus report "uso_sistema_tutor" directly for course "c1"
     And I set the field "data_inicio" to "09/03/2026"
     And I set the field "data_fim" to "22/03/2026"
     And I press "Gerar relatório"
@@ -125,8 +124,7 @@ Background:
       | tutor2   | c1     | 1774180800 | login   |
       | tutor2   | c1     | 1774182000 | logout  |
     And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    And I open the unasus report "uso_sistema_tutor" directly for course "c1"
     And I set the field "data_inicio" to "09/03/2026"
     And I set the field "data_fim" to "22/03/2026"
     And I press "Gerar relatório"
@@ -151,8 +149,7 @@ Background:
       | tutor1   | c1     | 1774224060 | viewed  |
       | tutor1   | c1     | 1774224240 | updated |
     And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    And I open the unasus report "uso_sistema_tutor" directly for course "c1"
     And I set the field "data_inicio" to "22/03/2026"
     And I set the field "data_fim" to "23/03/2026"
     And I press "Gerar relatório"
@@ -164,8 +161,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor não mostra dia de abril quando o período é março de 2026
     And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    And I open the unasus report "uso_sistema_tutor" directly for course "c1"
     And I set the field "data_inicio" to "01/03/2026"
     And I set the field "data_fim" to "31/03/2026"
     And I press "Gerar relatório"
@@ -176,7 +172,16 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: usuário sem view_all não visualiza relatório restrito uso_sistema_tutor
     And I log in as "tutor1"
-    And I follow "Course1"
+    # ⚠️ A checagem e' contra o INDICE, e nao contra a pagina inicial do curso.
+    #
+    # A versao anterior fazia `I follow "Course1"` e negava o texto ali. No 4.5 os itens do
+    # menu do curso vivem num dropdown: nao estando no DOM antes de alguem abri-lo, a
+    # negativa passava sem provar nada -- verde por ausencia de renderizacao, e nao por
+    # ausencia de permissao. O indice lista SO' o que o usuario pode ver, entao negar o
+    # texto aqui exercita a regra de capability de verdade.
+    And I am on "Course1" course homepage
+    And I navigate to "Reports" in current page administration
+    And I click on "UNA-SUS" "link" in the "region-main" "region"
     Then I should not see "Uso do sistema pelo tutor (horas)"
 
   @javascript @uso_sistema_tutor
@@ -186,8 +191,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe aviso para formato de data inválido
     And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    And I open the unasus report "uso_sistema_tutor" directly for course "c1"
     And I set the field "data_inicio" to "2026-03-01"
     And I set the field "data_fim" to "31/03/2026"
     And I press "Gerar relatório"
@@ -196,8 +200,7 @@ Background:
   @javascript @uso_sistema_tutor
   Scenario: uso_sistema_tutor exibe opção de exportar CSV para usuário com view_all
     And I log in as "manager1"
-    And I follow "Course1"
-    And I navigate to "Uso do sistema pelo tutor (horas)" node in "Reports > UNA-SUS"
+    And I open the unasus report "uso_sistema_tutor" directly for course "c1"
     Then I should see "Exportar para CSV"
 
   @uso_sistema_tutor @csv
