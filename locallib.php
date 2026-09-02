@@ -1557,3 +1557,53 @@ function report_unasus_get_activities_config_report($courses) {
 
     return $DB->get_records_sql_menu($query);
 }
+
+/**
+ * Procura mais de um Relacionamento com a mesma tag na subarvore de uma categoria.
+ *
+ * ⚠️ SUBARVORE, e nao caminho de ancestrais. O local_tutores procura os relacionamentos
+ * na categoria da turma "e abaixo dela" (`cc.path LIKE '%/$cat/%'`, em lib.php), entao um
+ * relacionamento numa categoria FILHA entra na conta. Foi por isso que a primeira versao
+ * desta funcao nao viu o conflito: procurando so' nos ancestrais, o curso da categoria 1
+ * nao enxergava o relacionamento da categoria 4, que passou a ser filha dela.
+ *
+ * Serve ao AVISO, e nao a' regra: quem decide continua sendo o local_tutores. O que se
+ * ganha aqui e' poder dizer QUAIS relacionamentos e em quais categorias -- que e' o que
+ * falta na mensagem original para alguem poder agir.
+ *
+ * @param int $categoria id da categoria (em geral a da turma)
+ * @return array conflitos por tag, cada um com os relacionamentos encontrados
+ */
+function report_unasus_relacionamentos_em_conflito($categoria) {
+    global $DB;
+
+    if (empty($categoria)) {
+        return array();
+    }
+
+    $sql = "SELECT r.id, r.name AS relacionamento, t.name AS tag, cc.name AS categoria
+              FROM {relationship} r
+              JOIN {context} ctx ON (ctx.id = r.contextid AND ctx.contextlevel = :contextlevel)
+              JOIN {course_categories} cc ON (cc.id = ctx.instanceid)
+              JOIN {tag_instance} ti ON (ti.itemid = r.id AND ti.itemtype = 'relationship')
+              JOIN {tag} t ON (t.id = ti.tagid)
+             WHERE (cc.path LIKE :propria OR cc.path LIKE :descendentes)
+               AND t.name IN ('grupo_tutoria', 'grupo_orientacao')
+          ORDER BY t.name, cc.name";
+
+    $params = array(
+        'contextlevel' => CONTEXT_COURSECAT,
+        'propria' => '%/' . $categoria,
+        'descendentes' => '%/' . $categoria . '/%');
+
+    $por_tag = array();
+    foreach ($DB->get_records_sql($sql, $params) as $linha) {
+        $por_tag[$linha->tag][] = $linha;
+    }
+
+    // Tutoria e orientacao convivem na mesma categoria sem problema -- e' o arranjo normal
+    // de um curso com TCC. Conflito e' mais de um da MESMA tag.
+    return array_filter($por_tag, function ($linhas) {
+        return count($linhas) > 1;
+    });
+}
