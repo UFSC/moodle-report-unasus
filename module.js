@@ -28,41 +28,75 @@ M.report_unasus.init = function(Y) {
             $filter_div.removeClass('hidden');
         }
     }, document, '#button-mostrar-filtro');
-
-    //Botoes de selecionar todos e limpar seleção
+    // Botoes de selecionar todos e limpar selecao.
+    //
+    // Todos cancelam o evento: os links sao <a href="#"> e, sem `preventDefault`, o
+    // clique salta para o topo da pagina e ainda suja a URL com um "#".
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_cohort', true);
     }, document, '#select_all_cohort');
     
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_cohort', false);
     }, document, '#select_none_cohort');
     
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_modulo', true);
     }, document, '#select_all_modulo');
 
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_modulo', false);
     }, document, '#select_none_modulo');
 
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_polo', true);
     }, document, '#select_all_polo');
 
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_polo', false);
     }, document, '#select_none_polo');
 
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_tutor', true);
     }, document, '#select_all_tutor');
 
     Y.delegate('click', function(e) {
+        e.preventDefault();
         select_all('#multiple_tutor', false);
     }, document, '#select_none_tutor');
 
 };
+
+/**
+ * Marca ou desmarca todas as opcoes de um <select multiple>.
+ *
+ * ⚠️ Esta funcao era CHAMADA em oito lugares e nao existia em lugar nenhum -- nem aqui,
+ * nem no core do Moodle (la' os nomes sao `select_all_in_element_with_id` e
+ * `select_all_in`). Os links "Selecionar Todos" e "Limpar Selecao" estouravam um
+ * ReferenceError no console e nao faziam nada; conferido no ar: 0 de 22 opcoes marcadas
+ * depois do clique.
+ *
+ * @param {String} seletor seletor CSS do <select>
+ * @param {Boolean} selecionar true para marcar todas, false para limpar
+ */
+function select_all(seletor, selecionar) {
+    var select = document.querySelector(seletor);
+
+    if (!select) {
+        return;
+    }
+
+    for (var i = 0; i < select.options.length; i++) {
+        select.options[i].selected = selecionar;
+    }
+}
 
 /**
  * @param obj array(array())
