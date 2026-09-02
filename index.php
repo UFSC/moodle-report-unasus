@@ -192,6 +192,29 @@ if (in_array($report->get_relatorio(), report_unasus_relatorios_restritos_list()
     require_capability('report/unasus:view_all', $report->get_context());
 }
 
+// ⚠️ AVISO DE MOCK ATIVO.
+//
+// O cliente do Sistema de TCC (sistematcc.php) devolve o conteudo da config
+// `report_unasus/behat_tcc_mock_<endpoint>` em vez de chamar o web service, e isso NAO e'
+// limitado ao Behat: enquanto a config existir, os dados de TCC na tela sao sinteticos --
+// inclusive para estudantes reais, e sem nenhum sinal proprio.
+//
+// Sob Behat o aviso e' suprimido: la' o mock e' ligado de proposito pelo teste, e um
+// aviso a mais na pagina atrapalha as assercoes.
+if (!defined('BEHAT_SITE_RUNNING')) {
+    $mocks_ativos = $DB->count_records_select('config_plugins',
+        "plugin = :plugin AND " . $DB->sql_like('name', ':nome'),
+        array('plugin' => 'report_unasus', 'nome' => 'behat_tcc_mock_%'));
+
+    if ($mocks_ativos > 0) {
+        \core\notification::add(
+            'Dados do Sistema de TCC vindos de MOCK, não do web service. ' .
+            'Para desligar, remova a configuração ' .
+            '<code>report_unasus / behat_tcc_mock_*</code>.',
+            \core\output\notification::NOTIFY_WARNING);
+    }
+}
+
 // Configurações da pagina HTML
 $PAGE->set_url('/report/unasus/index.php', $report->get_page_params());
 $PAGE->set_pagelayout('report');
