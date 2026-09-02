@@ -136,10 +136,61 @@ Coverage scope: `has_deadline`, `has_submission()`, `has_grouping()`, invalid co
 
 Notes:
 - Reads both `.env` (plugin) and `../../../../.env` (root Moodle).
-- Manages Selenium container; pinned to `selenium/standalone-chrome:3.141.59-selenium` (Chrome 75 + chromedriver 75) — auto-recreates on image mismatch. Adds `/etc/hosts` for `$URL_NAME` inside both containers.
+- Manages Selenium container; image comes from `SELENIUM_IMAGE` no `.env` (o ambiente php83/Moodle 4.5 usa `selenium/standalone-chrome:4.27.0`; o default do script segue `3.141.59-selenium`, para ambientes antigos). Recria o container quando a imagem **ou o número de slots de sessão** muda. Adds `/etc/hosts` for `$URL_NAME` inside both containers.
 - Requires user in the `docker` group (`sudo usermod -aG docker $USER` + new shell). No `sudo` calls in the scripts.
 - **Requires patch in `vendor/behat/mink-selenium2-driver/.../Selenium2Driver.php::setDesiredCapabilities()`** to force OSS WebDriver dialect (`chromeOptions.w3c=false`) — without this, the entire stack returns null elements. Re-apply if Composer ever rewrites `vendor/`. See "Etapa 3" in [NOTES.md](NOTES.md) for full diagnosis history.
 - Full reference of feature files, scenarios, and known limitations: [TESTS.md](TESTS.md).
+
+#### Execução paralela
+
+Reduz a suíte de **37m55s para 12m19s** com 6 workers (medido em 03/09/2026, 100/100
+cenários). O Moodle instala um site por worker (`behatrunN`, com dataroot e prefixo
+próprios) e distribui as features.
+
+```bash
+# .env do plugin
+BEHAT_PARALLEL=6
+SELENIUM_MAX_SESSIONS=6      # >= BEHAT_PARALLEL
+SELENIUM_SHM_SIZE=4g
+```
+
+⚠️ **Duas configurações são obrigatórias, e a falta de cada uma produz um erro que parece
+defeito de teste e não é.**
+
+**1. Um slot de sessão do Selenium por worker.** A imagem `standalone-chrome` sobe com
+`SE_NODE_MAX_SESSIONS=1`. Com mais workers do que slots, os excedentes ficam na fila até
+estourar 180s:
+
+```
+Could not open connection ... Operation timed out after 180002 milliseconds
+```
+
+Vale até em execução sequencial: com um slot só, qualquer sessão vazada bloqueia a
+próxima até expirar. O `run_behat.sh` cuida disso a partir de `SELENIUM_MAX_SESSIONS`, e
+**recria o container quando o número de slots muda** — sem isso, subir `BEHAT_PARALLEL` no
+`.env` não surtiria efeito nenhum, porque o container é reaproveitado entre execuções.
+
+**2. `$CFG->behat_increasetimeout` no `config.php` do Moodle.**
+
+```php
+$CFG->behat_increasetimeout = 3;   // dentro do bloco Behat do config.php
+```
+
+⚠️ **Este ajuste mora no repositório do CORE, não neste plugin** — então clonar o plugin e
+rodar em paralelo não o traz junto. Sem ele, 6 Chromes e 6 sites dividindo a máquina
+estouram o limite padrão de 10s e a suíte cai com 15 falhas, todas com a mesma mensagem:
+
+```
+Javascript code and/or AJAX requests are not ready after 10 seconds
+```
+
+A assinatura que distingue contenção de recurso de defeito real é essa: **a mesma
+mensagem, nos seis workers**. Defeito de teste ou dependência entre cenários daria falhas
+heterogêneas, ligadas a dado ou estado.
+
+Na primeira execução com um novo N, o Moodle reinstala os sites (demorado) e o
+balanceamento é por quantidade de features, não por custo — o `BEHAT_FEATURE_TIMING_FILE`
+só existe a partir da segunda. Comparar tempos usando a primeira rodada subestima o ganho.
 
 ## Behat Validation Policy
 
