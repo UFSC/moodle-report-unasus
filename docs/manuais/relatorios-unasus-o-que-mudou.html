@@ -1,0 +1,1173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatórios UNA-SUS — o que mudou</title>
+<style>
+/* ---------------------------------------------------------------------------
+   Paleta Okabe-Ito (segura para daltonismo). Cor NUNCA e' o unico canal:
+   todo estado carrega tambem icone, rotulo ou posicao.
+   --------------------------------------------------------------------------- */
+:root{
+  --azul:#0072B2; --azul-ceu:#56B4E9; --verde:#009E73; --laranja:#E69F00;
+  --vermelho:#D55E00; --rosa:#CC79A7; --amarelo:#F0E442; --preto:#000000;
+  --tinta:#1a1a1a; --tinta-fraca:#4a4a4a; --linha:#c9c9c9; --fundo-caixa:#f4f4f2;
+}
+*{box-sizing:border-box}
+html{font-size:10pt}
+body{
+  font-family:"DejaVu Serif",Georgia,"Times New Roman",serif;
+  color:var(--tinta); line-height:1.42; margin:0; background:#fff;
+}
+.pagina{max-width:19cm;margin:0 auto;padding:1.2cm 1.4cm}
+
+h1,h2,h3,h4{font-family:"DejaVu Sans",Arial,Helvetica,sans-serif;line-height:1.25}
+h1{font-size:26pt;margin:0 0 .2em}
+h2{font-size:17pt;margin:0 0 .1em;color:var(--azul)}
+h3{font-size:13.5pt;margin:1.6em 0 .4em}
+h4{font-size:11.5pt;margin:1.1em 0 .3em}
+p{margin:.35em 0}
+ol,ul{margin:.4em 0 .4em 1.4em;padding:0}
+li{margin:.18em 0}
+code,kbd{font-family:"DejaVu Sans Mono",Consolas,monospace;font-size:.9em;
+  background:#eee;padding:.05em .3em;border-radius:3px}
+kbd{border:1px solid var(--linha);background:#fff}
+strong{font-weight:700}
+a{color:var(--azul)}
+
+/* ---- capa ---- */
+.capa{border-bottom:6px solid var(--azul);padding-bottom:1.2em;margin-bottom:1.4em}
+.capa .sub{font-family:"DejaVu Sans",Arial,sans-serif;font-size:13pt;color:var(--tinta-fraca);margin:.2em 0 0}
+.capa .meta{font-family:"DejaVu Sans",Arial,sans-serif;font-size:9.5pt;color:var(--tinta-fraca);margin-top:1em}
+
+/* ---- caixas de apoio ---- */
+.caixa{border:1px solid var(--linha);border-left-width:6px;background:var(--fundo-caixa);
+  padding:.55em .8em;margin:.7em 0;page-break-inside:avoid}
+.caixa h4{margin-top:0}
+.caixa--atencao{border-left-color:var(--laranja)}
+.caixa--info{border-left-color:var(--azul-ceu)}
+.caixa--parada{border-left-color:var(--vermelho)}
+
+/* ---- sumario ---- */
+.sumario{page-break-inside:avoid;font-family:"DejaVu Sans",Arial,sans-serif;font-size:10pt;
+  border:1px solid var(--linha);padding:.8em 1.2em;background:#fafafa}
+.sumario a{color:var(--tinta);text-decoration:none}
+.sumario__parte{margin:.85em 0 .2em;font-weight:700;display:flex;align-items:baseline;gap:.4em}
+.sumario__parte a{color:var(--azul)}
+.sumario__itens{list-style:none;margin:0 0 0 .9em;padding:0}
+.sumario__itens li{display:flex;align-items:baseline;gap:.4em;margin:.16em 0}
+.sumario__itens li a{flex:0 1 auto}
+.sumario__itens b{color:var(--tinta-fraca)}
+.sumario .pontos{flex:1 1 auto;min-width:1.2em;border-bottom:1px dotted var(--linha);
+  transform:translateY(-.22em)}
+.sumario .pg{flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--tinta-fraca);
+  font-weight:400}
+
+/* ---- abertura de cada parte ---- */
+.parte{page-break-before:always;border-top:5px solid var(--azul);padding-top:.6em;margin-top:1.6em}
+.parte .quem{font-family:"DejaVu Sans",Arial,sans-serif;font-size:10pt;
+  color:var(--tinta-fraca);margin:.1em 0 1em}
+
+/* ---- ficha de teste ---- */
+.teste{border:1px solid var(--linha);padding:.7em .85em;margin:.85em 0;
+  page-break-inside:avoid;background:#fff}
+.teste > .titulo{font-family:"DejaVu Sans",Arial,sans-serif;font-weight:700;font-size:12pt;
+  margin:0 0 .4em;padding-bottom:.3em;border-bottom:2px solid var(--linha)}
+.teste .num{display:inline-block;background:var(--azul);color:#fff;
+  border-radius:1em;min-width:1.8em;height:1.8em;line-height:1.8em;text-align:center;
+  padding:0 .35em;font-size:.85em;margin-right:.45em}
+.rotulo{font-family:"DejaVu Sans",Arial,sans-serif;font-size:9pt;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--tinta-fraca);
+  margin:.6em 0 .12em}
+.novo{font-family:"DejaVu Sans",Arial,sans-serif;font-size:8pt;font-weight:700;
+  border:1.5px solid var(--verde);color:var(--verde);border-radius:3px;
+  padding:.1em .4em;margin-left:.4em;vertical-align:.15em;letter-spacing:.04em}
+
+/* ---- resposta ---- */
+.resposta{margin-top:.6em;padding-top:.45em;border-top:1px dashed var(--linha);
+  font-family:"DejaVu Sans",Arial,sans-serif;font-size:10pt}
+.resposta .op{margin-right:1.6em;white-space:nowrap}
+.cx{font-size:14pt;line-height:1;vertical-align:-.1em}
+.linha-escrita{display:block;border-bottom:1px solid var(--linha);height:1.5em;margin-top:.5em}
+
+/* ---- folhas de rosto ---- */
+.folha{page-break-after:always}
+.capa-folha{page-break-after:always;display:flex;flex-direction:column;
+  min-height:24cm;padding-top:3.5cm}
+.capa-folha .inst{font-family:"DejaVu Sans",Arial,sans-serif;font-size:11pt;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--tinta-fraca)}
+.capa-folha h1{font-size:34pt;line-height:1.12;margin:.5em 0 0}
+.capa-folha .risco{height:7px;background:var(--azul);width:6cm;margin:1.1em 0}
+.capa-folha .sub{font-family:"DejaVu Sans",Arial,sans-serif;font-size:15pt;
+  color:var(--tinta-fraca);margin:0;line-height:1.35}
+.capa-folha .ficha{margin-top:auto;font-family:"DejaVu Sans",Arial,sans-serif;
+  font-size:10.5pt;line-height:1.7;border-top:1px solid var(--linha);padding-top:1em}
+.capa-folha .ficha b{display:inline-block;min-width:6.5em;color:var(--tinta-fraca);
+  font-weight:400}
+.direitos{font-size:9.5pt;color:var(--tinta-fraca);line-height:1.5;
+  border:1px solid var(--linha);padding:.7em .9em;margin-top:1.4em}
+.equipe{margin:1.2em 0}
+.equipe h4{margin:0 0 .1em}
+.equipe .org{font-size:9.5pt;font-weight:400;letter-spacing:.02em;
+  color:var(--tinta-fraca);white-space:nowrap}
+.equipe ul{list-style:none;margin:0 0 0 .1em}
+.equipe li{margin:.15em 0}
+
+/* ---- prototipo ASCII (substitui a tela real na v1) ---- */
+.prototipo{margin:.7em 0;page-break-inside:avoid}
+.prototipo .selo{font-family:"DejaVu Sans",Arial,sans-serif;font-size:8pt;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--tinta-fraca);
+  border:1px solid var(--linha);border-bottom:none;background:#ececec;
+  display:inline-block;padding:.15em .6em;border-radius:3px 3px 0 0}
+.prototipo pre{margin:0;border:1px solid var(--linha);background:#fbfbf9;
+  padding:.6em .8em;font-family:"DejaVu Sans Mono",Consolas,monospace;
+  font-size:8pt;line-height:1.32;overflow-x:auto;white-space:pre;color:#2a2a2a}
+.prototipo figcaption{font-family:"DejaVu Sans",Arial,sans-serif;font-size:8.5pt;
+  color:var(--tinta-fraca);margin-top:.3em;line-height:1.35}
+
+/* ---- captura de tela real ---- */
+.tela{margin:.9em 0 .2em;page-break-inside:avoid}
+.tela img{display:block;width:100%;height:auto;border:1px solid var(--linha)}
+.tela figcaption{font-family:"DejaVu Sans",Arial,sans-serif;font-size:8.5pt;
+  color:var(--tinta-fraca);margin-top:.35em;line-height:1.35}
+
+/* ---- campo de sugestoes ---- */
+.sugestoes{border:2px solid var(--azul);padding:.9em 1em;margin:1.6em 0 0;
+  page-break-inside:avoid}
+.sugestoes h4{margin:0 0 .2em;color:var(--azul)}
+.sugestoes p{font-size:10pt;color:var(--tinta-fraca);margin:.1em 0 .6em}
+.sugestoes .linha-escrita{height:1.9em}
+
+/* ---- tabelinhas ---- */
+table.simples{border-collapse:collapse;width:100%;font-family:"DejaVu Sans",Arial,sans-serif;
+  font-size:10pt;margin:.8em 0;page-break-inside:avoid}
+table.simples th,table.simples td{border:1px solid var(--linha);padding:.4em .55em;
+  text-align:left;vertical-align:top}
+table.simples th{background:#ececec}
+
+/* ⚠️ SEM LIGADURA TIPOGRAFICA -- um PDF pesquisavel nao pode esconder palavra
+   inteira atras de uma ligadura tipografica (E<ﬀ>ects, <ﬁ>ltros). */
+body{font-variant-ligatures:none;-webkit-font-variant-ligatures:none}
+
+/* ---- impressao ---- */
+@page{size:A4;margin:1.6cm 1.5cm}
+@media print{
+  .pagina{max-width:none;padding:0}
+  .nao-imprime{display:none}
+  a{color:var(--tinta);text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<section class="capa-folha">
+  <p class="inst">Universidade Federal de Santa Catarina · UnA-SUS</p>
+  <h1>Relatórios UNA-SUS<br>o que mudou</h1>
+  <div class="risco"></div>
+  <p class="sub">Roteiro de conferência das novidades da nova versão<br>
+     para quem acompanha turmas</p>
+
+  <div class="ficha">
+    <b>Documento</b> roteiro de conferência, com capturas de tela do ambiente local<br>
+    <b>Comparação</b> versão anterior (Moodle 3.x) → versão nova (Moodle 4.5)<br>
+    <b>Ambiente</b> cursos de teste no Moodle <strong>unasus-dev</strong><br>
+    <b>Versão</b> 1.2<br>
+    <b>Data</b> setembro de 2026
+  </div>
+</section>
+
+<section class="folha">
+  <h2>Ficha técnica</h2>
+
+  <div class="equipe">
+    <h4>Equipe de desenvolvimento <span class="org">— UFSC / SeTIC</span></h4>
+    <ul>
+      <li>Alexandre Gava Menezes</li>
+      <li>André Fabiano Dyck</li>
+      <li>Elanne Melilo de Souza</li>
+      <li>Roberto Silvino da Cunha</li>
+    </ul>
+  </div>
+
+  <div class="equipe">
+    <h4>Equipe de levantamento de requisitos
+        <span class="org">— UFSC / Departamento de Saúde Pública</span></h4>
+    <ul>
+      <li>Dalvan Antônio de Campos</li>
+      <li>Deise Warmling</li>
+      <li>Elza Berger Salema Coelho</li>
+      <li>Sabrina Blasius Faust</li>
+      <li>Sheila Rubia Lindner</li>
+      <li>Thays Berger Conceição</li>
+    </ul>
+  </div>
+
+  <h3>Direitos autorais</h3>
+  <div class="direitos">
+    <p style="margin-top:0">
+      © 2026 Universidade Federal de Santa Catarina — UnA-SUS/UFSC.
+      Todos os direitos reservados.
+    </p>
+    <p>
+      Este documento <strong>pode ser usado e divulgado livremente</strong>, desde que
+      <strong>na íntegra, sem alterações e com esta indicação de autoria</strong>, para
+      fins de formação e de conferência dos Relatórios UNA-SUS.
+    </p>
+    <p style="margin-bottom:0">
+      <strong>Dependem de autorização prévia e por escrito</strong> da equipe
+      responsável: a reprodução parcial, a modificação, a produção de obra derivada
+      e qualquer uso comercial.
+    </p>
+  </div>
+</section>
+
+<section class="folha">
+  <h2>Histórico de versões</h2>
+  <p>
+    Cada alteração deste roteiro entra como uma linha nova, com a data e o que mudou.
+    Confira a versão na capa antes de usar: se a sua for anterior à da lista, peça a
+    atualizada — passos e telas mudam quando o sistema muda.
+  </p>
+
+  <table class="simples">
+    <tr><th style="width:5.5em">Versão</th><th style="width:7em">Data</th>
+        <th>O que mudou</th><th style="width:12em">Responsável</th></tr>
+    <tr><td>1.2</td><td>12/09/2026</td>
+        <td>Versão em aberto: recebe as próximas alterações. Seguem os mesmos
+            <strong>15 itens</strong>. Correções nas capturas: item 2 sem tarja
+            (dados fictícios) e com as duas telas do filtro (fechado e aberto); itens
+            4 e 5 recapturados no meio da rolagem, para mostrar claramente que a
+            tabela estava rolando; item 13 com os nomes reais da equipe cobertos no
+            filtro de Grupos de Orientação.</td>
+        <td>Roberto Silvino da Cunha</td></tr>
+    <tr><td>1.1</td><td>12/09/2026</td>
+        <td>Agora com <strong>15 itens</strong> — protótipos em ASCII trocados por
+            <strong>capturas de tela reais</strong> do ambiente <strong>unasus-dev
+            local</strong> (dados fictícios, criados para este roteiro), e item novo
+            sobre a exportação para CSV.</td>
+        <td>Roberto Silvino da Cunha</td></tr>
+    <tr><td>1.0</td><td>12/09/2026</td>
+        <td>Primeira versão: <strong>14 itens</strong> de conferência cobrindo as
+            novidades dos Relatórios UNA-SUS entre a versão anterior e o Moodle 4.5,
+            organizados por assunto (filtros, tabela, gráficos, avisos e navegação), com
+            protótipo de tela em ASCII em vez de captura real.</td>
+        <td>Roberto Silvino da Cunha</td></tr>
+  </table>
+</section>
+
+<h1 style="font-size:22pt;margin-bottom:.6em">Relatórios UNA-SUS — o que mudou</h1>
+
+<h2>Para que serve este documento</h2>
+
+<p>
+  Os Relatórios UNA-SUS passaram por uma reforma para funcionar no Moodle 4.5 e
+  ganharam correções e novidades ao longo do caminho. Este roteiro existe para que
+  <strong>quem acompanha turmas</strong> — e não quem programou — confirme que cada
+  novidade funciona como deveria.
+</p>
+
+<p>
+  <strong>Você não precisa saber nada de programação para usar este material.</strong>
+  Cada novidade está descrita em três partes: o que mudou, o que fazer na tela, e
+  o que deve acontecer. Se o que acontecer for diferente do que está escrito aqui,
+  <strong>isso é exatamente o que precisamos saber</strong> — marque e escreva o que viu.
+</p>
+
+<div class="caixa caixa--info">
+  <h4>Sobre as capturas de tela</h4>
+  <p style="margin-bottom:0">
+    As telas deste roteiro foram capturadas num ambiente de teste local, com
+    <strong>dados fictícios</strong> criados só para exercitar os relatórios — nomes,
+    turmas e números não correspondem a pessoas reais. A tela que você vai ver no seu
+    ambiente pode diferir em conteúdo (nomes de turma, quantidade de linhas), mas o
+    comportamento descrito deve ser o mesmo.
+  </p>
+</div>
+
+<div class="caixa caixa--info">
+  <h4>Não existe “achado bobo”</h4>
+  <p style="margin-bottom:0">
+    Um filtro que confunde, uma palavra mal escolhida, uma tabela que demora — tudo
+    isso conta. Quem programou o sistema já sabe onde clicar; você não, e é
+    justamente por isso que a sua conferência encontra o que a nossa não encontra.
+  </p>
+</div>
+
+<h3>Como usar</h3>
+
+<ol>
+  <li>Leia o quadro <strong>“O que mudou”</strong> para entender o que está sendo conferido.</li>
+  <li>Siga os passos de <strong>“Como testar”</strong>, na ordem.</li>
+  <li>Compare o que aconteceu com <strong>“O que você deve ver”</strong>.</li>
+  <li>Marque <strong>☐ funcionou</strong> ou <strong>☐ não funcionou</strong> e, se algo
+      destoou, escreva na linha ao lado. Frases curtas bastam
+      (<em>“o filtro não mostrou a contagem”</em>).</li>
+  <li>No fim de cada parte há um espaço maior para <strong>sugestões</strong> —
+      use para o que não é defeito, mas poderia ser melhor.</li>
+</ol>
+
+<h3>Legenda</h3>
+
+<table class="simples">
+  <tr>
+    <td style="width:8.5em"><span class="novo">NOVO</span></td>
+    <td>Não existia na versão antiga. É uma funcionalidade inteiramente nova.</td>
+  </tr>
+  <tr>
+    <td><strong>Sem a marca</strong></td>
+    <td>Já existia, mas mudou de comportamento — em geral porque estava errado ou
+        quebrado antes.</td>
+  </tr>
+  <tr>
+    <td><span class="cx">☐</span> <strong>funcionou</strong></td>
+    <td>Aconteceu exatamente o que o documento diz que deveria acontecer.</td>
+  </tr>
+  <tr>
+    <td><span class="cx">☐</span> <strong>não funcionou</strong></td>
+    <td>Qualquer diferença, por menor que seja. Escreva o que viu.</td>
+  </tr>
+</table>
+
+<h3>Antes de começar</h3>
+
+<h4>Como entrar</h4>
+<p>
+  Os Relatórios UNA-SUS abrem <em>dentro</em> de um curso do Moodle, no bloco de
+  <strong>Relatórios</strong> ou pelo item <strong>UNA-SUS</strong> da lista de relatórios
+  do curso. O que você vê depende do seu papel na turma — veja a tabela abaixo.
+</p>
+
+<h4>Papel, capability e o que cada um vê</h4>
+<p>
+  Os três papéis abrem os relatórios do mesmo jeito e <strong>veem recortes diferentes
+  dos mesmos dados</strong>. Confira esta tabela antes de cada parte do roteiro: se o que
+  aparece para você não bater com a linha do seu papel, <strong>isso já é um achado</strong>.
+</p>
+
+<table class="simples">
+  <tr>
+    <th style="width:13em">papel (capability)</th>
+    <th>o que vê nos relatórios</th>
+  </tr>
+  <tr>
+    <td><strong>Tutor</strong> <span style="color:#4a4a4a">(<code>view_tutoria</code>)</span></td>
+    <td>os relatórios de <strong>tutoria</strong> da turma que apoia</td>
+  </tr>
+  <tr>
+    <td><strong>Orientador</strong> <span style="color:#4a4a4a">(<code>view_orientacao</code>)</span></td>
+    <td>os relatórios de <strong>orientação</strong> dos seus orientandos</td>
+  </tr>
+  <tr>
+    <td><strong>Coordenação</strong> <span style="color:#4a4a4a">(<code>view_all</code>)</span></td>
+    <td><strong>todos</strong> os relatórios da turma inteira, tutoria e orientação</td>
+  </tr>
+</table>
+
+<div class="caixa caixa--atencao">
+  <h4>⚠ As novidades deste roteiro valem para os três papéis</h4>
+  <p style="margin-bottom:0">
+    Filtro, tabela, gráfico e avisos são a <strong>mesma tela</strong> para quem tem
+    qualquer uma das três capabilities — só o recorte de dados muda. Por isso o roteiro
+    está organizado <strong>por assunto</strong>, e não por papel: teste com o usuário
+    que você tiver disponível, no relatório que aquele papel alcançar. Quando um item vale
+    só para um relatório específico (por exemplo, um relatório só de tutoria), isso está
+    dito no próprio item.</p>
+</div>
+
+<div class="caixa caixa--parada">
+  <h4>⚠ Cuidado com os dados: eles podem ser de gente de verdade</h4>
+  <p style="margin-bottom:0">
+    Se o ambiente de teste usar dados reais, não copie, não fotografe nem compartilhe
+    telas com nome de estudante fora da equipe. Se precisar registrar um problema com
+    uma imagem da tela, tampe nome e qualquer identificador antes de enviar.
+  </p>
+</div>
+
+<div class="sumario">
+  <strong style="font-size:11pt">O que tem neste roteiro</strong>
+  <p class="sumario__parte"><a href="#parte-1">Parte 1 — Filtros</a><span class="pontos"></span><span class="pg">7</span></p>
+  <ul class="sumario__itens">
+    <li><a href="#item-1"><b>1.</b> “Selecionar Todos” e “Limpar Seleção” voltaram a funcionar</a><span class="pontos"></span><span class="pg">7</span></li>
+    <li><a href="#item-2"><b>2.</b> O filtro ativo aparece contado no título</a><span class="pontos"></span><span class="pg">8</span></li>
+    <li><a href="#item-3"><b>3.</b> Grupos, Polos e Cohorts começam recolhidos, com dica ao passar o mouse</a><span class="pontos"></span><span class="pg">9</span></li>
+  </ul>
+  <p class="sumario__parte"><a href="#parte-2">Parte 2 — Tabela dos relatórios</a><span class="pontos"></span><span class="pg">10</span></p>
+  <ul class="sumario__itens">
+    <li><a href="#item-4"><b>4.</b> Cabeçalho e coluna do estudante ficam visíveis ao rolar</a><span class="pontos"></span><span class="pg">10</span></li>
+    <li><a href="#item-5"><b>5.</b> As linhas não somem mais ao rolar a tabela</a><span class="pontos"></span><span class="pg">11</span></li>
+    <li><a href="#item-6"><b>6.</b> A tabela usa a altura da tela, sem rolagem duplicada</a><span class="pontos"></span><span class="pg">12</span></li>
+    <li><a href="#item-7"><b>7.</b> Cabeçalho alinhado e títulos das atividades legíveis</a><span class="pontos"></span><span class="pg">13</span></li>
+    <li><a href="#item-8"><b>8.</b> Colunas de data mais compactas e claras</a><span class="pontos"></span><span class="pg">14</span></li>
+  </ul>
+  <p class="sumario__parte"><a href="#parte-3">Parte 3 — Gráficos</a><span class="pontos"></span><span class="pg">15</span></p>
+  <ul class="sumario__itens">
+    <li><a href="#item-9"><b>9.</b> Os gráficos voltaram a aparecer</a><span class="pontos"></span><span class="pg">15</span></li>
+    <li><a href="#item-10"><b>10.</b> O gráfico de uso do tutor virou um mapa de calor</a><span class="pontos"></span><span class="pg">16</span></li>
+    <li><a href="#item-11"><b>11.</b> Novo “Gráfico Comparativo” (barras lado a lado)</a><span class="pontos"></span><span class="pg">17</span></li>
+  </ul>
+  <p class="sumario__parte"><a href="#parte-4">Parte 4 — Avisos e navegação</a><span class="pontos"></span><span class="pg">18</span></p>
+  <ul class="sumario__itens">
+    <li><a href="#item-12"><b>12.</b> Mensagem clara quando falta configuração da turma</a><span class="pontos"></span><span class="pg">18</span></li>
+    <li><a href="#item-13"><b>13.</b> Aviso quando os dados do TCC são de teste</a><span class="pontos"></span><span class="pg">19</span></li>
+    <li><a href="#item-14"><b>14.</b> O item “UNA-SUS” na lista de Relatórios do curso agora abre o relatório</a><span class="pontos"></span><span class="pg">20</span></li>
+    <li><a href="#item-15"><b>15.</b> Exportação para CSV corrigida</a><span class="pontos"></span><span class="pg">21</span></li>
+  </ul>
+  <p class="sumario__parte"><a href="#parte-5">Ganhos que não aparecem na tela</a><span class="pontos"></span><span class="pg">22</span></p>
+  <p class="sumario__parte"><a href="#parte-6">Ficha para registrar um problema</a><span class="pontos"></span><span class="pg">23</span></p>
+</div>
+
+<section class="parte" id="parte-1">
+<h2>Parte 1 — Filtros</h2>
+<p class="quem">
+  Abra qualquer relatório que tenha filtro de Módulos, Grupos, Polos ou Cohorts —
+  por exemplo, o Boletim ou o relatório de Entrega de Atividades.
+</p>
+
+<div class="teste" id="item-1">
+  <p class="titulo"><span class="num">1</span>“Selecionar Todos” e “Limpar Seleção” voltaram a funcionar</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Os links <strong>“Selecionar Todos”</strong> e <strong>“Limpar Seleção”</strong>, dentro
+    de cada filtro, chamavam uma função que não existia. O clique não fazia nada —
+    nenhuma opção era marcada ou desmarcada, sem nenhum aviso de erro na tela.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório com filtro de Módulos ou Grupos.</li>
+    <li>Clique em <strong>“Selecionar Todos”</strong> dentro do filtro.</li>
+    <li>Clique em <strong>“Limpar Seleção”</strong>.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/01-selecionar-todos.jpg" alt="Filtro de Módulos com todas as opções marcadas depois de clicar em Selecionar Todos">
+    <figcaption>Depois de clicar em “Selecionar Todos”: todas as opções do filtro de Módulos marcadas.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>“Selecionar Todos” marca <strong>todas</strong> as opções do filtro.</li>
+    <li>“Limpar Seleção” desmarca <strong>todas</strong>.</li>
+    <li>O clique <strong>não</strong> pula a página para o topo nem suja o endereço com um <code>#</code> no final.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-2">
+  <p class="titulo"><span class="num">2</span>O filtro ativo aparece contado no título<span class="novo">NOVO</span></p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Antes, com o painel de filtro fechado, não havia como saber se o relatório estava
+    filtrado ou mostrando a turma inteira — o título dizia sempre a mesma coisa,
+    “Filtrar Resultados”. Um boletim de 3 grupos de 22 se lia igual ao da turma
+    inteira. Agora a contagem aparece no próprio título, mesmo com o painel fechado.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório e escolha, por exemplo, 2 módulos específicos no filtro.</li>
+    <li>Aplique o filtro e <strong>feche o painel</strong>.</li>
+    <li>Olhe o título da seção de filtro.</li>
+    <li>Passe o mouse sobre o título.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/02a-filtro-fechado.jpg" alt="Título Filtrar Resultados (2) com o painel fechado, mostrando a tabela filtrada por dois grupos">
+    <figcaption>Painel <strong>fechado</strong>: a contagem “(2)” já avisa que há filtro aplicado — aqui, dois grupos de tutoria.</figcaption>
+  </figure>
+  <figure class="tela">
+    <img src="imagens/02b-filtro-aberto.jpg" alt="Mesmo filtro, agora aberto, com Grupo Pequeno 01 e Grupo Pequeno 02 destacados na lista">
+    <figcaption>Painel <strong>aberto</strong>, mesma seleção: os dois grupos aparecem destacados na lista, e a contagem “(2)” continua no título.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>O título muda para <strong>“Filtrar Resultados (N)”</strong>, com N sendo o total
+        de opções que realmente estreitam o resultado.</li>
+    <li>Uma seleção que cobre <strong>todo</strong> um filtro (por exemplo, todos os
+        módulos) <strong>não entra</strong> na contagem — ela aparece como “Todos” só na
+        dica, ao passar o mouse.</li>
+    <li>Sem filtro nenhum aplicado, o título volta a ser só “Filtrar Resultados”.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-3">
+  <p class="titulo"><span class="num">3</span>Grupos, Polos e Cohorts começam recolhidos, com dica ao passar o mouse<span class="novo">NOVO</span></p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Os quatro filtros (Módulos, Grupos, Polos, Cohorts) eram blocos praticamente
+    idênticos, sempre abertos, ocupando bastante espaço antes de chegar à tabela.
+    Agora Módulos e Grupos — os mais usados — continuam sempre abertos, e Polos e
+    Cohorts nascem <strong>recolhidos</strong>, mostrando só a contagem do que estreita.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório com filtro de Polos ou Cohorts.</li>
+    <li>Repare no estado inicial de cada filtro.</li>
+    <li>Clique na seta de Polos ou Cohorts para abrir.</li>
+    <li>Passe o mouse (ou use Tab, pelo teclado) sobre o título recolhido.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/03-cohorts-recolhido.jpg" alt="Filtro de Cohorts recolhido, com a seta e a lista de cohorts disponível ao abrir">
+    <figcaption>Cohorts recolhido, com a seta ao lado do título; a lista completa aparece ao abrir.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>Módulos e Grupos aparecem sempre abertos.</li>
+    <li>Polos e Cohorts aparecem recolhidos, com uma seta clicável.</li>
+    <li>A dica com os nomes escolhidos aparece ao passar o mouse <strong>e</strong> ao
+        navegar até ali só pelo teclado.</li>
+    <li>Com o painel aberto, a dica desaparece — os próprios campos já mostram tudo.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="sugestoes">
+  <h4>Sugestões sobre os filtros</h4>
+  <p>O que ainda dá mais trabalho do que deveria, ao filtrar um relatório?</p>
+  <span class="linha-escrita"></span><span class="linha-escrita"></span>
+  <span class="linha-escrita"></span>
+</div>
+</section>
+
+<section class="parte" id="parte-2">
+<h2>Parte 2 — Tabela dos relatórios</h2>
+<p class="quem">
+  Abra um relatório com várias colunas e mais linhas do que cabem na tela — Boletim
+  ou Entrega de Atividades costumam servir bem para este bloco.
+</p>
+
+<div class="teste" id="item-4">
+  <p class="titulo"><span class="num">4</span>Cabeçalho e coluna do estudante ficam visíveis ao rolar</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Antes, o cabeçalho e a coluna com o nome do estudante <strong>sumiam</strong> ao
+    rolar a tabela para baixo ou para o lado — obrigando a rolar de volta ao topo só
+    para lembrar de quem era aquela linha, ou qual atividade era aquela coluna.
+    Agora os dois ficam fixos, mesmo com a tabela rolando por dentro.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório com muitas linhas e colunas.</li>
+    <li>Role a tabela para baixo.</li>
+    <li>Role a tabela para o lado.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/04-tabela-congelada.jpg" alt="Tabela do Boletim capturada no meio da rolagem: uma coluna de números aparece cortada ao meio, mas o cabeçalho e a coluna Estudante continuam inteiros">
+    <figcaption>Captura feita <strong>no meio da rolagem</strong>, de propósito: repare a coluna de números logo após “Estudante”,
+        cortada ao meio (“3,0” em vez de “43,0”) — prova de que a tabela realmente estava rolando naquele instante.
+        Mesmo assim, o cabeçalho (Módulo 12/11/10) e a coluna “Estudante” continuam inteiros, sem cortar.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>O cabeçalho continua visível no topo, não importa até onde você role.</li>
+    <li>A coluna do estudante (e o nome do grupo/tutoria, quando aparece) continua
+        visível à esquerda, não importa até onde você role para o lado.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-5">
+  <p class="titulo"><span class="num">5</span>As linhas não somem mais ao rolar a tabela</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    As linhas de divisão da tabela eram desenhadas em dobro (uma por cada célula
+    vizinha). Isso funcionava até uma célula fixa (do item anterior) se deslocar —
+    aí a linha sumia, ficava mais grossa, mais clara, ou formava um degrau entre o
+    cabeçalho e o corpo, dependendo de onde você rolava. Agora cada linha é
+    desenhada uma única vez.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório com muitas linhas.</li>
+    <li>Role devagar, para baixo e para o lado, prestando atenção nas linhas de
+        grade entre as células.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/05-bordas-linhas.jpg" alt="Mesma captura em meio à rolagem: a grade entre as células continua com uma linha só por divisa, mesmo na coluna cortada ao meio">
+    <figcaption>Mesma captura, no meio da rolagem (note a coluna cortada logo após “Estudante”): a grade entre
+        as células mantém uma linha só por divisa, sem dobrar nem sumir — inclusive na linha e na coluna
+        que estão sendo cortadas pela borda da tela naquele instante.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>As linhas de divisão continuam com a <strong>mesma espessura</strong> em
+        qualquer ponto da rolagem.</li>
+    <li>Nenhuma linha some, dobra de grossura ou fica mais clara ao rolar.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-6">
+  <p class="titulo"><span class="num">6</span>A tabela usa a altura da tela, sem rolagem duplicada</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    A tabela tinha uma altura fixa que, dependendo da janela, deixava sobrar espaço
+    vazio embaixo dela ou criava <strong>duas barras de rolagem empilhadas</strong> —
+    uma da tabela, outra da página. Agora a tabela ocupa o espaço disponível até o
+    fim da janela, com um tamanho mínimo para nunca desaparecer.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório grande, com a janela do navegador em tamanho normal.</li>
+    <li>Redimensione a janela (mais baixa e mais alta).</li>
+    <li>Abra o painel de filtro e observe a tabela de novo.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/04-tabela-congelada.jpg" alt="Tabela do relatório com barra de rolagem própria à direita, sem uma segunda barra da página">
+    <figcaption>A barra de rolagem (canto direito) é da própria tabela — a página ao redor não rola por baixo dela.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>Só existe <strong>uma</strong> barra de rolagem vertical, dentro da própria
+        tabela — não a página inteira rolando por baixo dela.</li>
+    <li>Em janela baixa, a tabela nunca fica menor que umas poucas linhas visíveis.</li>
+    <li>Abrir o painel de filtro empurra a tabela para baixo, e o tamanho dela se
+        ajusta de novo — sem sobra nem duas rolagens.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-7">
+  <p class="titulo"><span class="num">7</span>Cabeçalho alinhado e títulos das atividades legíveis</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    O cabeçalho da tabela podia sair <strong>desalinhado</strong> das colunas de dados
+    logo abaixo, e o nome de cada atividade — girado na vertical para caber — vinha
+    espremido numa caixinha estreita, quebrando em várias linhas difíceis de ler.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório com nomes de atividade longos no cabeçalho.</li>
+    <li>Confira se cada coluna do cabeçalho fica exatamente acima da coluna de dados
+        correspondente.</li>
+    <li>Leia o nome de duas ou três atividades no cabeçalho girado.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/07-cabecalho-alinhado.jpg" alt="Cabeçalho com nomes de atividade girados, alinhados exatamente acima das colunas de dados">
+    <figcaption>Cabeçalho girado, alinhado com as colunas de dados logo abaixo.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>Cada título do cabeçalho fica exatamente acima da sua coluna de dados.</li>
+    <li>O nome da atividade aparece legível, em no máximo duas linhas, sem letras
+        cortadas ao meio (inclusive com acento).</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-8">
+  <p class="titulo"><span class="num">8</span>Colunas de data mais compactas e claras</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Nos relatórios de <strong>Uso do Tutor</strong> e <strong>Acesso do Tutor</strong>,
+    cada coluna é um dia. O rótulo trazia o ano em toda coluna, repetindo uma
+    informação que não muda linha a linha. Agora o dia aparece sem o ano
+    (<strong>dia/mês</strong>), e o ano — quando o período cruza duas virações de
+    ano — vai para o cabeçalho de cima, no nome do mês.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra o relatório de <strong>Uso do Sistema pelo Tutor</strong> ou
+        <strong>Acesso do Tutor</strong>, com um período de vários dias.</li>
+    <li>Leia os rótulos das colunas de dia.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/08-colunas-data.jpg" alt="Colunas do relatório Uso do sistema pelo tutor, mostrando o mês por extenso com o ano e os dias no formato dia/mês">
+    <figcaption>Cabeçalho de mês com o ano (“agosto 2026”, “setembro 2026”); colunas de dia só com dia/mês.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>Cada coluna de dia mostra só <strong>dia/mês</strong> (por exemplo, “10/03”).</li>
+    <li>O cabeçalho do mês, uma linha acima, traz o ano quando necessário para não
+        deixar ambíguo qual ano é aquele bloco de dias.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="sugestoes">
+  <h4>Sugestões sobre a tabela</h4>
+  <p>O que ainda atrapalha na leitura da tabela de um relatório?</p>
+  <span class="linha-escrita"></span><span class="linha-escrita"></span>
+  <span class="linha-escrita"></span>
+</div>
+</section>
+
+<section class="parte" id="parte-3">
+<h2>Parte 3 — Gráficos</h2>
+<p class="quem">
+  Abra um relatório com botão de gráfico — Uso do Sistema pelo Tutor, Atividades vs.
+  Notas ou Entrega de Atividades.
+</p>
+
+<div class="teste" id="item-9">
+  <p class="titulo"><span class="num">9</span>Os gráficos voltaram a aparecer</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Os gráficos dependiam de bibliotecas de terceiros muito antigas, incompatíveis
+    com o Moodle 4.5. A área do gráfico ficava simplesmente <strong>vazia</strong>,
+    sem nenhuma mensagem de erro — e o problema ia além do gráfico: em algumas
+    páginas, o restante da tela também parava de responder. Os gráficos agora usam
+    o mecanismo do próprio Moodle.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório com opção de gráfico (por exemplo, Entrega de Atividades).</li>
+    <li>Clique no botão que mostra o gráfico.</li>
+    <li>Procure o link ou botão <strong>“Mostrar dados do gráfico”</strong>.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/09-grafico-funciona.jpg" alt="Gráfico de barras empilhadas do relatório Entrega de Atividades, com um grupo por linha e legenda de cores no topo">
+    <figcaption>Gráfico de barras funcionando, com legenda de estados e “Mostrar dados do gráfico” logo abaixo.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>O gráfico aparece com barras, nas cores certas para cada estado.</li>
+    <li>“Mostrar dados do gráfico” abre uma tabela com os mesmos números em texto —
+        útil para quem usa leitor de tela ou só prefere números.</li>
+    <li>A página <strong>inteira</strong> continua funcionando normalmente depois de
+        abrir o gráfico.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-10">
+  <p class="titulo"><span class="num">10</span>O gráfico de uso do tutor virou um mapa de calor<span class="novo">NOVO</span></p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    O gráfico de pontos do relatório <strong>Uso do Sistema pelo Tutor</strong> não
+    funcionava — a biblioteca que ele usava estava quebrada havia tempo, sem que
+    ninguém percebesse, porque a área simplesmente ficava vazia. No lugar entra um
+    <strong>mapa de calor</strong>: uma grade com um círculo em cada cruzamento de
+    tutor e dia, o tamanho e a cor do círculo mostrando as horas de uso.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra o relatório <strong>Uso do Sistema pelo Tutor</strong>, com um período
+        que tenha registro de acesso.</li>
+    <li>Veja o gráfico.</li>
+    <li>Passe o mouse sobre um círculo.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/10-mapa-calor.jpg" alt="Mapa de calor com um tutor por linha e um dia por coluna; círculos de tamanho e cor variados marcam as horas de uso">
+    <figcaption>Mapa de calor: cada círculo é um dia com uso; tamanho e cor crescem junto com as horas.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>Uma grade com um círculo (ou nenhum, se não houve uso) em cada
+        cruzamento de tutor × dia.</li>
+    <li>Passar o mouse sobre um círculo mostra o valor exato em um balão.</li>
+    <li>Dia sem nenhum uso aparece sem círculo, não com um círculo minúsculo.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-11">
+  <p class="titulo"><span class="num">11</span>Novo “Gráfico Comparativo” (barras lado a lado)<span class="novo">NOVO</span></p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    O gráfico de barras empilhadas mostra bem a composição de cada grupo (quanto é
+    entregue no prazo, com atraso, não entregue), mas não deixa comparar
+    <strong>o mesmo estado entre grupos diferentes</strong> — as barras começam em
+    alturas diferentes, e comparar exigia medir a régua a olho. Agora existe um
+    segundo botão, <strong>“Gráfico Comparativo”</strong>, com as barras lado a lado.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório com gráfico e mais de um grupo/tutoria no filtro.</li>
+    <li>Clique em <strong>“Gráfico Comparativo”</strong>.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/11-grafico-comparativo.jpg" alt="Gráfico comparativo com duas barras lado a lado por grupo, uma para cada estado">
+    <figcaption>Modo comparativo: cada grupo mostra duas barras lado a lado, uma por estado — fácil de comparar entre grupos.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>As barras de cada grupo aparecem lado a lado, uma por estado, todas
+        começando da mesma linha de base.</li>
+    <li>Fica fácil comparar visualmente o mesmo estado (por exemplo, “não entregue”)
+        entre dois grupos diferentes.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="sugestoes">
+  <h4>Sugestões sobre os gráficos</h4>
+  <p>Que outra comparação ajudaria no seu dia a dia?</p>
+  <span class="linha-escrita"></span><span class="linha-escrita"></span>
+  <span class="linha-escrita"></span>
+</div>
+</section>
+
+<section class="parte" id="parte-4">
+<h2>Parte 4 — Avisos e navegação</h2>
+<p class="quem">
+  Estes itens dependem de provocar a situação certa — siga os passos com atenção.
+</p>
+
+<div class="teste" id="item-12">
+  <p class="titulo"><span class="num">12</span>Mensagem clara quando falta configuração da turma</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Quando a configuração de tutoria/orientação da turma estava errada ou faltando,
+    o relatório caía na <strong>tela de emergência do próprio Moodle</strong> — sem
+    menu, sem estilo, com uma mensagem técnica. Agora, nesse caso, o relatório
+    mostra uma tela normal, explicando o que falta configurar.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Peça a quem administra o curso de teste para provocar essa situação (por
+        exemplo, duas configurações de Relacionamento de Tutoria na mesma categoria,
+        ou nenhuma).</li>
+    <li>Abra um relatório dessa turma.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/12-tela-erro.jpg" alt="Tela normal do Moodle, com menu e estilo, explicando que há mais de um Relacionamento de Tutoria configurado na mesma categoria">
+    <figcaption>Tela normal do Moodle (menu, estilo), com o diagnóstico de quais relacionamentos estão em conflito e onde.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>A tela mantém o visual normal do Moodle (menu, estilo).</li>
+    <li>A mensagem diz, em português simples, o que está faltando configurar —
+        e não um erro técnico em inglês.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-13">
+  <p class="titulo"><span class="num">13</span>Aviso quando os dados do TCC são de teste<span class="novo">NOVO</span></p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Os relatórios de TCC podem, num ambiente configurado para testes, mostrar dados
+    fictícios em vez dos dados reais do Sistema de TCC — e isso não tinha nenhum
+    aviso na tela. Quem esbarrasse nisso via números que não existem em lugar
+    nenhum, sem saber por quê. Agora aparece um aviso explicando a situação.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório de TCC (por exemplo, TCC Consolidado) num ambiente de
+        teste que tenha esse modo ligado.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/13-aviso-mock-tcc.jpg" alt="Faixa de aviso no topo do relatório TCC: TCCs Consolidados, dizendo que os dados vêm de mock">
+    <figcaption>Aviso no topo, antes do título do relatório, explicando a configuração ativa e como desligá-la.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>Um aviso no topo do relatório dizendo que os dados de TCC são fictícios,
+        de teste — e como desligar essa configuração, se for o caso.</li>
+    <li>Em ambiente de produção normal (sem o modo de teste ligado), o aviso não
+        aparece.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-14">
+  <p class="titulo"><span class="num">14</span>O item “UNA-SUS” na lista de Relatórios do curso agora abre o relatório</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    Dentro do curso, em <strong>Relatórios</strong>, existia um item
+    <strong>“UNA-SUS”</strong> que não levava a lugar nenhum — um link morto. Agora
+    ele abre uma lista dos relatórios que você pode ver, de onde dá para entrar em
+    cada um.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Dentro de um curso, acesse a tela de <strong>Relatórios</strong> do curso
+        (não pelo bloco/menu lateral, pela lista de relatórios mesmo).</li>
+    <li>Clique no item <strong>UNA-SUS</strong>.</li>
+  </ol>
+
+  <figure class="tela">
+    <img src="imagens/14-item-una-sus.jpg" alt="Lista Relatórios UNA-SUS, aberta a partir do item de mesmo nome na tela de Relatórios do curso">
+    <figcaption>O item “UNA-SUS” agora abre a lista de relatórios disponíveis para o seu papel.</figcaption>
+  </figure>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>O clique abre uma lista com os relatórios que o seu papel pode ver — e não
+        mais uma página em branco ou nenhuma reação.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="teste" id="item-15">
+  <p class="titulo"><span class="num">15</span>Exportação para CSV corrigida</p>
+
+  <p class="rotulo">O que mudou</p>
+  <p>
+    A exportação para CSV de vários relatórios (entre eles Síntese de Atividades
+    Concluídas Agrupadas e os relatórios de TCC) tinha problemas de geração — colunas
+    de cabeçalho e de resumo fora do lugar. Foi corrigida antes desta janela de
+    comparação, mas continua valendo conferir: é uma exportação usada para levar dados
+    para fora do Moodle, e um CSV com coluna deslocada pode passar despercebido até
+    alguém tentar montar uma planilha com ele.
+  </p>
+
+  <p class="rotulo">Como testar</p>
+  <ol>
+    <li>Abra um relatório (por exemplo, Síntese de Atividades Concluídas Agrupadas).</li>
+    <li>Em <strong>Exibir como</strong>, marque <strong>Exportar para CSV</strong> e
+        clique em <strong>Gerar relatório</strong>.</li>
+    <li>Abra o arquivo baixado numa planilha.</li>
+  </ol>
+
+  <p class="rotulo">O que você deve ver</p>
+  <ul>
+    <li>Uma coluna de cabeçalho por dado, sem coluna deslocada ou faltando.</li>
+    <li>A coluna de resumo (quando o relatório tiver) aparece na posição certa,
+        não misturada com as colunas de atividade.</li>
+  </ul>
+
+  <div class="resposta">
+    <span class="op"><span class="cx">☐</span> funcionou</span>
+    <span class="op"><span class="cx">☐</span> não funcionou</span>
+    <span class="linha-escrita"></span>
+  </div>
+</div>
+
+<div class="sugestoes">
+  <h4>Sugestões gerais sobre os relatórios</h4>
+  <p>
+    Agora que você viu o conjunto: o que mais melhoraria o seu dia a dia com os
+    relatórios? O que ainda dá mais trabalho do que deveria?
+  </p>
+  <span class="linha-escrita"></span><span class="linha-escrita"></span>
+  <span class="linha-escrita"></span><span class="linha-escrita"></span>
+</div>
+</section>
+
+<section class="parte" id="parte-5">
+<h2>Ganhos que não aparecem na tela</h2>
+<p class="quem">
+  Este capítulo não pede que você teste nada — é um retrato do que mudou por baixo
+  do capô, e por que isso importa mesmo sem aparecer numa tela.
+</p>
+
+<div class="caixa caixa--info">
+  <h4>Por que uma rede de testes automáticos, e não só olhar a tela</h4>
+  <p>
+    Os Relatórios UNA-SUS não são uma tela isolada: são <strong>14 relatórios
+    ativos</strong>, cada um com variações de filtro, de modo de exibição (tabela,
+    gráfico, CSV) e de papel de quem olha — e a mesma mudança de código pode afetar
+    vários relatórios ao mesmo tempo, de formas que não são óbvias à primeira vista.
+    Conferir isso tudo <strong>manualmente</strong>, a cada pequena alteração, exigiria
+    abrir dezenas de combinações uma a uma, em mais de um papel, para ter alguma
+    confiança de que nada quebrou.
+  </p>
+  <p style="margin-bottom:0">
+    <strong>Foi exatamente isso que aconteceu antes de existir a suíte automática</strong>:
+    consertos pequenos passavam despercebidos por meses sem ninguém notar que um
+    relatório inteiro estava quebrado, porque não havia como olhar tudo toda vez.
+    Com testes automáticos, essa conferência que levaria horas — e que, feita à mão,
+    tende a ser adiada ou pulada — passa a levar segundos ou minutos, e é repetida
+    a cada mudança, sem depender de alguém lembrar de fazê-la.
+  </p>
+</div>
+
+<h4>O que foi reconstruído</h4>
+<ul>
+  <li>
+    <strong>111 testes automáticos (PHPUnit) voltaram a funcionar.</strong> Eles não
+    executavam mais havia tempo — e, pior, terminavam "com sucesso" sem testar nada,
+    porque o sinal de erro não aparecia onde alguém fosse notar. Corrigido, cada um
+    confere um pedaço específico do cálculo dos relatórios sozinho, em poucos segundos.
+  </li>
+  <li>
+    <strong>Suíte completa de testes de tela (Behat) 100% aprovada</strong>, simulando
+    clique de usuário de verdade num navegador automatizado — hoje roda em paralelo,
+    em cerca de 12 minutos, contra quase 40 minutos rodando um teste de cada vez.
+  </li>
+  <li>
+    <strong>Um bug que embaralhava dados de estudante em silêncio</strong> foi
+    encontrado justamente ao migrar para o Moodle 4.5: uma consulta ao banco
+    confundia duas atividades diferentes com o mesmo número interno, fazendo o
+    relatório sair com <strong>linhas de estudante faltando</strong>, sem erro
+    algum na tela. Sem teste automático, esse tipo de falha some — ninguém nota que
+    uma linha não apareceu, só que apareceriam <em>menos</em> linhas do que deveria.
+  </li>
+  <li>
+    <strong>Mais de 1 MB de bibliotecas antigas removidas</strong> (um jQuery de
+    2011 e um Highcharts de 2012). Elas não só quebravam os gráficos: em algumas
+    páginas, derrubavam o funcionamento do restante da tela inteira, por
+    conflitarem com a versão mais nova que o próprio Moodle usa.
+  </li>
+  <li>
+    <strong>Paleta de cores segura para daltonismo</strong> nos gráficos, no lugar
+    de uma combinação que confundia justamente os estados que o relatório existe
+    para distinguir (entregue no prazo × com atraso × não entregue).
+  </li>
+</ul>
+
+<div class="caixa caixa--atencao">
+  <h4>⚠ O que isso significa para o ritmo do trabalho</h4>
+  <p style="margin-bottom:0">
+    Sem essa rede de testes, cada uma das correções deste roteiro teria exigido
+    horas de conferência manual repetidas a cada nova mudança — e o risco de uma
+    correção quebrar outra parte do sistema, sem ninguém perceber a tempo, seria
+    bem maior. O tempo que a modernização dos Relatórios UNA-SUS levou teria sido
+    <strong>consideravelmente maior</strong> pelo caminho manual — e o resultado,
+    menos confiável.
+  </p>
+</div>
+</section>
+
+<section class="parte" id="parte-6">
+<h2>Ficha para registrar um problema</h2>
+<p class="quem">
+  Use uma ficha para cada problema encontrado. Copie esta página quantas vezes precisar.
+</p>
+
+<div class="caixa caixa--info">
+  <h4>O que faz uma boa descrição</h4>
+  <p style="margin-bottom:0">
+    A pergunta que quem vai consertar sempre faz é: <strong>“como faço para ver isso
+    acontecer de novo?”</strong>. Se você conseguir responder isso, o problema está
+    praticamente resolvido. Anote o caminho que você percorreu, mesmo que pareça óbvio.
+  </p>
+</div>
+
+<table class="simples">
+  <tr><th style="width:11em">Quem estava testando</th><td>papel: &nbsp;&nbsp; ☐ tutor &nbsp; ☐ orientador &nbsp; ☐ coordenação</td></tr>
+  <tr><th>Data e hora</th><td>&nbsp;</td></tr>
+  <tr><th>Item do roteiro</th><td>número: ________ &nbsp;&nbsp; (ou “fora do roteiro”)</td></tr>
+  <tr><th>Qual relatório</th><td>&nbsp;</td></tr>
+  <tr><th style="vertical-align:top">O que eu fiz<br><span style="font-weight:400;font-size:9pt">passo a passo</span></th>
+      <td style="height:5.5cm">&nbsp;</td></tr>
+  <tr><th style="vertical-align:top">O que aconteceu</th><td style="height:3cm">&nbsp;</td></tr>
+  <tr><th style="vertical-align:top">O que eu esperava</th><td style="height:3cm">&nbsp;</td></tr>
+  <tr><th>Acontece sempre?</th><td>☐ sempre &nbsp;&nbsp; ☐ só aconteceu uma vez &nbsp;&nbsp; ☐ não tentei de novo</td></tr>
+  <tr><th>Atrapalha muito?</th><td>☐ impede de trabalhar &nbsp;&nbsp; ☐ dá para contornar &nbsp;&nbsp; ☐ é só um incômodo</td></tr>
+  <tr><th>Navegador</th><td>☐ Chrome &nbsp;&nbsp; ☐ Firefox &nbsp;&nbsp; ☐ Edge &nbsp;&nbsp; ☐ celular</td></tr>
+</table>
+
+<p style="font-size:10pt;color:#4a4a4a;margin-top:1.4em">
+  Se tirar uma foto ou uma imagem da tela, <strong>tampe</strong> qualquer nome ou
+  identificador de estudante antes de enviar.
+</p>
+
+</section>
+
+</div>
+</body>
+</html>
