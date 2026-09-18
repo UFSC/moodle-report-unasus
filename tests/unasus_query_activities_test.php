@@ -85,4 +85,54 @@ class unasus_query_activities_test extends advanced_testcase {
         $this->assertNotContains((int)$modulo_a->cmid, $retornados,
             'A atividade do curso A nao pertence ao curso B e nao pode entrar no relatorio dele.');
     }
+
+    public function test_atividade_citada_em_duas_secoes_do_mesmo_curso_aparece_uma_vez() {
+        global $DB;
+        $this->resetAfterTest(true);
+
+        $curso = $this->getDataGenerator()->create_course(
+            array('enablecompletion' => 1, 'numsections' => 2));
+        $modulo = $this->getDataGenerator()->create_module('assign', array(
+            'course' => $curso->id,
+            'completion' => COMPLETION_TRACKING_MANUAL,
+        ));
+
+        // O mesmo cmid citado tambem na secao 1, sem sair da secao 0 -- o rastro
+        // de uma movimentacao entre secoes que nao terminou de limpar a origem.
+        $secao_1 = $DB->get_record('course_sections',
+            array('course' => $curso->id, 'section' => 1), '*', MUST_EXIST);
+        $DB->set_field('course_sections', 'sequence', (string)$modulo->cmid,
+            array('id' => $secao_1->id));
+
+        $ocorrencias = array_count_values($this->cmids_retornados(array($curso->id)));
+
+        $this->assertSame(1, $ocorrencias[(int)$modulo->cmid],
+            'Uma atividade citada em duas secoes do proprio curso rende duas linhas, ' .
+            'e cada linha vira um bloco de colunas repetido no relatorio.');
+    }
+
+    public function test_ordem_de_apresentacao_segue_a_sequence_da_secao() {
+        global $DB;
+        $this->resetAfterTest(true);
+
+        // Prende a ordenacao, que sai de FIND_IN_SET(cm.id, cs.sequence) como
+        // `module_order`. Sem este teste, um conserto na juncao poderia trocar a
+        // ordem de apresentacao sem que nada ficasse vermelho.
+        $curso = $this->getDataGenerator()->create_course(array('enablecompletion' => 1));
+        $primeiro = $this->getDataGenerator()->create_module('assign', array(
+            'course' => $curso->id, 'completion' => COMPLETION_TRACKING_MANUAL));
+        $segundo = $this->getDataGenerator()->create_module('assign', array(
+            'course' => $curso->id, 'completion' => COMPLETION_TRACKING_MANUAL));
+
+        // Inverte a ordem declarada na sequence da secao 0.
+        $secao_0 = $DB->get_record('course_sections',
+            array('course' => $curso->id, 'section' => 0), '*', MUST_EXIST);
+        $DB->set_field('course_sections', 'sequence',
+            $segundo->cmid . ',' . $primeiro->cmid, array('id' => $secao_0->id));
+
+        $this->assertSame(
+            array((int)$segundo->cmid, (int)$primeiro->cmid),
+            $this->cmids_retornados(array($curso->id)),
+            'A ordem tem de seguir a sequence da secao, nao o id do modulo.');
+    }
 }

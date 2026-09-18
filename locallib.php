@@ -569,12 +569,22 @@ SELECT
     FIND_IN_SET(cm.id, cs.sequence) AS module_order
 FROM {course_sections} cs
 JOIN {course} c ON cs.course = c.id
-/* O `sequence` e' texto livre mantido pelo core, e nada no banco garante que
-   ele so' cite modulos do proprio curso: restauracao, importacao ou uma
-   movimentacao interrompida deixam la' o cmid de outro curso. Sem `cm.course =
-   c.id`, essa atividade alheia entra no relatorio. */
+/* O `sequence` e' texto livre mantido pelo core, e nada no banco garante que ele
+   so' cite modulos do proprio curso, nem que cite cada um uma unica vez:
+   restauracao, importacao ou uma movimentacao entre secoes que nao terminou
+   deixam la' um cmid de outro curso, ou o mesmo cmid em duas secoes.
+
+   Por isso a juncao nao se apoia so' no texto:
+     - `cm.course = c.id`   -- barra a atividade que pertence a outro curso;
+     - `cm.section = cs.id` -- amarra cada modulo a' SUA secao, entao uma citacao
+                               esquecida noutra secao do mesmo curso nao rende
+                               uma segunda linha (e um bloco de colunas repetido).
+
+   O `FIND_IN_SET > 0` continua exigido: quem nao esta na sequence da propria
+   secao segue fora, como antes. Ele tambem e' a ORDEM (`module_order`). */
 JOIN {course_modules} cm ON FIND_IN_SET(cm.id, cs.sequence) > 0
                         AND cm.course = c.id
+                        AND cm.section = cs.id
 JOIN {modules} m ON cm.module = m.id
 LEFT JOIN {assign} a ON cm.instance = a.id AND m.name = 'assign'
 LEFT JOIN {forum} f ON cm.instance = f.id AND m.name = 'forum'
