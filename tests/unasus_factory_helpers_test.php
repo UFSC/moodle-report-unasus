@@ -110,6 +110,48 @@ class unasus_factory_helpers_test extends advanced_testcase {
         $this->assertEquals('10/06/2024', $dias[0]);
         $this->assertEquals('14/06/2024', $dias[4]);
     }
+
+    // -----------------------------------------------------------------------
+    // report_unasus_atividade_esta_oculta (locallib.php)
+    //
+    // A lista de ocultas vem de report_unasus_get_activities_config_report, que
+    // usa get_records_sql_menu: as CHAVES do array sao o `id` da linha em
+    // {activities_course_config} e os VALORES sao 'activityid-moduleid-courseid'.
+    // A decisao tem de olhar so' para os VALORES -- a posicao no array nao diz
+    // nada sobre visibilidade, e era exatamente dela que a regra dependia.
+    // -----------------------------------------------------------------------
+
+    public function test_lista_de_ocultas_vazia_deixa_a_atividade_aparecer() {
+        $this->assertFalse(report_unasus_atividade_esta_oculta('3-16-5', array()));
+    }
+
+    public function test_atividade_fora_da_lista_de_ocultas_aparece() {
+        $ocultas = array(4 => '1-16-5', 5 => '2-16-5');
+        $this->assertFalse(report_unasus_atividade_esta_oculta('3-16-5', $ocultas));
+    }
+
+    public function test_atividade_na_lista_indexada_por_id_do_banco_fica_oculta() {
+        // Forma real: get_records_sql_menu indexa pelo id da linha (4, 5, ...).
+        $ocultas = array(4 => '1-16-5', 5 => '2-16-5');
+        $this->assertTrue(report_unasus_atividade_esta_oculta('1-16-5', $ocultas));
+    }
+
+    public function test_atividade_na_posicao_zero_fica_oculta() {
+        // FRONTEIRA: array_search devolve a CHAVE do array, e a chave 0 e' falsa.
+        // Sob `!array_search(...)` esta atividade APARECIA apesar de configurada
+        // como oculta -- o unico ponto onde a regra se invertia sozinha.
+        $this->assertTrue(report_unasus_atividade_esta_oculta('1-16-5', array(0 => '1-16-5')));
+    }
+
+    public function test_atividade_na_posicao_intermediaria_fica_oculta() {
+        $ocultas = array(0 => '1-16-5', 1 => '5-16-5', 2 => '9-16-5');
+        $this->assertTrue(report_unasus_atividade_esta_oculta('5-16-5', $ocultas));
+    }
+
+    public function test_atividade_na_ultima_posicao_fica_oculta() {
+        $ocultas = array(0 => '1-16-5', 1 => '5-16-5', 2 => '9-16-5');
+        $this->assertTrue(report_unasus_atividade_esta_oculta('9-16-5', $ocultas));
+    }
 }
 
 /**

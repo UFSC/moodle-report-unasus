@@ -282,6 +282,28 @@ function report_unasus_get_agrupamentos_membros($courses) {
 }
 
 /**
+ * Diz se a atividade foi configurada para NAO aparecer nos relatorios.
+ *
+ * A lista de ocultas vem de report_unasus_get_activities_config_report, que usa
+ * get_records_sql_menu: as CHAVES do array sao o `id` da linha em
+ * {activities_course_config}, e so' os VALORES ('activityid-moduleid-courseid')
+ * identificam a atividade.
+ *
+ * ⚠️ A versao anterior testava `!array_search($chave, $lista)`. array_search
+ * devolve a CHAVE do array, e a chave 0 e' falsa -- uma atividade encontrada na
+ * primeira posicao passava no teste e APARECIA apesar de configurada como
+ * oculta. Era o unico ponto em que a regra se invertia sozinha, e dependia de
+ * um detalhe de indexacao que nada tem a ver com visibilidade.
+ *
+ * @param string $chave 'activityid-moduleid-courseid' da atividade
+ * @param array $atividades_ocultas lista configurada como oculta
+ * @return bool true se a atividade deve ficar fora dos relatorios
+ */
+function report_unasus_atividade_esta_oculta($chave, $atividades_ocultas) {
+    return in_array($chave, $atividades_ocultas);
+}
+
+/**
  * Função que busca todas as atividades (assign, forum) dentro de um modulo (course)
  * em ordem de apresentação do curso
  *
@@ -314,7 +336,7 @@ function report_unasus_get_atividades_cursos_ordem($courses, $mostrar_nota_final
         // Verifica se a atividade será apresentada nos relatórios
         // Se não encontrar na lista de "Ocultos", então apresenta
 
-        if(!array_search($chave, $atividades_config_curso) || empty($atividades_config_curso)){
+        if (!report_unasus_atividade_esta_oculta($chave, $atividades_config_curso)) {
 
             if ($buscar_lti && $atividade->module_name === 'lti') {
                 // Tenta conectar ao webservice do sistema de TCC para obter a definição
