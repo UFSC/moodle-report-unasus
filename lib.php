@@ -40,6 +40,60 @@ function report_unasus_relatorios_validos_orientacao_list() {
         'tcc_concluido');
 }
 
+/**
+ * Tells whether the advisor scope of the current user left no orientation group to show.
+ *
+ * @param string $relatorio Report name.
+ * @param context $context Report context.
+ * @param int[]|null $orientadoresselecionados Orientation groups after the role scope; null means no filter.
+ * @return bool
+ * @package report_unasus
+ */
+function report_unasus_escopo_orientacao_vazio($relatorio, $context, $orientadoresselecionados) {
+    if (!in_array($relatorio, report_unasus_relatorios_validos_orientacao_list())) {
+        return false;
+    }
+    if (has_capability('report/unasus:view_all', $context)) {
+        return false;
+    }
+    if (!has_capability('report/unasus:view_orientacao', $context)) {
+        return false;
+    }
+    return is_array($orientadoresselecionados) && empty($orientadoresselecionados);
+}
+
+/**
+ * Tells whether the user holds an orientation support role but cannot open the TCC reports.
+ *
+ * Without report/unasus:view_orientacao the TCC reports are hidden from the menu with no
+ * explanation. This is what lets the page tell the user what to ask for (issue #20).
+ *
+ * @param context $context Course context.
+ * @param int $userid Id of the user to check.
+ * @return bool
+ * @package report_unasus
+ */
+function report_unasus_suporte_sem_permissao($context, $userid) {
+    global $CFG;
+
+    if (
+        has_capability('report/unasus:view_all', $context, $userid) ||
+        has_capability('report/unasus:view_orientacao', $context, $userid)
+    ) {
+        return false;
+    }
+
+    require_once($CFG->dirroot . '/local/tutores/lib.php');
+
+    $shortnames = local_tutores_grupo_orientacao::get_papeis_suporte();
+    foreach (get_user_roles($context, $userid, true) as $role) {
+        if (in_array($role->shortname, $shortnames)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function report_unasus_relatorios_restritos_list() {
     return array('acesso_tutor', 'uso_sistema_tutor');
 }
@@ -90,10 +144,17 @@ function report_unasus_relatorios_visiveis_list($course, $context) {
  */
 function report_unasus_extend_navigation_course($navigation, $course, $context) {
 
+    global $USER;
+
     $reports = report_unasus_relatorios_visiveis_list($course, $context);
 
+    // A support member without the capability still gets the entry: it leads to the page that
+    // explains what is missing, instead of the reports just not being there. The site front
+    // page is not a class course, so the role lookup is skipped there.
     if (empty($reports)) {
-        return;
+        if ($course->id == SITEID || !report_unasus_suporte_sem_permissao($context, $USER->id)) {
+            return;
+        }
     }
 
     // ⚠️ O NO' PRECISA DE ACTION, mesmo sendo um container com filhos.

@@ -90,16 +90,24 @@ function report_unasus_pagina_de_erro($mensagem, $courseid, $parcial = null, $de
  * @param context_course $context
  */
 function report_unasus_pagina_indice($courseid, $context) {
-    global $OUTPUT;
+    global $OUTPUT, $USER;
 
     $relatorios = report_unasus_relatorios_visiveis_list(get_course($courseid), $context);
+    $suportesempermissao = report_unasus_suporte_sem_permissao($context, $USER->id);
 
-    if (empty($relatorios)) {
+    if (empty($relatorios) && !$suportesempermissao) {
         throw new required_capability_exception($context, 'report/unasus:view_all', 'nopermissions', '');
     }
 
     echo $OUTPUT->header();
     echo $OUTPUT->heading(get_string('pluginname', 'report_unasus'));
+
+    if ($suportesempermissao) {
+        echo $OUTPUT->notification(
+            get_string('suporte_sem_permissao', 'report_unasus'),
+            \core\output\notification::NOTIFY_WARNING
+        );
+    }
 
     $itens = '';
     foreach ($relatorios as $relatorio) {
@@ -194,6 +202,14 @@ try {
         'na mesma subárvore, e é o que costuma provocar este erro.');
 
     report_unasus_pagina_de_erro($e->getMessage(), $courseid, null, $detalhe);
+}
+
+// A support member opening a TCC report without the capability gets the reason, not "nopermissions".
+if (
+    in_array($report->get_relatorio(), report_unasus_relatorios_validos_orientacao_list()) &&
+    report_unasus_suporte_sem_permissao($report->get_context(), $USER->id)
+) {
+    report_unasus_pagina_de_erro(get_string('suporte_sem_permissao', 'report_unasus'), $courseid);
 }
 
 // Usuário tem de ter a permissão para ver os relatórios?

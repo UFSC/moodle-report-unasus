@@ -61,6 +61,19 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $this->apply_role_scope($report);
 
+        if (
+            report_unasus_escopo_orientacao_vazio(
+                $report->get_relatorio(),
+                $report->get_context(),
+                $report->orientadores_selecionados
+            )
+        ) {
+            $output .= $this->output->notification(
+                get_string('sem_grupo_orientacao', 'report_unasus'),
+                \core\output\notification::NOTIFY_INFO
+            );
+        }
+
         if ($report->mostrar_aviso_intervalo_tempo) {
             $output .= $this->build_warning('Intervalo de Tempo incorreto ou Formato de data inválido ');
         }
@@ -1028,6 +1041,22 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $this->apply_role_scope($report);
 
+        // No group in scope: show why, instead of an empty table (tcc_consolidado, table mode).
+        if (
+            report_unasus_escopo_orientacao_vazio(
+                $report->get_relatorio(),
+                $report->get_context(),
+                $report->orientadores_selecionados
+            )
+        ) {
+            $output .= $this->output->notification(
+                get_string('sem_grupo_orientacao', 'report_unasus'),
+                \core\output\notification::NOTIFY_INFO
+            );
+            $output .= $this->default_footer();
+            return $output;
+        }
+
         $dados_method = $report->get_dados();
         $header_method = $report->get_table_header();
 
@@ -1154,6 +1183,22 @@ class report_unasus_renderer extends plugin_renderer_base {
         $output .= $this->build_filter($this->build_legend_compacta($data_class::get_legend()));
 
         $this->apply_role_scope($report);
+
+        // No group in scope: show why, instead of an empty table that reads as "nobody submitted".
+        if (
+            report_unasus_escopo_orientacao_vazio(
+                $report->get_relatorio(),
+                $report->get_context(),
+                $report->orientadores_selecionados
+            )
+        ) {
+            $output .= $this->output->notification(
+                get_string('sem_grupo_orientacao', 'report_unasus'),
+                \core\output\notification::NOTIFY_INFO
+            );
+            $output .= $this->default_footer();
+            return $output;
+        }
 
         /* Ajustes para o cabeçalho duplo de alguns relatórios */
 
