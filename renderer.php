@@ -565,40 +565,7 @@ class report_unasus_renderer extends plugin_renderer_base {
      * @return void
      */
     private function apply_role_scope($report) {
-        global $USER;
-
-        $context = $report->get_context();
-        if (has_capability('report/unasus:view_all', $context)) {
-            return;
-        }
-
-        if (has_capability('report/unasus:view_tutoria', $context)) {
-            $report->tutores_selecionados = $this->get_grupos_tutoria_byuser_id($report, $USER->id);
-        }
-
-        if (has_capability('report/unasus:view_orientacao', $context)) {
-            $report->orientadores_selecionados = $this->get_grupos_orientacao_byuser_id($report, $USER->id);
-        }
-    }
-
-    private function get_grupos_tutoria_byuser_id($report, $userid) {
-        $categoria_turma_ufsc = $report->get_categoria_turma_ufsc();
-        $grupos_tutoria = local_tutores_grupos_tutoria::get_grupos_tutoria_by_userid($categoria_turma_ufsc, $userid);
-        $tutores_selecionados = array();
-        foreach ($grupos_tutoria as $grupo_tutoria_id => $grupo_tutoria) {
-            $tutores_selecionados[] = $grupo_tutoria_id;
-        }
-        return $tutores_selecionados;
-    }
-
-    private function get_grupos_orientacao_byuser_id($report, $userid) {
-        $categoria_turma_ufsc = $report->get_categoria_turma_ufsc();
-        $grupos_orientacao = local_tutores_grupo_orientacao::get_grupos_orientacao_by_userid($categoria_turma_ufsc, $userid);
-        $orientadores_selecionados = array();
-        foreach ($grupos_orientacao as $grupo_orientacao_id => $grupo_orientacao) {
-            $orientadores_selecionados[] = $grupo_orientacao_id;
-        }
-        return $orientadores_selecionados;
+        report_unasus_aplicar_escopo_do_papel($report);
     }
     /**
      * Função responsável pela construção do relatório de forma dinâmica.
