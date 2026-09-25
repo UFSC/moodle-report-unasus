@@ -107,5 +107,6 @@ $string['tcc_prefix'] = 'TCC - ';
 /* Mensagens de erro */
 $string['unimplemented_graph_error'] = 'Gráfico não implementado';
 $string['statistics_not_enabled_error'] = 'Não é possível gerar este relatório com as Estatísticas desabilitadas no Moodle';
+$string['grafico_sem_grupo'] = 'Você não está em nenhum grupo desta turma, por isso não há dados a mostrar.';
 $string['csv_sem_grupo'] = 'Você não está em nenhum grupo desta turma, por isso não há dados a exportar.';
 $string['no_valid_activity_found_error'] = 'Nenhuma atividade válida foi encontrada, para a seleção de filtros informada.';
