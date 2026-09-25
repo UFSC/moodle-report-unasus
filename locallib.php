@@ -1022,6 +1022,38 @@ function report_unasus_get_prazo_maximo_entrega() {
 }
 
 /**
+ * Restricts the report to the groups where the current user acts, unless the user can see all.
+ *
+ * Tutors get their tutoring groups and advisors their orientation groups, replacing whatever
+ * filter came with the request.
+ *
+ * @param report_unasus_factory $report Report being displayed or exported.
+ * @return void
+ */
+function report_unasus_aplicar_escopo_do_papel($report) {
+    global $USER;
+
+    $context = $report->get_context();
+    if (has_capability('report/unasus:view_all', $context)) {
+        return;
+    }
+    if (has_capability('report/unasus:view_tutoria', $context)) {
+        $grupos = local_tutores_grupos_tutoria::get_grupos_tutoria_by_userid(
+            $report->get_categoria_turma_ufsc(),
+            $USER->id
+        );
+        $report->tutores_selecionados = array_keys($grupos);
+    }
+    if (has_capability('report/unasus:view_orientacao', $context)) {
+        $grupos = local_tutores_grupo_orientacao::get_grupos_orientacao_by_userid(
+            $report->get_categoria_turma_ufsc(),
+            $USER->id
+        );
+        $report->orientadores_selecionados = array_keys($grupos);
+    }
+}
+
+/**
  * Classe que constroi a tabela para os relatorios, extende a html_table
  * da MoodleAPI.
  *
