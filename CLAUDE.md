@@ -143,9 +143,21 @@ Notes:
 
 #### Execução paralela
 
-Reduz a suíte de **37m55s para 12m19s** com 6 workers (medido em 03/09/2026, 100/100
-cenários). O Moodle instala um site por worker (`behatrunN`, com dataroot e prefixo
-próprios) e distribui as features.
+Reduz a suíte de **37m55s para 7m20s** com 6 workers (100/100 cenários; 12m19s em
+03/09/2026, 7m20s em 25/09/2026 depois dos consertos da #19). O Moodle instala um site por
+worker (`behatrunN`, com dataroot e prefixo próprios) e distribui as features.
+
+- **As features do plugin são espalhadas com `init.php --optimize-runs=@report_unasus`.** Sem
+  isso o Moodle as distribui em bloco e as 25 caíam num único worker.
+- **O balanceamento é por tempo** (`BEHAT_FEATURE_TIMING_FILE`), e esses tempos dependem da
+  carga: uma rodada nunca é melhor que os tempos que a anterior gravou.
+- **`unasus_filtro_cohort` foi dividido em `_estudantes` e `_sintese`** porque, sozinho, prendia
+  um worker. O Background é o mesmo nos dois arquivos.
+- **8 workers não ganham nada** (7m13s contra 7m20s, medido em 25/09/2026): a soma do tempo das
+  features sobe 28% e a vazão não muda. O gargalo é um recurso compartilhado, não a CPU (22
+  núcleos, carga ~5). Suspeitos, **não medidos**: o MySQL único e o pool do PHP-FPM do container.
+- `./run_behat.sh tests/behat/X.feature` roda a feature no worker que a recebeu: o `run.php`
+  executa o `--feature` num único worker, e cada um só conhece as suas features.
 
 ```bash
 # .env do plugin
