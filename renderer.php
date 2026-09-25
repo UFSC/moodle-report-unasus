@@ -734,9 +734,12 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $output = $this->default_header();
 
+        // The AMD loader is hidden around the bundled jQuery 1.7.1, so it does not replace Moodle's.
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/amd_pausa.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/jquery.min.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/highcharts.js"));
         $PAGE->requires->js(new moodle_url("/report/unasus/graph/highcharts/js/modules/exporting.js"));
+        $PAGE->requires->js(new moodle_url("/report/unasus/graph/amd_retoma.js"));
 
         $output .= $this->build_filter(true);
 
