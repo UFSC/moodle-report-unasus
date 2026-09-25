@@ -200,7 +200,12 @@ disable_behat_environment() {
     fi
 
     log "Desabilitando modo Behat para restaurar o ambiente local..."
-    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --disable 2>&1 || true"
+    # Sem --parallel, o util.php trata o ambiente como sequencial: roda o diag do site unico
+    # (que nao e' usado aqui e acusa "initialised for a different version") e sai SEM desligar
+    # os sites paralelos.
+    local paralelo=""
+    [ -n "$PARALLEL_RUNS" ] && paralelo=" --parallel=$PARALLEL_RUNS"
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --disable$paralelo 2>&1 || true"
     exec_as_moodle "rm -f '$BEHAT_ENABLE_FILE' '$BEHAT_DATAROOT/.behat_enabled'"
 }
 
@@ -538,29 +543,16 @@ fi
 BEHAT_YML=$(exec_as_moodle "find '$BEHAT_DATAROOT' -type f -name behat.yml -path '*/behat/*' 2>/dev/null | head -1" 2>/dev/null || true)
 BEHAT_YML="${BEHAT_YML:-$BEHAT_DATAROOT/behat/behat.yml}"
 
-# Nº de workers para o qual o ambiente está instalado. O Moodle grava esse valor em
-# parallel_environment_enabled.txt dentro do behat dir de cada worker; ausente = sequencial.
-current_parallel_runs() {
-    exec_as_moodle "cat '${BEHAT_DATAROOT}1/behat/parallel_environment_enabled.txt' 2>/dev/null" 2>/dev/null | tr -d '[:space:]' || true
-}
-
 if [ -n "$PARALLEL_RUNS" ]; then
-    INSTALLED_RUNS="$(current_parallel_runs)"
-    if [ "$INSTALLED_RUNS" != "$PARALLEL_RUNS" ] || [ -n "$INIT_FLAG" ]; then
-        # O dirroot precisa ser gravável: o run.php cria os symlinks behatrun1..N nele.
-        chmod a+w "$DOCKER_COMPOSE_DIR/$MOODLE_LOCAL_SITE" 2>/dev/null || true
-
-        if [ -n "$INSTALLED_RUNS" ]; then
-            log "Ambiente instalado para $INSTALLED_RUNS worker(s); reinstalando para $PARALLEL_RUNS..."
-        else
-            log "Instalando ambiente Behat paralelo com $PARALLEL_RUNS workers (demorado: um site por worker)..."
-        fi
-        ensure_legacy_composer_for_behat_init
-        exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' --parallel=$PARALLEL_RUNS 2>&1"
-        log "Ambiente paralelo pronto ($PARALLEL_RUNS workers)."
-    else
-        log "Ambiente Behat paralelo já inicializado ($PARALLEL_RUNS workers)."
-    fi
+    # O init.php roda sempre: o script desliga os sites ao sair, e e' o init que os religa. Ele
+    # so' reinstala os sites quando o codigo mudou; do contrario, apenas habilita (cerca de 1 min).
+    # --optimize-runs espalha as features do plugin por todos os workers; sem ele, o Moodle as
+    # distribui em bloco e todas caem num unico worker.
+    chmod a+w "$DOCKER_COMPOSE_DIR/$MOODLE_LOCAL_SITE" 2>/dev/null || true   # o run.php cria os symlinks behatrun1..N no dirroot
+    log "Preparando ambiente Behat paralelo com $PARALLEL_RUNS workers (reinstala os sites so' se o codigo mudou)..."
+    ensure_legacy_composer_for_behat_init
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' --parallel=$PARALLEL_RUNS --optimize-runs=@$PLUGIN_COMPONENT 2>&1"
+    log "Ambiente paralelo pronto ($PARALLEL_RUNS workers)."
 
 elif [ -n "$INIT_FLAG" ]; then
     log "Reinicializando ambiente Behat (--init)..."
@@ -667,7 +659,13 @@ if [ -n "$FEATURE_FILE" ]; then
     log "Feature: $FEATURE_PATH"
     echo ""
     if [ -n "$PARALLEL_RUNS" ]; then
-        exec_as_moodle "$BEHAT_CMD --feature=$(printf "%q" "$FEATURE_PATH")$EXTRA_ARGS_ESCAPED"
+        # O run.php roda o --feature num unico worker (o --fromrun, 1 por padrao), e o behat.yml de
+        # cada worker so' lista as features distribuidas a ele. Em outro worker o Behat responde
+        # "No specifications found". Por isso roda-se o worker que recebeu esta feature.
+        FEATURE_RUN=$(exec_as_moodle "for i in \$(seq 1 $PARALLEL_RUNS); do grep -qE -- $(printf "%q" "^[[:space:]]*- ${FEATURE_PATH//./\\.}\$") '$BEHAT_DATAROOT'/behatrun\$i/behat/behat.yml 2>/dev/null && { echo \$i; break; }; done")
+        [ -n "$FEATURE_RUN" ] || err "Nenhum dos $PARALLEL_RUNS workers recebeu a feature $FEATURE_PATH"
+        log "Feature distribuida ao worker $FEATURE_RUN"
+        exec_as_moodle "$BEHAT_CMD --fromrun=$FEATURE_RUN --feature=$(printf "%q" "$FEATURE_PATH")$EXTRA_ARGS_ESCAPED"
     else
         exec_as_moodle "$BEHAT_CMD $(printf "%q" "$FEATURE_PATH")$EXTRA_ARGS_ESCAPED"
     fi
