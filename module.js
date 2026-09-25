@@ -229,6 +229,14 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
     }
 
     for (tipo in tipos) {
+        // Some reports have more legend types than values per group (e.g. 'nao_aplicado').
+        // A series of undefined points makes Highcharts 2.2.5 fail, and no chart is drawn.
+        var temvalor = data[tipo].some(function(valor) {
+            return valor !== undefined;
+        });
+        if (!temvalor) {
+            continue;
+        }
         options.series.push({
             name: tipos[tipo],
             data: data[tipo]
