@@ -1054,6 +1054,27 @@ function report_unasus_aplicar_escopo_do_papel($report) {
 }
 
 /**
+ * Sends the report as CSV, restricted to the groups the user would see in the table.
+ *
+ * @param report_unasus_factory $report Report to export.
+ * @param string $namereport Report name, used in the file name.
+ * @return void
+ * @throws moodle_exception When the role scope leaves no group to export.
+ */
+function report_unasus_exportar_csv($report, $namereport) {
+    report_unasus_aplicar_escopo_do_papel($report);
+    if (report_unasus_escopo_vazio(
+        $report->get_relatorio(),
+        $report->get_context(),
+        $report->tutores_selecionados,
+        $report->orientadores_selecionados
+    )) {
+        throw new moodle_exception('csv_sem_grupo', 'report_unasus');
+    }
+    $report->render_report_csv($namereport);
+}
+
+/**
  * Classe que constroi a tabela para os relatorios, extende a html_table
  * da MoodleAPI.
  *

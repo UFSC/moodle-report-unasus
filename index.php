@@ -112,7 +112,7 @@ switch ($modo_exibicao) {
         $report->render_report_graph($renderer, $porcentagem);
         break;
     case 'export_csv':
-        $report->render_report_csv($name_report);
+        report_unasus_exportar_csv($report, $name_report);
         break;
 }
 
