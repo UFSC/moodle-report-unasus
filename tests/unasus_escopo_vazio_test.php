@@ -34,8 +34,9 @@ require_once($CFG->dirroot . '/report/unasus/lib.php');
  * @copyright  2026 UFSC
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @group      report_unasus
+ * @covers     ::report_unasus_escopo_vazio
  */
-class report_unasus_escopo_vazio_testcase extends advanced_testcase {
+class unasus_escopo_vazio_test extends advanced_testcase {
     /** @var context_course */
     protected $context;
 
@@ -66,7 +67,7 @@ class report_unasus_escopo_vazio_testcase extends advanced_testcase {
         $this->setUser($user);
     }
 
-    // Tutoring axis, report 'boletim': null, [], [1], [several].
+    // Tutoring axis on the boletim report: no filter, empty list, one group and several groups.
 
     /**
      * A null tutoring selection means no filter.
@@ -100,7 +101,7 @@ class report_unasus_escopo_vazio_testcase extends advanced_testcase {
         $this->assertFalse(report_unasus_escopo_vazio('boletim', $this->context, [7, 8, 9], null));
     }
 
-    // Orientation axis, report 'tcc_consolidado': null, [], [1], [several].
+    // Orientation axis on the tcc_consolidado report: no filter, empty list, one group and several groups.
 
     /**
      * A null orientation selection means no filter.

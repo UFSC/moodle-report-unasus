@@ -39,8 +39,9 @@ require_once($CFG->dirroot . '/report/unasus/factory.php');
  * @copyright  2026 UFSC
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @group      report_unasus
+ * @covers     ::report_unasus_exportar_csv
  */
-class report_unasus_exportar_csv_testcase extends advanced_testcase {
+class unasus_exportar_csv_test extends advanced_testcase {
     /** @var stdClass */
     protected $course;
     /** @var context_course */
@@ -181,7 +182,7 @@ class report_unasus_exportar_csv_testcase extends advanced_testcase {
      */
     protected function capturar_csv($exportar) {
         $anterior = null;
-        $anterior = set_error_handler(function($errno, $errstr) use (&$anterior) {
+        $anterior = set_error_handler(function ($errno, $errstr) use (&$anterior) {
             if (strpos($errstr, 'Cannot modify header information') === 0) {
                 return true;
             }
@@ -206,7 +207,7 @@ class report_unasus_exportar_csv_testcase extends advanced_testcase {
     public function test_controle_sem_escopo_exporta_os_3_grupos() {
         $this->usuario(['report/unasus:view_tutoria'], [$this->grupos[0]]);
         $report = $this->report();
-        $csv = $this->capturar_csv(function() use ($report) {
+        $csv = $this->capturar_csv(function () use ($report) {
             $report->render_report_csv('boletim');
         });
         $this->assertEquals(3, $this->contar_grupos($csv), $csv);
@@ -218,7 +219,7 @@ class report_unasus_exportar_csv_testcase extends advanced_testcase {
     public function test_tutor_em_1_de_3_grupos_exporta_1() {
         $this->usuario(['report/unasus:view_tutoria'], [$this->grupos[0]]);
         $report = $this->report();
-        $csv = $this->capturar_csv(function() use ($report) {
+        $csv = $this->capturar_csv(function () use ($report) {
             report_unasus_exportar_csv($report, 'boletim');
         });
         $this->assertEquals(1, $this->contar_grupos($csv), $csv);
@@ -231,7 +232,7 @@ class report_unasus_exportar_csv_testcase extends advanced_testcase {
     public function test_filtro_forjado_nao_amplia_o_escopo() {
         $this->usuario(['report/unasus:view_tutoria'], [$this->grupos[0]]);
         $report = $this->report([$this->grupos[1], $this->grupos[2]]);
-        $csv = $this->capturar_csv(function() use ($report) {
+        $csv = $this->capturar_csv(function () use ($report) {
             report_unasus_exportar_csv($report, 'boletim');
         });
         $this->assertEquals(1, $this->contar_grupos($csv), $csv);
@@ -244,7 +245,7 @@ class report_unasus_exportar_csv_testcase extends advanced_testcase {
     public function test_view_all_exporta_os_3_grupos() {
         $this->usuario(['report/unasus:view_all', 'report/unasus:view_tutoria'], []);
         $report = $this->report();
-        $csv = $this->capturar_csv(function() use ($report) {
+        $csv = $this->capturar_csv(function () use ($report) {
             report_unasus_exportar_csv($report, 'boletim');
         });
         $this->assertEquals(3, $this->contar_grupos($csv), $csv);

@@ -30,53 +30,7 @@ require_once($CFG->dirroot . '/tag/lib.php');
 require_once($CFG->dirroot . '/local/relationship/lib.php');
 require_once($CFG->dirroot . '/report/unasus/lib.php');
 require_once($CFG->dirroot . '/report/unasus/locallib.php');
-
-/**
- * Minimal report double: what the role scope reads and writes.
- *
- * @package    report_unasus
- * @copyright  2026 UFSC
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class report_unasus_escopo_report_stub {
-    /** @var int[]|null Tutoring groups selected. */
-    public $tutores_selecionados = null;
-    /** @var int[]|null Orientation groups selected. */
-    public $orientadores_selecionados = null;
-    /** @var context Report context. */
-    protected $context;
-    /** @var int Class category id. */
-    protected $categoriaturma;
-
-    /**
-     * Constructor.
-     *
-     * @param context $context Report context.
-     * @param int $categoriaturma Class category id.
-     */
-    public function __construct($context, $categoriaturma) {
-        $this->context = $context;
-        $this->categoriaturma = $categoriaturma;
-    }
-
-    /**
-     * Returns the report context.
-     *
-     * @return context
-     */
-    public function get_context() {
-        return $this->context;
-    }
-
-    /**
-     * Returns the class category id.
-     *
-     * @return int
-     */
-    public function get_categoria_turma_ufsc() {
-        return $this->categoriaturma;
-    }
-}
+require_once($CFG->dirroot . '/report/unasus/tests/fixtures/escopo_report_stub.php');
 
 /**
  * Covers the role scope on both axes, with 0 to 3 groups for the current user.
@@ -85,8 +39,9 @@ class report_unasus_escopo_report_stub {
  * @copyright  2026 UFSC
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @group      report_unasus
+ * @covers     ::report_unasus_aplicar_escopo_do_papel
  */
-class report_unasus_aplicar_escopo_testcase extends advanced_testcase {
+class unasus_aplicar_escopo_test extends advanced_testcase {
     /** @var context_course */
     protected $context;
     /** @var int */
@@ -117,10 +72,20 @@ class report_unasus_aplicar_escopo_testcase extends advanced_testcase {
         $course = $gen->create_course(['category' => $category->id]);
         $this->context = context_course::instance($course->id);
 
-        $this->rctutor = $this->criar_relationship($catcontext->id, 'grupo_tutoria', 'teacher',
-            'Tutoria', $this->grupostutoria);
-        $this->rcorientador = $this->criar_relationship($catcontext->id, 'grupo_orientacao',
-            'editingteacher', 'Orientacao', $this->gruposorientacao);
+        $this->rctutor = $this->criar_relationship(
+            $catcontext->id,
+            'grupo_tutoria',
+            'teacher',
+            'Tutoria',
+            $this->grupostutoria
+        );
+        $this->rcorientador = $this->criar_relationship(
+            $catcontext->id,
+            'grupo_orientacao',
+            'editingteacher',
+            'Orientacao',
+            $this->gruposorientacao
+        );
     }
 
     /**

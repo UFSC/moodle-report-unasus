@@ -1029,6 +1029,7 @@ function report_unasus_get_prazo_maximo_entrega() {
  *
  * @param report_unasus_factory $report Report being displayed or exported.
  * @return void
+ * @package report_unasus
  */
 function report_unasus_aplicar_escopo_do_papel($report) {
     global $USER;
@@ -1060,15 +1061,17 @@ function report_unasus_aplicar_escopo_do_papel($report) {
  * @param string $namereport Report name, used in the file name.
  * @return void
  * @throws moodle_exception When the role scope leaves no group to export.
+ * @package report_unasus
  */
 function report_unasus_exportar_csv($report, $namereport) {
     report_unasus_aplicar_escopo_do_papel($report);
-    if (report_unasus_escopo_vazio(
+    $vazio = report_unasus_escopo_vazio(
         $report->get_relatorio(),
         $report->get_context(),
         $report->tutores_selecionados,
         $report->orientadores_selecionados
-    )) {
+    );
+    if ($vazio) {
         throw new moodle_exception('csv_sem_grupo', 'report_unasus');
     }
     $report->render_report_csv($namereport);
