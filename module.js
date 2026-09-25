@@ -112,6 +112,26 @@ function select_all(target, select) {
 //});
 
 var chart1;
+
+/**
+ * Saves the chart as an SVG file, built in the browser.
+ *
+ * @param svg String -- SVG source of the chart
+ * @param nome String -- file name, without extension
+ */
+M.report_unasus.baixar_svg = function(svg, nome) {
+    var blob = new Blob([svg], {type: 'image/svg+xml'});
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = (nome || 'grafico').replace(/[\\\/:*?"<>|]+/g, '_') + '.svg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function() {
+        URL.revokeObjectURL(link.href);
+    }, 1000);
+};
+
 /**
  * Gráfico de Stacked Bars
  *
@@ -154,6 +174,27 @@ M.report_unasus.init_graph = function(Y, dados_grafico, tipos, title, porcentage
 
                 stacking: stack_option
 
+            }
+        },
+        // The stock export menu posts the chart to export.highcharts.com, a third party, over
+        // plain HTTP. It is replaced by a button that builds the SVG in the browser. The menu
+        // cannot be trimmed instead: options are deep-merged, and arrays merge index by index.
+        exporting: {
+            buttons: {
+                exportButton: {
+                    enabled: false
+                },
+                svgButton: {
+                    symbol: 'exportIcon',
+                    x: -10,
+                    symbolFill: '#A8BF77',
+                    hoverSymbolFill: '#768F3E',
+                    _id: 'svgButton',
+                    _titleKey: 'downloadSVG',
+                    onclick: function() {
+                        M.report_unasus.baixar_svg(this.getSVG(), title);
+                    }
+                }
             }
         },
         series: []
