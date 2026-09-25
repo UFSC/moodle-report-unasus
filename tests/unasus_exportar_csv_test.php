@@ -115,6 +115,25 @@ class unasus_exportar_csv_test extends advanced_testcase {
     }
 
     /**
+     * Leaves no report in the factory singleton for the next test classes.
+     */
+    protected function tearDown() {
+        $this->limpar_singleton();
+        parent::tearDown();
+    }
+
+    /**
+     * Drops the report kept by the factory singleton.
+     *
+     * @return void
+     */
+    protected function limpar_singleton() {
+        $singleton = new ReflectionProperty('report_unasus_factory', 'report');
+        $singleton->setAccessible(true);
+        $singleton->setValue(null, null);
+    }
+
+    /**
      * Creates the current user with the given capabilities, tutor of the given groups.
      *
      * @param string[] $capabilities Capabilities allowed in the course.
@@ -137,16 +156,15 @@ class unasus_exportar_csv_test extends advanced_testcase {
     }
 
     /**
-     * Builds a fresh boletim report from request parameters, as index.php does.
+     * Builds a fresh report from request parameters, as index.php does.
      *
      * @param int[]|null $tutores Tutoring filter sent with the request.
+     * @param string $relatorio Report name.
      * @return report_unasus_factory
      */
-    protected function report($tutores = null) {
-        $singleton = new ReflectionProperty('report_unasus_factory', 'report');
-        $singleton->setAccessible(true);
-        $singleton->setValue(null, null);
-        $_GET['relatorio'] = 'boletim';
+    protected function report($tutores = null, $relatorio = 'boletim') {
+        $this->limpar_singleton();
+        $_GET['relatorio'] = $relatorio;
         $_GET['course'] = $this->course->id;
         if ($tutores !== null) {
             $_GET['tutores'] = $tutores;
@@ -190,15 +208,15 @@ class unasus_exportar_csv_test extends advanced_testcase {
             return $anterior ? call_user_func_array($anterior, func_get_args()) : false;
         });
         ob_start();
+        $saida = '';
         try {
             call_user_func($exportar);
-        } catch (Exception $e) {
-            ob_end_clean();
+        } finally {
+            // Also on PHP 7 Errors, so no buffer or handler leaks into the next tests.
+            $saida = ob_get_clean();
             restore_error_handler();
-            throw $e;
         }
-        restore_error_handler();
-        return ob_get_clean();
+        return $saida;
     }
 
     /**
@@ -257,15 +275,72 @@ class unasus_exportar_csv_test extends advanced_testcase {
     public function test_tutor_sem_grupo_nao_exporta_nada() {
         $this->usuario(['report/unasus:view_tutoria'], []);
         $report = $this->report();
+        $erro = null;
         ob_start();
         try {
             report_unasus_exportar_csv($report, 'boletim');
-            ob_end_clean();
-            $this->fail('Expected moodle_exception csv_sem_grupo.');
         } catch (moodle_exception $e) {
+            $erro = $e;
+        } finally {
             $saida = ob_get_clean();
-            $this->assertEquals('csv_sem_grupo', $e->errorcode);
-            $this->assertSame('', $saida);
         }
+        $this->assertNotNull($erro, 'Expected moodle_exception csv_sem_grupo.');
+        $this->assertEquals('csv_sem_grupo', $erro->errorcode);
+        $this->assertSame('', $saida);
+    }
+
+    /**
+     * Graph control: without the role scope the tutor gets all 3 groups (the defect being fixed).
+     *
+     * @covers ::report_unasus_dados_grafico
+     */
+    public function test_grafico_controle_sem_escopo_traz_os_3_grupos() {
+        $this->usuario(['report/unasus:view_tutoria'], [$this->grupos[0]]);
+        $report = $this->report(null, 'atividades_vs_notas');
+        $this->assertCount(3, $report->get_dados_grafico());
+    }
+
+    /**
+     * Tutor in 1 of 3 groups gets graph data for that group only.
+     *
+     * @covers ::report_unasus_dados_grafico
+     */
+    public function test_grafico_tutor_em_1_de_3_grupos_traz_1() {
+        $this->usuario(['report/unasus:view_tutoria'], [$this->grupos[0]]);
+        $report = $this->report(null, 'atividades_vs_notas');
+        $this->assertCount(1, report_unasus_dados_grafico($report));
+    }
+
+    /**
+     * Groups forged in the request do not widen the graph scope.
+     *
+     * @covers ::report_unasus_dados_grafico
+     */
+    public function test_grafico_filtro_forjado_nao_amplia_o_escopo() {
+        $this->usuario(['report/unasus:view_tutoria'], [$this->grupos[0]]);
+        $report = $this->report([$this->grupos[1], $this->grupos[2]], 'atividades_vs_notas');
+        $this->assertCount(1, report_unasus_dados_grafico($report));
+    }
+
+    /**
+     * With view_all the graph has all groups.
+     *
+     * @covers ::report_unasus_dados_grafico
+     */
+    public function test_grafico_view_all_traz_os_3_grupos() {
+        $this->usuario(['report/unasus:view_all', 'report/unasus:view_tutoria'], []);
+        $report = $this->report(null, 'atividades_vs_notas');
+        $this->assertCount(3, report_unasus_dados_grafico($report));
+    }
+
+    /**
+     * A tutor with no group gets no graph data at all.
+     *
+     * @covers ::report_unasus_dados_grafico
+     */
+    public function test_grafico_tutor_sem_grupo_nao_traz_dados() {
+        $this->usuario(['report/unasus:view_tutoria'], []);
+        $report = $this->report(null, 'atividades_vs_notas');
+        $this->assertNull(report_unasus_dados_grafico($report));
     }
 }
