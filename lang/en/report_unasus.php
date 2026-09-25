@@ -106,6 +106,7 @@ $string['tcc_prefix'] = 'TCC - ';
 
 /* Mensagens de erro */
 $string['unimplemented_graph_error'] = 'Gráfico não implementado';
+$string['grafico_sem_grupo'] = 'Você não está em nenhum grupo desta turma, por isso não há dados a mostrar.';
 $string['csv_sem_grupo'] = 'Você não está em nenhum grupo desta turma, por isso não há dados a exportar.';
 $string['no_valid_activity_found_error'] = 'Nenhuma atividade válida foi encontrada, para a seleção de filtros informada.';
 $string['sem_grupo_orientacao'] = 'Você não está em nenhum grupo de orientação desta turma, por isso não há estudantes a mostrar. Para ver os relatórios de TCC, peça à coordenação que inclua você em um grupo de orientação.';

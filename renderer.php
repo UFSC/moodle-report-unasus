@@ -1360,7 +1360,13 @@ class report_unasus_renderer extends plugin_renderer_base {
             return $output;
         }
 
-        $dados_method = $report->get_dados_grafico();
+        // The role scope must be applied before the data is read.
+        $dadosgrafico = report_unasus_dados_grafico($report);
+        if ($dadosgrafico === null) {
+            $output .= $this->box(get_string('grafico_sem_grupo', 'report_unasus'));
+            $output .= $this->default_footer();
+            return $output;
+        }
         //-----------------------------------------------------------------
         //ALTERAR esta 'estrutura_dados_relatorio' para o objeto relatório???
 
@@ -1370,11 +1376,13 @@ class report_unasus_renderer extends plugin_renderer_base {
 
         $legend = call_user_func("$dados_class::get_legend");
 
-        $this->apply_role_scope($report);
-
         $output .= $this->grafico_barras(
-            $dados_method, $legend, get_string($this->report_name, 'report_unasus'),
-            $porcentagem, $empilhado);
+            $dadosgrafico,
+            $legend,
+            get_string($this->report_name, 'report_unasus'),
+            $porcentagem,
+            $empilhado
+        );
         $output .= $this->default_footer();
 
         return $output;

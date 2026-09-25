@@ -1106,6 +1106,27 @@ function report_unasus_exportar_csv($report, $namereport) {
 }
 
 /**
+ * Returns the graph data, restricted to the groups the user would see in the table.
+ *
+ * @param report_unasus_factory $report Report being displayed as a graph.
+ * @return array|null Graph data, or null when the role scope leaves no group to show.
+ * @package report_unasus
+ */
+function report_unasus_dados_grafico($report) {
+    report_unasus_aplicar_escopo_do_papel($report);
+    $vazio = report_unasus_escopo_vazio(
+        $report->get_relatorio(),
+        $report->get_context(),
+        $report->tutores_selecionados,
+        $report->orientadores_selecionados
+    );
+    if ($vazio) {
+        return null;
+    }
+    return $report->get_dados_grafico();
+}
+
+/**
  * Classe que constroi a tabela para os relatorios, extende a html_table
  * da MoodleAPI.
  *
