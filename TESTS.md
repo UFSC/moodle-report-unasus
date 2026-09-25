@@ -138,8 +138,9 @@ Cobre 8 classes render de `datastructures.php` — transições puras `estado �
 # Relatórios de manager (orientação TCC)
 ./run_behat.sh tests/behat/unasus_manager_tcc.feature
 
-# Filtro de cohort e grupo — relatórios de tutoria (9 relatórios)
-./run_behat.sh tests/behat/unasus_filtro_cohort.feature
+# Filtro de cohort e grupo — relatórios de tutoria (9 relatórios), em dois arquivos
+./run_behat.sh tests/behat/unasus_filtro_cohort_estudantes.feature
+./run_behat.sh tests/behat/unasus_filtro_cohort_sintese.feature
 
 # Filtro de cohort e grupo — relatórios TCC (3 relatórios)
 ./run_behat.sh tests/behat/unasus_filtro_cohort_tcc.feature
@@ -365,7 +366,12 @@ Mesmos 15 usuários (`student1–12`, `teacher1–3`), mesmo curso `Course1`, me
 
 ---
 
-### Feature: `tests/behat/unasus_filtro_cohort.feature`
+### Features: `tests/behat/unasus_filtro_cohort_estudantes.feature` e `unasus_filtro_cohort_sintese.feature`
+
+> Eram um arquivo só, dividido em 25/09/2026 porque sozinho custava ~365s, mais que o dobro da
+> segunda feature mais cara, e prendia um worker do Behat paralelo. O **Background é o mesmo nos
+> dois**: mudar um exige mudar o outro. O 1º Scenario Outline está em `_estudantes`; o 2º e o 3º,
+> em `_sintese`.
 
 **Descrição:** Verifica que o filtro de cohort e o filtro de grupo de tutoria restringem corretamente os dados exibidos em todos os 9 relatórios de tutoria com `mostrar_filtro_cohorts = true`. Usa `a standard report_unasus tutoria fixture exists` com manager1 adicionado via Gherkin e dois cohorts individuais: `CHs1` (somente student1, grupo de teacher1) e `CHs6` (somente student6, grupo de teacher2). Students 1–8 submetem a2 (deadline passado, `prazo_avaliacao=0`) para alimentar `avaliacoes_em_atraso` e `estudante_sem_atividade_avaliada`.
 

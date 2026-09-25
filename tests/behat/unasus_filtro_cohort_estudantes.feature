@@ -1,5 +1,8 @@
 @unasus @report_unasus @javascript @filtro_cohort
-Feature: Filtro de cohort e grupo nos relatórios UNA-SUS de tutoria
+Feature: Filtro de cohort e grupo nos relatórios UNA-SUS de tutoria que listam estudantes
+  # O Background e' o mesmo de unasus_filtro_cohort_sintese.feature: a feature foi dividida em duas para o
+  # Behat paralelo distribuir o custo. Mudar o Background exige mudar os dois arquivos.
+
   Para garantir que coordenadores possam refinar a visão por cohort e por grupo de tutoria
   Como usuário manager com report/unasus:view_all
   Preciso que ao selecionar cohort1 apenas o estudante desse cohort apareça
@@ -105,64 +108,3 @@ Scenario Outline: filtro de cohort e grupo restringe estudantes exibidos em rela
     | estudante_sem_atividade_postada |
     | estudante_sem_atividade_avaliada |
     | modulos_concluidos              |
-
-# Relatórios de síntese agrupam dados por tutor como linha da tabela.
-# O filtro de grupo remove a linha do tutor que não pertence ao grupo selecionado e
-# exibe apenas os dados dos estudantes daquele grupo na linha resultante.
-# Dados esperados por relatório com filtro de grupo:
-#   avaliacoes_em_atraso: students 1-2 (group1) e 5-6 (group2) submeteram a2 → 2/4
-#   atividades_nota_atribuida: students 1-2 + student3 com a3 completo → 3/4 (usa course_modules_completion)
-#   atividades_concluidas_agrupadas: coluna é o curso ("Course1"); students 1-2 com tudo completo → 2/4
-@filtro_cohort
-Scenario Outline: filtro de grupo restringe tutores e dados em relatórios de síntese
-  Given I log in as "manager1"
-
-  When I open the unasus report "<report>" directly for course "c1" with params:
-    | name          | value                                 |
-    | modo_exibicao | tabela                                |
-    | tutores[0]    | relationshipgroup:relationship_group1 |
-  Then I should see "Teacher t1"
-  And I should not see "Teacher t2"
-  And the unasus report table cell at row "Teacher t1" and column "<coluna>" should contain "<contagem>"
-
-  When I open the unasus report "<report>" directly for course "c1" with params:
-    | name          | value                                 |
-    | modo_exibicao | tabela                                |
-    | tutores[0]    | relationshipgroup:relationship_group2 |
-  Then I should see "Teacher t2"
-  And I should not see "Teacher t1"
-  And the unasus report table cell at row "Teacher t2" and column "<coluna>" should contain "<contagem>"
-
-  Examples:
-    | report                          | coluna                | contagem |
-    | avaliacoes_em_atraso            | Test assignment two   | 2/4      |
-    | atividades_nota_atribuida       | Test assignment three | 3/4      |
-    | atividades_concluidas_agrupadas | Course1               | 2/4      |
-
-# Para relatórios de síntese o filtro de cohort afeta apenas os contadores dentro
-# de cada linha (todos os tutores continuam aparecendo).
-# Com CHs1 (só student1, grupo de teacher1): Teacher t1 mostra 1 dado, Teacher t2 mostra 0.
-# Com CHs6 (só student6, grupo de teacher2): Teacher t2 mostra 1 dado, Teacher t1 mostra 0.
-@filtro_cohort
-Scenario Outline: filtro de cohort altera contadores em relatórios de síntese
-  Given I log in as "manager1"
-
-  When I open the unasus report "<report>" directly for course "c1" with params:
-    | name          | value       |
-    | modo_exibicao | tabela      |
-    | cohorts[0]    | cohort:CHs1 |
-  Then the unasus report table cell at row "Teacher t1" and column "<coluna>" should contain "1/"
-  And the unasus report table cell at row "Teacher t2" and column "<coluna>" should contain "0/"
-
-  When I open the unasus report "<report>" directly for course "c1" with params:
-    | name          | value       |
-    | modo_exibicao | tabela      |
-    | cohorts[0]    | cohort:CHs6 |
-  Then the unasus report table cell at row "Teacher t2" and column "<coluna>" should contain "1/"
-  And the unasus report table cell at row "Teacher t1" and column "<coluna>" should contain "0/"
-
-  Examples:
-    | report                          | coluna                |
-    | avaliacoes_em_atraso            | Test assignment two   |
-    | atividades_nota_atribuida       | Test assignment three |
-    | atividades_concluidas_agrupadas | Course1               |
