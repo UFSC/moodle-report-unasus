@@ -468,4 +468,6 @@ Para que o Behat rode no stack Moodle 3.0.5 + PHP 5.6 com chromedriver moderno, 
 3. **`/etc/hosts` no container Selenium** mapeia `$URL_NAME` → IP do container Moodle na rede docker — para o Chrome alcançar o site behat local em vez do externo.
 4. **Patch em `vendor/behat/mink-selenium2-driver/src/Behat/Mink/Driver/Selenium2Driver.php`** força `chromeOptions.w3c=false` quando o browser é chrome. Sem esse patch, chromedriver ≥ 75 negocia dialeto W3C com Selenium e devolve elementos com chave `element-6066-11e4-a52e-4f735466cecf`. O Mink antigo da Behat 2.x só conhece a chave OSS `ELEMENT`, então `find()` retorna vazio e o primeiro `before_scenario` morre com `"is not a behat test site"` mesmo com a página renderizando corretamente.
 
-**Atenção ao composer:** se composer rodar e regenerar `vendor/`, o patch é perdido. Re-aplicar.
+5. **Patch em `vendor/instaclick/php-webdriver/lib/WebDriver/Service/CurlService.php`**: POST sem parâmetros envia `{}` como corpo. Sem isso, com a libcurl 7.88 do container, o chromedriver descarta o comando: o clique não acontece, o `I log in as` fica parado na tela de login e os passos seguintes falham com `Link matching locator "'Courses'" not found`.
+
+**Atenção ao composer:** se composer rodar e regenerar `vendor/`, os patches 4 e 5 são perdidos. Re-aplicar.

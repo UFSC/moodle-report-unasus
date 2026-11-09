@@ -168,7 +168,7 @@ disable_behat_environment() {
     fi
 
     log "Desabilitando modo Behat para restaurar o ambiente local..."
-    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --disable 2>&1 || true"
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --disable 2>&1 || true"
     exec_as_moodle "rm -f '$BEHAT_ENABLE_FILE' '$BEHAT_DATAROOT/.behat_enabled'"
 }
 
@@ -180,7 +180,7 @@ ensure_behat_test_mode_enabled() {
         return
     fi
     log "Garantindo que o modo de testes do Behat esteja habilitado..."
-    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1"
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1"
 }
 
 cleanup() {
@@ -452,7 +452,7 @@ if [ -n "$PARALLEL_RUNS" ]; then
             log "Instalando ambiente Behat paralelo com $PARALLEL_RUNS workers (demorado: um site por worker)..."
         fi
         ensure_legacy_composer_for_behat_init
-        exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' --parallel=$PARALLEL_RUNS 2>&1"
+        exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' --parallel=$PARALLEL_RUNS 2>&1"
         log "Ambiente paralelo pronto ($PARALLEL_RUNS workers)."
     else
         log "Ambiente Behat paralelo já inicializado ($PARALLEL_RUNS workers)."
@@ -463,28 +463,28 @@ elif [ -n "$INIT_FLAG" ]; then
     ensure_legacy_composer_for_behat_init
 
     # Tenta preparar o site para modo behat (alguns forks exigem isso explicitamente).
-    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true"
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true"
 
     # --drop pode falhar se ainda não for site behat; é esperado na primeira execução.
-    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util_single_run.php' --drop 2>&1 || true"
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util_single_run.php' --drop 2>&1 || true"
 
     INIT_OUTPUT=""
-    if ! INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"); then
+    if ! INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"); then
         if echo "$INIT_OUTPUT" | grep -qi "upgraderunning"; then
             warn "Lock de upgrade detectado durante init do Behat. Limpando lock órfão e tentando novamente..."
-            exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -r \"
+            exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -r \"
                 require('$MOODLE_ROOT_IN_CONTAINER/config.php');
                 global \\$DB;
                 \\$DB->delete_records('config', array('name' => 'upgraderunning'));
                 echo 'upgraderunning lock removido' . PHP_EOL;
             \" 2>&1"
-            INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1") || {
+            INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1") || {
                 err "Falha ao inicializar Behat após remover lock de upgrade: $INIT_OUTPUT"
             }
         elif echo "$INIT_OUTPUT" | grep -qi "This is not a behat test site"; then
             warn "Site ainda não está em modo Behat. Forçando habilitação e tentando novamente..."
-            exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true"
-            INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1") || {
+            exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true"
+            INIT_OUTPUT=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1") || {
                 err "Falha ao inicializar Behat após forçar modo behat: $INIT_OUTPUT"
             }
         else
@@ -502,7 +502,7 @@ elif ! exec_as_moodle "test -f '$BEHAT_YML'" 2>/dev/null; then
     chmod a+w "$MOODLE_HOST_DIR"
 
     ensure_legacy_composer_for_behat_init
-    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
+    exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/init.php' 2>&1"
     log "Behat inicializado com sucesso."
 else
     log "Ambiente Behat já inicializado."
@@ -534,7 +534,7 @@ if [ -n "$PARALLEL_RUNS" ]; then
     # O run.php orquestra um processo behat por worker, cada um com seu behat.yml.
     # Diferente do behat, ele não aceita a feature como argumento posicional: exige --feature=.
     log "Modo paralelo: $PARALLEL_RUNS workers"
-    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M admin/tool/behat/cli/run.php"
+    BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 php -d memory_limit=512M admin/tool/behat/cli/run.php"
 else
     BEHAT_CMD="cd '$MOODLE_ROOT_IN_CONTAINER' && vendor/bin/behat --config='$BEHAT_YML' --ansi"
 fi

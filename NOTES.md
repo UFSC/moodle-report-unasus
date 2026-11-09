@@ -110,3 +110,13 @@ Recent commits focus on report ordering, activity presentation, test coverage, d
   - Raw WebDriver session via curl returns correct title in JSON.
   - Only Behat/Mink fails — because it's the only component parsing the JSON element structure.
   - Confirm dialect by checking `docker logs selenium-chrome-... | grep dialect` (should show `OSS`, not `W3C`) or `POST /wd/hub/session/<sid>/elements` response (should have key `ELEMENT`, not `element-6066-...`).
+
+### Etapa 4 (November 2026) — Behat back after host and container upgrades
+
+- **Symptoms, in order:** `util.php --enable` and `init.php` died with a bare `Out of memory`; once that was fixed, every scenario failed at `I follow "Courses"` because `I log in as` never submitted the form.
+- **Causes:**
+  1. `USE_ZEND_ALLOC=0` on the Moodle CLI calls of `run_behat.sh`: with the system allocator `util.php --enable` dies with `Out of memory` at any `memory_limit`, even `-1`. Removed from those calls; kept in the composer wrapper.
+  2. `vendor/instaclick/php-webdriver/.../CurlService.php` sends a POST without parameters with `CURLOPT_POST` and no body (`Content-Length: 0`). With libcurl 7.88 of the rebuilt container the click command does nothing (response `null`, no `click` event in the page). Patched to send `{}`.
+  3. The `Selenium2Driver.php` patch of Etapa 3 was missing from `vendor/` and was re-applied.
+- **How it was isolated:** typing worked but clicks did not, also on a `data:` page without Moodle and with a Chrome 94 image; the same click sent with raw WebDriver HTTP and a `{}` body worked on Chrome 75. Reproducing the library request shape (POST, no body) gave the failure.
+- **Confirmed result:** 99 scenarios, 2732 steps pass, 11m45s, on MySQL 5.7.

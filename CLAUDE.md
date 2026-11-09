@@ -119,6 +119,7 @@ Notes:
 - Manages Selenium container; pinned to `selenium/standalone-chrome:3.141.59-selenium` (Chrome 75 + chromedriver 75) — auto-recreates on image mismatch. Adds `/etc/hosts` for `$URL_NAME` inside both containers.
 - Requires user in the `docker` group (`sudo usermod -aG docker $USER` + new shell). No `sudo` calls in the scripts.
 - **Requires patch in `vendor/behat/mink-selenium2-driver/.../Selenium2Driver.php::setDesiredCapabilities()`** to force OSS WebDriver dialect (`chromeOptions.w3c=false`) — without this, the entire stack returns null elements. Re-apply if Composer ever rewrites `vendor/`. See "Etapa 3" in [NOTES.md](NOTES.md) for full diagnosis history.
+- **Requires patch in `vendor/instaclick/php-webdriver/lib/WebDriver/Service/CurlService.php::execute()`**: a POST without parameters must send `{}` as body. With `CURLOPT_POST` and no body, libcurl 7.88 (container image built Oct 2026) sends nothing usable and chromedriver drops the command, so clicks never happen and every `I log in as` stays on the login page. Same re-apply rule. See "Etapa 4" in [NOTES.md](NOTES.md).
 - Full reference of feature files, scenarios, and known limitations: [TESTS.md](TESTS.md).
 
 ## Behat Validation Policy
