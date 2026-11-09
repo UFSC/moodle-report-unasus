@@ -276,7 +276,7 @@ function query_postagens_forum_from_users($cohort_estudantes) {
                       ORDER BY firstname
                    ) u
          LEFT JOIN (
-                        SELECT fp.userid AS userid_posts, fp.created AS submission_date, fd.name AS forum_name, f.id as itemid
+                        SELECT fp.userid AS userid_posts, MIN(fp.created) AS submission_date, f.name AS forum_name, f.id as itemid
                           FROM {forum} f
                           JOIN {forum_discussions} fd
                             ON (fd.forum=f.id)
@@ -284,7 +284,6 @@ function query_postagens_forum_from_users($cohort_estudantes) {
                             ON (fd.id = fp.discussion)
                          WHERE f.id=:forumid
                       GROUP BY fp.userid
-                      ORDER BY fp.created ASC
                    ) fp
                 ON (fp.userid_posts=u.id)
          LEFT JOIN (
@@ -616,12 +615,8 @@ function query_atividades_from_users($cohort_estudantes) {
                    ) u
          LEFT JOIN (
                     SELECT sub.*
-                      FROM (
-                              SELECT *
-                                FROM {assign_submission}
-                            ORDER BY attemptnumber DESC
-                           ) sub
-                    GROUP BY sub.userid, sub.assignment
+                      FROM {assign_submission} sub
+                     WHERE sub.latest = 1
                    ) sub
                 ON (u.id=sub.userid AND sub.assignment=:assignmentid)
          LEFT JOIN {assign_grades} gr
